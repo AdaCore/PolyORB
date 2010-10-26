@@ -36,6 +36,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Strings;
+with PolyORB.Setup;
 
 package body PolyORB.Representations.CDR.GIOP_1_1 is
 
@@ -70,6 +71,7 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    procedure Deferred_Initialization is
    begin
       Register_Factory (1, 1, Create'Access);
+      PolyORB.Setup.Default_Representation := Representation_Access (Create);
    end Deferred_Initialization;
 
    --------------

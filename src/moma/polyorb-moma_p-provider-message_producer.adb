@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -123,7 +123,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
 
          QoS_Params (PolyORB.QoS.Static_Priority) :=
            PolyORB.Request_QoS.Extract_Request_Parameter
-           (PolyORB.QoS.Static_Priority, Req);
+           (PolyORB.QoS.Static_Priority, Req.all);
 
          Publish
            (Self.Remote_Ref,
@@ -166,7 +166,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
          Result    => Result,
          Req       => Request);
 
-      PolyORB.Request_QoS.Set_Request_QoS (Request, QoS_Params);
+      PolyORB.Request_QoS.Set_Request_QoS (Request.all, QoS_Params);
 
       PolyORB.Requests.Invoke (Request);
 

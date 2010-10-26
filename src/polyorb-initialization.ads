@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,22 +52,27 @@ package PolyORB.Initialization is
 
       Provides  : String_Lists.List;
       --  A list of 'virtual' modules provided by this one.
-      --  Several different implementations of the same
-      --  service may exist: they shall have different Names,
-      --  but will list the same common name in their Provides
-      --  list.
+      --  Several different implementations of the same service may exist: they
+      --  shall have different Names, but will list the same common name in
+      --  their Provides list. If an exclamation mark (!) is appended to a
+      --  provided name, this is equivalent to also listing that module in
+      --  the Conflicts list (preventing any other module from providing the
+      --  same virtual module).
 
       Depends   : String_Lists.List;
-      --  The list of modules this one depends upon. If
-      --  a question mark is appended to a name in Depends,
-      --  then the dependency is optional, which means that
-      --  the presence of the depended-upon module is not required,
-      --  but that if that module is present, then it must be
-      --  initialized before this one.
+      --  The list of modules this one depends upon. If a question mark is
+      --  appended to a name in Depends, then the dependency is optional, which
+      --  means that the presence of the depended-upon module is not required,
+      --  but that if that module is present, then it must be initialized
+      --  before this one.
 
       Conflicts : String_Lists.List;
-      --  The list of modules that cannot be instantiated
-      --  simultaneously with this one.
+      --  The list of modules that cannot be instantiated simultaneously with
+      --  this one. Note that if this list has an entry mentioning a virtual
+      --  module provided by this module, then there is no conflict unless
+      --  another module provides the same virtual module. This allows the
+      --  specification of multiple implementations of the same virtual
+      --  module that are mutually exclusive.
 
       Init : Initializer;
       --  The initialization procedure for this module

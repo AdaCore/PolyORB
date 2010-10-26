@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -153,7 +153,7 @@ package body PolyORB.QoS.Clients_Security is
          Result := Result or Establish_Trust_In_Client;
       end if;
 
-      if Mechanism.Authorities /= Client_Authority_Mechanism_Lists.Empty
+      if not Is_Empty (Mechanism.Authorities)
         and then Mechanism.Delegation_Supported
         and then Mechanism.Delegation_Required
       then
@@ -186,7 +186,7 @@ package body PolyORB.QoS.Clients_Security is
          Result := Result or Identity_Assertion;
       end if;
 
-      if Mechanism.Authorities /= Client_Authority_Mechanism_Lists.Empty
+      if not Is_Empty (Mechanism.Authorities)
         and then Mechanism.Delegation_Supported
       then
          Result := Result or Delegation_By_Client;

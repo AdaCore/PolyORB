@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ with Test_Interface;
 procedure Test000_Client is
    use Ada.Command_Line;
    use Ada.Text_IO;
-   use PolyORB.Utils.Report;
 
    IOR : constant String := Ada.Command_Line.Argument (1);
    Ref, Invalid_Ref : Test_Interface.Ref;

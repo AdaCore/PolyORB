@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,25 +76,8 @@ package PolyORB.Termination_Manager is
    --  Start the Termination Manager with the chosen policy
 
 private
-   type Stamp_Type is mod 2 ** 8;
-
-   type Request_Status is (Outdated, Not_From_Father, Valid);
-
-   function ">" (S1, S2 : Stamp_Type) return Boolean;
-   --  Compare two stamps. S1 > S2 means that S1 is very likely to have been
-   --  issued prior to S2. (Borrowed from GLADE s-garter).
-
-   type Action is access
-     function (TM : Term_Manager_Access; Stamp : Stamp_Type) return Boolean;
-
-   function Call_On_Neighbours
-     (A : Action; TM : access Term_Manager; Stamp : Stamp_Type) return Boolean;
-   --  Call action A on all the neighbours of the partition controlled by TM,
-   --  returns the global AND of every neighbour return value to A.
-
-   function Is_Locally_Terminated
-     (Expected_Running_Tasks : Natural) return Boolean;
-   --  Wrapper for the Is_Locally_Terminated function defined in ORB_Controller
+   type Stamp_Type is mod 2 ** Integer'Size;
+   --  Termination wave time stamp
 
    type Term_Manager is tagged limited record
       Terminated : Boolean := False;
@@ -122,4 +105,5 @@ private
       --  The number of expected non terminated tasks when we perform a local
       --  termination computation.
    end record;
+
 end PolyORB.Termination_Manager;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -161,7 +161,7 @@ package body PolyORB.Exceptions is
    begin
       O ("Dump_All_Occurrences:");
 
-      if Exc_Occ_List = Empty then
+      if Is_Empty (Exc_Occ_List) then
          O ("No stored exceptions.");
          return;
       end if;

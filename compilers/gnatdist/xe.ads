@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,7 +86,7 @@ package XE is
    -- Attribute Type --
    --------------------
 
-   type Attribute_Type is new Int range 200 .. 216;
+   type Attribute_Type is new Int range 200 .. 217;
 
    Attribute_Unknown               : constant Attribute_Type := 200;
    Attribute_Host                  : constant Attribute_Type := 201;
@@ -105,21 +105,23 @@ package XE is
    Attribute_Priority              : constant Attribute_Type := 214;
    Attribute_Allow_Light_PCS       : constant Attribute_Type := 215;
    Attribute_Environment_Variables : constant Attribute_Type := 216;
+   Attribute_ORB_Tasking_Policy    : constant Attribute_Type := 217;
 
    -----------------
    -- Pragma Type --
    -----------------
 
-   type Pragma_Type is new Int range 300 .. 307;
+   type Pragma_Type is new Int range 300 .. 308;
 
    Pragma_Unknown       : constant Pragma_Type := 300;
-   Pragma_Starter       : constant Pragma_Type := 301;
+   Pragma_Boot_Location : constant Pragma_Type := 301;
    Pragma_Import        : constant Pragma_Type := 302;
-   Pragma_Boot_Location : constant Pragma_Type := 303;
-   Pragma_Version       : constant Pragma_Type := 304;
+   Pragma_Name_Server   : constant Pragma_Type := 303;
+   Pragma_Priority      : constant Pragma_Type := 304;
    Pragma_Reg_Filter    : constant Pragma_Type := 305;
-   Pragma_Priority      : constant Pragma_Type := 306;
-   Pragma_Remote_Shell  : constant Pragma_Type := 307;
+   Pragma_Remote_Shell  : constant Pragma_Type := 306;
+   Pragma_Starter       : constant Pragma_Type := 307;
+   Pragma_Version       : constant Pragma_Type := 308;
 
    ------------------------
    -- Import Method Type --
@@ -135,22 +137,23 @@ package XE is
    -- Predefined Type --
    ---------------------
 
-   type Predefined_Type is new Int range 401 .. 414;
+   type Predefined_Type is new Int range 401 .. 415;
 
-   Pre_Type_Partition  : constant Predefined_Type := 401;
-   Pre_Type_Channel    : constant Predefined_Type := 402;
-   Pre_Type_Boolean    : constant Predefined_Type := 403;
-   Pre_Type_Integer    : constant Predefined_Type := 404;
-   Pre_Type_String     : constant Predefined_Type := 405;
-   Pre_Type_Strings    : constant Predefined_Type := 406;
-   Pre_Type_Entity     : constant Predefined_Type := 407;
-   Pre_Type_Convention : constant Predefined_Type := 408;
-   Pre_Type_Ada_Unit   : constant Predefined_Type := 409;
-   Pre_Type_Function   : constant Predefined_Type := 410;
-   Pre_Type_Procedure  : constant Predefined_Type := 411;
-   Pre_Type_Task_Pool  : constant Predefined_Type := 412;
-   Pre_Type_Location   : constant Predefined_Type := 413;
-   Pre_Type_Locations  : constant Predefined_Type := 414;
+   Pre_Type_Partition   : constant Predefined_Type := 401;
+   Pre_Type_Channel     : constant Predefined_Type := 402;
+   Pre_Type_Boolean     : constant Predefined_Type := 403;
+   Pre_Type_Integer     : constant Predefined_Type := 404;
+   Pre_Type_String      : constant Predefined_Type := 405;
+   Pre_Type_Strings     : constant Predefined_Type := 406;
+   Pre_Type_Entity      : constant Predefined_Type := 407;
+   Pre_Type_Convention  : constant Predefined_Type := 408;
+   Pre_Type_Ada_Unit    : constant Predefined_Type := 409;
+   Pre_Type_Function    : constant Predefined_Type := 410;
+   Pre_Type_Procedure   : constant Predefined_Type := 411;
+   Pre_Type_Task_Pool   : constant Predefined_Type := 412;
+   Pre_Type_Location    : constant Predefined_Type := 413;
+   Pre_Type_Locations   : constant Predefined_Type := 414;
+   Pre_Type_Name_Server : constant Predefined_Type := 415;
 
    ----------------------
    -- Termination Type --
@@ -199,6 +202,42 @@ package XE is
    Client_Propagated   : constant Priority_Policy_Type := 802;
    Priority_Policy_Img : array (Priority_Policy_Type) of Name_Id;
 
+   -----------------------------
+   -- ORB Tasking Policy Type --
+   -----------------------------
+
+   type ORB_Tasking_Policy_Type is new Int range 900 .. 903;
+
+   No_ORB_Tasking_Policy  : constant ORB_Tasking_Policy_Type := 900;
+   Thread_Pool            : constant ORB_Tasking_Policy_Type := 901;
+   Thread_Per_Session     : constant ORB_Tasking_Policy_Type := 902;
+   Thread_Per_Request     : constant ORB_Tasking_Policy_Type := 903;
+   ORB_Tasking_Policy_Img : array (ORB_Tasking_Policy_Type) of Name_Id;
+
+   -----------------------------
+   -- ORB Tasking Policy Type --
+   -----------------------------
+
+   type Name_Server_Type is new Int range 950 .. 953;
+
+   No_Name_Server  : constant Name_Server_Type := 950;
+   Embedded        : constant Name_Server_Type := 951;
+   Standalone      : constant Name_Server_Type := 952;
+   Multicast       : constant Name_Server_Type := 953;
+   Name_Server_Img : array (Name_Server_Type) of Name_Id;
+
+   ------------------
+   -- Tasking Type --
+   ------------------
+
+   type Tasking_Type is new Int range 1000 .. 1003;
+
+   Unknown_Tasking : constant Tasking_Type := 1000;
+   PCS_Tasking     : constant Tasking_Type := 1001;
+   User_Tasking    : constant Tasking_Type := 1002;
+   No_Tasking      : constant Tasking_Type := 1003;
+   Tasking_Img     : array (Tasking_Type) of Name_Id;
+
    -------------
    -- Node Id --
    -------------
@@ -245,6 +284,7 @@ package XE is
    Location_Type_Node        : Type_Id;
    Locations_Type_Node       : Type_Id;
    Priority_Policy_Type_Node : Type_Id;
+   Name_Server_Type_Node     : Type_Id;
 
    Pragma_Starter_Node       : Subprogram_Id;
    Pragma_Import_Node        : Subprogram_Id;
@@ -253,6 +293,7 @@ package XE is
    Pragma_Reg_Filter_Node    : Subprogram_Id;
    Pragma_Priority_Node      : Subprogram_Id;
    Pragma_Remote_Shell_Node  : Subprogram_Id;
+   Pragma_Name_Server_Node   : Subprogram_Id;
 
    Infinite : constant  Int := Int'Last;
    --  Size of an unconstrained array
@@ -369,56 +410,48 @@ package XE is
    --  case, each array element is considered as a component.
 
    function Get_Array_Component_Type
-     (Type_Node : Type_Id)
-     return Type_Id;
+     (Type_Node : Type_Id) return Type_Id;
    pragma Inline (Get_Array_Component_Type);
    --  When the type is a component array type, this function returns the
    --  type of a component.
 
    function Get_Attribute_Kind
-     (Component_Node : Component_Id)
-     return Attribute_Type;
+     (Component_Node : Component_Id) return Attribute_Type;
    pragma Inline (Get_Attribute_Kind);
    --  A type or a variable is a set of components and of attributes. This
    --  function returns the attribute type, Attribute_Unknown when it is
    --  not an attribute.
 
    function Get_Array_Length
-     (Variable_Node : Variable_Id)
-     return Int;
+     (Variable_Node : Variable_Id) return Int;
    pragma Inline (Get_Array_Length);
    --  When the type of Variable_Node is an unconstrained array, this
    --  function returns the current length of the array. Otherwise, it
    --  returns the length of the array type.
 
    function Get_Array_Length
-     (Type_Node : Type_Id)
-     return Int;
+     (Type_Node : Type_Id) return Int;
    pragma Inline (Get_Array_Length);
    --  When the type is a record type, return 0. For a constrained
    --  array type, this function returns the length of the array
    --  type. Infinite for an unconstrained array type.
 
    function Get_Component_Name
-     (Component : Component_Id)
-     return Name_Id;
+     (Component : Component_Id) return Name_Id;
    pragma Inline (Get_Component_Name);
 
    function Get_Component_Type
-     (Component_Node : Component_Id)
-     return Type_Id;
+     (Component_Node : Component_Id) return Type_Id;
    pragma Inline (Get_Component_Type);
 
    function Get_Component_Value
-     (Component_Node : Component_Id)
-     return Variable_Id;
+     (Component_Node : Component_Id) return Variable_Id;
    pragma Inline (Get_Component_Value);
    --  The component has to be initialized. This function returns the
    --  variable set as component value.
 
    function Get_Node_Name
-     (Node : Node_Id)
-     return Name_Id;
+     (Node : Node_Id) return Name_Id;
    pragma Inline (Get_Node_Name);
 
    procedure Get_Node_SLOC
@@ -428,20 +461,17 @@ package XE is
    pragma Inline (Get_Node_SLOC);
 
    function Get_Parameter_Type
-     (Parameter_Node : Parameter_Id)
-     return Type_Id;
+     (Parameter_Node : Parameter_Id) return Type_Id;
    pragma Inline (Get_Parameter_Type);
 
    function Get_Parameter_Value
-     (Parameter_Node : Parameter_Id)
-     return Variable_Id;
+     (Parameter_Node : Parameter_Id) return Variable_Id;
    pragma Inline (Get_Parameter_Value);
    --  This parameter has to be initialized. This function returns the
    --  variable set as parameter value.
 
    function Get_Pragma_Kind
-     (Subprogram_Node : Subprogram_Id)
-     return Pragma_Type;
+     (Subprogram_Node : Subprogram_Id) return Pragma_Type;
    pragma Inline (Get_Pragma_Kind);
    --  Subprograms are used to implement pragmas and to represent some
    --  ada units (function and procedures). This function returns
@@ -449,13 +479,11 @@ package XE is
    --  pragma.
 
    function Get_Scalar_Value
-     (Variable_Node : Variable_Id)
-      return Int;
+     (Variable_Node : Variable_Id) return Int;
    --  Return a scalar rather than a variable as a value.
 
    function Get_Subprogram_Call
-     (Statement_Node  : Statement_Id)
-      return Subprogram_Id;
+     (Statement_Node  : Statement_Id) return Subprogram_Id;
    --  This statement is a procedure call. This returns a copy of the
    --  subprogram call with the initialized parameters in it.
 
@@ -463,84 +491,69 @@ package XE is
    --  Use name key to get back the token type.
 
    function Get_Type_Kind
-     (Type_Node : Type_Id)
-     return Predefined_Type;
+     (Type_Node : Type_Id) return Predefined_Type;
    pragma Inline (Get_Type_Kind);
    --  This function returns the predefined_type id of Type_Node.
 
    function Get_Variable_Name
-     (Variable : Variable_Id)
-     return Name_Id;
+     (Variable : Variable_Id) return Name_Id;
    pragma Inline (Get_Variable_Name);
 
    function Get_Variable_Type
-     (Variable_Node : Variable_Id)
-     return Type_Id;
+     (Variable_Node : Variable_Id) return Type_Id;
    pragma Inline (Get_Variable_Type);
 
    function Get_Variable_Value
-     (Variable_Node : Variable_Id)
-     return Variable_Id;
+     (Variable_Node : Variable_Id) return Variable_Id;
    pragma Inline (Get_Variable_Value);
    --  Return a variable rather than a scalar as a value.
 
    procedure Initialize;
 
    function Is_Component
-     (Node : Node_Id)
-      return Boolean;
+     (Node : Node_Id) return Boolean;
    pragma Inline (Is_Component);
 
    function Is_Component_Initialized
-     (Component_Node : Component_Id)
-     return Boolean;
+     (Component_Node : Component_Id) return Boolean;
    pragma Inline (Is_Component_Initialized);
    --  Has this component a value.
 
    function Is_Configuration
-     (Node : Node_Id)
-      return Boolean;
+     (Node : Node_Id) return Boolean;
    pragma Inline (Is_Configuration);
 
    function Is_Parameter_Initialized
-     (Parameter_Node : Parameter_Id)
-      return Boolean;
+     (Parameter_Node : Parameter_Id) return Boolean;
    --  Has this parameter a value. Parameter are marked to find which
    --  parameter is missing in a subprogram call.
 
    function Is_Statement
-     (Node : Node_Id)
-      return Boolean;
+     (Node : Node_Id) return Boolean;
    pragma Inline (Is_Statement);
 
    function Is_Subprogram
-     (Node : Node_Id)
-      return Boolean;
+     (Node : Node_Id) return Boolean;
    pragma Inline (Is_Subprogram);
 
    function Is_Subprogram_A_Procedure
-     (Subprogram_Node : Subprogram_Id)
-     return Boolean;
+     (Subprogram_Node : Subprogram_Id) return Boolean;
    pragma Inline (Is_Subprogram_A_Procedure);
 
    function Is_Type
-     (Node : Node_Id)
-     return Boolean;
+     (Node : Node_Id) return Boolean;
    pragma Inline (Is_Type);
 
    function Is_Type_Composite
-     (Type_Node : Type_Id)
-     return Boolean;
+     (Type_Node : Type_Id) return Boolean;
    pragma Inline (Is_Type_Composite);
 
    function Is_Variable
-     (Node : Node_Id)
-     return Boolean;
+     (Node : Node_Id) return Boolean;
    pragma Inline (Is_Variable);
 
    function Is_Variable_Initialized
-     (Variable_Node : Variable_Id)
-     return Boolean;
+     (Variable_Node : Variable_Id) return Boolean;
    pragma Inline (Is_Variable_Initialized);
 
    procedure Jump_Context (Context : Context_Type);
@@ -556,8 +569,7 @@ package XE is
    --  index.
 
    function New_Component_Name
-     (Variable_Node : Variable_Id)
-     return Name_Id;
+     (Variable_Node : Variable_Id) return Name_Id;
    pragma Inline (New_Component_Name);
    --  Returns an anonymous name which does not conflict with user
    --  name. This name is composed of a constant prefix and the index
@@ -752,6 +764,18 @@ package XE is
    pragma Inline (Convert);
 
    function Convert (Item : Int) return Priority_Policy_Type;
+   pragma Inline (Convert);
+
+   function Convert (Item : ORB_Tasking_Policy_Type) return Int;
+   pragma Inline (Convert);
+
+   function Convert (Item : Int) return ORB_Tasking_Policy_Type;
+   pragma Inline (Convert);
+
+   function Convert (Item : Name_Server_Type) return Int;
+   pragma Inline (Convert);
+
+   function Convert (Item : Int) return Name_Server_Type;
    pragma Inline (Convert);
 
 end XE;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,12 +46,11 @@ package PolyORB.Tasking.Mutexes is
 
    type Mutex_Type is abstract tagged limited private;
    type Mutex_Access is access all Mutex_Type'Class;
-   --  Mutual exclusion locks (mutexes)  prevent  multiple  threads
-   --  from  simultaneously  executing  critical  sections  of code
-   --  which access shared data (that is, mutexes are used to seri-
-   --  alize the execution of threads). While a thread is in the
-   --  critical section protected by a mutex, it is designated as
-   --  the owner of that mutex.
+   --  Mutual exclusion locks (mutexes) prevent multiple threads from
+   --  simultaneously executing critical sections of code which access shared
+   --  data (that is, mutexes are used to serialize the execution of
+   --  threads). While a thread is in the critical section protected by a
+   --  mutex, it is designated as the owner of that mutex.
 
    procedure Enter (M : access Mutex_Type) is abstract;
    --  A call to Enter locks mutex object M. If M is already locked,
@@ -62,10 +61,10 @@ package PolyORB.Tasking.Mutexes is
 
    procedure Leave (M : access Mutex_Type) is abstract;
    --  Release M. M must be locked, and the caller must be the owner.
-   --  The scheduling policy determines which blocked thread is waken
-   --  up next and obtains the mutex.
+   --  The scheduling policy determines which blocked thread is awakened
+   --  next and obtains the mutex.
    --  It is erroneous for any process other than the owner of a mutex
-   --  to invoke Release.
+   --  to invoke Leave.
 
    -------------------
    -- Mutex_Factory --
@@ -76,7 +75,7 @@ package PolyORB.Tasking.Mutexes is
    --  A subclass of this factory exists for every tasking profile:
    --  Full Tasking, Ravenscar and No Tasking.
    --  This type provides functionalities for creating mutexes
-   --  corresponding with the chosen tasking profile.
+   --  corresponding to the chosen tasking profile.
 
    type Mutex_Factory_Access is access all Mutex_Factory_Type'Class;
 

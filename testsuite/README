@@ -1,8 +1,6 @@
 README for the PolyORB testsuite
 --------------------------------
 
-$Id: //droopi/main/testsuite/README#2 $
-
 This file details the organization of PolyORB's test suite.
 
 * Directory structure
@@ -28,13 +26,11 @@ We suppose you build PolyORB in $build_dir.
 
 2/ Build PolyORB's examples
 
-Go in $build_dir/examples
-Run make
+$ make examples
 
 3/ Build the test suite
 
-Go in $build_dir/testsuite
-Run Make
+$ make testsuite
 
 Note: some tests are not built by default: they require the
 installation of third-party middleware, and adaptation of the
@@ -43,12 +39,31 @@ for more details.
 
 * Run the test suite
 
-In $buld_dir/testsuite, type 'make run_tests'.
+Note: GNATPython is required to run the testsuite. To install it, run:
+svn checkout svn://scm.forge.open-do.org/scmrepos/svn/gnatpython/trunk gnatpython
+export PYTHONPATH=/path/to/gnatpython
 
-This will launch the test suite. Output is in $build_dir/output.
+$ make run_tests
 
-$build_dir/output/error provides information on any internal error,
-$build_dir/output/failed lists failed tests,
-$build_dir/output/log provides various information,
-$build_dir/output/<scenario_name>/<test> is a trace of the test.
+or
 
+$ ./testsuite -j N --diff
+
+All results are stored in the 'out' directory by default and log in the 'log'
+directory.
+
+To run only the corba tests:
+
+./testsuite.py -j N --diff corba
+
+To run the all_exceptions corba tests
+
+./testsuite.py -j N --diff corba/all_exceptions/
+
+And to run a specific test CORBA_ALL_EXCEPTIONS_0
+
+./testsuite.py -j N --diff corba/all_exceptions/CORBA_ALL_EXCEPTIONS_0
+
+A report is created in out/report.
+
+See ./testsuite.py -h for more help

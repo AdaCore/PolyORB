@@ -1,6 +1,18 @@
 #! /bin/sh
 
-EDIT_CONFIGURE_IN=false
+# Make sure we do not export SHELLOPTS to child processes. Otherwise, they
+# would inherit the "set -e" below, and those scripts expect to continue on
+# "errors". We could do "export -n SHELLOPTS", but we don't want to run
+# configure with SHELLOPTS=igncr, as is often done in Cygwin, because some
+# versions of autoconf put a hard CR in configure, and igncr ignores that CR.
+# Better to give an error here.
+if (export | grep -i shellopts > /dev/null); then
+  echo error: SHELLOPTS environment variable must not be exported
+  echo SHELLOPTS = $SHELLOPTS
+  exit 1
+fi
+
+DISTRIBUTION_MODE=false
 
 # Find a version of awk that supports gsub
 NAWK=`which nawk 2> /dev/null`
@@ -10,16 +22,17 @@ else
   NAWK=awk
 fi
 
-set -e
+set -e # Stop on errors.
 
 # The -w switch is used when creating the source distribution from the contents
 # of the repository. Its purpose is to adapt configure.ac for files that are
 # present in the repository but missing from source packages, and also to tweak
-# some knobs (such as the default warnings processing) that are intended to
-# differ between the repository and the source package.
+# some knobs that are intended to differ between the repository and the source
+# package.
 usage() {
   echo "$0 [-w]"
-  echo "  -w  edit configure.ac to remove files not available according to MANIFEST"
+  echo "  -w  distribution mode: adjust MANIFEST and generate configure"
+  echo "      for packaged sources (not for building directly from checkout)"
   exit 1
 }
 
@@ -27,7 +40,7 @@ while getopts w opt
 do
   case "$opt" in
     w)
-      EDIT_CONFIGURE_IN=true
+      DISTRIBUTION_MODE=true
       ;;
     *)
       usage
@@ -35,36 +48,8 @@ do
   esac
 done
 
-if ${EDIT_CONFIGURE_IN}
-then
-  echo "Editing configure.ac"
-  mv configure.ac configure.ac.orig
-  ${NAWK} '
-    BEGIN { st = 0; nf = 0; }
-    FILENAME == "MANIFEST" {
-      manifest[nf++] = $0;
-      next;
-    }
-    /^DEFAULT_WARNINGS_MODE=/ { sub (/\=.*/, "=n"); }
-    /^AC_OUTPUT\(/ {
-      st = 1; print; next;
-    }
-    st == 1 && /^\]/ {
-      st = 0;
-    }
-    st == 1 {
-      fn = $0;
-      gsub (/[ 	]/,"", fn);
-      for (j = 0; j < nf; j++) {
-        if (manifest[j] == fn ".in") {
-          print;
-          break;
-        }
-      }
-      next;
-    }
-    { print; }' MANIFEST configure.ac.orig > configure.ac
-  rm -f configure.ac.orig
+if [ -f support/distrib.m4 ]; then
+  echo "Using source distribution data from support/distrib.m4"
 fi
 
 rm -f aclocal.m4 support/libtool.m4 configure
@@ -83,16 +68,20 @@ mv support/ltmain.sh support/ltmain.sh.orig
 sed -e '/xlinker)/,/;;$/s/\$wl/-Xlinker /g' < support/ltmain.sh.orig > support/ltmain.sh
 rm -f support/ltmain.sh.orig
 
-echo "Running aclocal"
+show_step() {
+  echo "Running `$1 --version | head -1`"
+}
+
+show_step aclocal
 aclocal -I support
 
-echo "Running autoheader"
+show_step autoheader
 autoheader
 
-echo "Running autoconf"
+show_step autoconf
 autoconf
 
-echo "Running automake"
+show_step automake
 automake --add-missing --copy
 
 echo "Generating IDL tree accessors"

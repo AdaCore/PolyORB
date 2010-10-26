@@ -1322,10 +1322,10 @@ begin
 
    begin
       Oneway_Void_Proc;
-      delay 1.0;
+      delay 0.5;
       Ok := Oneway_Checker = 1;
       if Ok then
-         delay 5.0;
+         delay 1.0;
          Ok := Oneway_Checker = 2;
       end if;
    exception when others =>
@@ -1335,10 +1335,10 @@ begin
 
    begin
       Oneway_In_Proc (10, 20);
-      delay 1.0;
+      delay 0.5;
       Ok := Oneway_Checker = 10;
       if Ok then
-         delay 5.0;
+         delay 1.0;
          Ok := Oneway_Checker = 20;
       end if;
    exception when others =>

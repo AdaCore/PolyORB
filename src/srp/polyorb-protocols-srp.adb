@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -339,9 +339,9 @@ package body PolyORB.Protocols.SRP is
    begin
       pragma Debug (C, O ("Received disconnect."));
 
-      --  Cleanup protocol.
-      Buffers.Release (S.Buffer_In);
+      --  Cleanup protocol
 
+      Buffers.Release (S.Buffer_In);
    end Handle_Disconnect;
 
    ---------------------------------
@@ -434,7 +434,7 @@ package body PolyORB.Protocols.SRP is
 
          declare
             Value : aliased Stream_Element_Array :=
-              To_SEA (Current_Arg.all.Value.all & ASCII.nul);
+              To_SEA (Current_Arg.all.Value.all & ASCII.NUL);
          begin
             Initialize_Buffer (Buffer     => Temp_Buffer'Access,
                                Size       => Value'Length,

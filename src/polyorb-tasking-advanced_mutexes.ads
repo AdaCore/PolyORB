@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,33 +42,34 @@ package PolyORB.Tasking.Advanced_Mutexes is
    pragma Preelaborate;
 
    type Adv_Mutex_Type is limited private;
-   --  This is a classical mutual exclusion object except that when a
-   --  task try to Enter a mutex several times without leaving it
-   --  first, it is not blocked and can continue. Leave keeps track of
-   --  the number of times Enter has been successful, and must be called
-   --  the number of times that Enter has been called to free the lock.
+   --  This is a classical mutual exclusion object except that it allows
+   --  nested critical sections; that is, when a task tries to Enter a mutex
+   --  several times without leaving it first, it is not blocked and can
+   --  continue. Leave keeps track of the number of times Enter has been
+   --  successful, and must be called the number of times that Enter has been
+   --  called to free the lock.
 
-   --  Example :
+   --  Example (assuming all calls below are done by one task):
    --
    --  Enter (My_Mutex);
-   --  --  Enter the first critical section.
+   --  --  Enter the critical section.
    --
    --  Enter (My_Mutex);
-   --  --  Enter the second critical section.
+   --  --  Enter the critical section again.
    --
    --  Do_Some_Stuff;
    --
    --  Leave (My_Mutex);
-   --  --  Leave the second critical section and keep the lock.
+   --  --  Keep the lock.
    --
    --  Enter (My_Mutex);
-   --  --  Reenter the second critical section.
+   --  --  Reenter.
    --
    --  Leave (My_Mutex);
-   --  --  Leave the second critical section.
+   --  --  Still keep the lock
    --
    --  Leave (My_Mutex);
-   --  --  Leave the first critical section and free the lock.
+   --  --  Leave the critical section and free the lock.
 
    type Adv_Mutex_Access is access all Adv_Mutex_Type;
 
@@ -98,7 +99,7 @@ private
    type Adv_Mutex_Type is record
       Empty   : Boolean;
       pragma Atomic (Empty);
-      --  If no theres is no owner for this Mutex, True. else, False.
+      --  If no there is no owner for this Mutex, True. else, False.
 
       Current     : Threads.Thread_Id;
       pragma Atomic (Current);
@@ -106,7 +107,7 @@ private
 
       Level       : Natural;
       pragma Atomic (Level);
-      --  Number of time the Thread owning the Id enter the mutex
+      --  Number of times the Thread owning the Id enter the mutex
       --  minus the number of calls to Leave.
 
       Await_Count : Integer := 0;

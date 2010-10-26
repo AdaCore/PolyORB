@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,7 +77,7 @@ package body PolyORB.Lanes is
             end;
          end loop;
 
-         --  Test wether the task shall exit
+         --  Test whether the task should exit
 
          exit when R.L.Clean_Up_In_Progress or else R.Dynamically_Allocated;
 
@@ -172,8 +172,7 @@ package body PolyORB.Lanes is
                   Name             => "",
                   Default_Priority => ORB_Priority,
                   Storage_Size     => Stack_Size,
-                  R                => Runnable_Access (New_Runnable),
-                  C                => new Runnable_Controller);
+                  R                => Runnable_Access (New_Runnable));
                pragma Unreferenced (T);
             begin
                null;
@@ -259,8 +258,7 @@ package body PolyORB.Lanes is
                      Name             => "",
                      Default_Priority => L.ORB_Priority,
                      Storage_Size     => L.Stack_Size,
-                     R                => Runnable_Access (New_Runnable),
-                     C                => new Runnable_Controller);
+                     R                => Runnable_Access (New_Runnable));
                   pragma Unreferenced (T);
                begin
                   null;
@@ -294,7 +292,7 @@ package body PolyORB.Lanes is
       RJ : PolyORB.ORB.Request_Job renames PolyORB.ORB.Request_Job (J.all);
 
       Parameter : constant QoS_Parameter_Access
-        := Extract_Request_Parameter (Static_Priority, RJ.Request);
+        := Extract_Request_Parameter (Static_Priority, RJ.Request.all);
 
       Queuing_Priority : External_Priority;
 
@@ -306,7 +304,7 @@ package body PolyORB.Lanes is
          Queuing_Priority := QoS_Static_Priority (Parameter.all).EP;
 
          Add_Reply_QoS
-           (RJ.Request,
+           (RJ.Request.all,
             Static_Priority,
             new QoS_Parameter'Class'(Parameter.all));
 

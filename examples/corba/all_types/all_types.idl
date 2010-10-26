@@ -42,9 +42,12 @@ interface all_types {
 
   // Exceptions
   // ----------
-  exception my_exception {long info;};
+  exception my_exception {
+    long info;
+    string why;
+  };
 
-  void testException (in long arg) raises (my_exception);
+  void testException (in long info, in string why) raises (my_exception);
   void testUnknownException (in long arg);
   void testSystemException (in long arg);
 
@@ -134,6 +137,11 @@ interface all_types {
   // -----------
   typedef fixed<18,2> Money;
   Money echoMoney (in Money arg);
+
+  // Any
+  // ---
+
+  any echoAny (in any arg);
 
   // Attributes
   // ----------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
@@ -55,14 +55,17 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    use PolyORB.Filters.MIOP.MIOP_In;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.UDP_Access_Points;
 
+   --  Just one UIPMC AP supported???
+
    UIPMC_Access_Point : UDP_Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_In_Access_Point,
-         PF      => new PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Factory);
+     := (Socket        => No_Socket,
+         Address       => No_Sock_Addr,
+         SAP           => new Socket_Access_Point,
+         PF            =>
+           new PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Factory);
 
    Fra : aliased Fragmenter_Factory;
    Min : aliased MIOP_In_Factory;
@@ -80,25 +83,28 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    is
       use PolyORB.Parameters;
 
-      Addr : constant String
-        := Get_Conf
-        ("miop", "polyorb.miop.multicast_addr",
-         Default_Multicast_Group);
-      Port : constant Port_Type
-        := Port_Type (Get_Conf
-                      ("miop", "polyorb.miop.multicast_port",
-                       Default_Port));
+      Addr : constant String :=
+               Get_Conf ("miop", "polyorb.miop.multicast_addr", "");
+      Port : constant Port_Type :=
+               Port_Type (Get_Conf ("miop", "polyorb.miop.multicast_port", 0));
    begin
       if Get_Conf ("access_points", "uipmc", True) then
+
+         --  If multicast group address or port number is not set, access
+         --  point is deactivated.
+
+         if Addr = "" or else Port = 0 then
+            return;
+         end if;
 
          Initialize_Multicast_Socket
            (UIPMC_Access_Point, Inet_Addr (Addr), Port);
 
          Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => UIPMC_Access_Point.SAP,
-            Chain  => UIPMC_Factories'Access,
-            PF     => UIPMC_Access_Point.PF);
+           (ORB   => The_ORB,
+            TAP   => UIPMC_Access_Point.SAP,
+            Chain => UIPMC_Factories'Access,
+            PF    => UIPMC_Access_Point.PF);
       end if;
 
    end Initialize_Access_Points;

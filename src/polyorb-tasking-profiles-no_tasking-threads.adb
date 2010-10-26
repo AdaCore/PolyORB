@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -95,8 +95,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      R                : PTT.Runnable_Access;
-      C                : PTT.Runnable_Controller_Access)
+      R                : PTT.Runnable_Access)
      return PTT.Thread_Access
    is
       pragma Warnings (Off);
@@ -105,7 +104,6 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (Default_Priority);
       pragma Unreferenced (Storage_Size);
       pragma Unreferenced (R);
-      pragma Unreferenced (C);
       pragma Warnings (On);
    begin
       raise Tasking_Error;

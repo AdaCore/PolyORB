@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with Ada.Strings.Unbounded;
 with GNAT.Case_Util;
 with GNAT.Table;
 
-with Utils; use Utils;
+with Idlac_Utils; use Idlac_Utils;
 with Idl_Fe.Files;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Debug;
@@ -93,8 +93,8 @@ package body Idl_Fe.Parser is
 
    --  the buffers themself
    Token_Buffer : Token_Buffer_Type   := (others => T_Error);
-   Location_Buffer : Location_Buffer_Type
-     := (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
+   Location_Buffer : Location_Buffer_Type :=
+     (others => Idlac_Errors.No_Location);
    String_Buffer : String_Buffer_Type := (others => null);
 
    --  index of the current token in the buffer
@@ -427,8 +427,7 @@ package body Idl_Fe.Parser is
       end if;
 
       Token_Buffer := (others => T_Error);
-      Location_Buffer :=
-       (others => (Dirname => null, Filename => null, Line => 0, Col => 0));
+      Location_Buffer := (others => Idlac_Errors.No_Location);
       String_Buffer := (others => null);
       Current_Index := 0;
       Newest_Index := 0;
@@ -931,7 +930,7 @@ package body Idl_Fe.Parser is
                            Idlac_Errors.Error,
                            Get_Token_Location);
                      end if;
-                     while Get_Token /= T_Right_Cbracket and
+                     while Get_Token /= T_Right_Cbracket and then
                        Get_Token /= T_Eof loop
                         --  try to parse a definition
                         Parse_Definition (Definition, Definition_Result);
@@ -1299,7 +1298,7 @@ package body Idl_Fe.Parser is
                      pragma Debug (O ("Parse_Interface_Dcl_End : non " &
                                       "duplicated inheritance"));
                      --  verify the abstraction of the inherited interface
-                     if Abst (Result) and not Abst (Value (Name)) then
+                     if Abst (Result) and then not Abst (Value (Name)) then
                         Idlac_Errors.Error
                           ("An abstract interface may not inherit from " &
                            "a statefull one.",
@@ -1307,7 +1306,7 @@ package body Idl_Fe.Parser is
                            Get_Token_Location);
                      end if;
                      --  verify XXX
-                     if not Local (Result) and Local (Value (Name)) then
+                     if not Local (Result) and then Local (Value (Name)) then
                         Idlac_Errors.Error
                           ("An unconstrained interface may not inherit from " &
                            "a local interface.",
@@ -1689,10 +1688,10 @@ package body Idl_Fe.Parser is
 
          --  Here we try to avoid recursivity in structs and unions
          if (Kind (Get_Current_Scope) = K_Struct
-             or Kind (Get_Current_Scope) = K_Union)
-           and Get_Current_Scope = A_Name then
+             or else Kind (Get_Current_Scope) = K_Union)
+           and then Get_Current_Scope = A_Name then
             --  recursivity is allowed through sequences or Pragma
-            if View_Previous_Previous_Token /= T_Sequence and
+            if View_Previous_Previous_Token /= T_Sequence and then
               View_Previous_Previous_Token /= T_Pragma then
                Idlac_Errors.Error
                  ("Recursive definitions not allowed",
@@ -2116,7 +2115,7 @@ package body Idl_Fe.Parser is
       --  Is there a previous definition and in the same scope ?
       if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          --  is it a forward
-         if Definition.Parent_Scope = Get_Current_Scope and
+         if Definition.Parent_Scope = Get_Current_Scope and then
            Kind (Definition.Node) = K_Forward_ValueType then
             --  nothing to do : this new forward declaration is useless
             Idlac_Errors.Error
@@ -2164,7 +2163,7 @@ package body Idl_Fe.Parser is
       --  Is there a previous definition and in the same scope ?
       if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          --  is it a forward
-         if Definition.Parent_Scope = Get_Current_Scope and
+         if Definition.Parent_Scope = Get_Current_Scope and then
            Kind (Definition.Node) = K_Forward_ValueType then
             --  nothing to do : this new forward declaration is useless
             Idlac_Errors.Error
@@ -3513,7 +3512,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       While_Loop :
-      while Get_Token = T_Greater_Greater or
+      while Get_Token = T_Greater_Greater or else
         Get_Token = T_Less_Less loop
          declare
             Res : Node_Id;
@@ -3571,26 +3570,28 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Octet or
-              Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
+            if Expr_Type.Kind = C_Octet or else
+              Expr_Type.Kind = C_Short or else
+              Expr_Type.Kind = C_Long or else
+              Expr_Type.Kind = C_LongLong or else
+              Expr_Type.Kind = C_UShort or else
+              Expr_Type.Kind = C_ULong or else
+              Expr_Type.Kind = C_ULongLong or else
               Expr_Type.Kind = C_General_Integer then
                --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  if Expr_Value (Right (Res)).Kind /= C_General_Integer and
-                    Expr_Value (Left (Res)).Kind /= C_General_Integer then
+               if Expr_Value (Left (Res)).Kind /= C_No_Kind and then
+                 Expr_Value (Right (Res)).Kind /= C_No_Kind
+               then
+                  if Expr_Value (Right (Res)).Kind /= C_General_Integer
+                    and then Expr_Value (Left (Res)).Kind /= C_General_Integer
+                  then
                      Set_Expr_Value (Res, Duplicate (Expr_Type));
                   else
                      Set_Expr_Value
                        (Res, new Constant_Value (Kind => C_General_Integer));
                   end if;
                   --  check the value of the right operand
-                  if Expr_Value (Right (Res)).Integer_Value < 0 or
+                  if Expr_Value (Right (Res)).Integer_Value < 0 or else
                     Expr_Value (Right (Res)).Integer_Value > 63
                   then
                      if Expr_Value (Right (Res)).Integer_Value < 0 then
@@ -3652,7 +3653,7 @@ package body Idl_Fe.Parser is
       if not Success then
          return;
       end if;
-      while Get_Token = T_Plus or
+      while Get_Token = T_Plus or else
         Get_Token = T_Minus loop
          declare
             Res : Node_Id;
@@ -3686,33 +3687,35 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Octet or
-              Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer or
-              Expr_Type.Kind = C_Float or
-              Expr_Type.Kind = C_Double or
-              Expr_Type.Kind = C_LongDouble or
-              Expr_Type.Kind = C_General_Float or
-              Expr_Type.Kind = C_Fixed or
+            if Expr_Type.Kind = C_Octet or else
+              Expr_Type.Kind = C_Short or else
+              Expr_Type.Kind = C_Long or else
+              Expr_Type.Kind = C_LongLong or else
+              Expr_Type.Kind = C_UShort or else
+              Expr_Type.Kind = C_ULong or else
+              Expr_Type.Kind = C_ULongLong or else
+              Expr_Type.Kind = C_General_Integer or else
+              Expr_Type.Kind = C_Float or else
+              Expr_Type.Kind = C_Double or else
+              Expr_Type.Kind = C_LongDouble or else
+              Expr_Type.Kind = C_General_Float or else
+              Expr_Type.Kind = C_Fixed or else
               Expr_Type.Kind = C_General_Fixed then
                --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
+               if Expr_Value (Left (Res)).Kind /= C_No_Kind and then
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  if Expr_Type.Kind = C_Octet or
-                    Expr_Type.Kind = C_Short or
-                    Expr_Type.Kind = C_Long or
-                    Expr_Type.Kind = C_LongLong or
-                    Expr_Type.Kind = C_UShort or
-                    Expr_Type.Kind = C_ULong or
-                    Expr_Type.Kind = C_ULongLong or
+                  if Expr_Type.Kind = C_Octet or else
+                    Expr_Type.Kind = C_Short or else
+                    Expr_Type.Kind = C_Long or else
+                    Expr_Type.Kind = C_LongLong or else
+                    Expr_Type.Kind = C_UShort or else
+                    Expr_Type.Kind = C_ULong or else
+                    Expr_Type.Kind = C_ULongLong or else
                     Expr_Type.Kind = C_General_Integer then
-                     if Expr_Value (Right (Res)).Kind /= C_General_Integer and
-                       Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Integer
+                       and then
+                       Expr_Value (Left (Res)).Kind /= C_General_Integer
+                     then
                         Set_Expr_Value (Res, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -3728,12 +3731,13 @@ package body Idl_Fe.Parser is
                           Expr_Value (Left (Res)).Integer_Value -
                           Expr_Value (Right (Res)).Integer_Value;
                      end if;
-                  elsif Expr_Type.Kind = C_Float or
-                    Expr_Type.Kind = C_Double or
-                    Expr_Type.Kind = C_LongDouble or
+                  elsif Expr_Type.Kind = C_Float or else
+                    Expr_Type.Kind = C_Double or else
+                    Expr_Type.Kind = C_LongDouble or else
                     Expr_Type.Kind = C_General_Float then
-                     if Expr_Value (Right (Res)).Kind /= C_General_Float and
-                       Expr_Value (Left (Res)).Kind /= C_General_Float then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Float
+                       and then Expr_Value (Left (Res)).Kind /= C_General_Float
+                     then
                         Set_Expr_Value (Res, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -3749,8 +3753,9 @@ package body Idl_Fe.Parser is
                           Expr_Value (Right (Res)).Float_Value;
                      end if;
                   else
-                     if Expr_Value (Right (Res)).Kind /= C_General_Fixed and
-                       Expr_Value (Left (Res)).Kind /= C_General_Fixed then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Fixed
+                       and then Expr_Value (Left (Res)).Kind /= C_General_Fixed
+                     then
                         Set_Expr_Value (Res, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -3777,13 +3782,13 @@ package body Idl_Fe.Parser is
                   end if;
 
                   Check_Value_Range (Res, False);
-                  if Expr_Value (Res).Kind = C_Fixed and
+                  if Expr_Value (Res).Kind = C_Fixed and then
                     Expr_Type.Kind = C_Fixed then
                      --  checks precision of the fixed value after
                      --  the possible simplifications in
                      --  check_value_range
                      if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
-                       Expr_Type.Digits_Nb - Expr_Type.Scale or
+                       Expr_Type.Digits_Nb - Expr_Type.Scale or else
                        Expr_Value (Res).Scale > Expr_Type.Scale then
                         Idlac_Errors.Error
                           ("The specified type for this fixed point " &
@@ -3835,8 +3840,8 @@ package body Idl_Fe.Parser is
       if not Success then
          return;
       end if;
-      while Get_Token = T_Star or
-        Get_Token = T_Slash or
+      while Get_Token = T_Star or else
+        Get_Token = T_Slash or else
         Get_Token = T_Percent loop
          declare
             Res : Node_Id;
@@ -3874,34 +3879,36 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Octet or
-              Expr_Type.Kind = C_Short or
-              Expr_Type.Kind = C_Long or
-              Expr_Type.Kind = C_LongLong or
-              Expr_Type.Kind = C_UShort or
-              Expr_Type.Kind = C_ULong or
-              Expr_Type.Kind = C_ULongLong or
-              Expr_Type.Kind = C_General_Integer or
-              ((Expr_Type.Kind = C_Float or
-                Expr_Type.Kind = C_Double or
-                Expr_Type.Kind = C_LongDouble or
-                Expr_Type.Kind = C_General_Float or
-                Expr_Type.Kind = C_Fixed or
-                Expr_Type.Kind = C_General_Fixed) and
+            if Expr_Type.Kind = C_Octet or else
+              Expr_Type.Kind = C_Short or else
+              Expr_Type.Kind = C_Long or else
+              Expr_Type.Kind = C_LongLong or else
+              Expr_Type.Kind = C_UShort or else
+              Expr_Type.Kind = C_ULong or else
+              Expr_Type.Kind = C_ULongLong or else
+              Expr_Type.Kind = C_General_Integer or else
+              ((Expr_Type.Kind = C_Float or else
+                Expr_Type.Kind = C_Double or else
+                Expr_Type.Kind = C_LongDouble or else
+                Expr_Type.Kind = C_General_Float or else
+                Expr_Type.Kind = C_Fixed or else
+                Expr_Type.Kind = C_General_Fixed) and then
                Op /= Modulo) then
                --  test if both sons have a type
-               if Expr_Value (Left (Res)).Kind /= C_No_Kind and
+               if Expr_Value (Left (Res)).Kind /= C_No_Kind and then
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  if Expr_Type.Kind = C_Octet or
-                    Expr_Type.Kind = C_Short or
-                    Expr_Type.Kind = C_Long or
-                    Expr_Type.Kind = C_LongLong or
-                    Expr_Type.Kind = C_UShort or
-                    Expr_Type.Kind = C_ULong or
-                    Expr_Type.Kind = C_ULongLong or
+                  if Expr_Type.Kind = C_Octet or else
+                    Expr_Type.Kind = C_Short or else
+                    Expr_Type.Kind = C_Long or else
+                    Expr_Type.Kind = C_LongLong or else
+                    Expr_Type.Kind = C_UShort or else
+                    Expr_Type.Kind = C_ULong or else
+                    Expr_Type.Kind = C_ULongLong or else
                     Expr_Type.Kind = C_General_Integer then
-                     if Expr_Value (Right (Res)).Kind /= C_General_Integer and
-                       Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Integer
+                       and then
+                       Expr_Value (Left (Res)).Kind /= C_General_Integer
+                     then
                         Set_Expr_Value (Res, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -3941,12 +3948,13 @@ package body Idl_Fe.Parser is
                              Expr_Value (Right (Res)).Integer_Value;
                         end if;
                      end if;
-                  elsif Expr_Type.Kind = C_Float or
-                    Expr_Type.Kind = C_Double or
-                    Expr_Type.Kind = C_LongDouble or
+                  elsif Expr_Type.Kind = C_Float or else
+                    Expr_Type.Kind = C_Double or else
+                    Expr_Type.Kind = C_LongDouble or else
                     Expr_Type.Kind = C_General_Float then
-                     if Expr_Value (Right (Res)).Kind /= C_General_Float and
-                       Expr_Value (Left (Res)).Kind /= C_General_Float then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Float
+                       and then Expr_Value (Left (Res)).Kind /= C_General_Float
+                     then
                         Set_Expr_Value (Res, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -3972,8 +3980,9 @@ package body Idl_Fe.Parser is
                         end if;
                      end if;
                   else
-                     if Expr_Value (Right (Res)).Kind /= C_General_Fixed and
-                       Expr_Value (Left (Res)).Kind /= C_General_Fixed then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Fixed
+                       and then Expr_Value (Left (Res)).Kind /= C_General_Fixed
+                     then
                         Set_Expr_Value (Res, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -4008,13 +4017,13 @@ package body Idl_Fe.Parser is
                      end;
                   end if;
                   Check_Value_Range (Res, False);
-                  if Expr_Value (Res).Kind = C_Fixed and
+                  if Expr_Value (Res).Kind = C_Fixed and then
                     Expr_Type.Kind = C_Fixed then
                      --  checks precision of the fixed value after
                      --  the possible simplifications in
                      --  check_value_range
                      if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
-                       Expr_Type.Digits_Nb - Expr_Type.Scale or
+                       Expr_Type.Digits_Nb - Expr_Type.Scale or else
                        Expr_Value (Res).Scale > Expr_Type.Scale then
                         Idlac_Errors.Error
                           ("The specified type for this fixed point " &
@@ -4121,13 +4130,13 @@ package body Idl_Fe.Parser is
             then
                --  Test whether the operand has a type
                if Expr_Value (Operand (Result)).Kind /= C_No_Kind then
-                  if Expr_Type.Kind = C_Octet or
-                    Expr_Type.Kind = C_Short or
-                    Expr_Type.Kind = C_Long or
-                    Expr_Type.Kind = C_LongLong or
-                    Expr_Type.Kind = C_UShort or
-                    Expr_Type.Kind = C_ULong or
-                    Expr_Type.Kind = C_ULongLong or
+                  if Expr_Type.Kind = C_Octet or else
+                    Expr_Type.Kind = C_Short or else
+                    Expr_Type.Kind = C_Long or else
+                    Expr_Type.Kind = C_LongLong or else
+                    Expr_Type.Kind = C_UShort or else
+                    Expr_Type.Kind = C_ULong or else
+                    Expr_Type.Kind = C_ULongLong or else
                     Expr_Type.Kind = C_General_Integer then
                      if Expr_Value (Operand (Result)).Kind
                        /= C_General_Integer then
@@ -4147,9 +4156,9 @@ package body Idl_Fe.Parser is
                         Expr_Value (Result).Integer_Value :=
                           not Expr_Value (Operand (Result)).Integer_Value;
                      end if;
-                  elsif Expr_Type.Kind = C_Float or
-                    Expr_Type.Kind = C_Double or
-                    Expr_Type.Kind = C_LongDouble or
+                  elsif Expr_Type.Kind = C_Float or else
+                    Expr_Type.Kind = C_Double or else
+                    Expr_Type.Kind = C_LongDouble or else
                     Expr_Type.Kind = C_General_Float then
                      if Expr_Value (Operand (Result)).Kind
                        /= C_General_Float then
@@ -6187,7 +6196,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
          Divide_T_Greater_Greater;
       end if;
-      if Get_Token /= T_Comma and Get_Token /= T_Greater then
+      if Get_Token /= T_Comma and then Get_Token /= T_Greater then
          Idlac_Errors.Error
            ("',' or '>' expected in sequence definition.",
             Idlac_Errors.Error,
@@ -7197,7 +7206,7 @@ package body Idl_Fe.Parser is
          Go_To_Next_Greater;
          return;
       end if;
-      if Expr_Value (Digits_Nb (Result)).Integer_Value < 0 or
+      if Expr_Value (Digits_Nb (Result)).Integer_Value < 0 or else
         Expr_Value (Digits_Nb (Result)).Integer_Value > 31 then
          Idlac_Errors.Error
            ("invalid number of digits in fixed point " &
@@ -7610,7 +7619,7 @@ package body Idl_Fe.Parser is
       pragma Assert (Kind (Scope) = K_Interface);
       --  loop over each definition in the interface
       Init (It, Contents (Value (Int)));
-      while (not Is_End (It)) and Result loop
+      while (not Is_End (It)) and then Result loop
          pragma Debug (O ("Interface_Is_Importable : beginning of loop"));
          Get_Next_Node (It, Node);
          --  if the current definition is an operation
@@ -7620,7 +7629,7 @@ package body Idl_Fe.Parser is
          --  if it is an attribute, loop over its declarators
          if Kind (Node) = K_Attribute then
             Init (It2, Declarators (Node));
-            while (not Is_End (It2)) and Result loop
+            while (not Is_End (It2)) and then Result loop
                Get_Next_Node (It2, Node2);
                Call_Find_Identifier_In_Inheritance (Node2);
             end loop;
@@ -7814,7 +7823,7 @@ package body Idl_Fe.Parser is
                end if;
 
                if Name_Node /= No_Node then
-                  if Is_Explicit_Version_Id (Value (Name_Node)) or
+                  if Is_Explicit_Version_Id (Value (Name_Node)) or else
                     Is_Explicit_Repository_Id (Value (Name_Node))
                   then
                      Idlac_Errors.Error
@@ -7894,10 +7903,10 @@ package body Idl_Fe.Parser is
       Result : Integer;
    begin
       Result := Character'Pos (C);
-      if Result >= Character'Pos ('0') and
+      if Result >= Character'Pos ('0') and then
         Result <= Character'Pos ('9') then
          Result := Result - Character'Pos ('0');
-      elsif Result >= Character'Pos (LC_A) and
+      elsif Result >= Character'Pos (LC_A) and then
         Result <= Character'Pos (LC_F) then
          Result := Result + 10 - Character'Pos ('a');
       else
@@ -8001,13 +8010,13 @@ package body Idl_Fe.Parser is
          Offset := 2;
          case S (S'First + 1) is
             when LC_N =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Lf));
+               Result := Wide_Character'Val (Character'Pos (ASCII.LF));
             when LC_T =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Ht));
+               Result := Wide_Character'Val (Character'Pos (ASCII.HT));
             when LC_V =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Vt));
+               Result := Wide_Character'Val (Character'Pos (ASCII.VT));
             when LC_B =>
-               Result := Wide_Character'Val (Character'Pos (ASCII.Bs));
+               Result := Wide_Character'Val (Character'Pos (ASCII.BS));
             when LC_R =>
                Result := Wide_Character'Val (Character'Pos (CR));
             when LC_F =>
@@ -8428,22 +8437,22 @@ package body Idl_Fe.Parser is
       Result : Idl_Float := 0.0;
       I : Natural := 0;
    begin
-      while S (S'First + I) /= '.' and
-        S (S'First + I) /= 'e' and
+      while S (S'First + I) /= '.' and then
+        S (S'First + I) /= 'e' and then
         S (S'First + I) /= 'E' loop
          Result := Result * 10.0 +
            Idl_Float (Character'Pos (S (S'First + I)) -
                       Character'Pos ('0'));
          I := I + 1;
       end loop;
-      if Get_Token = T_Lit_Simple_Floating_Point or
+      if Get_Token = T_Lit_Simple_Floating_Point or else
         Get_Token = T_Lit_Exponent_Floating_Point then
          I := I + 1;
          declare
             Offset : Idl_Float := 0.1;
          begin
             while I < S'Length and then
-              (S (S'First + I) /= 'e' and
+              (S (S'First + I) /= 'e' and then
                S (S'First + I) /= 'E') loop
                Result := Result + Offset *
                     Idl_Float (Character'Pos (S (S'First + I)) -
@@ -8453,7 +8462,7 @@ package body Idl_Fe.Parser is
             end loop;
          end;
       end if;
-      if Get_Token = T_Lit_Exponent_Floating_Point or
+      if Get_Token = T_Lit_Exponent_Floating_Point or else
         Get_Token = T_Lit_Pure_Exponent_Floating_Point then
          declare
             Exponent : Integer := 0;
@@ -8522,8 +8531,8 @@ package body Idl_Fe.Parser is
             I := I + 1;
          end loop;
          --  parse the integer part
-         while S (S'First + I) /= '.' and
-           S (S'First + I) /= 'd' and
+         while S (S'First + I) /= '.' and then
+           S (S'First + I) /= 'd' and then
            S (S'First + I) /= 'D' loop
             Res := Res * 10 +
               Idl_Integer (Character'Pos (S (S'First + I)) -
@@ -8539,7 +8548,7 @@ package body Idl_Fe.Parser is
          --  parse fractionnal part
          if Get_Token = T_Lit_Floating_Fixed_Point then
             I := I + 1;
-            while S (S'First + I) /= 'd' and
+            while S (S'First + I) /= 'd' and then
               S (S'First + I) /= 'D' loop
                Res := Res * 10 +
                  Idl_Integer (Character'Pos (S (S'First + I)) -
@@ -8555,8 +8564,8 @@ package body Idl_Fe.Parser is
          end if;
          Res := Res / 10 ** Last_Zeros_Nb;
          --  check type precision
-         if (L1 /= 0 and
-             Idl_Integer (L1) > Expr_Type.Digits_Nb - Expr_Type.Scale) or
+         if (L1 /= 0 and then
+             Idl_Integer (L1) > Expr_Type.Digits_Nb - Expr_Type.Scale) or else
            (Idl_Integer (L2 - Last_Zeros_Nb) > Expr_Type.Scale) then
             Idlac_Errors.Error
               ("The specified type for this constant " &
@@ -8910,7 +8919,7 @@ package body Idl_Fe.Parser is
          case Value.Kind is
             when C_Fixed =>
                if Value.Digits_Nb - Value.Scale >
-                 Value_Type.Digits_Nb - Value_Type.Scale or
+                 Value_Type.Digits_Nb - Value_Type.Scale or else
                  Value.Scale > Value_Type.Scale then
                   Idlac_Errors.Error
                     ("The specified type for this fixed point " &
@@ -8961,9 +8970,9 @@ package body Idl_Fe.Parser is
       end if;
       for I in S'First + 1 .. S'Last - 1 loop
          if To_Lower (S (I)) not in LC_A .. LC_Z
-           and S (I) not in '0' .. '9'
-           and S (I) /= '.'
-           and S (I) /= '_' then
+           and then S (I) not in '0' .. '9'
+           and then S (I) /= '.'
+           and then S (I) /= '_' then
             Idlac_Errors.Error ("invalid string for context " &
                                  "declaration : it may only content " &
                                  "alphabetic, digit, period, underscore " &
@@ -8974,10 +8983,10 @@ package body Idl_Fe.Parser is
          end if;
       end loop;
       if To_Lower (S (S'Last)) not in LC_A .. LC_Z
-        and S (S'Last) not in '0' .. '9'
-        and S (S'Last) /= '.'
-        and S (S'Last) /= '_'
-        and S (S'Last) /= '*' then
+        and then S (S'Last) not in '0' .. '9'
+        and then S (S'Last) /= '.'
+        and then S (S'Last) /= '_'
+        and then S (S'Last) /= '*' then
          Idlac_Errors.Error ("invalid string for context " &
                               "declaration : the last character may only " &
                               "be an alphabetic, digit, period, " &
@@ -9292,7 +9301,7 @@ package body Idl_Fe.Parser is
          if Get_Token = T_Left_Cbracket then
             Num := Num + 1;
          end if;
-         if Get_Token = T_Right_Cbracket and Num > 0 then
+         if Get_Token = T_Right_Cbracket and then Num > 0 then
             Num := Num - 1;
          end if;
          Next_Token;
@@ -9353,7 +9362,7 @@ package body Idl_Fe.Parser is
          if Get_Token = T_Left_Cbracket then
             Num := Num + 1;
          end if;
-         if Get_Token = T_Right_Cbracket and Num > 0 then
+         if Get_Token = T_Right_Cbracket and then Num > 0 then
             Num := Num - 1;
          end if;
          Next_Token;
@@ -9368,7 +9377,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Left_Cbracket is
    begin
       pragma Debug (O2 ("Go_To_Next_Left_CBracket: enter"));
-      while Get_Token /= T_Eof and Get_Token /= T_Left_Cbracket loop
+      while Get_Token /= T_Eof and then Get_Token /= T_Left_Cbracket loop
          Next_Token;
       end loop;
       pragma Debug (O2 ("Go_To_Next_Left_CBracket: end"));
@@ -9381,7 +9390,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Right_Cbracket is
    begin
       pragma Debug (O2 ("Go_To_Next_Right_CBracket: enter"));
-      while Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket loop
+      while Get_Token /= T_Eof and then Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
       pragma Debug (O2 ("Go_To_Next_Right_CBracket: end"));
@@ -9410,7 +9419,7 @@ package body Idl_Fe.Parser is
          if Get_Token = T_Left_Cbracket then
             Num := Num + 1;
          end if;
-         if Get_Token = T_Right_Cbracket and Num > 0 then
+         if Get_Token = T_Right_Cbracket and then Num > 0 then
             Num := Num - 1;
          end if;
          Next_Token;
@@ -9444,7 +9453,7 @@ package body Idl_Fe.Parser is
          if Get_Token = T_Left_Cbracket then
             Num := Num + 1;
          end if;
-         if Get_Token = T_Right_Cbracket and Num > 0 then
+         if Get_Token = T_Right_Cbracket and then Num > 0 then
             Num := Num - 1;
          end if;
          Next_Token;
@@ -9462,7 +9471,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_End_Of_State_Member is
    begin
       pragma Debug (O2 ("Go_To_End_Of_State_Member: enter"));
-      while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon loop
+      while Get_Token /= T_Eof and then Get_Token /= T_Semi_Colon loop
          Next_Token;
       end loop;
       if Get_Token /= T_Eof then
@@ -9480,7 +9489,7 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Right_Paren is
    begin
       pragma Debug (O2 ("Go_To_Next_Right_Paren: enter"));
-      while Get_Token /= T_Eof and Get_Token /= T_Right_Paren loop
+      while Get_Token /= T_Eof and then Get_Token /= T_Right_Paren loop
          Next_Token;
       end loop;
       pragma Debug (O2 ("Go_To_Next_Right_Paren: end"));
@@ -9493,11 +9502,11 @@ package body Idl_Fe.Parser is
    procedure Go_To_Next_Member is
    begin
       pragma Debug (O2 ("Go_To_Next_Right_Paren: enter"));
-      while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon
-        and Get_Token /= T_Right_Cbracket loop
+      while Get_Token /= T_Eof and then Get_Token /= T_Semi_Colon
+        and then Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
-      if Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket then
+      if Get_Token /= T_Eof and then Get_Token /= T_Right_Cbracket then
          Next_Token;
       else
          null;
@@ -9531,7 +9540,7 @@ package body Idl_Fe.Parser is
          if Get_Token = T_Left_Cbracket then
             Num := Num + 1;
          end if;
-         if Get_Token = T_Right_Cbracket and Num > 0 then
+         if Get_Token = T_Right_Cbracket and then Num > 0 then
             Num := Num - 1;
          end if;
          Next_Token;

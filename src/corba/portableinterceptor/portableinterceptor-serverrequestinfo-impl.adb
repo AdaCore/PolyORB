@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,12 +72,12 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
    begin
       SCP :=
         QoS_GIOP_Service_Contexts_Parameter_Access
-         (Extract_Reply_Parameter (GIOP_Service_Contexts, Self.Request));
+         (Extract_Reply_Parameter (GIOP_Service_Contexts, Self.Request.all));
 
       if SCP = null then
          SCP := new QoS_GIOP_Service_Contexts_Parameter;
          Add_Reply_QoS
-           (Self.Request,
+           (Self.Request.all,
             GIOP_Service_Contexts,
             QoS_Parameter_Access (SCP));
       end if;
@@ -495,21 +495,17 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
    ----------
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : Standard.String)
-      return Boolean
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean
    is
       pragma Unreferenced (Self);
    begin
       return CORBA.Is_Equivalent
-        (Logical_Type_Id,
-         PortableInterceptor.ServerRequestInfo.Repository_Id)
+        (Logical_Type_Id, PortableInterceptor.ServerRequestInfo.Repository_Id)
         or else CORBA.Is_Equivalent
-          (Logical_Type_Id,
-           "IDL:omg.org/CORBA/Object:1.0")
+           (Logical_Type_Id, PortableInterceptor.RequestInfo.Repository_Id)
         or else CORBA.Is_Equivalent
-           (Logical_Type_Id,
-         PortableInterceptor.RequestInfo.Repository_Id);
+          (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
    --------------

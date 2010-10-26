@@ -14,6 +14,8 @@ interface all_functions {
 
   void out_proc(out short a, out short b, out short c) ;
 
+  void out_in_proc (out short a, in long b) ;
+
   void inout_proc(inout short a, inout short b) ; 
   
   void in_out_proc(in short a, in short b, out short c, out short d) ;

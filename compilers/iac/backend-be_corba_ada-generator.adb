@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,7 +78,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Object_Declaration (N : Node_Id);
    procedure Generate_Object_Instantiation (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
-   procedure Generate_Package_Implementation (N : Node_Id);
+   procedure Generate_Package_Body (N : Node_Id);
    procedure Generate_Package_Instantiation (N : Node_Id);
    procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (N : Node_Id);
@@ -87,11 +87,13 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Pragma (N : Node_Id);
    procedure Generate_Qualified_Expression (N : Node_Id);
    procedure Generate_Raise_Statement (N : Node_Id);
+   procedure Generate_Range (N : Node_Id);
    procedure Generate_Record_Aggregate (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
    procedure Generate_Return_Statement (N : Node_Id);
    procedure Generate_Selected_Component (N : Node_Id);
+   procedure Generate_Slice (N : Node_Id);
    procedure Generate_Subprogram_Call (N : Node_Id);
    procedure Generate_Subprogram_Body (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
@@ -124,7 +126,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
    function Get_File_Name (N : Node_Id) return Name_Id is
       pragma Assert (Kind (N) = K_Package_Specification
-                     or else Kind (N) = K_Package_Implementation);
+                     or else Kind (N) = K_Package_Body);
       Package_Spec_Suffix : constant String := ".ads";
       Package_Body_Suffix : constant String := ".adb";
    begin
@@ -278,8 +280,8 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Package_Declaration =>
             Generate_Package_Declaration (N);
 
-         when K_Package_Implementation =>
-            Generate_Package_Implementation (N);
+         when K_Package_Body =>
+            Generate_Package_Body (N);
 
          when K_Package_Instantiation =>
             Generate_Package_Instantiation (N);
@@ -299,6 +301,9 @@ package body Backend.BE_CORBA_Ada.Generator is
          when K_Raise_Statement =>
             Generate_Raise_Statement (N);
 
+         when K_Range =>
+            Generate_Range (N);
+
          when K_Record_Aggregate =>
             Generate_Record_Aggregate (N);
 
@@ -313,6 +318,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Selected_Component =>
             Generate_Selected_Component (N);
+
+         when K_Slice =>
+            Generate_Slice (N);
 
          when K_Subprogram_Call =>
             Generate_Subprogram_Call (N);
@@ -342,7 +350,8 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Name (Image (Base_Type (N)));
 
          when others =>
-            null;
+            raise Program_Error with
+              "no code generation defined for " & Kind (N)'Img;
       end case;
    end Generate;
 
@@ -382,7 +391,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Ada_Comment (N : Node_Id) is
       --  This procedure does the following :
 
-      --  * It generates an ada comment basing on the name of node N
+      --  * It generates an Ada comment basing on the name of node N
 
       --  * If the name it too long, and depending on the location of
       --    the comment in the source code, the procedure splits the
@@ -391,9 +400,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       --  The comment is assumed to be a sequence of characters,
       --  beginning and ending with a NON-SPACE character.
 
-      --  A word is :
-
-      --  a space character, or else a sequence of non space
+      --  A word is a space character, or else a sequence of non space
       --  characters located between two spaces.
 
       Max_Line_Length : constant Natural := 78;
@@ -748,12 +755,12 @@ package body Backend.BE_CORBA_Ada.Generator is
       M : Node_Id;
       P : Node_Id;
    begin
-      --  Make the compiler happy
+      --  For an OTHERS choice, generate a pragma Warnings (Off), because
+      --  all choices might be covered by the explicit alternatives.
 
-      if Is_Empty (Statements (N)) then
+      if Is_Empty (Discret_Choice_List (N)) then
          Write_Indentation;
-         P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
+         P := Make_Pragma (Pragma_Warnings, New_List (RE (RE_Off)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -766,6 +773,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if Is_Empty (Discret_Choice_List (N)) then
          Write (Tok_Others);
+
       else
          M := First_Node (Discret_Choice_List (N));
          loop
@@ -804,10 +812,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       --  Re-enable warnings
 
-      if Is_Empty (Statements (N)) then
+      if Is_Empty (Discret_Choice_List (N)) then
          Write_Indentation;
-         P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_On)));
+         P := Make_Pragma (Pragma_Warnings, New_List (RE (RE_On)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -900,7 +907,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
       Generate (Subtype_Indication (N));
 
-      if Is_Private_Extention (N) then
+      if Is_Private_Extension (N) then
          Write_Space;
          Write (Tok_With);
          Write_Space;
@@ -1417,23 +1424,16 @@ package body Backend.BE_CORBA_Ada.Generator is
       Generate (Qualified_Expression (N));
    end Generate_Object_Instantiation;
 
-   ----------------------------------
-   -- Generate_Package_Declaration --
-   ----------------------------------
+   ---------------------------
+   -- Generate_Package_Body --
+   ---------------------------
 
-   procedure Generate_Package_Declaration (N : Node_Id) is
-   begin
-      Generate (Package_Specification (N));
-      Generate (Package_Implementation (N));
-   end Generate_Package_Declaration;
-
-   -------------------------------------
-   -- Generate_Package_Implementation --
-   -------------------------------------
-
-   procedure Generate_Package_Implementation (N : Node_Id) is
+   procedure Generate_Package_Body (N : Node_Id) is
       P  : Node_Id;
       Fd : File_Descriptor;
+      Dcl  : constant Node_Id := Package_Declaration (N);
+      IDLU : constant Node_Id := IDL_Unit (Dcl);
+      Impl : constant Boolean := Dcl = Implementation_Package (IDLU);
    begin
       --  If the user wants to generates only the spec, or if the
       --  package body is empty, we don't generate it.
@@ -1445,10 +1445,10 @@ package body Backend.BE_CORBA_Ada.Generator is
       --  body is empty.
 
       if Disable_Pkg_Body_Gen
-        or else Is_Empty (Statements (N))
+        or else (Is_Empty (Statements (N)) and then not Impl)
         or else (Length (Statements (N)) = 1
                  and then Kind (First_Node (Statements (N))) =
-                 K_Package_Implementation
+                 K_Package_Body
                  and then Is_Empty (Statements (First_Node (Statements (N)))))
       then
          return;
@@ -1459,7 +1459,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       then
          Fd := Set_Output (Get_File_Name (N));
 
-         P := First_Node (Withed_Packages (N));
+         P := First_Node (Context_Clause (N));
 
          while Present (P) loop
             Write_Indentation;
@@ -1482,7 +1482,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_Body);
       Write_Space;
 
-      if Kind (N) = K_Package_Implementation
+      if Kind (N) = K_Package_Body
         and then Is_Subunit_Package
         (Package_Specification (Package_Declaration (N)))
       then
@@ -1502,7 +1502,7 @@ package body Backend.BE_CORBA_Ada.Generator is
          Write_Indentation;
          Generate (P);
 
-         if not (Kind (P) = K_Package_Implementation
+         if not (Kind (P) = K_Package_Body
                  and then Is_Subunit_Package
                  (Package_Specification (Package_Declaration (P))))
          then
@@ -1535,7 +1535,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write  (Tok_End);
       Write_Space;
 
-      if Kind (N) = K_Package_Implementation
+      if Kind (N) = K_Package_Body
         and then Is_Subunit_Package
         (Package_Specification (Package_Declaration (N)))
       then
@@ -1554,7 +1554,17 @@ package body Backend.BE_CORBA_Ada.Generator is
          Release_Output (Fd);
          Fd := Invalid_FD;
       end if;
-   end Generate_Package_Implementation;
+   end Generate_Package_Body;
+
+   ----------------------------------
+   -- Generate_Package_Declaration --
+   ----------------------------------
+
+   procedure Generate_Package_Declaration (N : Node_Id) is
+   begin
+      Generate (Package_Specification (N));
+      Generate (Package_Body (N));
+   end Generate_Package_Declaration;
 
    ------------------------------------
    -- Generate_Package_Instantiation --
@@ -1617,7 +1627,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       if not Is_Subunit_Package (N) then
          Fd := Set_Output (Get_File_Name (N));
-         P := First_Node (Withed_Packages (N));
+         P := First_Node (Context_Clause (N));
 
          while Present (P) loop
             Write_Indentation;
@@ -1869,6 +1879,17 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
    end Generate_Raise_Statement;
 
+   --------------------
+   -- Generate_Range --
+   --------------------
+
+   procedure Generate_Range (N : Node_Id) is
+   begin
+      Generate (Low_Bound (N));
+      Write_Str (" .. ");
+      Generate (High_Bound (N));
+   end Generate_Range;
+
    -------------------------------
    -- Generate_Record_Aggregate --
    -------------------------------
@@ -1898,6 +1919,10 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Line (Tok_Comma);
             Write_Indentation;
          end loop;
+      else
+         Write (Tok_Null);
+         Write_Space;
+         Write (Tok_Record);
       end if;
 
       Write (Tok_Right_Paren);
@@ -1993,6 +2018,19 @@ package body Backend.BE_CORBA_Ada.Generator is
       Generate (Selector_Name (N));
    end Generate_Selected_Component;
 
+   --------------------
+   -- Generate_Slice --
+   --------------------
+
+   procedure Generate_Slice (N : Node_Id) is
+   begin
+      Generate (Prefix (N));
+      Write_Space;
+      Write (Tok_Left_Paren);
+      Generate (Discrete_Range (N));
+      Write (Tok_Right_Paren);
+   end Generate_Slice;
+
    ------------------------------
    -- Generate_Subprogram_Call --
    ------------------------------
@@ -2059,6 +2097,23 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write_Indentation;
             Generate (M);
             Generate_Statement_Delimiter (M);
+
+            --  If this is a nested subprogram spec or body, or the next thing
+            --  is one of those, leave an extra blank line.
+
+            if Kind (M) = K_Subprogram_Specification
+              or else Kind (M) = K_Subprogram_Body
+            then
+               Write_Eol;
+
+            elsif Present (Next_Node (M))
+              and then (Kind (Next_Node (M)) = K_Subprogram_Specification
+                          or else Kind (Next_Node (M)) = K_Subprogram_Body)
+            then
+               Write_Eol;
+
+            end if;
+
             M := Next_Node (M);
          end loop;
 
@@ -2120,7 +2175,11 @@ package body Backend.BE_CORBA_Ada.Generator is
          Generate_Parameter_List (P);
       end if;
 
-      if Present (T) then
+      --  Note that for an instance of a generic function, we set the return
+      --  type in order to generate the proper FUNCTION keyword, but we never
+      --  actually output the type.
+
+      if Present (T) and then No (I) then
          if not Is_Empty (P) then
             Write_Eol;
             Increment_Indentation;
@@ -2268,7 +2327,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       if No (O) then
          Write_Indentation;
          P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_Off)));
+           (Pragma_Warnings, New_List (RE (RE_Off)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -2296,7 +2355,7 @@ package body Backend.BE_CORBA_Ada.Generator is
       if No (O) then
          Write_Indentation;
          P := Make_Pragma
-           (Pragma_Warnings, Make_List_Id (RE (RE_On)));
+           (Pragma_Warnings, New_List (RE (RE_On)));
          Generate (P);
          Generate_Statement_Delimiter (P);
       end if;
@@ -2313,6 +2372,27 @@ package body Backend.BE_CORBA_Ada.Generator is
    -----------------------------
 
    procedure Generate_Withed_Package (N : Node_Id) is
+      procedure Add_Pragma (Pragma_Name : String);
+      --  Add a pragma with the given name applying to the WITH'd unit
+
+      ----------------
+      -- Add_Pragma --
+      ----------------
+
+      procedure Add_Pragma (Pragma_Name : String) is
+      begin
+         Write (Tok_Semicolon);
+         Write_Eol;
+         Write_Indentation;
+         Write (Tok_Pragma);
+         Write_Space;
+         Write_Str (Pragma_Name);
+         Write_Space;
+         Write (Tok_Left_Paren);
+         Generate (Defining_Identifier (N));
+         Write (Tok_Right_Paren);
+      end Add_Pragma;
+
    begin
       Write (Tok_With);
       Write_Space;
@@ -2328,16 +2408,11 @@ package body Backend.BE_CORBA_Ada.Generator is
       end if;
 
       if Elaborated (N) then
-         Write (Tok_Semicolon);
-         Write_Eol;
-         Write_Indentation;
-         Write (Tok_Pragma);
-         Write_Space;
-         Write_Str ("Elaborate_All");
-         Write_Space;
-         Write (Tok_Left_Paren);
-         Generate (Defining_Identifier (N));
-         Write (Tok_Right_Paren);
+         Add_Pragma ("Elaborate_All");
+      end if;
+
+      if Unreferenced (N) then
+         Add_Pragma ("Unreferenced");
       end if;
    end Generate_Withed_Package;
 
@@ -2394,7 +2469,7 @@ package body Backend.BE_CORBA_Ada.Generator is
 
       Write_Str ("-- ");
       Write_Name (M);
-      Write_Str (" -- ");
+      Write_Str (" --");
       Write_Eol;
       Write_Indentation;
 

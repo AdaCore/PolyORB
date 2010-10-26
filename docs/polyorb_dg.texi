@@ -190,7 +190,7 @@ things, those packages are used to manage the configuration file
 @c ------------------------
 @section Data manipulation packages
 
-Those package gather all functions and definition concerning the data
+Those package gather all functions and definitions concerning the data
 handled within the neutral layer.
 
 @subsection @code{PolyORB.Types}
@@ -578,7 +578,7 @@ contain the signature of the expected data.
 Sending a request is very easy: you just have to call the
 @code{Invoke} procedure located in package @code{PolyORB.Requests}.
 
-Calling @code{Invoke} will pause your application, wainting for
+Calling @code{Invoke} will pause your application, waiting for
 getting the request back with an answer.
 
 @subsection Handling the answer
@@ -593,7 +593,7 @@ The concept of Object Adapter comes from the @acronym{CORBA}
 specifications.  An object adapter manages the servants in order to
 send incoming requests to the proper one.
 
-Several packages are gather the functions associated with the object
+Several packages gather the functions associated with the object
 adapters: they are named @code{PolyORB.Obj_Adapter.*} and
 @code{PolyORB.POA.*}.
 
@@ -754,7 +754,7 @@ Given a string representing an IOR, URI, Corbaloc, etc.@:,
 @code{PolyORB.References} provides the procedure
 @code{String_To_Object} that converts the string into a reference.
 
-The symetric operation is implemented in subpackages
+The symmetric operation is implemented in subpackages
 @code{PolyORB.References.IOR}, @code{PolyORB.References.URI},
 etc@. Each subpackage provides a function called
 @code{Object_To_String} that returns a representation of the reference
@@ -781,7 +781,7 @@ extract from them), build them and extract data from them, etc.@:
 
 TypeCode are predefined for simple data types: Long, String, etc.@: So
 @code{PolyORB.Any} provides @code{To_Any} functions to build Any types
-from simple data types (integer, string, etc.), and symetrically
+from simple data types (integer, string, etc.), and symmetrically
 provides @code{From_Any} functions to extract data from an Any type.
 
 Complex types are a little more tricky: indeed, you have to create an
@@ -886,7 +886,7 @@ Functions to handle Named Values are provided by @code{PolyORB.Any}.
 @cindex nv-lists
 
 @dfn{NV-List} stands for ``Named Value List''. This directly comes
-from the @acronym{CORBA} specifications. All data transfered across
+from the @acronym{CORBA} specifications. All data transferred across
 layers are put in NV-Lists.
 
 The package @code{PolyORB.Any.NVLists} provides primitives to handle
@@ -913,8 +913,8 @@ performances compared to Ada exceptions.
 
 @section Logging facility
 
-The package @code{PolyORB.Log} provides facility to display messages
-on screen, typically for debugging purpose.  You can use this package
+The package @code{PolyORB.Log} provides a facility to display messages
+on screen, typically for debugging purposes.  You can use this package
 this way:
 
 @example
@@ -929,17 +929,17 @@ package body MyPackage is
 
   ...
 
-  pragma Debug (O (``hello there!''));
+  pragma Debug (O ("hello there!"));
 @end example
 
 The parameter @code{Level} indicates the default logging level,
-allowing for a hierarchy in messages. Usally this is set to
+allowing for a hierarchy in messages. Usually this is set to
 @code{Debug}.  See @code{polyorb-log.ads} for the list of possible log
 levels.
 
 When the application is launched, the logging facility looks for a
 file named @code{polyorb.conf} in the current directory.  This file
-should contains lines indicating from which log level messages should
+should contain lines indicating from which log level messages should
 be logged. The reference @code{polyorb.conf} file is located in the
 src/ subdirectory.  So you just have to copy it into your execution
 directory and add the required lines. In our example, you should add
@@ -947,7 +947,7 @@ directory and add the required lines. In our example, you should add
 my.facility=debug
 @end example
 indicating that all messages of higher importance than ``debug''
-should be diplayed.  If you did not add a line for your logging
+should be displayed.  If you did not add a line for your logging
 facility, then ``notice'' is used as a default value.
 
 @section Calendar
@@ -966,7 +966,7 @@ tasking policy.
 
 You should follow a few coding rules, in order to preserve harmony in
 the code.  Basically, you must follow the GNAT coding style, and a few
-others that are mentionned in a file named @code{CODING_GUIDELINES},
+others that are mentioned in a file named @code{CODING_GUIDELINES},
 located in the @code{doc/} subdirectory.
 
 @include gfdl.texi

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -235,15 +235,16 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
 
       use PolyORB.Parameters;
 
-      --  The following parameters force the registration of
-      --  additional "fallback" code sets for char and wchar
-      --  data. This is useful for interoperation with ORB
-      --  with broken char sets negotiation support.
+      --  The following parameters force the registration of additional
+      --  "fallback" code sets for char and wchar data. This is useful for
+      --  interoperation with ORB with broken char sets negotiation support.
 
-      Char_Fallback      : constant Boolean
-        := Get_Conf ("giop", "giop.add_char_fallback_code_set", False);
-      Wide_Char_Fallback : constant Boolean
-        := Get_Conf ("giop", "giop.add_wchar_fallback_code_set", False);
+      Char_Fallback      : constant Boolean := Get_Conf
+                             ("giop", "giop.add_char_fallback_code_set",
+                              Default => False);
+      Wide_Char_Fallback : constant Boolean := Get_Conf
+                             ("giop", "giop.add_wchar_fallback_code_set",
+                              Default => False);
 
    begin
       --  Register supported char code sets (UTF-8)
@@ -329,11 +330,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
 
       if C.GIOP_1_2_Mode then
          Marshall (Buffer, Octet'(4));
-         Marshall (Buffer, BOM, 1);
-         Marshall (Buffer, Unsigned_Short (Wchar'Pos (Data)), 1);
+         Unaligned_Unsigned_Short.Marshall (Buffer, BOM);
+         Unaligned_Unsigned_Short.Marshall (Buffer, Wchar'Pos (Data));
 
       else
-         Marshall (Buffer, Unsigned_Short (Wchar'Pos (Data)), 2);
+         Marshall (Buffer, Unsigned_Short (Wchar'Pos (Data)));
       end if;
    end Marshall;
 
@@ -344,18 +345,15 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
       Error  : in out Errors.Error_Container)
    is
       Equiv : constant Wide_String := To_Wide_String (Data);
-      Align : Alignment_Type;
 
    begin
       if C.GIOP_1_2_Mode then
          Marshall (Buffer, Unsigned_Long (Equiv'Length + 1) * 2);
-         Marshall (Buffer, BOM, 1);
-         Align := 1;
+         Marshall (Buffer, BOM);
 
       else
          Marshall (Buffer, Unsigned_Long (Equiv'Length + 2));
-         Marshall (Buffer, BOM, 2);
-         Align := 2;
+         Marshall (Buffer, BOM);
       end if;
 
       for J in Equiv'Range loop
@@ -372,12 +370,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
 
          Marshall
            (Buffer,
-            Unsigned_Short (Wide_Character'Pos (Equiv (J))),
-            Align);
+            Unsigned_Short'(Wide_Character'Pos (Equiv (J))));
       end loop;
 
       if not C.GIOP_1_2_Mode then
-         Marshall (Buffer, Unsigned_Short (0), 2);
+         Marshall (Buffer, Unsigned_Short (0));
       end if;
    end Marshall;
 
@@ -403,10 +400,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
 
       if C.GIOP_1_2_Mode then
          Marshall (Buffer, Types.Octet'(2));
-         Marshall (Buffer, Unsigned_Short (Wchar'Pos (Data)), 1);
+         Unaligned_Unsigned_Short.Marshall
+           (Buffer, Unsigned_Short'(Wchar'Pos (Data)));
 
       else
-         Marshall (Buffer, Unsigned_Short (Wchar'Pos (Data)), 2);
+         Marshall (Buffer, Unsigned_Short'(Wchar'Pos (Data)));
       end if;
    end Marshall;
 
@@ -417,16 +415,12 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
       Error  : in out Errors.Error_Container)
    is
       Equiv : constant Wide_String := PolyORB.Types.To_Wide_String (Data);
-      Align : Alignment_Type;
-
    begin
       if C.GIOP_1_2_Mode then
          Marshall (Buffer, Unsigned_Long'(Equiv'Length * 2));
-         Align := 1;
 
       else
          Marshall (Buffer, Unsigned_Long'(Equiv'Length + 1));
-         Align := 2;
       end if;
 
       for J in Equiv'Range loop
@@ -444,12 +438,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
 
          Marshall
            (Buffer,
-            Unsigned_Short (Wide_Character'Pos (Equiv (J))),
-            Align);
+            Unsigned_Short'(Wide_Character'Pos (Equiv (J))));
       end loop;
 
       if not C.GIOP_1_2_Mode then
-         Marshall (Buffer, Unsigned_Short'(0), Align);
+         Marshall (Buffer, Unsigned_Short'(0));
       end if;
    end Marshall;
 
@@ -475,10 +468,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
 
       if C.GIOP_1_2_Mode then
          Marshall (Buffer, Types.Octet'(4));
-         Marshall (Buffer, Unsigned_Long (Wchar'Pos (Data)), 1);
+         Unaligned_Unsigned_Long.Marshall
+           (Buffer, Unsigned_Long'(Wchar'Pos (Data)));
 
       else
-         Marshall (Buffer, Unsigned_Long (Wchar'Pos (Data)), 4);
+         Marshall (Buffer, Unsigned_Long (Wchar'Pos (Data)));
       end if;
    end Marshall;
 
@@ -492,16 +486,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
       Space : constant Reservation := Reserve (Buffer, 4);
       J     : Positive := Equiv'First;
       L     : Natural := 0;
-      Align : Alignment_Type;
-
    begin
-      if C.GIOP_1_2_Mode then
-         Align := 1;
-
-      else
-         Align := 4;
-      end if;
-
       while J <= Equiv'Last loop
          if Equiv (J) in High_Surrogate_Character then
             if J < Equiv'Last
@@ -513,8 +498,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
                   ((Wide_Character'Pos (Equiv (J)) - High_Surrogate_Base)
                     * 16#400#
                     + (Wide_Character'Pos (Equiv (J + 1)) - Low_Surrogate_Base)
-                    + 16#10000#),
-                  Align);
+                    + 16#10000#));
                J := J + 2;
                L := L + 1;
 
@@ -540,17 +524,14 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
             return;
 
          else
-            Marshall
-              (Buffer,
-               Unsigned_Long (Wide_Character'Pos (Equiv (J))),
-               Align);
+            Marshall (Buffer, Unsigned_Long (Wide_Character'Pos (Equiv (J))));
             J := J + 1;
             L := L + 1;
          end if;
       end loop;
 
       if not C.GIOP_1_2_Mode then
-         Marshall (Buffer, Unsigned_Long'(0), Align);
+         Marshall (Buffer, Unsigned_Long'(0));
       end if;
 
       declare
@@ -622,7 +603,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
             Length : constant Octet := Unmarshall (Buffer);
 
          begin
-            Code := Unmarshall (Buffer, 1);
+            Code := Unaligned_Unsigned_Short.Unmarshall (Buffer);
 
             if Length = 2 then
                Data := Wchar'Val (Code);
@@ -633,7 +614,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
                   --  XXX Value marshalled in reverse endian-ness
 
                elsif Code = BOM then
-                  Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, 1)));
+                  Data := Wchar'Val
+                            (Unaligned_Unsigned_Short.Unmarshall (Buffer));
 
                else
                   raise Program_Error;
@@ -645,14 +627,14 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
          end;
 
       else
-         Code := Unmarshall (Buffer, 2);
+         Code := Unmarshall (Buffer);
 
          if Code = Reverse_BOM then
             raise Program_Error;
             --  XXX Value marshalled in reverse endian-ness
 
          elsif Code = BOM then
-            Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, 2)));
+            Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer)));
 
          else
             Data := Wchar'Val (Code);
@@ -681,7 +663,6 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
       Result : Standard.Wide_String (1 .. Integer (Length));
       First  : Positive;
       Last   : Natural;
-      Align  : Alignment_Type;
       Code   : Unsigned_Short;
 
    begin
@@ -697,14 +678,12 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
          end if;
 
          Last  := Natural (Length / 2);
-         Align := 1;
 
       else
          Last  := Natural (Length);
-         Align := 2;
       end if;
 
-      Code := Unmarshall (Buffer, Align);
+      Code := Unmarshall (Buffer);
 
       if Code = Reverse_BOM then
          raise Program_Error;
@@ -720,7 +699,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
       end if;
 
       for J in First .. Last loop
-         Result (J) := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, Align)));
+         Result (J) := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer)));
 
          if Result (J) in Invalid_Character then
             Throw
@@ -756,11 +735,11 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
             --  XXX Raise Marshall exception ?
 
          else
-            Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, 1)));
+            Data := Wchar'Val (Unaligned_Unsigned_Short.Unmarshall (Buffer));
          end if;
 
       else
-         Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, 2)));
+         Data := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer)));
       end if;
 
       if Data in Surrogate_Character
@@ -784,7 +763,6 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
       Length : constant Unsigned_Long := Unmarshall (Buffer);
       Result : Standard.Wide_String (1 .. Integer (Length));
       Last   : Natural := Result'First - 1;
-      Align  : Alignment_Type;
 
    begin
       if C.GIOP_1_2_Mode then
@@ -792,17 +770,14 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
             raise Program_Error;
             --  XXX Raise Marshall exception ?
          end if;
-
          Last  := Natural (Length / 2);
-         Align := 1;
 
       else
          Last  := Natural (Length);
-         Align := 2;
       end if;
 
       for J in Result'First .. Last loop
-         Result (J) := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer, Align)));
+         Result (J) := Wchar'Val (Unsigned_Short'(Unmarshall (Buffer)));
 
          if Result (J) in Surrogate_Character
            or else Result (J) in Invalid_Character
@@ -839,13 +814,12 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
          if Length /= 4 then
             raise Program_Error;
             --  XXX Raise Marshall exception ?
-
          else
-            Aux := Unsigned_Long'(Unmarshall (Buffer, 1));
+            Aux := Unaligned_Unsigned_Long.Unmarshall (Buffer);
          end if;
 
       else
-         Aux := Unsigned_Long'(Unmarshall (Buffer, 4));
+         Aux := Unsigned_Long'(Unmarshall (Buffer));
       end if;
 
       if Aux > 16#FFFF#
@@ -873,7 +847,6 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
       pragma Unreferenced (Error);
 
       Length : Unsigned_Long := Unmarshall (Buffer);
-      Align  : Alignment_Type;
 
    begin
       if C.GIOP_1_2_Mode then
@@ -883,10 +856,6 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
          end if;
 
          Length := Length / 4;
-         Align := 1;
-
-      else
-         Align := 2;
       end if;
 
       declare
@@ -896,7 +865,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Unicode is
 
       begin
          for J in 1 .. Length loop
-            Aux := Unsigned_Long'(Unmarshall (Buffer, Align));
+            Aux := Unsigned_Long'(Unmarshall (Buffer));
 
             if Aux <= 16#FFFF# then
                Last := Last + 1;

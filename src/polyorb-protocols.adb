@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,9 +77,8 @@ package body PolyORB.Protocols is
    --------------------
 
    function Handle_Message
-     (Sess : access Session;
-      S    :        Components.Message'Class)
-     return Components.Message'Class
+     (Sess : not null access Session;
+      S    : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Errors;
 
@@ -189,7 +188,7 @@ package body PolyORB.Protocols is
                   else
                      pragma Debug
                        (C, O ("Unmarshall deferred arguments error"));
-                     Set_Exception (Req, Arguments_Error (Reply).Error);
+                     Set_Exception (Req.all, Arguments_Error (Reply).Error);
 
                      --  Free data associated to Arguments_Error (Reply).Error
 
@@ -226,12 +225,16 @@ package body PolyORB.Protocols is
             end if;
          end;
 
+      elsif S in Servants.Iface.Abort_Request then
+         Abort_Request
+           (Session_Access (Sess),
+            Servants.Iface.Abort_Request (S).Req);
+         return Null_Message'(null record);
+
       elsif S in Executed_Request then
          declare
-            Req : Request_Access
-              := Executed_Request (S).Req;
+            Req : Request_Access := Executed_Request (S).Req;
          begin
-
             if Req.Deferred_Arguments_Session /= null then
 
                --  The request has been aborted before being fully processed.
@@ -243,11 +246,14 @@ package body PolyORB.Protocols is
                   Protocols.Iface.Flush'(Message with null record));
             end if;
 
-            if False
-              or else Is_Set (Sync_With_Target, Req.Req_Flags)
-              or else Is_Set (Sync_Call_Back,   Req.Req_Flags)
+            if Req.Completed
+                 and then
+               (Is_Set (Sync_With_Target, Req.Req_Flags)
+                  or else
+                Is_Set (Sync_Call_Back,   Req.Req_Flags))
             then
-               --  Send a reply if one is expected.
+               --  Send a reply if one is expected (per sync scope) and the
+               --  request was completed (i.e. not aborted).
 
                Send_Reply (Session_Access (Sess), Req);
             end if;

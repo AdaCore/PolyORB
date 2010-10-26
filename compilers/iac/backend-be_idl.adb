@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -512,9 +512,9 @@ package body Backend.BE_IDL is
    begin
       Write (T_Fixed);
       Write (T_Less);
-      Write_Int (Int (N_Total (E)));
+      Write_Int (N_Total (E));
       Write (T_Comma);
-      Write_Int (Int (N_Scale (E)));
+      Write_Int (N_Scale (E));
       Write (T_Greater);
    end Generate_Fixed_Point_Type;
 
@@ -1233,7 +1233,7 @@ package body Backend.BE_IDL is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
       Write_Line
-        (Hdr & "-b n     Base to output integer literal");
+        (Hdr & "-b n     Base to output integer literals");
       Write_Line
         (Hdr & "         As a default (zero) use base from input");
       Write_Line

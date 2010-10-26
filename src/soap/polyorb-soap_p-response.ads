@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ with PolyORB.Filters.HTTP;
 
 --  with AWS.Status;
 --  with AWS.Messages;
-with AWS.MIME;
+with PolyORB.Web.MIME;
 
 package PolyORB.SOAP_P.Response is
 
@@ -99,7 +99,7 @@ package PolyORB.SOAP_P.Response is
    function Acknowledge
      (Status_Code  : HTTP_Status_Code;
       Message_Body : String := "";
-      Content_Type : String := AWS.MIME.Text_HTML)
+      Content_Type : String := PolyORB.Web.MIME.Text_HTML)
      return Data;
    --  Returns a message to the Web browser. This routine must be used to
    --  send back an error message to the Web browser. For example if a

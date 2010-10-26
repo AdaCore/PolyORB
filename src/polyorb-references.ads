@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,7 @@
 
 --  References on object exported by the ORB.
 
+with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
@@ -83,6 +84,10 @@ package PolyORB.References is
    function Type_Id_Of  (R : Ref) return String;
    --  Return the type identifier of Ref
 
+   procedure Set_Type_Id
+     (R : Ref; Type_Id : String);
+   --  Set the Type_Id of the reference
+
    function Image (R : Ref) return String;
    --  For debugging purposes
 
@@ -91,6 +96,25 @@ package PolyORB.References is
    --  actual reference.
    --  Note: String_To_Object is a procedure so that it can be inherited
    --  when Ref is derived without requiring overload (Ada 95).
+
+   --------------------------------------
+   -- Stream attributes for references --
+   --------------------------------------
+
+   --  PolyORB.References does not mandate any particular external
+   --  representation for references. Instead, the stream attributes make
+   --  indirect calls through a Ref_Streamer object, which must provide
+   --  appropriate primitives.
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref);
+   for Ref'Read use Read;
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref);
+   for Ref'Write use Write;
 
    ----------------------------
    -- Annotations management --
@@ -127,6 +151,7 @@ private
    procedure Share_Binding_Info
      (Dest   : Ref'Class;
       Source : Ref'Class);
+   --  Needs comment???
 
    Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
 
@@ -179,5 +204,20 @@ private
    procedure Register_String_To_Object
      (Prefix : String;
       Func   : String_To_Object_Func);
+
+   type Ref_Streamer is abstract tagged limited null record;
+   type Ref_Streamer_Access is access all Ref_Streamer'Class;
+
+   procedure Read
+     (R : access Ref_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref'Class) is abstract;
+
+   procedure Write
+     (R : access Ref_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref'Class) is abstract;
+
+   The_Ref_Streamer : Ref_Streamer_Access;
 
 end PolyORB.References;

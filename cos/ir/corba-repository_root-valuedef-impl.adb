@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -173,7 +173,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
 
    function get_base_value
      (Self : access Object)
-     return CORBA.Repository_Root.ValueDef.Ref
+     return CORBA.Repository_Root.ValueDef.Ref'Class
    is
    begin
       return Self.Base_Value;

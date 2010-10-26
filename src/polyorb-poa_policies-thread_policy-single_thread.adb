@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,15 +33,12 @@
 
 --  Implementation of the POA Policy 'Single Thread'.
 
---  Under this policy, upcalls made by a POA shall not be made
---  concurrently. The POA will still allow reentrant code from any
---  object implementation to itself, or to another object
---  implementation managed by the same POA.
+--  Under this policy, upcalls made by a POA shall not be made concurrently.
+--  The POA will still allow reentrant code from any object implementation to
+--  itself, or to another object implementation managed by the same POA.
 
 with PolyORB.Annotations;
 with PolyORB.Log;
-with PolyORB.Servants;
-
 with PolyORB.Tasking.Advanced_Mutexes;
 
 package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
@@ -111,15 +108,14 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
       return "THREAD_POLICY.SINGLE_THREAD";
    end Policy_Id;
 
-   ------------------------------
-   -- Handle_Request_Execution --
-   ------------------------------
+   ------------------------
+   -- Execute_In_Context --
+   ------------------------
 
-   function Handle_Request_Execution
+   function Execute_In_Context
      (Self      : access Single_Thread_Executor;
-      Msg       :        PolyORB.Components.Message'Class;
-      Requestor :        PolyORB.Components.Component_Access)
-      return PolyORB.Components.Message'Class
+      Req       : Requests.Request_Access;
+      Requestor : Components.Component_Access) return Boolean
    is
       use PolyORB.Annotations;
       use PolyORB.Servants;
@@ -143,7 +139,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
       --  does not allow to specify the thread attached to request handling.
       --  This work in No_Tasking tasking policy.
 
-      pragma Debug (C, O ("Handle_Request_Execution: Enter"));
+      pragma Debug (C, O ("Execute_In_Context: Enter"));
 
       --  Test if the servant has been attached to a advanced mutex.
       --  XXX Note that this could (should ?) be done by the POA.
@@ -175,15 +171,15 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
       Enter (N.Lock);
       pragma Debug (C, O ("Waiting done"));
 
+      --  Now execute the request in the current task
+
       declare
-         Result : constant PolyORB.Components.Message'Class :=
-           Execute_Servant (Servant_Access (Requestor), Msg);
+         Res : constant Boolean :=
+                 Abortable_Execute_Servant (Servant_Access (Requestor), Req);
       begin
          Leave (N.Lock);
-         pragma Debug (C, O ("Handle_Request_Execution: Leave"));
-         return Result;
+         return Res;
       end;
-
-   end Handle_Request_Execution;
+   end Execute_In_Context;
 
 end PolyORB.POA_Policies.Thread_Policy.Single_Thread;

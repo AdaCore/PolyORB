@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -191,7 +191,7 @@ package body all_types.Impl is
    function echoOtherAllTypes
      (Self : access Object;
       arg  : all_types.otherAllTypes)
-     return all_types.otherAllTypes is
+     return all_types.otherAllTypes'Class is
    begin
       return arg;
    end echoOtherAllTypes;
@@ -306,11 +306,12 @@ package body all_types.Impl is
 
    procedure testException
      (Self : access Object;
-      arg : CORBA.Long)
+      info : CORBA.Long;
+      why  : CORBA.String)
    is
    begin
       all_types.Helper.Raise_my_exception
-        (my_exception_Members'(Info => arg));
+        (my_exception_Members'(Info => info, why => why));
    end testException;
 
    procedure testUnknownException
@@ -382,10 +383,6 @@ package body all_types.Impl is
       use IDL_SEQUENCE_short;
    begin
       Ada.Text_IO.Put_Line ("echoUsequence: len =" & Length (arg)'Img);
-      for J in 1 .. Length (arg) loop
-         Ada.Text_IO.Put_Line ("Item" & J'Img & ": " &
-                               Get_Element (arg, J)'Img);
-      end loop;
       return arg;
    end echoUsequence;
 
@@ -404,6 +401,14 @@ package body all_types.Impl is
    begin
       return arg;
    end echoUnionSequence;
+
+   function echoAny
+     (Self : access Object;
+      Arg  : CORBA.Any) return CORBA.Any
+   is
+   begin
+      return Arg;
+   end echoAny;
 
    procedure set_MyColor
      (Self : access Object;

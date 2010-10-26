@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,11 +77,7 @@ package body PolyORB.Minimal_Servant.Tools is
 
    begin
       PolyORB.Obj_Adapters.Export
-        (PolyORB.Obj_Adapters.Obj_Adapter'Class (Obj_Adapter.all)'Access,
-         Servant,
-         null,
-         Servant_Id,
-         Error);
+        (Obj_Adapter.all'Access, Servant, null, Servant_Id, Error);
 
       if Found (Error) then
          return;
@@ -104,7 +100,7 @@ package body PolyORB.Minimal_Servant.Tools is
 
    procedure Run_Server is
    begin
-      PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
+      PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Exit => False);
    end Run_Server;
 
 end PolyORB.Minimal_Servant.Tools;

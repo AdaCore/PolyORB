@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,8 +53,8 @@ package body XE is
    type Node_Type is
       record
          Kind    : Node_Kind;
-         Loc_X   : Int;
-         Loc_Y   : Int;
+         Loc_X   : Int := 0;
+         Loc_Y   : Int := 0;
          Name    : Name_Id;
          Node_1  : Node_Id;
          Node_2  : Node_Id;
@@ -476,6 +476,50 @@ package body XE is
          Int (Priority_Policy_Type'First) ..
          Int (Priority_Policy_Type'Last));
       return Priority_Policy_Type (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : ORB_Tasking_Policy_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return ORB_Tasking_Policy_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (ORB_Tasking_Policy_Type'First) ..
+         Int (ORB_Tasking_Policy_Type'Last));
+      return ORB_Tasking_Policy_Type (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Name_Server_Type) return Int is
+   begin
+      return Int (Item);
+   end Convert;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (Item : Int) return Name_Server_Type is
+   begin
+      pragma Assert
+        (Item in
+         Int (Name_Server_Type'First) ..
+         Int (Name_Server_Type'Last));
+      return Name_Server_Type (Item);
    end Convert;
 
    ----------------------
@@ -970,25 +1014,43 @@ package body XE is
    begin
       Priority_Policy_Img
         := (No_Priority_Policy => Id ("Undefined Priority Policy"),
-            Server_Declared         => Id ("Server_Declared"),
-            Client_Propagated       => Id ("Client_Propagated"));
+            Server_Declared    => Id ("Server_Declared"),
+            Client_Propagated  => Id ("Client_Propagated"));
 
       Termination_Img
-        := (No_Termination  => Id ("Undefined Termination"),
+        := (No_Termination       => Id ("Undefined Termination"),
             Local_Termination    => Id ("Local_Termination"),
             Global_Termination   => Id ("Global_Termination"),
             Deferred_Termination => Id ("Deferred_Termination"));
 
       Reconnection_Img
-        := (No_Reconnection  => Id ("Undefined Reconnection"),
+        := (No_Reconnection     => Id ("Undefined Reconnection"),
             Reject_On_Restart   => Id ("Reject_On_Restart"),
             Block_Until_Restart => Id ("Block_Until_Restart"),
             Fail_Until_Restart  => Id ("Fail_Until_Restart"));
 
       Boolean_Img
-        := (BMaybe  => Id ("Undefined Boolean"),
-            BFalse  => Id ("False"),
-            BTrue   => Id ("True"));
+        := (BMaybe => Id ("Undefined Boolean"),
+            BFalse => Id ("False"),
+            BTrue  => Id ("True"));
+
+      ORB_Tasking_Policy_Img
+        := (No_ORB_Tasking_Policy => Id ("Undefined ORB Tasking Policy"),
+            Thread_Pool           => Id ("Thread_Pool"),
+            Thread_Per_Session    => Id ("Thread_Per_Session"),
+            Thread_Per_Request    => Id ("Thread_Per_Request"));
+
+      Tasking_Img
+        := (Unknown_Tasking => Id ("Undefined Tasking"),
+            PCS_Tasking     => Id ("PCS_Tasking"),
+            User_Tasking    => Id ("User_Tasking"),
+            No_Tasking      => Id ("No_Tasking"));
+
+      Name_Server_Img
+        := (No_Name_Server => Id ("Undefined name server kind"),
+            Embedded       => Id ("Embedded"),
+            Standalone     => Id ("Standalone"),
+            Multicast      => Id ("Multicast"));
    end Initialize;
 
    ------------------
@@ -1178,7 +1240,7 @@ package body XE is
       --  Remove the nodes created in the previous context.
 
       loop
-         exit when Nodes.Last <= Node_Id (Context.Last_Node);
+         exit when Nodes.Last <= Context.Last_Node;
          Nodes.Decrement_Last;
       end loop;
       N_Anonymous_Variable := Context.Anonymous;

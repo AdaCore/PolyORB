@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
 with Idlac_Errors;          use Idlac_Errors;
-with Utils;                 use Utils;
+with Idlac_Utils;           use Idlac_Utils;
 
 with Ada.Characters.Handling;
 with GNAT.HTable;

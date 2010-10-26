@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,55 +49,50 @@ package PolyORB.Request_QoS is
    --  iterated over the different call-backs.
 
    procedure Set_Request_QoS
-     (Req : PolyORB.Requests.Request_Access;
+     (Req : in out Requests.Request;
       QoS : PolyORB.QoS.QoS_Parameters);
 
    procedure Add_Request_QoS
-     (Req  : PolyORB.Requests.Request_Access;
+     (Req  : in out Requests.Request;
       Kind : PolyORB.QoS.QoS_Kind;
       QoS  : PolyORB.QoS.QoS_Parameter_Access);
    --  Add (replace if exists) passed QoS to the list of request QoSs.
 
    procedure Add_Reply_QoS
-     (Req  : PolyORB.Requests.Request_Access;
+     (Req  : in out Requests.Request;
       Kind : PolyORB.QoS.QoS_Kind;
       QoS  : PolyORB.QoS.QoS_Parameter_Access);
    --  Add (replace if exists) passed QoS to the list of reply QoSs.
 
    function Extract_Request_Parameter
      (Kind : PolyORB.QoS.QoS_Kind;
-      Req  : PolyORB.Requests.Request_Access)
-      return PolyORB.QoS.QoS_Parameter_Access;
+      Req  : Requests.Request) return PolyORB.QoS.QoS_Parameter_Access;
    --  Return QoS parameter of type Kind from request QoS, or a null
    --  if no parameter matches Kind.
 
    function Extract_Reply_Parameter
      (Kind : PolyORB.QoS.QoS_Kind;
-      Req  : PolyORB.Requests.Request_Access)
-      return PolyORB.QoS.QoS_Parameter_Access;
+      Req  : Requests.Request) return PolyORB.QoS.QoS_Parameter_Access;
    --  Return QoS parameter of type Kind from reply QoS, or a null
    --  if no parameter matches Kind.
 
    type Fetch_QoS_CB is access function
-     (Ref : PolyORB.References.Ref)
-      return PolyORB.QoS.QoS_Parameter_Access;
-   --  This call-back function retrieves one QoS_Parameter to be
-   --  applied when sending a request to the target denoted by Ref.
-   --  Return null if QoS parameter is not applicable for Ref.
+     (Ref : PolyORB.References.Ref) return PolyORB.QoS.QoS_Parameter_Access;
+   --  This call-back function retrieves one QoS_Parameter to be applied when
+   --  sending a request to the target denoted by Ref. Return null if QoS
+   --  parameter is not applicable for Ref.
 
    procedure Register (Kind : PolyORB.QoS.QoS_Kind; CB : Fetch_QoS_CB);
    --  Register one call-back function attached to QoS_Kind Kind
 
    function Get_Request_QoS
-     (Req : PolyORB.Requests.Request_Access)
-      return PolyORB.QoS.QoS_Parameters;
+     (Req : Requests.Request) return PolyORB.QoS.QoS_Parameters;
 
    function Get_Reply_QoS
-     (Req : PolyORB.Requests.Request_Access)
-      return PolyORB.QoS.QoS_Parameters;
+     (Req : Requests.Request) return PolyORB.QoS.QoS_Parameters;
 
    procedure Set_Reply_QoS
-     (Req : PolyORB.Requests.Request_Access;
+     (Req : in out Requests.Request;
       QoS : PolyORB.QoS.QoS_Parameters);
 
 end PolyORB.Request_QoS;

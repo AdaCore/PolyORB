@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ pragma Elaborate_All (Ada_Be.Debug);
 with Idlac_Errors; use Idlac_Errors;
 with Platform;     use Platform;
 with String_Sets;  use String_Sets;
-with Utils;        use Utils;
+with Idlac_Utils;  use Idlac_Utils;
 
 package body Ada_Be.Idl2Ada.Helper is
 
@@ -134,10 +134,6 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
    --  Generate the profile of the Wrap function
-
-   function Root_Type (Typ : Node_Id) return Node_Id;
-   --  Return the ultimate type derivation ancestor of Typ (unwinding all
-   --  typedefs and type references).
 
    -----------------------------------------------------------
    -- Specialised generation subprograms for each node kind --
@@ -455,7 +451,7 @@ package body Ada_Be.Idl2Ada.Helper is
                end if;
 
                Put (CU, Img (Index) & " => ");
-               Gen_Node_Stubs_Spec (CU, Bound_Node);
+               Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
 
                Index := Index + 1;
             end loop;
@@ -1794,7 +1790,7 @@ package body Ada_Be.Idl2Ada.Helper is
                      begin
                         if (Kind (Type_Node) = K_Scoped_Name) and then
                           ((Kind (Value (Type_Node)) =
-                               K_ValueType or
+                               K_ValueType or else
                            (Kind (Value (Type_Node)) =
                                K_Forward_ValueType)))
                         then
@@ -2600,7 +2596,7 @@ package body Ada_Be.Idl2Ada.Helper is
                      while not Is_End (It2) loop
                         Get_Next_Node (It2, Decl_Node);
 
-                        if Is_End (It) and Is_End (It2) then
+                        if Is_End (It) and then Is_End (It2) then
                            End_Of_Line := ");";
                         end if;
 
@@ -2873,10 +2869,10 @@ package body Ada_Be.Idl2Ada.Helper is
 
       if Is_Wide (Node) then
          PL (CU, "CORBA.TypeCode.Internals.Build_Wstring_TC ("
-             & Utils.Img (Expr_Value (Bound (Node))) & ");");
+             & Img (Expr_Value (Bound (Node))) & ");");
       else
          PL (CU, "CORBA.TypeCode.Internals.Build_String_TC ("
-             & Utils.Img (Expr_Value (Bound (Node))) & ");");
+             & Img (Expr_Value (Bound (Node))) & ");");
       end if;
 
       PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
@@ -3479,7 +3475,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                   NL (CU);
                   Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
                   PL (CU, " - 1 loop");
                   II (CU);
 
@@ -3605,7 +3601,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
                   NL (CU);
                   Put (CU, "for " & Loop_Parameter (Dim) & " in 0 .. ");
-                  Gen_Node_Stubs_Spec (CU, Bound_Node);
+                  Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
                   PL (CU, " - 1 loop");
                   II (CU);
 
@@ -3943,7 +3939,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Put (CU, Ada_TC_Name (Decl_Node) & "_TC_Dimension_" & Img (Index));
          end if;
          Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
-         Gen_Node_Stubs_Spec (CU, Bound_Node);
+         Gen_Constant_Value (CU, Expr => Bound_Node, Typ => No_Node);
          PL (CU, ")));");
          Put (CU, "CORBA.Internals.Add_Parameter (");
          if First_Bound then
@@ -4047,38 +4043,6 @@ package body Ada_Be.Idl2Ada.Helper is
       pragma Assert (Kind (Node) = K_Exception);
       return "Raise_" & Ada_Name (Node);
    end Raise_Name;
-
-   ---------------
-   -- Root_Type --
-   ---------------
-
-   function Root_Type (Typ : Node_Id) return Node_Id is
-      Root_Typ : Node_Id;
-   begin
-      Root_Typ := Typ;
-
-      --  Unwind typedefs and scoped names
-
-      loop
-         case Kind (Root_Typ) is
-            when K_Scoped_Name =>
-               Root_Typ := Value (Root_Typ);
-
-            when K_Declarator =>
-               if Length (Array_Bounds (Root_Typ)) > 0
-                 or else Kind (T_Type (Parent (Root_Typ))) = K_Fixed
-               then
-                  exit;
-               end if;
-               Root_Typ := T_Type (Parent (Root_Typ));
-
-            when others =>
-               exit;
-         end case;
-      end loop;
-
-      return Root_Typ;
-   end Root_Type;
 
    -------------------
    -- Type_Modifier --

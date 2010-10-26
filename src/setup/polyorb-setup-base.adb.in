@@ -43,5 +43,4 @@ pragma Elaborate_All (PolyORB.Setup.Common_Base);
 @PLATFORM_BASE_WITHS@
 
 package body PolyORB.Setup.Base is
-
 end PolyORB.Setup.Base;

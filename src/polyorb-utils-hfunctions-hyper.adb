@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,15 +88,9 @@ package body PolyORB.Utils.HFunctions.Hyper is
    -- Default_Hash_Parameters --
    -----------------------------
 
-   function Default_Hash_Parameters
-     return Hash_Hyper_Parameters
-   is
-      Default_Parameters : Hash_Hyper_Parameters;
+   function Default_Hash_Parameters return Hash_Hyper_Parameters is
    begin
-      Default_Parameters.Seed := 42;
-      Default_Parameters.Prime := Default_Prime;
-
-      return Default_Parameters;
+      return Hash_Hyper_Parameters'(Seed => 42, Prime => Default_Prime);
    end Default_Hash_Parameters;
 
    --------------------------
@@ -104,16 +98,12 @@ package body PolyORB.Utils.HFunctions.Hyper is
    --------------------------
 
    function Next_Hash_Parameters
-     (Param : Hash_Hyper_Parameters)
-     return Hash_Hyper_Parameters
+     (Param : Hash_Hyper_Parameters) return Hash_Hyper_Parameters
    is
-      Next_Parameters : Hash_Hyper_Parameters;
    begin
-      Next_Parameters.Seed
-        := Unsigned_Long (Hash (Param.Seed'Img, Param, Natural'Last));
-      Next_Parameters.Prime := Param.Prime;
-
-      return Next_Parameters;
+      return Hash_Hyper_Parameters'
+        (Seed => Unsigned_Long (Hash (Param.Seed'Img, Param, Natural'Last)),
+         Prime => Param.Prime);
    end Next_Hash_Parameters;
 
 end PolyORB.Utils.HFunctions.Hyper;

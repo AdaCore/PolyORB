@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,9 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Ada.Exceptions;          use Ada.Exceptions;
 
 with XE;              use XE;
 with XE_Back;         use XE_Back;
@@ -56,6 +59,8 @@ procedure XE_Main is
    Raised_Usage_Error : Boolean := False;
    --  If command line processing raises Usage_Error, we want to defer
    --  propagation until after calling Show_Dist_Args if in debug mode.
+
+   function NS (N : Name_Id) return String renames XE_Names.Get_Name_String;
 
 begin
    XE_Names.Initialize;
@@ -87,6 +92,8 @@ begin
    XE_Stdcnf.Initialize;
    XE_Front.Initialize;
 
+   XE_Back.Register_Storages (Backend);
+
    --  Look for the configuration file that is Next_Main_Source or
    --  Next_Main_Source + ".cfg" if the former does not exist.
 
@@ -100,8 +107,8 @@ begin
       Configuration_File_Name := Name_Find;
 
       if not Is_Regular_File (Configuration_File_Name) then
-         Message ("file", Quote (Configuration_File_Name), "not found");
-         raise Fatal_Error;
+         raise Fatal_Error
+           with "file " & NS (Quote (Configuration_File_Name)) & " not found";
       end if;
    end if;
 
@@ -110,16 +117,17 @@ begin
    Parse;
    Frontend;
 
-   --  Configuration name and configuration file name do not match
+   --  Configuration name and configuration file name do not match (case
+   --  insensitively, to mimic the way project files work)
 
-   Get_Name_String (Configuration_File_Name);
+   Get_Name_String (Strip_Directory (Configuration_File_Name));
    Name_Len := Name_Len - Cfg_Suffix'Length;
-   if not Quiet_Mode
-     and then Configuration /= Name_Find
+   if To_Lower (Get_Name_String (Configuration)) /=
+      To_Lower (Get_Name_String (Name_Find))
    then
-      Message ("configuration file name should be",
-               Quote (Configuration & Cfg_Suffix_Id));
-      raise Fatal_Error;
+      raise Fatal_Error
+        with "configuration file name should be "
+          & NS (Quote (Configuration & Cfg_Suffix_Id));
    end if;
 
    --  Look for a partition list on the command line. Only those partitions are
@@ -138,8 +146,8 @@ begin
       while More_Source_Files loop
          Partition := Get_Partition_Id (Next_Main_Source);
          if Partition = No_Partition_Id then
-            Message ("unknown partition", Quote (Next_Main_Source));
-            raise Fatal_Error;
+            raise Fatal_Error
+              with "unknown partition " & NS (Quote (Next_Main_Source));
          end if;
          Partitions.Table (Partition).To_Build := True;
       end loop;
@@ -154,9 +162,9 @@ begin
       end loop;
    end if;
 
-   --  Check consistency once we know which partitions to build. Some
-   --  parts of configuration may be missing because we partially
-   --  build the distributed system.
+   --  Check consistency once we know which partitions to build. Some parts of
+   --  configuration may be missing because we partially build the distributed
+   --  system.
 
    XE_Back.Initialize (Backend);
    Analyze;
@@ -170,23 +178,31 @@ exception
    when Scanning_Error =>
       Message ("*** scanning failed");
       Exit_Program (E_Fatal);
+
    when Parsing_Error =>
       Message ("*** parsing failed");
       Exit_Program (E_Fatal);
+
    when Partitioning_Error =>
       Message ("*** partitioning failed");
       Exit_Program (E_Fatal);
+
    when Usage_Error =>
       Message ("*** wrong argument(s)");
       Exit_Program (E_Fatal);
+
    when Not_Yet_Implemented =>
       Message ("*** unimplemented feature");
       Exit_Program (E_Fatal);
-   when Fatal_Error =>
+
+   when E : Fatal_Error =>
+      Message (Ada.Exceptions.Exception_Message (E));
       Message ("*** can't continue");
       Exit_Program (E_Fatal);
+
    when Compilation_Error =>
       Exit_Program (E_Fatal);
+
    when others =>
       Remove_All_Temp_Files;
       raise;

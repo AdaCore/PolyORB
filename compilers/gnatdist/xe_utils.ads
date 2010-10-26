@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,8 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 pragma Elaborate_All (GNAT.OS_Lib);
-with XE_Types;    use XE_Types;
+
+with XE_Types; use XE_Types;
 
 package XE_Utils is
 
@@ -65,22 +66,25 @@ package XE_Utils is
    E_Current_Dir : String_Access;
    I_Current_Dir : String_Access;
 
+   --  Monolithic application main subprogram (set by Set_Application_Names)
+
    Monolithic_App_Unit_Name : File_Name_Type;
    Monolithic_Src_Base_Name : File_Name_Type;
-   --  Monolithic application main
+   Monolithic_Src_Name      : File_Name_Type;
+   Monolithic_ALI_Name      : File_Name_Type;
+   Monolithic_Obj_Name      : File_Name_Type;
 
-   Monolithic_Src_Name : File_Name_Type;
-   Monolithic_ALI_Name : File_Name_Type;
-   Monolithic_Obj_Name : File_Name_Type;
-   --  Monolithic application main
+   Monolithic_Obj_Dir       : File_Name_Type;
+   --  Object dir for the monolithic application
+
+   --  Project file for the complete application (set by Set_Application_Names)
+
+   Dist_App_Project      : Name_Id;
+   Dist_App_Project_File : File_Name_Type;
 
    PCS_Project       : Name_Id;
    PCS_Project_File  : File_Name_Type;
    --  Project file for the PCS
-
-   Dist_App_Project      : Name_Id;
-   Dist_App_Project_File : File_Name_Type;
-   --  Project file for the complete distributed application
 
    Part_Main_Src_Name : File_Name_Type;
    Part_Main_ALI_Name : File_Name_Type;
@@ -90,10 +94,13 @@ package XE_Utils is
    Part_Prj_File_Name : File_Name_Type;
    --  Partition project file
 
+   Overridden_PCS_Units : File_Name_Type;
+   --  Per-partition list of PCS units that are overridden by the partition
+
    No_Args : constant Argument_List (1 .. 0) := (others => null);
 
    procedure Initialize;
-   --  Initialize global variables, global flags, ...
+   --  Perform global initialization of this unit
 
    ------------------------------
    -- String and Name Handling --
@@ -125,22 +132,22 @@ package XE_Utils is
 
    procedure Set_Corresponding_Project_File_Name (N : out File_Name_Type);
    --  Assuming the Name_Buffer contains a project name, set N to the name of
-   --  the corrsponding project file. (Assumes that the project name is already
-   --  all lowercase).
+   --  the corrsponding project file. Assumes that the project name is already
+   --  all lowercase.
 
    ------------------------------------
    -- Command Line Argument Handling --
    ------------------------------------
 
    procedure Scan_Dist_Arg (Argv : String; Implicit : Boolean := True);
-   --  Process one command line argument
+   --  Process one command line argument.
    --  Implicit is set True for additional flags generated internally by
    --  gnatdist.
 
    procedure Scan_Dist_Args (Args : String);
-   --  Split Args into a list of arguments according to usual shell
-   --  splitting semantics, and process each argument using Scan_Dist_Arg
-   --  (such arguments are always implicit).
+   --  Split Args into a list of arguments according to usual shell splitting
+   --  semantics, and process each argument using Scan_Dist_Arg as implicit
+   --  arguments.
 
    function More_Source_Files return Boolean;
    function Next_Main_Source return Name_Id;
@@ -148,6 +155,11 @@ package XE_Utils is
 
    procedure Show_Dist_Args;
    --  Output processed command line switches (for debugging purposes)
+
+   procedure Set_Application_Names (Configuration_Name : Name_Id);
+   --  Set the name of the monolithic application main subprogram and of the
+   --  distributed application project based on the configuration name.
+   --  Called once the configuration has been parsed.
 
    --------------------
    -- Error Handling --
@@ -162,15 +174,23 @@ package XE_Utils is
    Usage_Error         : exception;   --  Command line error
    Not_Yet_Implemented : exception;
 
+   --  Note: Compilation_Error may be raised only when a previous build command
+   --  has already emitted an error message. Gnatdist itself will silently
+   --  exist (with an error status) in that case, and won't produce any
+   --  further error message.
+
    type Exit_Code_Type is
      (E_Success,    -- No warnings or errors
       E_Fatal);     -- Fatal (serious) error
 
    procedure Exit_Program (Code : Exit_Code_Type);
-   --  Call exit() with return code
+   --  Clean up temporary files and exit with appropriate return code
 
    procedure Write_Missing_File (Fname : File_Name_Type);
-   --  Output an error message to indicate that Fname is missing
+   --  Output an informational message to indicate that Fname is missing
+
+   procedure Write_Warnings_Pragmas;
+   --  Generate pragmas to turn off warnings and style checks
 
    -----------------------
    --  Command Handling --
@@ -186,7 +206,8 @@ package XE_Utils is
    procedure Build
      (Library    : File_Name_Type;
       Arguments  : Argument_List;
-      Fatal      : Boolean := True);
+      Fatal      : Boolean := True;
+      Progress   : Boolean := False);
    --  Execute gnat make and add gnatdist link flags
 
    procedure Compile

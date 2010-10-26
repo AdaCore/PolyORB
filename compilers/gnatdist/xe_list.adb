@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,22 +35,29 @@ with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
 with GNAT.Table;
 
+with XE;
 with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
-pragma Elaborate_All (XE_Utils);
 
 package body XE_List is
 
-   ------------------------
-   --  Source File Stack --
-   ------------------------
+   Monolithic_Src_File : File_Descriptor;
+
+   -----------------------
+   -- Source File Stack --
+   -----------------------
+
+   type Sources_Entry is record
+      Sfile : File_Name_Type;
+      Afile : File_Name_Type;
+   end record;
 
    package Sources is new GNAT.Table
-     (Table_Component_Type => File_Name_Type,
+     (Table_Component_Type => Sources_Entry,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
       Table_Initial        => 20,
@@ -132,17 +139,19 @@ package body XE_List is
       procedure Get_Line;
       --  Read one line from current buffer and evaluate fields
 
-      function  Field (N : Natural) return String;
-      --  Return Nth field. N has to be in the range of 0 and
-      --  Number_Of_Fields. When N is zero, return the full line.
+      function Field (N : Integer) return String;
+      --  Return Nth field. N has to be in the range of 0 and Number_Of_Fields.
+      --  When N is zero, return the full line. When N < 0, the contents of
+      --  the line starting at the beginning of the |N|th field and until end
+      --  of line is returned.
 
-      function  Number_Of_Fields return Natural;
+      function Number_Of_Fields return Natural;
       --  Return number of fields in the current line
 
-      function  End_Of_File return Boolean;
+      function End_Of_File return Boolean;
       --  Return True when there is nothing else to read
 
-      function  Token (N : Positive) return Token_Type;
+      function Token (N : Positive) return Token_Type;
       --  Return the token corresponding to field N. When there is no
       --  such corresponding token return No_Such_Token. Note that N
       --  cannot be zero.
@@ -221,15 +230,23 @@ package body XE_List is
       -- Field --
       -----------
 
-      function  Field (N : Natural) return String is
+      function Field (N : Integer) return String is
+         Last : Natural;
       begin
          if N = 0 then
             return Chars (1 .. N_Chars);
          end if;
+
          if N > N_Fields then
             return "";
          end if;
-         return Chars (Fields (N).First .. Fields (N).Last);
+
+         if N < 0 then
+            Last := N_Chars;
+         else
+            Last := Fields (N).Last;
+         end if;
+         return Chars (Fields (abs N).First .. Last);
       end Field;
 
       --------------
@@ -534,13 +551,12 @@ package body XE_List is
    ----------------
 
    procedure Initialize is
-      File : File_Descriptor;
    begin
       --  Create main body for monolithic application as a temporary file
 
-      Register_Temp_File (File, Monolithic_Src_Name);
-      Set_Output (File);
-      Write_Line ("pragma Warnings (Off);");
+      Register_Temp_File (Monolithic_Src_File, Monolithic_Src_Name);
+      Set_Output (Monolithic_Src_File);
+      Write_Warnings_Pragmas;
 
       --  Record the associated object and ALI files as temporary files to
       --  be cleaned up eventually.
@@ -561,10 +577,10 @@ package body XE_List is
       My_With     : With_Id        := No_With_Id;
       My_Sdep     : Sdep_Id        := No_Sdep_Id;
       Afile       : File_Name_Type;
-      Sfile       : File_Name_Type;
 
       function File_Name (N : Natural) return File_Name_Type;
-      --  Get the Nth field and return it as a file name type
+      --  Get the line contents starting with the Nth field and up to end of
+      --  line, and return it as a file name type.
 
       ---------------
       -- File_Name --
@@ -572,7 +588,10 @@ package body XE_List is
 
       function File_Name (N : Natural) return File_Name_Type is
       begin
-         return Id (Format_Pathname (Parser.Field (N), UNIX));
+         --  File names may contain whitespace, so consider not just the Nth
+         --  field but also everything up to end of line.
+
+         return Id (Format_Pathname (Parser.Field (-N), UNIX));
       end File_Name;
 
    begin
@@ -650,7 +669,7 @@ package body XE_List is
                if Name_Len > 8
                  and then Name_Buffer (1 .. 8) = "s-taskin"
                then
-                  ALIs.Table (My_ALI).Tasking := 'U';
+                  ALIs.Table (My_ALI).Tasking := XE.User_Tasking;
                end if;
 
             when T_Afile =>
@@ -692,9 +711,9 @@ package body XE_List is
                   ALIs.Table (My_ALI).Sfile := File_Name (3);
 
                else
-                  Sfile := File_Name (3);
-                  Afile := To_Afile (Sfile);
-                  Set_ALI_Id (Afile, No_ALI_Id);
+                  --  Unexpected Sfile token
+
+                  raise Program_Error;
                end if;
 
             when T_Name =>
@@ -830,18 +849,19 @@ package body XE_List is
 
    procedure Load_All_Registered_Units is
       Comp_Flags : constant Argument_List :=
-        (1 => Semantic_Only_Flag);
+                     (Semantic_Only_Flag,
+                      Object_Dir_Flag,
+                      new String'(Get_Name_String (Monolithic_Obj_Dir)));
 
       List_Args : constant Argument_List :=
-        (GLADE_List_Flag,
-         Project_File_Flag,
-         Project_File_Name);
+                    (GLADE_List_Flag,
+                     Project_File_Flag,
+                     Project_File_Name);
 
       Make_Args : constant Argument_List :=
-        (Compile_Only_Flag,
-         Keep_Going_Flag,
-         Project_File_Flag,
-         Project_File_Name);
+                    (Compile_Only_Flag,
+                     Project_File_Flag,
+                     Project_File_Name);
 
       List_Args_Length, Make_Args_Length : Natural;
 
@@ -850,15 +870,16 @@ package body XE_List is
       ALI        : ALI_Id;
       Partition  : Partition_Id;
       Output     : File_Name_Type;
+
    begin
       --  Only use the project flags if a project has been set
 
       if Project_File_Name /= null then
          List_Args_Length := 3;
-         Make_Args_Length := 4;
+         Make_Args_Length := 3;
       else
          List_Args_Length := 1;
-         Make_Args_Length := 2;
+         Make_Args_Length := 1;
       end if;
 
       declare
@@ -878,17 +899,23 @@ package body XE_List is
          Write_Str  ("end ");
          Write_Name (Monolithic_App_Unit_Name);
          Write_Line (";");
+         Close (Monolithic_Src_File);
          Set_Standard_Output;
 
          --  Build the monolithic application with a fake main subprogram
-         --  Partition. Load the info from its ALI file.
+         --  Monolithic_App. Note that we must pass the bare file name (without
+         --  directory information) to gnat make, Monolithic_Src_Base_Name,
+         --  not Monolithic_Src_Name.
 
-         Sfile := Monolithic_Src_Name;
-         Afile := To_Afile (Sfile);
-         Build (Sfile, Make_Flags, Fatal => False);
-         List ((1 => Afile), List_Flags, Output);
+         Sfile := Monolithic_Src_Base_Name;
+         Build
+           (Sfile, Make_Flags, not Keep_Going, Display_Compilation_Progress);
+
+         --  Load the info from its ALI file
+
+         List ((1 => Monolithic_ALI_Name), List_Flags, Output);
          Load_ALIs (Output);
-         ALI := Get_ALI_Id (Afile);
+         ALI := Get_ALI_Id (Monolithic_ALI_Name);
 
          --  Do not delete the source file for the fake main subprogram,
          --  it is needed by List later on.
@@ -896,7 +923,7 @@ package body XE_List is
          Remove_Temp_File (Part_Main_ALI_Name);
          Remove_Temp_File (Part_Main_Obj_Name);
 
-         --  The compilation of partition.adb failed. There is no way to
+         --  The compilation of monolithic_app.adb failed. There is no way to
          --  rescue this situation.
 
          if ALI = No_ALI_Id then
@@ -916,7 +943,10 @@ package body XE_List is
 
                if Present (Sfile) then
                   Set_Name_Table_Byte (Sfile, 1);
-                  Sources.Append (Sfile);
+                  Sources.Append
+                    (Sources_Entry'
+                     (Sfile => Sfile,
+                      Afile => Withs.Table (K).Afile));
                end if;
             end loop;
          end loop;
@@ -928,13 +958,13 @@ package body XE_List is
                Sfiles : File_Name_List (1 .. Last);
 
             begin
-               --  Load in Args the sources which corresponding ALI file
-               --  is not yet available.
+               --  Load in Args the sources whose corresponding ALI file is not
+               --  yet available.
 
                Last := 0;
                for J in Sources.First .. Sources.Last loop
-                  Sfile := Sources.Table (J);
-                  Afile := To_Afile (Sfile);
+                  Sfile := Sources.Table (J).Sfile;
+                  Afile := Sources.Table (J).Afile;
 
                   --  We never tried to download this ALI file. Its info
                   --  is not a valid ALI id (not even No_ALI_Id).
@@ -975,18 +1005,22 @@ package body XE_List is
 
                      ALI := Get_ALI_Id (Afile);
                      if ALI = No_ALI_Id then
-                        raise Compilation_Error;
+                        Get_Name_String (Sfile);
+                        raise Fatal_Error with "failed to load ALI for "
+                          & Name_Buffer (1 .. Name_Len);
                      end if;
 
-                     --  Check that the unit was really assigned to a
-                     --  partition we are not going to build.
+                     --  Check that the unit was really assigned to a partition
+                     --  we are not going to build.
 
                      Partition := Get_Partition_Id (ALIs.Table (ALI).Uname);
                      if not Units.Table (ALIs.Table (ALI).Last_Unit).RCI
                        or else Partition = No_Partition_Id
                        or else Partitions.Table (Partition).To_Build
                      then
-                        raise Compilation_Error;
+                        Get_Name_String (ALIs.Table (ALI).Uname);
+                        raise Fatal_Error with "invalid partition for "
+                          & Name_Buffer (1 .. Name_Len);
                      end if;
                   end if;
 
@@ -1014,7 +1048,10 @@ package body XE_List is
                           and then Get_Name_Table_Byte (Sfile) = 0
                         then
                            Set_Name_Table_Byte (Sfile, 1);
-                           Sources.Append (Sfile);
+                           Sources.Append
+                             (Sources_Entry'
+                              (Sfile => Sfile,
+                               Afile => Withs.Table (K).Afile));
                         end if;
                      end loop;
                   end loop;

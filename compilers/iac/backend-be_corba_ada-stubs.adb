@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -156,9 +156,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
               Corresponding_Entity
               (FE_Node (Current_Entity))
             then
-               Append_Node_To_List
-                 (Map_Repository_Id_Declaration (A),
-                  Visible_Part (Current_Package));
+               Append_To (Visible_Part (Current_Package),
+                 Map_Repository_Id_Declaration (A));
             end if;
 
             A := Next_Entity (A);
@@ -173,12 +172,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
          N             : Node_Id;
          Expression    : Node_Id;
          Constant_Type : constant Node_Id := Map_Expanded_Name (Type_Spec (E));
-         S             : Node_Id;
          K             : FEN.Node_Kind;
+         Otyp          : constant Node_Id :=
+                           FEU.Get_Original_Type_Specifier (Type_Spec (E));
       begin
          Set_Main_Spec;
 
-         case Value (FEN.Value (E)).K is
+         case FEU.Expr_Value (E).K is
             when K_Short .. K_Unsigned_Long_Long
               | K_Octet
               | K_Fixed_Point_Type
@@ -191,58 +191,100 @@ package body Backend.BE_CORBA_Ada.Stubs is
                declare
                   Minus : Node_Id;
                begin
-                  if Negative (FEN.Value (E)) then
+                  if Negative (Value_Id'(FEU.Expr_Value (E))) then
                      Minus := Make_Selected_Component
                        (Get_Parent_Unit_Name (Constant_Type),
                         Make_Defining_Identifier (SN (S_Minus)));
 
                      Expression := Make_Subprogram_Call
                        (Minus,
-                        Make_List_Id
-                          (Make_Literal (New_Value (-Value (FEN.Value (E))))));
+                        New_List
+                          (Make_Literal (New_Value (-FEU.Expr_Value (E)))));
 
                   else
-                     Expression := Make_Literal (FEN.Value (E));
+                     Expression := Make_Literal (FEU.Expr_Value (E));
                   end if;
                end;
+
+            when K_Enumerator =>
+
+               --  If it's an enumeration literal, we need to use an expanded
+               --  name.
+
+               Expression := Make_Literal_With_Parent
+                 (FEU.Expr_Value (E),
+                  Parent => Get_Parent_Unit_Name (Constant_Type));
+
             when others =>
-               Expression := Make_Literal (FEN.Value (E));
+               Expression := Make_Literal (FEU.Expr_Value (E));
          end case;
 
          --  If the constant type is of a string type, it needs to be
-         --  converted using To_CORBA_[Wide_]String.
+         --  converted using To_CORBA_[Wide_]String (for the unbounded case),
+         --  To_Bounded_[Wide_]String (for the bounded case).
          --  Determine the expanded name of these subprograms according to
          --  whether the type is directly CORBA.[Wide_]String, or a derived
          --  type thereof.
 
-         K := FEN.Kind (FEU.Get_Original_Type_Specifier (Type_Spec (E)));
+         K := FEN.Kind (Otyp);
 
          case K is
-            when K_String | K_Wide_String =>
-               declare
-                  Converter : RE_Id;
-               begin
-                  if K = K_String then
-                     Converter := RE_To_CORBA_String;
-                  else
-                     Converter := RE_To_CORBA_Wide_String;
-                  end if;
+            when K_String           |
+                 K_String_Type      |
+                 K_Wide_String      |
+                 K_Wide_String_Type =>
 
-                  if FEN.Kind (Type_Spec (E)) = K then
+               declare
+                  S : Node_Id := No_Node;
+                  --  Selected_Component denoting a conversion function, for
+                  --  the case where the constant's type is not a root
+                  --  unbounded string type.
+
+                  Converter : Node_Id;
+               begin
+                  case K is
+                     when K_String =>
+                        Converter := RE (RE_To_CORBA_String);
+                     when K_Wide_String =>
+                        Converter := RE (RE_To_CORBA_Wide_String);
+
+                     when K_String_Type      |
+                          K_Wide_String_Type =>
+                        declare
+                           Str_Instance : constant Node_Id :=
+                                            Defining_Identifier
+                                              (Instantiation_Node
+                                                (BE_Node (Otyp)));
+                           Id : Node_Id;
+                        begin
+                           if K = K_String_Type then
+                              Id := Make_Identifier
+                                      (SN ((S_To_Bounded_String)));
+                           else
+                              Id := Make_Identifier
+                                      (SN ((S_To_Bounded_Wide_String)));
+                           end if;
+                           Converter := Make_Selected_Component
+                                          (Str_Instance, Id);
+                        end;
+                     when others =>
+                        raise Program_Error;
+                  end case;
+
+                  if Otyp = Type_Spec (E) then
                      Expression := Make_Subprogram_Call
-                                     (RE (Converter),
-                                      Make_List_Id (Expression));
+                                     (Converter, New_List (Expression));
                   else
                      S := Make_Selected_Component
-                       (Get_Parent_Unit_Name
-                        (Get_Type_Definition_Node (Type_Spec (E))),
-                        Selector_Name (RE (Converter, False)));
+                            (Get_Parent_Unit_Name
+                               (Get_Type_Definition_Node (Type_Spec (E))),
+                                  Selector_Name (Converter));
 
                      --  The call to Copy_Node ensures the addition of
                      --  necessary WITH clauses.
 
                      Expression := Make_Subprogram_Call
-                       (Copy_Node (S), Make_List_Id (Expression));
+                       (Copy_Node (S), New_List (Expression));
                   end if;
                end;
 
@@ -256,7 +298,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Object_Definition   => Constant_Type,
             Expression          => Expression);
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
       end Visit_Constant_Declaration;
 
       ----------------------------
@@ -272,12 +314,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
       begin
          Set_Main_Spec;
 
-         Enum_Literals := New_List (K_Enumeration_Literals);
+         Enum_Literals := New_List;
          Enumerator := First_Entity (Enumerators (E));
 
          while Present (Enumerator) loop
             Enum_Literal := Map_Defining_Identifier (Enumerator);
-            Append_Node_To_List (Enum_Literal, Enum_Literals);
+            Append_To (Enum_Literals, Enum_Literal);
             Enumerator := Next_Entity (Enumerator);
          end loop;
 
@@ -288,12 +330,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          Bind_FE_To_BE  (Identifier (E), Enum_Type_Decl, B_Stub);
          Bind_FE_To_BE (Identifier (E), Enum_Type_Decl, B_Type_Def);
-         Append_Node_To_List
-           (Enum_Type_Decl,
-            Visible_Part (Current_Package));
-         Append_Node_To_List
-           (Map_Repository_Id_Declaration (E),
-            Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), Enum_Type_Decl);
+         Append_To (Visible_Part (Current_Package),
+           Map_Repository_Id_Declaration (E));
       end Visit_Enumeration_Type;
 
       ---------------------------------
@@ -311,7 +350,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
          Identifier := Make_Defining_Identifier (Name_Find);
          N := Make_Exception_Declaration (Identifier);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  Link the frontend node to the backend exception
 
@@ -328,7 +367,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             (RE (RE_IDL_Exception_Members),
              Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  Link the frontend node to the backend type definition
 
@@ -336,19 +375,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          --  Insert repository declaration
 
-         Append_Node_To_List
-           (Map_Repository_Id_Declaration (E),
-            Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package),
+           Map_Repository_Id_Declaration (E));
 
          --  Insert the Get_Members procedure specification
 
          N := Map_Get_Members_Spec
            (Make_Selected_Component
-            (Defining_Identifier (Main_Package (Current_Entity)),
+            (Defining_Identifier (Stubs_Package (Current_Entity)),
              Identifier));
 
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
       end Visit_Exception_Declaration;
 
       -----------------------------------------
@@ -391,7 +428,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          Bind_FE_To_BE  (FEN.Identifier (Forward (E)), N, B_Forward);
 
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  This workaround is used to permit the use of the Ref type
          --  declared in the instantiated package.
@@ -424,7 +461,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Is_Local : constant Boolean := Is_Local_Interface (E);
       begin
          P := Map_IDL_Unit (E);
-         Append_Node_To_List (P, Packages (Current_Entity));
+         Append_To (Packages (Current_Entity), P);
          Push_Entity (P);
          Set_Main_Spec;
          L := Interface_Spec (E);
@@ -471,8 +508,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
              Record_Extension_Part =>
                Make_Record_Type_Definition
              (Record_Definition => Make_Record_Definition (No_List))));
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
 
          --  An Interface Declaration is also a type definition. So we
          --  link the type declaration node to the IDL interface node
@@ -481,8 +517,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
          N := Map_Repository_Id_Declaration (E);
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
          Set_FE_Node (N, Identifier (E));
 
          N := First_Entity (Interface_Body (E));
@@ -507,7 +542,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          if not Is_Local then
             N := Visible_Is_A_Spec (E);
-            Append_Node_To_List (N, Visible_Part (Current_Package));
+            Append_To (Visible_Part (Current_Package), N);
          end if;
 
          --  If we handle a forwarded interface we must instantiate
@@ -534,14 +569,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
                N := Make_Package_Instantiation
                  (Defining_Identifier => Pack_Inst,
                   Generic_Package     => Copy_Expanded_Name (Gen_Pack),
-                  Parameter_List      => Make_List_Id (Map_Ref_Type (E)));
-               Append_Node_To_List (N, Visible_Part (Current_Package));
+                  Parameter_List      => New_List (Map_Ref_Type (E)));
+               Append_To (Visible_Part (Current_Package), N);
             end;
          end if;
 
          if not Is_Local then
             N := Local_Is_A_Spec;
-            Append_Node_To_List (N, Private_Part (Current_Package));
+            Append_To (Private_Part (Current_Package), N);
          end if;
 
          Pop_Entity;
@@ -558,12 +593,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
       begin
          if not Map_Particular_CORBA_Parts (E, PK_Stub_Spec) then
             S := Map_IDL_Unit (E);
-            Append_Node_To_List (S, Packages (Current_Entity));
+            Append_To (Packages (Current_Entity), S);
             Push_Entity (S);
             Set_Main_Spec;
-            Append_Node_To_List
-              (Map_Repository_Id_Declaration (E),
-               Visible_Part (Current_Package));
+            Append_To (Visible_Part (Current_Package),
+              Map_Repository_Id_Declaration (E));
 
             D := First_Entity (Definitions (E));
 
@@ -618,18 +652,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
          end Map_Parameter_Type_Designator;
 
       begin
-         Profile := New_List (K_Parameter_Profile);
+         Profile := New_List;
 
          --  Create a dispatching parameter
 
          Ada_Param := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Self)),
             Map_Ref_Type (Container));
-         Append_Node_To_List (Ada_Param, Profile);
+         Append_To (Profile, Ada_Param);
 
-         --  Create an Ada subprogram parameter for each IDL
-         --  subprogram parameter. Check whether there is one inout or
-         --  out parameter.
+         --  Create an Ada subprogram parameter for each IDL subprogram
+         --  parameter. Check whether there is one inout or out parameter.
 
          IDL_Param := First_Entity (Parameters (E));
 
@@ -646,16 +679,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Mode := Mode_Out;
             end if;
 
-            Append_Node_To_List (Ada_Param, Profile);
+            Append_To (Profile, Ada_Param);
             IDL_Param := Next_Entity (IDL_Param);
          end loop;
 
-         --  If the operation has a non empty context specification we
-         --  add a new parameter 'In_Context'.
+         --  If the operation has a non-empty context specification, add an
+         --  extra parameter 'In_Context'.
 
-         --  XXX : The contexts are not completely implemented in
-         --  PolyORB. Once they are implemented a routine which tests
-         --  the consistency of the context must be generated.
+         --  XXX : The contexts are not completely implemented in PolyORB. Once
+         --  they are implemented a routine which tests the consistency of the
+         --  context must be generated.
 
          declare
             L : constant List_Id := Contexts (E);
@@ -666,22 +699,21 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   RE (RE_Ref_8),
                   Mode_In,
                   RE (RE_Get_Default_Context));
-               Append_Node_To_List (Ada_Param, Profile);
+               Append_To (Profile, Ada_Param);
             end if;
          end;
 
-         --  If the IDL subprogram is a function, then check whether
-         --  it has out or inout parameters. In this case, map the IDL
-         --  function as an Ada procedure and not an Ada function.
+         --  For a non-void IDL operation, check for parameters of mode out or
+         --  inout parameters, in which case it must be mapped to an Ada
+         --  procedure, instead of an Ada function.
 
          if FEN.Kind (Type_Spec (E)) /= K_Void then
             if Mode = Mode_In then
                Returns := Map_Parameter_Type_Designator (E);
                Set_FE_Node (Returns, Type_Spec (E));
 
-               --  If the IDL function is mapped as an Ada procedure,
-               --  add a new out parameter Returns to pass the
-               --  returned value.
+               --  If the IDL function is mapped to an Ada procedure, add a new
+               --  out parameter Returns to hold the returned value.
             else
                Type_Designator := Map_Parameter_Type_Designator (E);
                Set_FE_Node (Type_Designator, Type_Spec (E));
@@ -689,7 +721,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Make_Defining_Identifier (PN (P_Returns)),
                   Type_Designator,
                   Mode_Out);
-               Append_Node_To_List (Ada_Param, Profile);
+               Append_To (Profile, Ada_Param);
             end if;
          end if;
 
@@ -698,7 +730,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Set_Main_Spec;
          Subp_Spec := Make_Subprogram_Specification
            (Map_Defining_Identifier (E), Profile, Returns);
-         Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), Subp_Spec);
 
          --  We don't add the Repository_Id declaration in the case of
          --  an Operation inherited from the second until the last
@@ -714,9 +746,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
            Corresponding_Entity (FE_Node (Current_Entity))
            and then FEN.Loc (Identifier (E)) /= No_Location
          then
-            Append_Node_To_List
-              (Map_Repository_Id_Declaration (E),
-               Visible_Part (Current_Package));
+            Append_To (Visible_Part (Current_Package),
+              Map_Repository_Id_Declaration (E));
          end if;
 
          if Binding then
@@ -760,9 +791,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
-         Append_Node_To_List (N, Visible_Part (Current_Package));
-         Append_Node_To_List
-           (Map_Repository_Id_Declaration (E), Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
+         Append_To (Visible_Part (Current_Package),
+           Map_Repository_Id_Declaration (E));
       end Visit_Structure_Type;
 
       ----------------------------
@@ -796,11 +827,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier => T,
                   Type_Definition     => Make_Decimal_Type_Definition
                     (Type_Spec_Node));
-               Append_Node_To_List (Fixed_Type_Node,
-                                    Visible_Part (Current_Package));
+               Append_To (Visible_Part (Current_Package), Fixed_Type_Node);
 
                T := Make_Selected_Component
-                 (Defining_Identifier (Main_Package (Current_Entity)), T);
+                 (Defining_Identifier (Stubs_Package (Current_Entity)), T);
 
                --  Link the front end node to the Ada type definition
 
@@ -849,20 +879,19 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Seq_Package_Inst := Make_Package_Instantiation
                     (Defining_Identifier => Seq_Package_Node,
                      Generic_Package     => CORBA_Seq,
-                     Parameter_List      => Make_List_Id
+                     Parameter_List      => New_List
                      (Type_Node,
                       Make_Literal
-                      (FEN.Value
+                      (FEU.Expr_Value
                        (Max_Size
                         (Type_Spec_Node)))));
                else
                   Seq_Package_Inst := Make_Package_Instantiation
                     (Defining_Identifier => Seq_Package_Node,
                      Generic_Package     => CORBA_Seq,
-                     Parameter_List      => Make_List_Id (Type_Node));
+                     Parameter_List      => New_List (Type_Node));
                end if;
-               Append_Node_To_List (Seq_Package_Inst,
-                                    Visible_Part (Current_Package));
+               Append_To (Visible_Part (Current_Package), Seq_Package_Inst);
 
                --  Link the frontend node to the package instantiation
 
@@ -872,7 +901,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                T := Make_Selected_Component
                  (Make_Selected_Component
-                  (Defining_Identifier (Main_Package (Current_Entity)),
+                  (Defining_Identifier (Stubs_Package (Current_Entity)),
                    Seq_Package_Node),
                   Make_Identifier (TN (T_Sequence)));
 
@@ -924,10 +953,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Str_Package_Inst := Make_Package_Instantiation
                  (Defining_Identifier => Pkg_Node,
                   Generic_Package     => CORBA_String_Pkg,
-                  Parameter_List      => Make_List_Id
-                  (Make_Literal (FEN.Value (Max_Size (Type_Spec_Node)))));
-               Append_Node_To_List (Str_Package_Inst,
-                                    Visible_Part (Current_Package));
+                  Parameter_List      => New_List
+                  (Make_Literal (FEU.Expr_Value (Max_Size (Type_Spec_Node)))));
+               Append_To (Visible_Part (Current_Package), Str_Package_Inst);
 
                --  Link the frontend node to the package instantiation
 
@@ -940,7 +968,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                T := Make_Selected_Component
                  (Make_Selected_Component
-                  (Defining_Identifier (Main_Package (Current_Entity)),
+                  (Defining_Identifier (Stubs_Package (Current_Entity)),
                    Pkg_Node),
                   T);
 
@@ -989,9 +1017,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Bind_FE_To_BE (Identifier (D), N, B_Stub);
             Bind_FE_To_BE (Identifier (D), N, B_Type_Def);
 
-            Append_Node_To_List (N, Visible_Part (Current_Package));
-            Append_Node_To_List (Map_Repository_Id_Declaration (D),
-                                 Visible_Part (Current_Package));
+            Append_To (Visible_Part (Current_Package), N);
+            Append_To (Visible_Part (Current_Package),
+              Map_Repository_Id_Declaration (D));
             D := Next_Entity (D);
          end loop;
       end Visit_Type_Declaration;
@@ -1022,7 +1050,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Get_Name_String_And_Append (Type_Name);
          Add_Str_To_Name_Buffer (" is implementation defined");
          N := Make_Ada_Comment (Name_Find);
-         Append_Node_To_List (N, Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
       end Visit_Native_Type;
 
       ----------------------
@@ -1051,29 +1079,26 @@ package body Backend.BE_CORBA_Ada.Stubs is
                 (Orig_Type)));
          end if;
 
-         L := New_List (K_Component_List);
-         Append_Node_To_List
-           (Make_Variant_Part
-            (Make_Defining_Identifier (CN (C_Switch)),
-             Map_Variant_List
-             (Switch_Type_Body (E),
-              Literal_Parent)),
-            L);
+         L := New_List;
+         Append_To (L,
+           Make_Variant_Part
+             (Make_Defining_Identifier (CN (C_Switch)),
+                Map_Variant_List (Switch_Type_Body (E), Literal_Parent)));
+
          N := Make_Full_Type_Declaration
            (Map_Defining_Identifier (E),
             Make_Record_Type_Definition
             (Make_Record_Definition (L)),
-            Make_List_Id
+            New_List
             (Make_Component_Declaration
              (Make_Defining_Identifier (CN (C_Switch)), T,
               Make_Attribute_Reference (T, A_First))));
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
-         Append_Node_To_List
-           (N, Visible_Part (Current_Package));
-         Append_Node_To_List
-           (Map_Repository_Id_Declaration (E), Visible_Part (Current_Package));
+         Append_To (Visible_Part (Current_Package), N);
+         Append_To (Visible_Part (Current_Package),
+           Map_Repository_Id_Declaration (E));
       end Visit_Union_Type;
    end Package_Spec;
 
@@ -1125,7 +1150,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       procedure Visit_Exception_Declaration (E : Node_Id) is
          Spec : Node_Id := No_Node;
          D    : constant List_Id := No_List;
-         S    : constant List_Id := New_List (K_List_Id);
+         S    : constant List_Id := New_List;
          N    : Node_Id;
          Parameters : List_Id;
       begin
@@ -1138,22 +1163,20 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (FEN.Identifier
                (E)))));
 
-         Parameters := New_List (K_List_Id);
-         Append_Node_To_List
-           (Make_Defining_Identifier (PN (P_From)), Parameters);
-         Append_Node_To_List
-           (Make_Defining_Identifier (PN (P_To)), Parameters);
+         Parameters := New_List;
+         Append_To (Parameters, Make_Defining_Identifier (PN (P_From)));
+         Append_To (Parameters, Make_Defining_Identifier (PN (P_To)));
 
          N := Make_Subprogram_Call
            (RE (RE_User_Get_Members),
             Parameters);
-         Append_Node_To_List (N, S);
+         Append_To (S, N);
 
          N := Make_Subprogram_Body
            (Specification => Spec,
             Declarations => D,
             Statements => S);
-         Append_Node_To_List (N, Statements (Current_Package));
+         Append_To (Statements (Current_Package), N);
       end Visit_Exception_Declaration;
 
       ------------------
@@ -1205,9 +1228,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          if not Is_Local then
             N := Visible_Is_A_Body (E);
-            Append_Node_To_List (N, Statements (Current_Package));
+            Append_To (Statements (Current_Package), N);
             N := Local_Is_A_Body (E);
-            Append_Node_To_List (N, Statements (Current_Package));
+            Append_To (Statements (Current_Package), N);
          end if;
 
          Pop_Entity;
@@ -1235,7 +1258,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Statements   := Stub_Statements (E);
 
          N := Make_Subprogram_Body (Spec, Declarations, Statements);
-         Append_Node_To_List (N, BEN.Statements (Current_Package));
+         Append_To (BEN.Statements (Current_Package), N);
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -1265,7 +1288,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       function Stub_Statements (E : Node_Id) return List_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
-         Statements      : constant List_Id := New_List (BEN.K_Statement_List);
+         Statements      : constant List_Id := New_List;
          N               : Node_Id;
          M               : Node_Id;
          C               : Node_Id;
@@ -1301,20 +1324,20 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          C := Make_Subprogram_Call
            (RE (RE_Is_Nil),
-            Make_List_Id
+            New_List
             (Make_Subprogram_Call
              (RE (RE_Ref_2),
-              Make_List_Id (Make_Defining_Identifier (PN (P_Self))))));
+              New_List (Make_Defining_Identifier (PN (P_Self))))));
 
          N := Make_Subprogram_Call
            (RE (RE_Raise_Inv_Objref),
-            Make_List_Id
+            New_List
             (RE (RE_Default_Sys_Member)));
 
          N := Make_If_Statement
            (Condition       => C,
-            Then_Statements => Make_List_Id (N));
-         Append_Node_To_List (N, Statements);
+            Then_Statements => New_List (N));
+         Append_To (Statements, N);
 
          --  If the interface is local, we just call the
          --  implementation.
@@ -1323,12 +1346,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
             declare
                Implem_Node  : Node_Id;
                Impl_Profile : constant List_Id :=
-                 New_List (K_Declaration_List);
+                 New_List;
                Param        : Node_Id;
             begin
                N := Make_Subprogram_Call
                  (Make_Defining_Identifier (SN (S_Entity_Of)),
-                  Make_List_Id
+                  New_List
                   (Make_Defining_Identifier (PN (P_Self))));
 
                --  Get the Object_Ptr type full name
@@ -1342,9 +1365,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                N := Make_Subprogram_Call
                  (Implem_Node,
-                  Make_List_Id (N));
+                  New_List (N));
 
-               Append_Node_To_List (N, Impl_Profile);
+               Append_To (Impl_Profile, N);
 
                --  Adding the rest of the parameters
 
@@ -1362,7 +1385,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                         Param);
                   end if;
 
-                  Append_Node_To_List (Param, Impl_Profile);
+                  Append_To (Impl_Profile, Param);
 
                   P := Next_Entity (P);
                end loop;
@@ -1371,8 +1394,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  the returns additional parameter.
 
                if Non_Void and then not Is_Function then
-                  Append_Node_To_List
-                    (Make_Identifier (PN (P_Returns)), Impl_Profile);
+                  Append_To (Impl_Profile, Make_Identifier (PN (P_Returns)));
                end if;
 
                Implem_Node := Expand_Designator
@@ -1389,7 +1411,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   N := Make_Return_Statement (N);
                end if;
 
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
                return Statements;
             end;
          end if;
@@ -1402,15 +1424,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
          if not Use_SII then
             Set_Str_To_Name_Buffer
               ("Create the Argument list");
-            Append_Node_To_List
-              (Make_Ada_Comment (Name_Find),
-               Statements);
+            Append_To (Statements, Make_Ada_Comment (Name_Find));
 
             C := Make_Subprogram_Call
               (RE (RE_Create),
-               Make_List_Id
+               New_List
                (Make_Defining_Identifier (VN (V_Argument_List))));
-            Append_Node_To_List (C, Statements);
+            Append_To (Statements, C);
          end if;
 
          --  Add arguments to argument  list
@@ -1419,7 +1439,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          if Present (P) then
             Set_Str_To_Name_Buffer ("Fill the Argument list");
-            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+            Append_To (Statements, Make_Ada_Comment (Name_Find));
          end if;
 
          while Present (P) loop
@@ -1458,25 +1478,25 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   --  Assignment :
 
-                  Append_Node_To_List (N, Statements);
+                  Append_To (Statements, N);
                end if;
 
             else
                --  Preparing the parameter list of the Add_Item call
 
-               Profile := New_List (K_Parameter_Profile);
+               Profile := New_List;
 
                --  1st param
 
                N := Make_Identifier (VN (V_Argument_List));
-               Append_Node_To_List (N, Profile);
+               Append_To (Profile, N);
 
                --  2nd param
 
                N := Make_Identifier
                  (Map_Argument_Identifier_Name
                   (Argument_Name, Operation_Name));
-               Append_Node_To_List (N, Profile);
+               Append_To (Profile, N);
 
                --  3rd param
 
@@ -1487,10 +1507,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                if Is_Oneway (E) then
                   N := Make_Subprogram_Call
-                    (RE (RE_Copy_Any), Make_List_Id (N));
+                    (RE (RE_Copy_Any), New_List (N));
                end if;
 
-               Append_Node_To_List (N, Profile);
+               Append_To (Profile, N);
 
                --  4th param
 
@@ -1502,12 +1522,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   N := RE (RE_ARG_INOUT_1);
                end if;
 
-               Append_Node_To_List (N, Profile);
+               Append_To (Profile, N);
 
                --  Call the Add_Item procedure
 
                N := Make_Subprogram_Call (RE (RE_Add_Item_1), Profile);
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
 
             end if;
 
@@ -1523,13 +1543,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Excep_TC : Node_Id;
             begin
                Set_Str_To_Name_Buffer ("Create the Exception list");
-               Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+               Append_To (Statements, Make_Ada_Comment (Name_Find));
 
                N := Make_Subprogram_Call
                  (RE (RE_Create_List_1),
-                  Make_List_Id
+                  New_List
                   (Make_Identifier (VN (V_Exception_List))));
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
 
                Excep_FE := First_Entity (Exceptions (E));
 
@@ -1542,11 +1562,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Add_1),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier
                       (VN (V_Exception_List)),
                       Excep_TC));
-                  Append_Node_To_List (N, Statements);
+                  Append_To (Statements, N);
 
                   Excep_FE := Next_Entity (Excep_FE);
                end loop;
@@ -1560,7 +1580,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             --  Create the inlined subprogram that set the Result name
             --  value.
 
-            Profile := New_List (K_List_Id);
+            Profile := New_List;
 
             --  Build the record aggregate
 
@@ -1570,7 +1590,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Selector_Name => Make_Identifier (PN (P_Name)),
                Expression    => Make_Identifier
                (Map_Result_Identifier_Name (Operation_Name)));
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
 
             --  2nd component association
 
@@ -1582,18 +1602,18 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             C := Make_Subprogram_Call
               (Defining_Identifier  => RE (RE_Get_Empty_Any),
-               Actual_Parameter_Part => Make_List_Id (Param));
+               Actual_Parameter_Part => New_List (Param));
             N := Make_Component_Association
               (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
                Expression    => C);
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
 
             --  3rd component association
 
             N := Make_Component_Association
               (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
                Expression    => Make_Literal (Int0_Val));
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
 
             --  Build the record aggregate
 
@@ -1605,26 +1625,26 @@ package body Backend.BE_CORBA_Ada.Stubs is
             R := Map_Result_Subprogram_Name (Operation_Name);
 
             I := Make_Pragma
-              (Pragma_Inline, Make_List_Id (Make_Identifier (R)));
+              (Pragma_Inline, New_List (Make_Identifier (R)));
             C := Make_Subprogram_Specification
               (Make_Defining_Identifier (R),
                No_List,
                RE (RE_NamedValue));
             N := Make_Subprogram_Body
-              (C, Make_List_Id (I), Make_List_Id (N));
-            Append_Node_To_List (N, BEN.Statements (Current_Package));
+              (C, New_List (I), New_List (N));
+            Append_To (BEN.Statements (Current_Package), N);
 
             --  Setting the result Value (if any)
 
             if Non_Void then
                Set_Str_To_Name_Buffer ("Setting the result value");
-               Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+               Append_To (Statements, Make_Ada_Comment (Name_Find));
 
                N := Make_Selected_Component
                  (VN (V_Result_NV), CN (C_Argument));
                N := Make_Subprogram_Call
                  (RE (RE_Get_Container_2),
-                  Make_List_Id (N));
+                  New_List (N));
                N := Make_Explicit_Dereference (N);
 
                C := Make_Attribute_Reference
@@ -1634,54 +1654,61 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   A_Unrestricted_Access);
 
                N := Make_Subprogram_Call (RE (RE_Set_Value),
-                                          Make_List_Id (N, C));
-               Append_Node_To_List (N, Statements);
+                                          New_List (N, C));
+               Append_To (Statements, N);
             end if;
          end if;
 
          --  Creating the request
 
          Set_Str_To_Name_Buffer ("Creating the request");
-         Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+         Append_To (Statements, Make_Ada_Comment (Name_Find));
 
          --  Build the parameter associations
 
          NVList_Name := VN (V_Argument_List);
-         Profile := New_List (K_List_Id);
+         Profile := New_List;
 
-         --  1st parameter association
+         --  Request object
+
+         N := Make_Parameter_Association
+           (Selector_Name    => Make_Defining_Identifier (PN (P_Req)),
+            Actual_Parameter => Make_Defining_Identifier (VN (V_Request)));
+         Append_To (Profile, N);
+
+         --  Target
 
          N := Make_Type_Conversion
            (RE (RE_Ref_2),
             Make_Defining_Identifier (PN (P_Self)));
          N := Make_Subprogram_Call
-           (RE (RE_To_PolyORB_Ref), Make_List_Id (N));
+           (RE (RE_To_PolyORB_Ref), New_List (N));
          N := Make_Parameter_Association
            (Selector_Name    => Make_Defining_Identifier (PN (P_Target)),
             Actual_Parameter => N);
-         Append_Node_To_List (N, Profile);
+         Append_To (Profile, N);
 
-         --  2nd parameter association
+         --  Operation
 
          R := Map_Operation_Name_Literal (E);
          N := Make_Parameter_Association
            (Selector_Name    => Make_Defining_Identifier (PN (P_Operation)),
             Actual_Parameter => Make_Literal (New_String_Value (R, False)));
-         Append_Node_To_List (N, Profile);
+         Append_To (Profile, N);
 
-         --  3rd parameter association
+         --  Arguments list
 
          N := Make_Parameter_Association
            (Selector_Name    => Make_Defining_Identifier (PN (P_Arg_List)),
             Actual_Parameter => Make_Defining_Identifier (NVList_Name));
-         Append_Node_To_List (N, Profile);
+         Append_To (Profile, N);
 
-         --  4th parameter association
+         --  Result
 
          N := Make_Parameter_Association
            (Selector_Name    => Make_Defining_Identifier (PN (P_Result)),
             Actual_Parameter => Make_Defining_Identifier (VN (V_Result_NV)));
-         Append_Node_To_List (N, Profile);
+         Append_To (Profile, N);
 
          --  If the operation throws an exception, we add an
          --  additional parameter to the Create_Request call.
@@ -1689,107 +1716,97 @@ package body Backend.BE_CORBA_Ada.Stubs is
          if  not FEU.Is_Empty (Exceptions (E)) then
             N := Make_Subprogram_Call
               (RE (RE_To_PolyORB_Ref_1),
-               Make_List_Id
+               New_List
                (Make_Identifier
                 (VN (V_Exception_List))));
 
-            --  5th parameter association
+            --  Exception list
 
             N := Make_Parameter_Association
               (Selector_Name    => Make_Defining_Identifier (PN (P_Exc_List)),
                Actual_Parameter => N);
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
          end if;
 
-         --  6th parameter association
+         --  Handling the case of Oneway Operations. Extract from The CORBA
+         --  mapping specification : "IDL oneway operations are mapped the same
+         --  as other operation; that is, there is no indication whether an
+         --  operation is oneway or not in the mapped Ada specification".
 
-         N := Make_Parameter_Association
-           (Selector_Name    => Make_Defining_Identifier (PN (P_Req)),
-            Actual_Parameter => Make_Defining_Identifier (VN (V_Request)));
-         Append_Node_To_List (N, Profile);
-
-         --  Handling the case of Oneway Operations.  Extract from The
-         --  CORBA mapping specification : "IDL oneway operations are
-         --  mapped the same as other operation; that is, there is no
-         --  indication whether an operation is oneway or not in the
-         --  mapped Ada specification".
-
-         --  The extract above means that the call to a oneway
-         --  operation is performed in the same way as a call to a
-         --  classic synchronous operation. However, the ORB need to
-         --  know oneway operations. The stub precise that by adding
-         --  an additional parameter to the procedure
-         --  "PolyORB.Requests.Create_Request". This additional
-         --  parameter indicate the calling way of the operation (see
-         --  the file polyorb-requests.ads for more information about
-         --  different ways of calls)
+         --  The extract above means that the call to a oneway operation is
+         --  performed in the same way as a call to a classic synchronous
+         --  operation. However, the ORB need to know oneway operations. The
+         --  stub precise that by adding an additional parameter to the
+         --  procedure "PolyORB.Requests.Create_Request". This additional
+         --  parameter indicate the calling way of the operation (see the file
+         --  polyorb-requests.ads for more information about different ways of
+         --  calls).
 
          if FEN.Is_Oneway (E) then
-            --  7th parameter association
+            --  Sync scope flag
 
             N := Make_Parameter_Association
               (Selector_Name    => Make_Defining_Identifier (PN (P_Req_Flags)),
                Actual_Parameter => RE (RE_Sync_With_Transport));
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
          end if;
 
-         --  Call Create_Request
-
-         N := Make_Subprogram_Call (RE (RE_Create_Request), Profile);
-         Append_Node_To_List (N, Statements);
+         N := Make_Subprogram_Call (RE (RE_Setup_Request), Profile);
+         Append_To (Statements, N);
 
          if Use_SII then
             --  Get the GIOP session
 
-            Profile := New_List (K_List_Id);
+            Profile := New_List;
 
             M := Make_Subprogram_Call
               (RE (RE_Ref_2),
-               Make_List_Id (Make_Identifier (PN (P_Self))));
+               New_List (Make_Identifier (PN (P_Self))));
 
             N := Make_Subprogram_Call
               (RE (RE_To_PolyORB_Ref),
-               Make_List_Id (M));
+               New_List (M));
 
-            Append_Node_To_List (N, Profile);
-            Append_Node_To_List (RE (RE_The_ORB), Profile);
+            Append_To (Profile, N);
+            Append_To (Profile, RE (RE_The_ORB));
 
             N := Make_Subprogram_Call
               (RE (RE_Get_Request_QoS),
-               Make_List_Id (Make_Identifier (VN (V_Request))));
-            Append_Node_To_List (N, Profile);
-            Append_Node_To_List (Make_Identifier (VN (V_Component)), Profile);
-            Append_Node_To_List
-              (Make_Identifier (VN (V_Binding_Profile)), Profile);
-            Append_Node_To_List (RE (RE_False), Profile);
-            Append_Node_To_List (Make_Identifier (VN (V_Error)), Profile);
+               New_List (Make_Identifier (VN (V_Request))));
+            Append_To (Profile, N);
+            Append_To (Profile, Make_Identifier (VN (V_Component)));
+            Append_To (Profile, Make_Identifier (VN (V_Binding_Profile)));
+            Append_To (Profile, RE (RE_False));
+            Append_To (Profile, Make_Identifier (VN (V_Error)));
 
             --  Call to the bind method to get the client Session and
             --  the binding_profile.
 
             N := Make_Subprogram_Call (RE (RE_Bind), Profile);
-            Append_Node_To_List (N, Statements);
+            Append_To (Statements, N);
 
             --  The session resulting of the bind operation and the
-            --  session representation
+            --  session representation.
 
             N := Make_Type_Conversion
               (RE (RE_GIOP_Session),
                (Make_Explicit_Dereference
-                  (Make_Identifier
-                     (VN (V_Component)))));
+                (Make_Identifier
+                 (VN (V_Component)))));
+
+            N := Make_Attribute_Reference (N, A_Unrestricted_Access);
 
             N := Make_Subprogram_Call
               (RE (RE_Get_Representation),
-               Make_List_Id (N));
+               New_List (N));
             N := Make_Assignment_Statement
               (Make_Identifier (VN (V_Representation)), N);
-            Append_Node_To_List (N, Statements);
+            Append_To (Statements, N);
 
             if Use_Compiler_Alignment then
                declare
                   Par  : Node_Id;
-                  Disc : constant List_Id := New_List (K_List_Id);
+                  Disc : constant List_Id := New_List;
                   J    : Unsigned_Long_Long;
                begin
                   Par := First_Entity (Parameters (E));
@@ -1811,83 +1828,78 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   N := Make_Subprogram_Call
                     (RE (RE_Insert_Raw_Data),
-                     Make_List_Id
+                     New_List
                      (Make_Identifier (VN (V_Request)),
                       C,
                       Make_Attribute_Reference
                       (Make_Identifier (VN (V_Args_In)), A_Size),
                       Make_Literal (New_Integer_Value (J, 1, 10)),
                       Make_Identifier (VN (V_Buffer))));
-                  Append_Node_To_List (N, Statements);
+                  Append_To (Statements, N);
                end;
             else
                --  In this context, we use a QoS attribute to store a
                --  CDR buffer that holds the CDR representation of the
                --  requests parameters.
 
-               Profile := New_List (K_List_Id);
-               Append_Node_To_List
-                 (Make_Identifier (VN (V_Binding_Profile)), Profile);
-
-               Append_Node_To_List (Make_Identifier (VN (V_Component)),
-                                    Profile);
-               Append_Node_To_List (Make_Identifier (VN (V_Error)), Profile);
+               Profile := New_List;
+               Append_To (Profile, Make_Identifier (VN (V_Binding_Profile)));
+               Append_To (Profile, Make_Identifier (VN (V_Component)));
+               Append_To (Profile, Make_Identifier (VN (V_Error)));
 
                --  Get the marshaller
 
                C := Get_Marshaller_Node (E);
 
-               Profile := New_List (K_List_Id);
-               Append_Node_To_List (RE (RE_True), Profile);
+               Profile := New_List;
+               Append_To (Profile, RE (RE_True));
 
                --  The arguments list, we use the method_name_Arg_Type
                --  instead of the Request_Args type
 
                N := Make_Identifier (PN (P_Arg_List));
                N := Make_Attribute_Reference (N, A_Access);
-               Append_Node_To_List (N, Profile);
+               Append_To (Profile, N);
 
-               Append_Node_To_List
-                 (Make_Defining_Identifier (VN (V_Buffer)), Profile);
+               Append_To (Profile, Make_Defining_Identifier (VN (V_Buffer)));
 
                N := Make_Explicit_Dereference
                  (Make_Identifier (VN (V_Representation)));
-               Append_Node_To_List (N, Profile);
+               Append_To (Profile, N);
 
                --  There is no alignment it will be done in
                --  Marshall_Argument_List
 
-               Append_Node_To_List (Make_Literal (Int1_Val), Profile);
-               Append_Node_To_List
-                 (Make_Defining_Identifier (VN (V_Error)), Profile);
+               Append_To (Profile, Make_Literal (Int1_Val));
+               Append_To (Profile, Make_Defining_Identifier (VN (V_Error)));
 
                --  Call of the Marshaller method
 
                N := Make_Subprogram_Call (C, Profile);
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
 
                --  If any error we raise a program_error
 
                N := Make_Subprogram_Call
                  (RE (RE_Found),
-                  Make_List_Id (Make_Identifier (VN (V_Error))));
+                  New_List (Make_Identifier (VN (V_Error))));
 
                N := Make_If_Statement
                  (Condition       => N,
-                  Then_Statements => Make_List_Id
+                  Then_Statements => New_List
                   (Make_Raise_Statement
                    (Make_Identifier (EN (E_Program_Error)))));
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
             end if;
 
             --  Add the buffer as a QoS parameter for the request
 
             Set_Str_To_Name_Buffer
               ("Add the buffer to the request QoS parameters");
-            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+            Append_To (Statements, Make_Ada_Comment (Name_Find));
 
             N := Make_Record_Aggregate
-              (Make_List_Id
+              (New_List
                (RE (RE_GIOP_Static_Buffer),
                 Make_Defining_Identifier (VN (V_Buffer))));
 
@@ -1898,12 +1910,12 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Make_Subprogram_Call
               (RE (RE_Add_Request_QoS),
-               Make_List_Id
+               New_List
                (Make_Defining_Identifier (VN (V_Request)),
                 RE (RE_GIOP_Static_Buffer),
                 N));
 
-            Append_Node_To_List (N, Statements);
+            Append_To (Statements, N);
 
          end if;
 
@@ -1912,17 +1924,18 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          Set_Str_To_Name_Buffer
            ("Invoking the request (synchronously or asynchronously)");
-         Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+         Append_To (Statements, Make_Ada_Comment (Name_Find));
 
          N := Make_Type_Conversion
            (RE (RE_Flags),
             Make_Literal (Int0_Val));
          N := Make_Subprogram_Call
            (RE (RE_Client_Invoke),
-            Make_List_Id
-            (Make_Defining_Identifier (VN (V_Request)),
-             N));
-         Append_Node_To_List (N, Statements);
+            New_List
+              (Make_Attribute_Reference
+                 (Make_Defining_Identifier (VN (V_Request)), A_Access),
+               N));
+         Append_To (Statements, N);
 
          if Use_SII and then (Has_Out_Params or else Non_Void) then
             --  Unmarshall the request using the generated SII
@@ -1931,16 +1944,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             C := Get_Unmarshaller_Node (E);
 
-            Profile := New_List (K_List_Id);
-            Append_Node_To_List (RE (RE_True), Profile);
+            Profile := New_List;
+            Append_To (Profile, RE (RE_True));
 
             N := Make_Identifier (PN (P_Arg_List));
             N := Make_Attribute_Reference (N, A_Access);
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
 
             N := Make_Subprogram_Call
               (RE (RE_Extract_Request_Parameter),
-               Make_List_Id
+               New_List
                  (RE (RE_GIOP_Static_Buffer),
                   Make_Defining_Identifier (VN (V_Request))));
 
@@ -1949,57 +1962,48 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             N := Make_Selected_Component (N, Make_Identifier (PN (P_Buffer)));
 
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
 
             N := Make_Explicit_Dereference
               (Make_Identifier (VN (V_Representation)));
-            Append_Node_To_List (N, Profile);
+            Append_To (Profile, N);
 
             --  There is no alignment it will be done in
             --  Marshall_Argument_List.
 
-            Append_Node_To_List
-              (Make_Literal (New_Integer_Value (8, 1, 10)), Profile);
-            Append_Node_To_List
-              (Make_Defining_Identifier (VN (V_Error)), Profile);
+            Append_To (Profile, Make_Literal (New_Integer_Value (8, 1, 10)));
+            Append_To (Profile, Make_Defining_Identifier (VN (V_Error)));
 
             --  Call of the Unmarshaller method
 
             N := Make_Subprogram_Call
               (C, Profile);
-            Append_Node_To_List (N, Statements);
+            Append_To (Statements, N);
 
          end if;
 
          --  Raise exception, if needed
 
          Set_Str_To_Name_Buffer ("Raise exception, if needed");
-         Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
-         Append_Node_To_List
-           (Make_Subprogram_Call
-              (RE (RE_Request_Raise_Occurrence),
-               Make_List_Id (Make_Identifier (VN (V_Request)))), Statements);
-
-         --  Destroy the request
-
-         N := Make_Subprogram_Call
-           (RE (RE_Destroy_Request),
-            Make_List_Id (Make_Identifier (VN (V_Request))));
-         Append_Node_To_List (N, Statements);
+         Append_To (Statements, Make_Ada_Comment (Name_Find));
+         Append_To (Statements,
+           Make_Subprogram_Call
+             (RE (RE_Request_Raise_Occurrence),
+              New_List (Make_Identifier (VN (V_Request)))));
 
          --  Retrieve return value
 
          if Is_Function then
             Set_Str_To_Name_Buffer ("Return value");
-            Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+            Append_To (Statements, Make_Ada_Comment (Name_Find));
 
             if Use_SII then
                N := Make_Selected_Component (PN (P_Arg_List), PN (P_Returns));
                N := Make_Return_Statement (N);
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
             else
                N := Make_Return_Statement (Make_Identifier (VN (V_Result)));
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
             end if;
          else
             --  Non-void IDL operations with OUT/INOUT parameters are mapped to
@@ -2007,7 +2011,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             if Non_Void and then Use_SII then
                Set_Str_To_Name_Buffer ("Return value");
-               Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+               Append_To (Statements, Make_Ada_Comment (Name_Find));
 
                N := Make_Selected_Component (PN (P_Arg_List), PN (P_Returns));
 
@@ -2023,7 +2027,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                N := Make_Assignment_Statement
                  (Make_Identifier (PN (P_Returns)), N);
-               Append_Node_To_List (N, Statements);
+               Append_To (Statements, N);
             end if;
          end if;
 
@@ -2035,7 +2039,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             if Present (P) then
                Set_Str_To_Name_Buffer ("Retrieve out argument values");
-               Append_Node_To_List (Make_Ada_Comment (Name_Find), Statements);
+               Append_To (Statements, Make_Ada_Comment (Name_Find));
             end if;
 
             while Present (P) loop
@@ -2073,7 +2077,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   --  Assignment:
 
-                  Append_Node_To_List (N, Statements);
+                  Append_To (Statements, N);
                end if;
 
                P := Next_Entity (P);
@@ -2090,7 +2094,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       function Stub_Declarations (E : Node_Id) return List_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
-         L                : constant List_Id := New_List (K_Declaration_List);
+         L                : constant List_Id := New_List;
          P                : Node_Id;
          N                : Node_Id;
          V                : Value_Id;
@@ -2130,7 +2134,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Constant_Present    => False,
                   Object_Definition   => RE (RE_Ref_3),
                   Expression          => No_Node);
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
             end if;
 
             --  In the case of SII, the NVList is not filled by the
@@ -2158,7 +2162,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Object_Definition   => Get_Type_Definition_Node
                      (Type_Spec (E)),
                      Renamed_Object      => N);
-                  Append_Node_To_List (N, L);
+                  Append_To (L, N);
 
                   --  Disable warning on the returned value
 
@@ -2173,8 +2177,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   end if;
 
                   N := Make_Pragma
-                         (Pragma_Warnings, Make_List_Id (RE (RE_Off), N));
-                  Append_Node_To_List (N, L);
+                         (Pragma_Warnings, New_List (RE (RE_Off), N));
+                  Append_To (L, N);
 
                   --  Declaration of the `Content' argument variable
 
@@ -2194,7 +2198,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   C := Make_Subprogram_Call
                     (C,
-                     Make_List_Id (Make_Attribute_Reference
+                     New_List (Make_Attribute_Reference
                                    (N,
                                     A_Unrestricted_Access)));
                   N := Make_Object_Declaration
@@ -2205,7 +2209,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      (RE (RE_Content), A_Class),
                      Expression          => C,
                      Aliased_Present     => True);
-                  Append_Node_To_List (N, L);
+                  Append_To (L, N);
                end if;
 
                --  Handling the parameters
@@ -2229,7 +2233,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   C := Make_Subprogram_Call
                     (RE (RE_To_PolyORB_String),
-                     Make_List_Id
+                     New_List
                      (Make_Literal
                       (New_String_Value
                        (Argument_Name,
@@ -2242,7 +2246,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Constant_Present    => True,
                      Object_Definition   => RE (RE_Identifier),
                      Expression          => C);
-                  Append_Node_To_List (N, Statements (Current_Package));
+                  Append_To (Statements (Current_Package), N);
 
                   --  Declaration of the `Content' argument variable
 
@@ -2262,7 +2266,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                   C := Make_Subprogram_Call
                     (C,
-                     Make_List_Id (Make_Attribute_Reference
+                     New_List (Make_Attribute_Reference
                                    (N,
                                     A_Unrestricted_Access)));
                   N := Make_Object_Declaration
@@ -2273,7 +2277,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      (RE (RE_Content), A_Class),
                      Expression          => C,
                      Aliased_Present     => True);
-                  Append_Node_To_List (N, L);
+                  Append_To (L, N);
 
                   --  Declaration of the `Any' argument variable
 
@@ -2284,7 +2288,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      A_Unchecked_Access);
                   C := Make_Subprogram_Call
                     (RE (RE_Get_Wrapper_Any),
-                     Make_List_Id
+                     New_List
                      (Get_TC_Node (Type_Spec (P)),
                       C));
                   N := Make_Object_Declaration
@@ -2292,7 +2296,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Constant_Present    => True,
                      Object_Definition   => RE (RE_Any),
                      Expression          => C);
-                  Append_Node_To_List (N, L);
+                  Append_To (L, N);
 
                   --  If the parameter is OUT, we disable warnings on
                   --  it.
@@ -2300,10 +2304,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   if FEN.Parameter_Mode (P) = Mode_Out then
                      N := Make_Pragma
                        (Pragma_Warnings,
-                        Make_List_Id
+                        New_List
                         (RE (RE_Off),
                          Make_Identifier (Argument_Name)));
-                     Append_Node_To_List (N, L);
+                     Append_To (L, N);
                   end if;
 
                   P := Next_Entity (P);
@@ -2314,7 +2318,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                     Make_Defining_Identifier (VN (V_Representation)),
                   Object_Definition   => RE (RE_CDR_Representation_Access),
                   Expression          => No_Node);
-               Append_Node_To_List (C, L);
+               Append_To (L, C);
 
                --  SII/SSI invocation
 
@@ -2328,13 +2332,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Object_Definition => RE (RE_Buffer_Access),
                   Constant_Present  => True,
                   Expression => C);
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
 
                N := Make_Object_Declaration
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Argument_List)),
                   Object_Definition => RE (RE_Ref_3));
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
 
                --  Error container
 
@@ -2342,7 +2346,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Error)),
                   Object_Definition   => RE (RE_Error_Container));
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
 
                --  Binding_Profile and GIOP Session
 
@@ -2350,13 +2354,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
                  (Defining_Identifier =>
                     Make_Defining_Identifier (VN (V_Binding_Profile)),
                   Object_Definition   => RE (RE_Profile_Access));
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
 
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier
                   (VN (V_Component)),
                   Object_Definition   => RE (RE_Component_Access));
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
             end if;
 
             --  Request_Ü declaration
@@ -2365,9 +2369,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Request)),
                Constant_Present    => False,
-               Object_Definition   => RE (RE_Request_Access),
+               Aliased_Present     => True,
+               Object_Definition   => RE (RE_Request),
                Expression          => No_Node);
-            Append_Node_To_List (N, L);
+            Append_To (L, N);
 
             --  Exception_List_Ü declaration
 
@@ -2378,7 +2383,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Constant_Present    => False,
                   Object_Definition   => RE (RE_Ref_5),
                   Expression          => No_Node);
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
             end if;
 
             --  Result_NV_Ü declaration
@@ -2402,7 +2407,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Constant_Present    => False,
                Object_Definition   => RE (RE_NamedValue),
                Expression          => Res_Exp);
-            Append_Node_To_List (N, L);
+            Append_To (L, N);
 
             if not Use_SII then
 
@@ -2414,7 +2419,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                V := New_String_Value (Name_Find, False);
                C := Make_Subprogram_Call
                  (RE (RE_To_PolyORB_String),
-                  Make_List_Id (Make_Literal (V)));
+                  New_List (Make_Literal (V)));
 
                N := Make_Object_Declaration
                  (Defining_Identifier =>
@@ -2422,7 +2427,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   Constant_Present    => True,
                   Object_Definition   => RE (RE_Identifier),
                   Expression          => C);
-               Append_Node_To_List (N, Statements (Current_Package));
+               Append_To (Statements (Current_Package), N);
             end if;
 
             --  In the case of the SII use, the argument list is an
@@ -2430,7 +2435,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             if Use_Compiler_Alignment then
                declare
-                  Disc : constant List_Id := New_List (K_List_Id);
+                  Disc : constant List_Id := New_List;
                begin
                   C := Expand_Designator
                     (Args_In_Node
@@ -2460,7 +2465,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                        Make_Defining_Identifier (VN (V_Args_In)),
                      Aliased_Present     => True,
                      Object_Definition   => N);
-                  Append_Node_To_List (N, L);
+                  Append_To (L, N);
                end;
 
                N := Get_Type_Definition_Node (E);
@@ -2470,7 +2475,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                     Make_Defining_Identifier (PN (P_Arg_List)),
                   Aliased_Present     => True,
                   Object_Definition   => N);
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
 
             elsif Use_SII then
                N := Get_Type_Definition_Node (E);
@@ -2479,7 +2484,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                     Make_Defining_Identifier (PN (P_Arg_List)),
                   Aliased_Present     => True,
                   Object_Definition   => N);
-               Append_Node_To_List (N, L);
+               Append_To (L, N);
             end if;
          end if;
 
@@ -2497,7 +2502,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Spec : Node_Id := No_Node)
      return Node_Id is
       N                : Node_Id;
-      S                : constant List_Id := New_List (K_List_Id);
+      S                : constant List_Id := New_List;
       M                : Node_Id;
       Repository_Id    : Node_Id;
       Rep_Value        : Value_Id;
@@ -2549,13 +2554,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Op_Or_Else,
                      Make_Subprogram_Call
                      (RE (RE_Is_Equivalent),
-                      Make_List_Id
+                      New_List
                       (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
                        Rep_Id)));
                else
                   Result := Make_Subprogram_Call
                     (RE (RE_Is_Equivalent),
-                     Make_List_Id
+                     New_List
                      (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
                       Rep_Id));
                end if;
@@ -2587,7 +2592,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
       N := Make_Subprogram_Call
         (RE (RE_Is_Equivalent),
-         Make_List_Id
+         New_List
          (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
           Repository_Id));
 
@@ -2600,7 +2605,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Rep_Value := New_String_Value (Name_Find, False);
       M := Make_Subprogram_Call
         (RE (RE_Is_Equivalent),
-         Make_List_Id
+         New_List
          (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
           Make_Literal (Rep_Value)));
       N := Make_Expression
@@ -2618,7 +2623,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       N := Make_Expression
         (N, Op_Or_Else, RE (RE_False));
       N := Make_Return_Statement (N);
-      Append_Node_To_List (N, S);
+      Append_To (S, N);
 
       --  Get the spec of the Is_A function
 
@@ -2644,8 +2649,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
          RE (RE_String_2));
-      Profile := New_List (K_Parameter_Profile);
-      Append_Node_To_List (Param, Profile);
+      Profile := New_List;
+      Append_To (Profile, Param);
       N := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_Is_A)),
          Profile,
@@ -2660,17 +2665,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
    function Visible_Is_A_Body (E : Node_Id) return Node_Id is
       N : Node_Id;
       M : Node_Id;
-      S : constant List_Id := New_List (K_List_Id);
+      S : constant List_Id := New_List;
    begin
       M := Make_Subprogram_Call
         (RE (RE_Ref_2),
-         Make_List_Id (Make_Defining_Identifier (PN (P_Self))));
+         New_List (Make_Defining_Identifier (PN (P_Self))));
       M := Make_Subprogram_Call
         (RE (RE_Is_A),
-         Make_List_Id (M, Make_Defining_Identifier (PN (P_Logical_Type_Id))));
+         New_List (M, Make_Defining_Identifier (PN (P_Logical_Type_Id))));
       N := Make_Subprogram_Call
         (Make_Defining_Identifier (SN (S_Is_A)),
-         Make_List_Id (Make_Identifier (PN (P_Logical_Type_Id))));
+         New_List (Make_Identifier (PN (P_Logical_Type_Id))));
       N := Make_Expression
         (RE (RE_False),
          Op_Or_Else,
@@ -2679,7 +2684,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
           Op_Or_Else,
           M));
       N := Make_Return_Statement (N);
-      Append_Node_To_List (N, S);
+      Append_To (S, N);
       N := Make_Subprogram_Body
         (Visible_Is_A_Spec (E), No_List, S);
       return N;
@@ -2694,15 +2699,15 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Profile : List_Id;
       Param   : Node_Id;
    begin
-      Profile := New_List (K_Parameter_Profile);
+      Profile := New_List;
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Self)),
          Map_Ref_Type (E));
-      Append_Node_To_List (Param, Profile);
+      Append_To (Profile, Param);
       Param := Make_Parameter_Specification
         (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
          RE (RE_String_2));
-      Append_Node_To_List (Param, Profile);
+      Append_To (Profile, Param);
       N := Make_Subprogram_Specification
         (Make_Defining_Identifier (SN (S_Is_A)),
          Profile,

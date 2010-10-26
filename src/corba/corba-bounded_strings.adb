@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,13 +40,22 @@ package body CORBA.Bounded_Strings is
 
    use CBS;
 
+   function To_Bounded_String is new Ada.Unchecked_Conversion
+     (Ada.Strings.Superbounded.Super_String, Bounded_String);
+
+   function To_Super_String is new Ada.Unchecked_Conversion
+     (Bounded_String, Ada.Strings.Superbounded.Super_String);
+
    -----------------------
    -- TC_Bounded_String --
    -----------------------
 
    TC_Cache : PolyORB.Any.TypeCode.Local_Ref;
 
-   function TC_Bounded_String return CORBA.TypeCode.Object is
+   function TC_Bounded_String return PolyORB.Any.TypeCode.Local_Ref;
+   --  Internal representation as a PolyORB TypeCode
+
+   function TC_Bounded_String return PolyORB.Any.TypeCode.Local_Ref is
       use PolyORB.Any.TypeCode;
    begin
       if Is_Nil (TC_Cache) then
@@ -54,26 +63,30 @@ package body CORBA.Bounded_Strings is
                        (PolyORB.Types.Unsigned_Long (Max_Length));
          Disable_Reference_Counting (Object_Of (TC_Cache).all);
       end if;
-      return CORBA.TypeCode.Internals.To_CORBA_Object (TC_Cache);
+      return TC_Cache;
    end TC_Bounded_String;
 
-   --  Since the bounded string type does not exist in the neutral core
-   --  of PolyORB, we handle this type internally as an unbounded string
-   --  So, the TypeCode is changed to unbounded string  at the beginning
-   --  of the From_Any function and to bounded string at the end of the
-   --  To_Any function in order to assure interoperability with other ORBs.
+   -----------------------
+   -- TC_Bounded_String --
+   -----------------------
+
+   function TC_Bounded_String return CORBA.TypeCode.Object is
+   begin
+      return CORBA.TypeCode.Internals.To_CORBA_Object (TC_Bounded_String);
+   end TC_Bounded_String;
 
    --------------
    -- From_Any --
    --------------
 
    function From_Any (From : CORBA.Any) return Bounded_String is
-      From_Cache : Any := From;
-      CORBA_Str  : CORBA.String;
+      Super : constant Ada.Strings.Superbounded.Super_String :=
+                From_Any (From);
    begin
-      Internals.Set_Type (From_Cache, TC_String);
-      CORBA_Str := From_Any (From_Cache);
-      return To_Bounded_String (To_Standard_String (CORBA_Str));
+      if Super.Max_Length /= Max_Length then
+         raise Constraint_Error;
+      end if;
+      return To_Bounded_String (Super);
    end From_Any;
 
    ------------
@@ -81,13 +94,8 @@ package body CORBA.Bounded_Strings is
    ------------
 
    function To_Any (To : Bounded_String) return CORBA.Any is
-      CORBA_Str : constant CORBA.String := To_CORBA_String
-        (To_String (To));
-      Result    : Any;
    begin
-      Result := To_Any (CORBA_Str);
-      Internals.Set_Type (Result, TC_Bounded_String);
-      return Result;
+      return To_Any (To_Super_String (To), TC_Bounded_String'Access);
    end To_Any;
 
    ------------
@@ -1015,8 +1023,6 @@ package body CORBA.Bounded_Strings is
 
    function Wrap (X : access Bounded_String) return PolyORB.Any.Content'Class
    is
-      function To_Super_String is new Ada.Unchecked_Conversion
-        (Bounded_String, Ada.Strings.Superbounded.Super_String);
    begin
       return PolyORB.Any.Wrap
         (To_Super_String (X.all)'Unrestricted_Access);

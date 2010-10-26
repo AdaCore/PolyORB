@@ -1,9 +1,25 @@
+# $Id$
+
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.8.0w]))
+
 AC_PREREQ(2.57)
-AC_INIT(polyorb, 2.4.0w, polyorb-bugs@lists.adacore.com)
+AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
+
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
-# $Id$
+AM_SUBVERSION
+POLYORB_VERSION="$PACKAGE_VERSION (rev. $SVNREVISION)"
+AC_SUBST(POLYORB_VERSION)
+
+AC_MSG_NOTICE([Configuring PolyORB $POLYORB_VERSION])
+
+ifdef([LONGEST_FILE_NAME],[
+if test ! -f ${srcdir}/LONGEST_FILE_NAME; then
+  AC_MSG_ERROR([Source directory sanity check failed, check your distribution!
+
+Note that this package must be extracted with GNU tar.])
+fi])
 
 ##########################################
 # Initialization.
@@ -11,26 +27,32 @@ AC_CONFIG_AUX_DIR(support)
 
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
+
+# Disable Automake rules to rebuild Makefile.in and configure.
+# We handle this manually using support/reconfig.
+
+AM_MAINTAINER_MODE
+
 LIBVERSIONINFO=1:4:0
 AC_SUBST(LIBVERSIONINFO)
 
-#
-# Check for maintainer (debug) mode.
+# Check for developer (debug) mode.
 # This must come before AC_PROG_CC so we can set the default CFLAGS ourselves.
 # Note that these default CFLAGS are used for both the native and the cross
 # compilers.
-#
 
 define(DEBUG_OPTIONS, [dnl
-  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O0"; fi
-  DEFAULT_ADAFLAGS="-XBuild=DEBUG"
+  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O0"; fi
+  BASE_ADAFLAGS="-XBuild=DEBUG"
   BARGS=-E
+  ASSERTION_POLICY_DEFAULT=Check
+  DEBUG_POLICY_DEFAULT=Check
   DEBUG_ONLY=""
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
-  if test ${CFLAGS-unset} = "unset"; then CFLAGS="-g -O2"; fi
-  DEFAULT_ADAFLAGS="-XBuild=PRODUCTION"
+  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O2"; fi
+  BASE_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
   debug=false])
@@ -49,7 +71,10 @@ fi],
 #  n (normal processing)
 #  s (suppress all warnings)
 
-DEFAULT_WARNINGS_MODE=e
+# Here we set WARNINGS_MODE to "e", unless another default has been set
+# in aclocal.m4 (see prepare_distrib).
+
+WARNINGS_MODE=ifdef([DEFAULT_WARNINGS_MODE],DEFAULT_WARNINGS_MODE,e)
 
 AC_ARG_ENABLE(warnings,
 AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
@@ -58,9 +83,35 @@ AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
    no)      WARNINGS_MODE=s ;;
    [[ens]]) WARNINGS_MODE="$enableval" ;;
    *)       AC_ERROR([invalid argument to --enable-warnings: $enableval]) ;;
-esac],
-[WARNINGS_MODE=$DEFAULT_WARNINGS_MODE])
+esac])
 AC_SUBST(WARNINGS_MODE)
+
+AM_ARG_ENABLE_POLICY(assertion, Ignore)
+AM_ARG_ENABLE_POLICY(debug, Check)
+
+#######################################
+# Additional configuration pragmas file
+#######################################
+
+AC_ARG_ENABLE(conf-pragmas,
+AS_HELP_STRING([--enable-conf-pragmas=F],
+               [Additional Ada configuration pragmas file for target]),
+[
+  if test -f "${enableval}"; then
+    # Set switch that will be incorporated into ADAFLAGS_FOR_TARGET (for
+    # configure's own purposes).
+
+    ADDITIONAL_CONF_PRAGMAS_SWITCH="-gnatec=${enableval}"
+
+    # Set substitution for project file
+
+    ADDITIONAL_CONF_PRAGMAS="\"${ADDITIONAL_CONF_PRAGMAS_SWITCH}\""
+  else
+    AC_ERROR([valid file name required for --enable-conf-pragmas])
+  fi
+],
+[ADDITIONAL_CONF_PRAGAMS=""])
+AC_SUBST(ADDITIONAL_CONF_PRAGMAS)
 
 ##########################################
 # Set platform-specific supplementary CFLAGS and options
@@ -72,7 +123,13 @@ case "$host_os" in
   cygwin* | mingw*)
     HOST_EXE_SUFFIX=.exe
     WINDOWS_ON_HOST=True
+
+    # Make sure every call to ln(1) fails, and falls back to cp(1), because
+    # the compiler does not know how to handle Cygwin symbolic links.
+
+    SYMLINK_ALIAS="alias ln=/bin/false"
     ;;
+
   *)
     HOST_EXE_SUFFIX=
     WINDOWS_ON_HOST=False
@@ -101,7 +158,7 @@ case $target_os in
     TARGET_EXE_SUFFIX=.exe
     ;;
 esac
-ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
+ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET} ${ADDITIONAL_CONF_PRAGMAS_SWITCH}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
 AC_SUBST(WINDOWS_ON_TARGET)
@@ -125,7 +182,7 @@ AC_SUBST(TOOL_EXE_SUFFIX)
 # source repository. The packaging procedure changes the default to "n".
 # so that builds from packaged sources do not stop on warnings.
 
-DEFAULT_ADAFLAGS="${DEFAULT_ADAFLAGS} -XWarnings_Mode=${WARNINGS_MODE}"
+BASE_ADAFLAGS="${BASE_ADAFLAGS} -XWarnings_Mode=${WARNINGS_MODE}"
 
 # ADAFLAGS will be set later, once AC_PROG_CC has set the definitive CFLAGS
 
@@ -142,7 +199,9 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 AC_PROG_CC
 if test "${ADAFLAGS-unset}" = unset; then
-  ADAFLAGS="${CFLAGS} ${DEFAULT_ADAFLAGS}"
+  ADAFLAGS="${CFLAGS} ${BASE_ADAFLAGS}"
+else
+  ADAFLAGS="${ADAFLAGS} ${BASE_ADAFLAGS}"
 fi
 
 AC_PROG_INSTALL
@@ -172,6 +231,7 @@ AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
+AM_HAS_INTRINSIC_SYNC_COUNTERS
 
 ##########################################
 # Check C environment features (for target)
@@ -179,8 +239,22 @@ AM_HAS_STYLESW_YG
 
 save_CC="$CC"
 CC="$CC_FOR_TARGET"
-AC_CHECK_HEADERS(fcntl.h)
-AC_CHECK_FUNCS(setsid)
+
+# Need to provide a non-empty 4th argument to AC_CHECK_HEADERS
+# so that a real compilation test is performed using CC, not a
+# junk preprocessor test that will use the host preprocessor
+# instead of the target compiler.
+
+# Mandatory features
+
+AC_CHECK_HEADERS([fcntl.h],
+ [],
+ [AC_ERROR([One or more required header file could not be found.])],
+ [/*relax*/])
+
+# Optional features
+
+AC_CHECK_FUNCS([setsid strftime])
 CC="$save_CC"
 
 ##########################################
@@ -204,7 +278,7 @@ LIBS_LIST=""
 
 AC_MSG_CHECKING([default protocol personalities])
 AC_ARG_WITH(proto-perso,
-AS_HELP_STRING([--with-proto-perso=x], [Enumerate protocol personalities]),
+AS_HELP_STRING([--with-proto-perso=X], [Enumerate protocol personalities]),
 [
   PROTO_LIST=""
 
@@ -232,14 +306,14 @@ AC_SUBST(PROTO_LIST)
 
 AC_MSG_CHECKING([default application personalities])
 AC_ARG_WITH(appli-perso,
-AS_HELP_STRING([--with-appli-perso=x], [Enumerate application personalities]),
+AS_HELP_STRING([--with-appli-perso=X], [Enumerate application personalities]),
 [
   APPLI_LIST=""
 
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for P in ${newwithval}
   do
-     if test -d ${srcdir}/src/${P}
+     if test -d "${srcdir}/src/${P}"
      then
         APPLI_LIST="${APPLI_LIST}${P} "
      else
@@ -259,12 +333,12 @@ AC_SUBST(APPLI_LIST)
 ############################################
 
 AC_ARG_WITH(idl-compiler,
-AS_HELP_STRING([--with-idl-compiler=x], [Internal configuration flag]),
+AS_HELP_STRING([--with-idl-compiler=X], [Select IDL compiler]),
 [
   IDLAC=${withval}
 ],
 [
-  IDLAC=idlac
+  IDLAC=iac
 ])
 AC_SUBST(IDLAC)
 AM_IDLCPP_NEEDS_DOT
@@ -275,14 +349,14 @@ AM_IDLCPP_NEEDS_DOT
 
 AC_MSG_CHECKING([default services])
 AC_ARG_WITH(corba-services,
-AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
+AS_HELP_STRING([--with-corba-services=X], [Enumerate services]),
 [
   SERVICE_LIST=""
 
   newwithval=`echo ${withval} | tr "[A-Z]" "[a-z]"`
   for S in ${newwithval}
   do
-     if test -f ${srcdir}/cos/${S}/Makefile.am
+     if test -d "${srcdir}/cos/${S}"
      then
         SERVICE_LIST="${SERVICE_LIST}${S} "
      else
@@ -323,7 +397,7 @@ get_perso_prjs() {
   perso_name=$1
   result=
   sep=""
-  for gpr in ${srcdir}/projects/src_${perso_name}*.gpr; do
+  for gpr in ${srcdir}/projects/polyorb_src_${perso_name}*.gpr; do
     result="${result}${sep}\"`basename $gpr .gpr`\""
     sep=","
   done
@@ -402,7 +476,7 @@ do
    SERVICE_EXES="${SERVICE_EXES} "'$'"(${P}_exe)"
    if test "$P" != ir
    then
-      SERVICE_PRJS="${SERVICE_PRJS}${sep}\"idls_cos_${P}\""
+      SERVICE_PRJS="${SERVICE_PRJS}${sep}\"polyorb_idls_cos_${P}\""
       sep=","
    fi
 done
@@ -469,9 +543,9 @@ AC_SUBST(RSH_OPT)
 AC_MSG_RESULT([${RSH_OPT}])
 
 #
-# Not used by PolyORB, set default values for garlic.
+# Default storage location.
 #
-DEFSTORAGENAME="dfs"
+DEFSTORAGENAME="dsm"
 DEFSTORAGEDATA=""
 AC_SUBST(DEFSTORAGENAME)
 AC_SUBST(DEFSTORAGEDATA)
@@ -500,9 +574,23 @@ AC_SUBST(SUPPORT_RPC_ABORTION)
 #
 # Check for exception model
 #
+
 AC_MSG_CHECKING(for exception model to use)
 AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
+
+#
+# If ATC is not supported, remove corresponding unit
+#
+
+if $HAVE_ADA_ATC; then
+  EXCLUDED_SOURCE_FILES=""
+else
+  EXCLUDED_SOURCE_FILES="polyorb-tasking-profiles-full_tasking_atc.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.adb"
+fi
+AC_SUBST(EXCLUDED_SOURCE_FILES)
 
 ##########################################
 # XML/Ada
@@ -514,7 +602,7 @@ has_xmlada=no
 
 dnl Legacy build infrastructure: find XmlAda using xmlada-config
 
-AC_MSG_CHECKING([XmlAda])
+AC_MSG_CHECKING([for XML/Ada])
 if xmlada-config --version 2>&1 | ${GREP} "^XmlAda" > /dev/null 2>&1; then
    XMLADA_INCS="`xmlada-config --cflags`"
    XMLADA_LIBS="`xmlada-config --libs`"
@@ -525,7 +613,7 @@ fi
 AC_MSG_RESULT($has_xmlada)
 AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
 
-dnl Projects-based build infrastructure: find XmlAda project in project path
+dnl Projects-based build infrastructure: find XML/Ada project in project path
 dnl AM_HAS_GNAT_PROJECT([xmlada])
 dnl AM_CONDITIONAL(HAS_XMLADA, test x"$HAVE_GNAT_PROJECT_xmlada" = xyes)
 
@@ -538,11 +626,11 @@ soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
 
 if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
 then
-   AC_MSG_ERROR("Protocol personality SOAP requires XmlAda")
+   AC_MSG_ERROR("Protocol personality SOAP requires XML/Ada")
 fi
 
 ##########################################
-# Update Xml/Ada configuration flags
+# Update XML/Ada configuration flags
 # iff SOAP is built
 ##########################################
 
@@ -594,8 +682,8 @@ host=$host_tmp
 
 #################################################
 # Build code fragments to be substituted in
-#       src/setup/polyorb-setup-client.adb
-#       src/setup/polyorb-setup-client.adb
+#       src/setup/polyorb-setup-client_base.adb
+#       src/setup/polyorb-setup-server.adb
 #       tools/po_catref/po_catref_setup.adb
 #       tools/po_createref/po_createref_setup.adb
 #################################################
@@ -622,15 +710,26 @@ ALL_WITHS="
 
 rm -f ${ALL_WITHS}
 
-for U in ${PLATFORM_BASE_LIST}
-do
+if test -z "${PLATFORM_BASE_LIST}"
+then
+  # Generate a comment line to avoid consecutive white lines
+  # in the resulting file.
+
   cat >>${PLATFORM_BASE_WITHS} <<EOF
+
+--  No additional platform-specific dependencies on $target
+EOF
+else
+  for U in ${PLATFORM_BASE_LIST}
+  do
+    cat >>${PLATFORM_BASE_WITHS} <<EOF
 
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
-done
+  done
+fi
 
 for P in ${PROTO_LIST}
 do
@@ -751,185 +850,65 @@ LOCAL_MAKEFILES=config.local.makefiles
 
 (cd ${srcdir} && find . -name Makefile.local) | sed "s,^\./,," | \
 while read mklocal; do
-  echo "current_dir := `dirname ${mklocal}`/"
+  testdir="`dirname ${mklocal}`/"
+  echo "current_dir  := ${testdir}"
+  echo "test_target  := ${testdir}build-test"
+  echo "test_targets += ${testdir}build-test"
   echo "include \$(top_srcdir)/${mklocal}"
 done > ${LOCAL_MAKEFILES}
 AC_SUBST_FILE(LOCAL_MAKEFILES)
+
+# GNATDIST version
+# This is set differently for the GLADE and PolyORB distributions, which
+# share the same source tree.
+
+GNATDIST_VERSION="$POLYORB_VERSION"
+AC_SUBST(GNATDIST_VERSION)
 
 ##########################################
 # Output generated files
 ##########################################
 
-dnl Important! One file per line, nothing before or after except whitespace!
-dnl This section is edited automatically by support/reconfig.
-
 AC_CONFIG_HEADERS([src/config.h])
-AC_OUTPUT([
+AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_pointers-sync_counters__$SYNC_COUNTERS_IMPL.adb])
+
+AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
 	Makefile.common.project
-	compilers/Makefile
 	compilers/common_files/platform.ads
+	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads
-	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/gnatprfh.adb
-	compilers/iac/Makefile
-	compilers/iac/testsuite/Makefile
-	compilers/idlac/Makefile
-	compilers/idlac/testsuite/Makefile
 	docs/Makefile
-	projects/config.gpr
+	docs/polyorb_version.texi
 	projects/polyorb.gpr
-	projects/src_setup.gpr
+	projects/polyorb_config.gpr
+	projects/polyorb_src_setup.gpr
 	projects-distrib/polyorb.gpr
-	projects-distrib/polyorb/src_setup.gpr
-	src/Makefile
-	src/corba/Makefile
-	src/corba/dynamicany/Makefile
-	src/corba/iop/Makefile
-	src/corba/messaging/Makefile
-	src/corba/portableinterceptor/Makefile
-	src/corba/rtcorba/Makefile
-	src/corba/security/Makefile
-	src/corba/security/gssup/Makefile
-	src/dsa/Makefile
-	src/giop/Makefile
-	src/giop/iiop/Makefile
-	src/giop/iiop/security/Makefile
-	src/giop/iiop/security/tls/Makefile
-	src/giop/iiop/ssliop/Makefile
-	src/giop/diop/Makefile
-	src/giop/miop/Makefile
-	src/moma/Makefile
-	src/web_common/Makefile
-	src/aws/Makefile
-	src/security/Makefile
-	src/security/gssup/Makefile
-	src/security/tls/Makefile
-	src/security/x509/Makefile
-	src/setup/Makefile
+	projects-distrib/polyorb/polyorb_src_setup.gpr
+	src/config.adc
+        src/src.exclude
 	src/setup/polyorb-setup-base.adb
-	src/setup/polyorb-setup-client.adb
+	src/setup/polyorb-setup-client_base.adb
 	src/setup/polyorb-setup-server.adb
-	src/setup/security/Makefile
-	src/soap/Makefile
-	src/srp/Makefile
-	src/ssl/Makefile
-	src/debug.adc
+	src/setup/polyorb-setup-tasking-full_tasking.adb
 	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc
 	src/ravenscar_compatible.adc
-	idls/Makefile
-	idls/CORBA_IDL/Makefile
-	idls/CORBA_PIDL/Makefile
-	idls/Interop/Makefile
-	idls/Misc/Makefile
-	idls/RTCORBA/Makefile
-	idls/cos/Makefile
-	idls/cos/event/Makefile
-	idls/cos/naming/Makefile
-	idls/cos/notification/Makefile
-	idls/cos/time/Makefile
 	contrib/idlac_wrapper/idlac_wrapper
-	cos/Makefile
-	cos/event/Makefile
-	cos/naming/Makefile
-	cos/notification/Makefile
-	cos/time/Makefile
-	cos/ir/Makefile
-	examples/Makefile
-	examples/corba/Makefile
-	examples/corba/all_types/Makefile
-	examples/corba/all_functions/Makefile
-	examples/corba/echo/Makefile
-	examples/corba/random/Makefile
-	examples/corba/rtcorba/Makefile
-	examples/corba/rtcorba/client_propagated/Makefile
-	examples/corba/rtcorba/dhb/Makefile
-	examples/corba/rtcorba/server_declared/Makefile
-	examples/corba/rtcorba/rtcosscheduling/Makefile
-	examples/corba/send/Makefile
-	examples/corba/secure_echo/Makefile
 	examples/corba/secure_echo/gssup.conf
 	examples/corba/secure_echo/gssup_example
 	examples/corba/secure_echo/tls.conf
 	examples/corba/secure_echo/tls_example
 	examples/corba/secure_echo/tls_gssup.conf
 	examples/corba/secure_echo/tls_gssup_example
-	examples/dsa/Makefile
-	examples/bbs/Makefile
-	examples/moma/Makefile
-	examples/aws/Makefile
-	examples/polyorb/Makefile
-	testsuite/Makefile
-	testsuite/corba/Makefile
-	testsuite/corba/all_exceptions/Makefile
-	testsuite/corba/benchs/Makefile
-	testsuite/corba/benchs/test000/Makefile
-	testsuite/corba/code_sets/Makefile
-	testsuite/corba/code_sets/test000/Makefile
-	testsuite/corba/cos/Makefile
-	testsuite/corba/cos/event/Makefile
-	testsuite/corba/cos/ir/Makefile
-	testsuite/corba/cos/naming/Makefile
-	testsuite/corba/cos/notification/Makefile
-	testsuite/corba/cos/time/Makefile
-	testsuite/corba/domainmanager/Makefile
-	testsuite/corba/domainmanager/test000/Makefile
-	testsuite/corba/harness/Makefile
-	testsuite/corba/local/Makefile
-	testsuite/corba/location_forwarding/Makefile
-	testsuite/corba/location_forwarding/test000/Makefile
-	testsuite/corba/location_forwarding/test001/Makefile
-	testsuite/corba/orb_init/Makefile
-	testsuite/corba/object/Makefile
-	testsuite/corba/object/test000/Makefile
-	testsuite/corba/portableinterceptor/Makefile
-	testsuite/corba/portableinterceptor/test000/Makefile
-	testsuite/corba/portableinterceptor/test001/Makefile
-	testsuite/corba/portableinterceptor/test002/Makefile
-	testsuite/corba/portableinterceptor/test003/Makefile
-	testsuite/corba/portableinterceptor/test004/Makefile
-	testsuite/corba/portableserver/Makefile
-	testsuite/corba/rtcorba/Makefile
-	testsuite/corba/rtcorba/rtcurrent/Makefile
-	testsuite/corba/rtcorba/rtorb/Makefile
-	testsuite/corba/rtcorba/rtpoa/Makefile
-	testsuite/corba/shutdown/Makefile
-	testsuite/core/Makefile
-	testsuite/core/any/Makefile
-	testsuite/core/chained_lists/Makefile
-	testsuite/core/dynamic_dict/Makefile
-	testsuite/core/fixed_point/Makefile
-	testsuite/core/initialization/Makefile
-	testsuite/core/naming/Makefile
-	testsuite/core/obj_adapters/Makefile
-	testsuite/core/poa/Makefile
-	testsuite/core/random/Makefile
-	testsuite/core/sync_policies/Makefile
-	testsuite/core/tasking/Makefile
-	testsuite/core/uri_encoding/Makefile
-	testsuite/acats/Makefile
-	testsuite/acats/CXE1001/Makefile
-	testsuite/acats/CXE2001/Makefile
-	testsuite/acats/CXE4001/Makefile
-	testsuite/acats/CXE4002/Makefile
-	testsuite/acats/CXE4005/Makefile
-	testsuite/acats/CXE4006/Makefile
-	testsuite/utils/Makefile
-	tools/Makefile
-	tools/po_catref/Makefile
 	tools/po_catref/po_catref_setup.adb
-	tools/po_cos_naming/Makefile
-	tools/po_createref/Makefile
 	tools/po_createref/po_createref_setup.adb
-	tools/po_dumpir/Makefile
-	tools/po_ir/Makefile
-	tools/po_names/Makefile
 	support/adacompiler
 	support/linker
 	polyorb-config
-],
+]),
 [
 ##########################################
 # Copy files
@@ -954,15 +933,15 @@ chmod a+x polyorb-config
 for a in adacompiler linker; do
   na=support/native-$a
   echo "==> symlinking $na"
-  ${RM} -f support/native-$a
   # The following 'ln -s' command needs to happen in the support subdirectory,
   # so that we can replace it with 'cp' on machines where 'ln -s' doesn't work
   # (such as Windows). That is, 'ln -s $a support/native-$a' would work, but
   # 'cp $a support/native-$a' does not; hence the "cd support...".
-  (cd support ; ${LN_S} $a native-$a)
+  (cd support ; ${RM} -f native-$a ; ${LN_S} $a native-$a)
 done
 ],
 [
 RM="${RM}"
 LN_S="${LN_S}"
+${SYMLINK_ALIAS}
 ])

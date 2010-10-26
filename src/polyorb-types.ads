@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Base data types for the whole middleware.
+--  Base data types for the whole middleware
 
 with Interfaces;
+with System;
 
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
@@ -42,6 +43,10 @@ with Ada.Unchecked_Deallocation;
 package PolyORB.Types is
 
    pragma Preelaborate;
+
+   subtype Address is System.Address;
+   --  Provided as a subtype here so that generated code can avoid a direct
+   --  dependency on System, which may clash with a used-defined identifier.
 
    type    Short              is new Interfaces.Integer_16;
    type    Long               is new Interfaces.Integer_32;
@@ -56,9 +61,9 @@ package PolyORB.Types is
    subtype Wchar              is Standard.Wide_Character;
    type    Octet              is new Interfaces.Unsigned_8;
    subtype Boolean            is Standard.Boolean;
-   type    String         is
+   type    String             is
      new Ada.Strings.Unbounded.Unbounded_String;
-   type    Wide_String    is
+   type    Wide_String        is
      new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
    type    Short_Ptr              is access all Short;
@@ -125,21 +130,14 @@ package PolyORB.Types is
    -- String conversion functions --
    ---------------------------------
 
-   function To_PolyORB_String
-     (Source : Standard.String)
-     return String;
-
-   function To_Standard_String
-     (Source : String)
-     return Standard.String;
+   function To_PolyORB_String (Source : Standard.String) return String;
+   function To_Standard_String (Source : String) return Standard.String;
 
    function To_PolyORB_Wide_String
-     (Source : Standard.Wide_String)
-     return Wide_String;
+     (Source : Standard.Wide_String) return Wide_String;
 
    function To_Standard_Wide_String
-     (Source : Wide_String)
-     return Standard.Wide_String;
+     (Source : Wide_String) return Standard.Wide_String;
 
    type Identifier   is new PolyORB.Types.String;
    type RepositoryId is new PolyORB.Types.String;
@@ -147,36 +145,35 @@ package PolyORB.Types is
    ------------------------------------------
    -- Synchronisation of request execution --
    ------------------------------------------
+
    --  XXX Do we really need this type ?
    --  Should be already managed in PolyORB.Any ...
 
-   --  This type is declared here because it must be visible
-   --  in the specs of Requests and References.
+   --  This type is declared here because it must be visible in the specs of
+   --  Requests and References.
 
    type Synchronisation_Scope is
      (None,
       With_Transport,
       With_Server,
       With_Target);
-   --  A 'synchronistaion scope' value is associated with
-   --  each request object.
+   --  A 'synchronistaion scope' value is associated with each request object.
 
-   --  When a request is not synchronised, the middleware returns
-   --  to the caller before passing the request to the transport
-   --  layer. The middleware MUST guarantee that the call is
-   --  non-blocking.
+   --  When a request is not synchronised, the middleware returns to the caller
+   --  before passing the request to the transport layer. The middleware MUST
+   --  guarantee that the call is non-blocking.
 
-   --  When a request is synchronised With_Transport, the middleware
-   --  must not return to the caller before the corresponding
-   --  message has been accepted by the transport layer.
+   --  When a request is synchronised With_Transport, the middleware must not
+   --  return to the caller before the corresponding message message has been
+   --  accepted by the transport layer.
 
-   --  When a request is synchronised With_Server, the middleware
-   --  does not return before receiving a confirmation that the
-   --  request message has been received by the server middleware.
+   --  When a request is synchronised With_Server, the middleware does not
+   --  return before receiving a confirmation that the request message has been
+   --  received by the server middleware.
 
-   --  When a request is synchronised With_Target, the middlware
-   --  does not return to the caller before receinving a confirmation
-   --  that the request has been executed by the target object.
+   --  When a request is synchronised With_Target, the middlware does not
+   --  return to the caller before receinving a confirmation that the request
+   --  has been executed by the target object.
 
 private
 

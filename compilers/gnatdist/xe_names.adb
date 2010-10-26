@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -527,7 +527,7 @@ package body XE_Names is
 
    procedure wn (Id : Name_Id) is
    begin
-      Write_Name (Id);
+      Write_Str (Get_Name_String (Id));
       Write_Eol;
    end wn;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,14 +34,11 @@
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Obj_Adapters;
-with PolyORB.Requests;
-with PolyORB.Servants.Iface;
 
 package body Test_Servant is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Iface;
    use PolyORB.Types;
 
    function echoInteger
@@ -81,38 +78,27 @@ package body Test_Servant is
 
    function Execute_Servant
      (S   : not null access My_Servant;
-      Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+      Req : PolyORB.Requests.Request_Access) return Boolean
    is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
    begin
-      if Msg in Execute_Request then
+      if Req.Operation.all = "echoInteger" then
          declare
-            Req : Request_Access renames Execute_Request (Msg).Req;
+            echoInteger_Arg : constant PolyORB.Types.Long
+              := From_Any
+              (Value (First (List_Of (Req.Args).all)).Argument);
          begin
-
-            if Req.Operation.all = "echoInteger" then
-               declare
-                  echoInteger_Arg : constant PolyORB.Types.Long
-                    := From_Any
-                    (Value (First (List_Of (Req.Args).all)).Argument);
-               begin
-                  Req.Result.Argument := To_Any
-                    (echoInteger (S.all, echoInteger_Arg));
-               end;
-
-            else
-               raise Program_Error;
-            end if;
-
-            return Executed_Request'(Req => Req);
+            Req.Result.Argument := To_Any
+              (echoInteger (S.all, echoInteger_Arg));
          end;
+
       else
          raise Program_Error;
       end if;
 
+      return True;
    end Execute_Servant;
 
    ---------------------------

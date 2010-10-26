@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,14 +66,26 @@ package body PolyORB.References.IOR is
 
    Callbacks : Profile_Record_List.List;
 
+   type IOR_Streamer is new Ref_Streamer with null record;
+
+   procedure Read
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref'Class);
+
+   procedure Write
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref'Class);
+
    ----------------------
-   -- Marshall Profile --
+   -- Marshall_Profile --
    ----------------------
 
    procedure Marshall_Profile
      (Buffer  : access Buffer_Type;
-      P       :        Binding_Data.Profile_Access;
-      Success :    out Boolean)
+      P       : Binding_Data.Profile_Access;
+      Success : out Boolean)
    is
       use PolyORB.Types;
 
@@ -107,6 +119,21 @@ package body PolyORB.References.IOR is
          Next (Iter);
       end loop;
    end Marshall_Profile;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Ref'Class)
+   is
+      pragma Unreferenced (R);
+      Opaque : aliased Stream_Element_Array := Stream_Element_Array'Input (S);
+   begin
+      Ref (V) := Opaque_To_Object (Opaque'Access);
+   end Read;
 
    ------------------------
    -- Unmarshall_Profile --
@@ -189,7 +216,7 @@ package body PolyORB.References.IOR is
             PolyORB.Types.RepositoryId'
               (To_PolyORB_String (Type_Id_Of (Value))));
 
-         Pad_Align (Buffer, 4);
+         Pad_Align (Buffer, Align_4);
 
          declare
             Profs     : constant Profile_Array := Profiles_Of (Value);
@@ -356,12 +383,25 @@ package body PolyORB.References.IOR is
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type)
    is
-      Elt : constant Profile_Record
-        := (Profile, Marshall_Profile_Body,
-            Unmarshall_Profile_Body);
+      Elt : constant Profile_Record :=
+              (Profile, Marshall_Profile_Body, Unmarshall_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (R : access IOR_Streamer;
+      S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Ref'Class)
+   is
+      pragma Unreferenced (R);
+   begin
+      Stream_Element_Array'Output (S, Object_To_Opaque (Ref (V)));
+   end Write;
 
    ----------------
    -- Initialize --
@@ -372,6 +412,7 @@ package body PolyORB.References.IOR is
    procedure Initialize is
    begin
       Register_String_To_Object (IOR_Prefix, String_To_Object'Access);
+      References.The_Ref_Streamer := new IOR_Streamer;
    end Initialize;
 
    use PolyORB.Initialization;

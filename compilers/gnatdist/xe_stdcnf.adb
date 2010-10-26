@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -147,6 +147,18 @@ package body XE_Stdcnf is
       for R in Priority_Policy_Img'Range loop
          Declare_Variable
            (To_Lower (Priority_Policy_Img (R)),
+            Integer_Type_Node,
+            Null_Location,
+            Variable_Node);
+         Set_Scalar_Value (Variable_Node, Int (R));
+      end loop;
+
+      --  type ORB_tasking_policy. To easily retrieve the enumeration
+      --  literal and their image.
+
+      for R in ORB_Tasking_Policy_Img'Range loop
+         Declare_Variable
+           (To_Lower (ORB_Tasking_Policy_Img (R)),
             Integer_Type_Node,
             Null_Location,
             Variable_Node);
@@ -406,6 +418,13 @@ package body XE_Stdcnf is
          Attribute_Kind => Attribute_Allow_Light_PCS,
          Attribute_Sloc => Null_Location);
 
+      Declare_Type_Attribute
+        (Type_Node        => Partition_Type_Node,
+         Attribute_Name   => Id ("orb_tasking_policy"),
+         Attr_Type_Node   => Integer_Type_Node,
+         Attribute_Kind   => Attribute_ORB_Tasking_Policy,
+         Attribute_Sloc   => Null_Location);
+
       --  type Channel (standard)
 
       Declare_Type
@@ -489,6 +508,43 @@ package body XE_Stdcnf is
         (Id ("convention"),
          Convention_Type_Node,
          Pragma_Starter_Node,
+         Null_Location);
+
+      --  type Name_Server is (Embedded, Standalone, Multicast);
+
+      Declare_Type
+        (Type_Name    => Type_Prefix & "name_server",
+         Type_Kind    => Pre_Type_Name_Server,
+         Composite    => False,
+         Comp_Type    => Null_Type,
+         Array_Len    => 0,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Name_Server_Type_Node);
+
+      for R in Name_Server_Img'Range loop
+         Declare_Variable
+           (To_Lower (Name_Server_Img (R)),
+            Name_Server_Type_Node,
+            Null_Location,
+            Variable_Node);
+         Set_Scalar_Value (Variable_Node, Convert (R));
+      end loop;
+
+      --  pragma name_server ... or
+      --  procedure pragma__name_server
+      --    (ns : type__name_server);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "name_server",
+         Pragma_Name_Server,
+         True,
+         Null_Location,
+         Pragma_Name_Server_Node);
+
+      Declare_Subprogram_Parameter
+        (Id ("name_server_kind"),
+         Name_Server_Type_Node,
+         Pragma_Name_Server_Node,
          Null_Location);
 
       --  pragma priority ... or

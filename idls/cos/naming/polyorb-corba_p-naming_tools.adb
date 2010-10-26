@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -217,20 +217,28 @@ package body PolyORB.CORBA_P.Naming_Tools is
       Result    : CosNaming.Name;
       Unescaped : String (Name'Range);
       First     : Integer := Unescaped'First;
-      Last      : Integer := Unescaped'First - 1;
+      Last      : Integer;
       Last_Unescaped_Period : Integer := Unescaped'First - 1;
 
       Seen_Backslash : Boolean := False;
       End_Of_NC : Boolean := False;
    begin
-      for I in Name'Range loop
-         if not Seen_Backslash and then Name (I) = '\' then
+      --  First ignore any leading separators
+
+      while First <= Name'Last and then Name (First) = Sep loop
+         First := First + 1;
+      end loop;
+
+      Last := First - 1;
+
+      for J in First .. Name'Last loop
+         if not Seen_Backslash and then Name (J) = '\' then
             Seen_Backslash := True;
          else
             --  Seen_Backslash and seeing an escaped character
             --  *or* seeing a non-escaped non-backslash character.
 
-            if not Seen_Backslash and then Name (I) = Sep then
+            if not Seen_Backslash and then Name (J) = Sep then
                --  Seeing a non-escaped Sep
 
                End_Of_NC := True;
@@ -239,11 +247,11 @@ package body PolyORB.CORBA_P.Naming_Tools is
                --  or seeing an escaped character.
 
                Last := Last + 1;
-               Unescaped (Last) := Name (I);
-               End_Of_NC := I = Name'Last;
+               Unescaped (Last) := Name (J);
+               End_Of_NC := J = Name'Last;
             end if;
 
-            if not Seen_Backslash and then Name (I) = '.' then
+            if not Seen_Backslash and then Name (J) = '.' then
                Last_Unescaped_Period := Last;
             end if;
 
@@ -254,16 +262,16 @@ package body PolyORB.CORBA_P.Naming_Tools is
 
                Append
                  (Result, NameComponent'
-                  (Id   => To_CORBA_String
+                  (id   => To_CORBA_String
                              (Unescaped (First .. Last_Unescaped_Period - 1)),
-                   Kind => To_CORBA_String
+                   kind => To_CORBA_String
                              (Unescaped (Last_Unescaped_Period + 1 .. Last))));
 
                Last_Unescaped_Period := Last;
                First := Last + 1;
             end if;
 
-            Seen_Backslash := Name (I) = '\' and then not Seen_Backslash;
+            Seen_Backslash := Name (J) = '\' and then not Seen_Backslash;
          end if;
       end loop;
 

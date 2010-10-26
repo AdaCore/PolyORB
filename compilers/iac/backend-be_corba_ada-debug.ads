@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,7 @@
 --  backend of IAC.
 
 with Output; use Output;
+with Utils;
 
 with Backend.BE_CORBA_Ada.Nodes; use Backend.BE_CORBA_Ada.Nodes;
 
@@ -76,6 +77,6 @@ package Backend.BE_CORBA_Ada.Debug is
    function Image (N : Operator_Id) return String;
    function Image (N : Boolean) return String;
    function Image (N : Byte) return String;
-   function Image (N : Int) return String;
+   function Image (N : Int) return String renames Utils.Image;
 
 end Backend.BE_CORBA_Ada.Debug;

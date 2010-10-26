@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1999-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,8 +27,243 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.4
+* PolyORB 2.8
 =============
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instantiations. In addition to the 2.7 release, it includes:
+
+New features
+------------
+
+See the features-28 file.
+
+Bug fixes
+---------
+
+* PolyORB 2.7 (branched on 2010-10-01)
+======================================
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instantiations. In addition to the 2.6 release, it includes:
+
+New features
+------------
+
+See the features-27 file.
+
+Bug fixes
+---------
+
+The iac compiler failed to check the rule that requires IDL keywords to have
+the correct case (for example, "any" is correct, but "ANY" is wrong).
+(J921-012)
+
+The iac compiler generated illegal Ada for helpers in the case of an
+enum type called 'Result'. (J701-270)
+
+The iac compiler did not handle modules that come in multiple parts
+correcly. The parts should all be considered part of the same
+module. (IA01-028)
+
+The global termination management circuitry would erroneously terminate
+the initiator partition when all partitions have deferred termination
+policy. (J602-015)
+
+In some cases, po_gnatdist failed to identify that a partition required
+re-linking after a source change. (J607-021)
+
+The global termination policy in a DSA application might fail to detect
+application termination if a partition with local termination had been
+executed and completed. (J524-001)
+
+PolyORB failed to execute a shell command specified as a partition's Host
+attribute. (J521-020)
+
+IAC would incorrectly generate redundant perfect hash function packages
+for interfaces declared in a scope nested within an imported module. (J504-010)
+
+A remote call occurring after the target partition of another previous call
+had been disconnected could cause a hang on the calling side. (J511-002)
+
+The -p option of iac is supposed to send the output to standard output, but it
+was sending part of the output (the perfect hash function) to files. (J503-020)
+
+Various minor memory leaks were fixed. (J420-020)
+
+An IDL enumeration literal "SYSTEM" would cause a name clash in generated
+code. (J412-032)
+
+A call with a formal parameter of a composite type could cause an erroneous
+memory access if the caller and callee were on the same partition. (J409-001)
+
+The "install" Makefile target would fail to copy po_gnatdist to its proper
+location on hosts where the system does not provide the install(1) command,
+and the internal support/install-sh script is used instead. (J309-020)
+
+Incoming multicast datagrams received on a MIOP access point were not
+correctly identified as referring to a local object on Windows. (J312-020)
+
+When referring to an enumeration literal in another package, IAC was generating
+just the literal, whereas an expanded name like Package_Name.Literal is
+needed. (J210-035)
+
+Incorrect casing was used in IAC for the generated stubs and skeletons
+for attribute access subprograms (_get_ and _set_). This could lead to
+interoperability issues with conformant 3rd party ORBs. (J126-028)
+
+Source units imported from AWS for the SOAP protocol personality have been
+renamed to avoid clashes in applications mixing PolyORB and AWS. (J105-013)
+
+Support for partition attribute Reconnection was missing. (IB12-005)
+
+po_gnatdist does not create files anymore outside of the private dsa/
+subdirectory. (IC14-034)
+
+* PolyORB 2.6 (branched on 2009-10-07)
+======================================
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instantiations. In addition to the 2.5 release, it includes:
+
+New features
+------------
+
+See the features-26 file.
+
+Bug fixes
+---------
+
+A socket leak occurring when an attempt to establish a TCP connection fails
+has been fixed. (J106-008)
+
+A segmentation fault could occur while unmarshalling a record with a component
+of a private type. (IC16-046)
+
+PROGRAM_ERROR was raised when performing a local call involving IDL union
+with a switch that do not have an associated member label. (IB25-010)
+
+A resource leak was fixed in the idle tasks manager. (IB19-027)
+
+A race condition has been fixed in the Half_Sync_Half_Async ORB controller
+that could cause a segmentation fault during ORB shutdown in some rare
+cases. (IB19-024)
+
+Several unrelated race conditions could cause crashes in the DSA termination
+process in some timing-dependent scenarios. (IB13-026)
+
+po_gnatdist would fail to build a slave partition alone. (IA29-009)
+
+IAC would fail to find the output from the C++ preprocessor when running
+under some recent versions of Cygwin. (IA08-013)
+
+Constrained types derived from unconstrained array types were not correctly
+handled in the DSA applicative personality, causing runtime exceptions
+when such types were passed in remote calls. (IA06-020)
+
+IAC was failing to properly detect an error in case a name that should refer
+to a type referred to something else. (I629-006)
+
+DSA partitions used to start processing remote calls before the local
+partition ID was set, potentially causing exception messages to not be
+tagged with the partition ID (if raised before that point). (I529-013)
+
+The Ada DSA starter would fail if the complete path of some slave partition
+contained white space. (I519-025)
+
+When building a DSA application, a global configuration pragmas file
+provided through a user project wasn't taken into account. (I513-015)
+
+Building a DSA application in a directory whose complete path include
+white space was not correctly handled. (I508-017)
+
+* PolyORB 2.5 (branched on 2008-11-03)
+======================================
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instantiations. In addition to the 2.4 release, it includes:
+
+New features
+------------
+
+See the features-25 file.
+
+Bug fixes
+---------
+
+When building a single partition with non-local termination, po_gnatdist
+would systematically mark the partition as termination initiator, possibly
+causing a deadlock when terminating the application. (Building all partitions
+at the same time, which is the default, worked fine.) (HA30-008)
+
+Calling a method that has IN or INOUT arguments following an OUT argument
+locally on a partition (i.e. without involving any actual network
+communication) would cause an incorrect matching of formal and actual
+parameters, causing incorrect values to be passed to the servant, or
+a crash if parameters were of incompatible types. (HB25-017)
+
+po_gnatdist crashed when building only the main partition in an application
+with an Ada starter. (HB10-009)
+
+Constraint_Error could be raised when calculating the number of tasks in a
+thread pool; this has been corrected. (HA02-018)
+
+IAC was generating incorrect Ada code for "default:" in a union. (H930-022)
+
+Several issues have been fixed in the circuitry handling TypeCodes and Anys
+for bounded string types. (H904-029)
+
+IAC was failing to correctly parse arrays and strings whose length was given by
+a named constant. (H813-030, H813-031)
+
+The tasks management circuitry has undergone a major overhaul to make
+it more robust and remove some irregularities in the assignment of
+particular ORB jobs to application tasks. This extensive change fixes
+dead locks (G510-007, H813-026) and invariant violations (H813-027,
+H828-032) which could happen under some specific scheduling situations.
+
+CORBA.Object.Hash might under some circumstances return different values
+for the same object. This has been fixed. (H806-014)
+
+IAC did not generate all code in user-specified output directory when
+using hash optimizations, this is now corrected. (H730-014)
+
+IAC incorrectly rejected negative real literals. They are now accpted.
+Workaround: add a pair of parentheses around the absolute value. (H728-026)
+
+IAC and IDLAC required array sizes to be literals or constants. Arbitrary
+integer expressions are now allowed. Workaround: introduce a named
+constant. (H723-024)
+
+IAC would generate garbled error messages when referring to declarations in
+#include files, such as "X" conflicts with declaration at included.idl:12:03.
+Workaround: fix the underlying error.
+(H723-022)
+
+IDL real literals starting with "0." were erroneously rejected by IAC.
+Workaround: use an expression yielding the same value but avoiding such
+literals.
+(H721-014)
+
+IDL constants of a bounded string type were not handled correctly by the
+IDL to Ada compilers. Both have been fixed. (H707-023)
+
+If the tasking policy is Thread_Pool, the ORB could borrow user tasks to handle
+Request_Jobs, which could cause long waiting times, or even deadlock in some
+cases. (G510-007)
+
+IAC would generate garbled error messages when referring to declarations in
+#include files, such as "X" conflicts with declaration at included.idl:12:03.
+(H723-022).
+
+IAC and IDLAC required array sizes to be literals or constants. Arbitrary
+integer expressions are now allowed. (H723-024).
+
+Leading separator characters were not ignored by PolyORB.CORBA_P.Naming_Tools.
+Parse_Name as documented. (H513-025)
+
+* PolyORB 2.4 (branched on 2008-05-06)
+======================================
 
 This release contains the PolyORB generic middleware, and its CORBA
 and DSA instantiations. In addition to the 2.3 release, it includes:
@@ -41,11 +276,19 @@ See the features-24 file.
 Bug fixes
 ---------
 
+In PolyORB/DSA, references to RACW or RAS stream attributes in user code
+were not handled correctly. (H407-010)
+
 There was a bug in the function that determined wether a MIOP profile
 is local to a partition, this has been corrected. (H303-005)
 
 A PolyORB partition configured to use MIOP 1.0 did not default to GIOP
 1.2, this has been corrected. (H303-004)
+
+Two issues were fixed in the decoding of MIOP headers (H228-015).
+
+The GIOP implementation rejected messages where reserved bytes had
+non-zero value, causing interoperability issues with TAO (H124-010).
 
 A PolyORB partition configured to use GIOP version 1.0 only was unable
 to connect to a server providing an IIOP 1.2 profile. The GIOP stack

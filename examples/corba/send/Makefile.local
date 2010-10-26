@@ -1,4 +1,2 @@
-${eval ${define_test}}
-
 ${current_dir}print.idl-stamp: idlac_flags := -d
 ${test_target}: ${current_dir}print.idl-stamp

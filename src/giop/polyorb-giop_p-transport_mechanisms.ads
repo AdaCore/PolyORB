@@ -133,22 +133,23 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
 
    --  Creation of Transport Mechanisms from list of Tagged Component
 
-   function Create_Transport_Mechanisms
+   procedure Create_Transport_Mechanisms
      (TC      : Tagged_Components.Tagged_Component_List;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
-   --  Create list of profile's Transport Mechanisms from profile's list
-   --  of Tagged Components
+      Profile : Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
+   --  Create Transport Mechanisms from Profile's list of Tagged Components,
+   --  and append them to Mechs.
 
    type Transport_Mechanism_Constructor is
-     access function
-     (TC      : Tagged_Components.Tagged_Component_Access;
-      Profile : Binding_Data.Profile_Access)
-     return Transport_Mechanism_List;
+     access procedure
+       (TC      : Tagged_Components.Tagged_Component_Access;
+        Profile : Binding_Data.Profile_Access;
+        Mechs   : in out Transport_Mechanism_List);
+   --  Create transport mechanisms for TC, and append them to Mechs
 
    procedure Register
     (Tag         : Tagged_Components.Tag_Value;
      Constructor : Transport_Mechanism_Constructor);
-   --  Register tagged component to transport mechanism convertor
+   --  Register tagged component to transport mechanism converter
 
 end PolyORB.GIOP_P.Transport_Mechanisms;

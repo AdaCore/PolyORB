@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract interface for the POA Object Adapter.
+--  Abstract interface for the POA Object Adapter
 
 --  This package provides a higher level abstraction (the POA) of a
 --  PolyORB's Object Adapter as defined in PolyORB.Obj_Adapters.
@@ -96,7 +96,7 @@ package PolyORB.POA is
       --  POA Manager attached to this POA
 
       Adapter_Activator          : AdapterActivator_Access;
-      --  Adapter Activator attached to this POA (null if not used).
+      --  Adapter Activator attached to this POA (null if not used)
 
       Active_Object_Map          : PolyORB.Object_Maps.Object_Map_Access;
       --  The active object map (null if the policies used for this POA
@@ -120,16 +120,15 @@ package PolyORB.POA is
       Implicit_Activation_Policy : ImplicitActivationPolicy_Access := null;
 
       Father                     : Obj_Adapter_Access;
-      --  Parent POA.
+      --  Parent POA
 
       Children                   : POATable_Access;
-      --  All child-POAs of this POA.
+      --  All child-POAs of this POA
 
       POA_Lock                   : Tasking.Mutexes.Mutex_Access;
       Children_Lock              : Tasking.Mutexes.Mutex_Access;
       Map_Lock                   : Tasking.Mutexes.Mutex_Access;
       --  Locks
-
    end record;
 
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
@@ -289,14 +288,12 @@ package PolyORB.POA is
    function Get_Empty_Arg_List
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        String)
-     return Any.NVList.Ref;
+      Method :        String) return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
-      Method :        String)
-     return Any.Any;
+      Method :        String) return Any.Any;
 
    procedure Find_Servant
      (OA      : access Obj_Adapter;
@@ -333,8 +330,7 @@ package PolyORB.POA is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI :        String)
-     return Object_Id_Access;
+      URI :        String) return Object_Id_Access;
    --  Convert an object id from its representation as a relative URI
 
 private
@@ -353,17 +349,11 @@ private
      (OA    :        Obj_Adapter_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Destroy_Policies
-     (OA : in out Obj_Adapter);
+   procedure Destroy_Policies (OA : in out Obj_Adapter);
    pragma Warnings (Off);
    pragma Unreferenced (Destroy_Policies);
    pragma Warnings (On);
    --  Destroys OA's policies
-
-   procedure Destroy_OA (OA : Obj_Adapter_Access);
-   --  Destroy OA's components (this does not deallocate the OA itself, since
-   --  this is usually done by the reference counting system).
-   --  ??? Why isn't this just an override of Finalize?
 
    procedure Create_Root_POA
      (New_Obj_Adapter : access Obj_Adapter);
@@ -389,8 +379,7 @@ private
    --  set all policies, and warn for duplicates.
 
    function POA_Manager_Of
-     (OA : access Obj_Adapter)
-     return POA_Manager.POAManager_Access;
-   --  Return the POA Manager associated to 'OA'.
+     (OA : access Obj_Adapter) return POA_Manager.POAManager_Access;
+   --  Return the POA Manager associated to 'OA'
 
 end PolyORB.POA;

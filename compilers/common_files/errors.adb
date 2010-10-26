@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,18 +31,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;  use Ada.Command_Line;
-
-with Output;    use Output;
-with Namet;     use Namet;
+with Output; use Output;
+with Namet;  use Namet;
+with Utils;  use Utils;
 
 package body Errors is
+
+   procedure Initialize;
+   --  [Re]Initialize global variables to decrease the likelihood of silently
+   --  using old values.
 
    -------------------
    -- Display_Error --
    -------------------
 
-   procedure Display_Error (S : String) is
+   procedure Display_Error (Template : Message_Template) is
       procedure Check_Space;
       --  Ensure the last character of the name buffer is a space
 
@@ -57,43 +60,42 @@ package body Errors is
          end if;
       end Check_Space;
 
-      --  ??? All the declarations below need clearer, meaningful names nad
-      --  explanatory comments.
+      --  N, L, and I are the indices mentioned in the spec
 
-      L : Natural := 1;
-      I : Natural := 1;
-      N : Natural := 1;
-      M : Boolean := False;
+      N : Natural range 1 .. 3 := 1;  --  Index into Error_Name
+      L : Natural range 1 .. 3 := 1;  --  Index into Error_Loc
+      I : Natural range 1 .. 3 := 1;  --  Index into Error_Int
+
+      Special : Boolean := False;
       --  True when the current character is a special insertion character
-      J : Natural := S'First;
 
       type Message_Kind is (K_Error, K_Warning, K_Continuation);
-      K : Message_Kind;
+      Kind : Message_Kind;
 
    begin
       if Error_Loc (L) = No_Location then
-         Set_Str_To_Name_Buffer (Command_Name);
+         Set_Str_To_Name_Buffer (Utils.Simple_Command_Name);
       else
          Set_Str_To_Name_Buffer (Image (Error_Loc (L)));
       end if;
       L := L + 1;
       Add_Str_To_Name_Buffer (": ");
 
-      K := K_Error;
-      for J in S'Range loop
-         case S (J) is
+      Kind := K_Error;
+      for J in Template'Range loop
+         case Template (J) is
             when '\' =>
-               K := K_Continuation;
+               Kind := K_Continuation;
                exit;
             when '?' =>
-               K := K_Warning;
+               Kind := K_Warning;
                exit;
             when others =>
                null;
          end case;
       end loop;
 
-      case K is
+      case Kind is
          when K_Error =>
             N_Errors := N_Errors + 1;
 
@@ -105,16 +107,16 @@ package body Errors is
             null;
       end case;
 
-      while J <= S'Last loop
+      for J in Template'Range loop
 
          --  Process special insertion characters
 
-         case S (J) is
+         case Template (J) is
             when '%' =>
                Check_Space;
                Get_Name_String_And_Append (Error_Name (N));
                N := N + 1;
-               M := True;
+               Special := True;
 
             when '#' =>
                Check_Space;
@@ -122,29 +124,34 @@ package body Errors is
                Get_Name_String_And_Append (Error_Name (N));
                Add_Char_To_Name_Buffer ('"');
                N := N + 1;
-               M := True;
+               Special := True;
 
             when '!' =>
-               if L = 1 then
-                  Add_Str_To_Name_Buffer (Image (Error_Loc (1)));
+               case L is
+                  when 1 =>
+                     Add_Str_To_Name_Buffer (Image (Error_Loc (1)));
 
-               elsif Error_Loc (1).File = Error_Loc (L).File then
-                  Check_Space;
-                  Add_Str_To_Name_Buffer ("at line ");
-                  Add_Nat_To_Name_Buffer (Error_Loc (L).Line);
+                  when 2 =>
+                     Check_Space;
+                     if Error_Loc (1).File = Error_Loc (2).File then
+                        Add_Str_To_Name_Buffer ("at line ");
+                        Add_Nat_To_Name_Buffer (Error_Loc (2).Line);
 
-               else
-                  Check_Space;
-                  Add_Str_To_Name_Buffer ("in ");
-                  Add_Str_To_Name_Buffer (Image (Error_Loc (1)));
-               end if;
+                     else
+                        Add_Str_To_Name_Buffer ("at ");
+                        Add_Str_To_Name_Buffer (Image (Error_Loc (2)));
+                     end if;
+
+                  when 3 => raise Program_Error;
+               end case;
+
                L := L + 1;
-               M := True;
+               Special := True;
 
             when '$' =>
                Add_Nat_To_Name_Buffer (Error_Int (I));
                I := I + 1;
-               M := False;
+               Special := True;
 
             when '?' | '\' =>
                --  Already dealt with
@@ -154,17 +161,15 @@ package body Errors is
             when others =>
                --  Add space after insertion if not provided by S
 
-               if M then
-                  if S (J) /= ' ' then
+               if Special then
+                  if Template (J) /= ' ' then
                      Add_Char_To_Name_Buffer (' ');
                   end if;
-                  M := False;
+                  Special := False;
                end if;
 
-               Add_Char_To_Name_Buffer (S (J));
+               Add_Char_To_Name_Buffer (Template (J));
          end case;
-
-         J := J + 1;
       end loop;
 
       Set_Standard_Error;
@@ -178,6 +183,17 @@ package body Errors is
 
    end Display_Error;
 
+   -------------------
+   -- Display_Error --
+   -------------------
+
+   procedure Display_Error (Template : Message_Template; S : String) is
+   begin
+      Set_Str_To_Name_Buffer (S);
+      Error_Name (1) := Name_Find;
+      Display_Error (Template);
+   end Display_Error;
+
    ----------------
    -- Initialize --
    ----------------
@@ -186,7 +202,9 @@ package body Errors is
    begin
       Error_Loc  := (others => No_Location);
       Error_Name := (others => No_Name);
-      Error_Int  := (others => 0);
+      Error_Int  := (others => Int'Last);
    end Initialize;
 
+begin
+   Initialize;
 end Errors;

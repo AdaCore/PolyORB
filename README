@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -73,6 +73,9 @@ The PolyORB architecture also permits the automatic,
 just-in-time creation of proxies between incompatible environments
 (although this feature is not implemented yet).
 
+PolyORB can be used in Ada 95 and Ada 2005 applications alike. It is
+implemented in Ada 2005 and C.
+
 Installation
 ------------
 
@@ -100,9 +103,9 @@ See the PolyORB User's Guide for more details on PolyORB usage.
 Bug reports
 -----------
 
-If you find a bug or would like to submit patches, please do so indicating 
-the release you use. We accept patch files. To produce such a patch file, 
-put your files in the PolyORB directory and our files in the directory 
+If you find a bug or would like to submit patches, please do so indicating
+the release you use. We accept patch files. To produce such a patch file,
+put your files in the PolyORB directory and our files in the directory
 PolyORB.orig, and use the following command:
 
   diff --recursive --context PolyORB.orig PolyORB > patch_file
@@ -115,10 +118,14 @@ Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 Unsupported users may directly send their patches and bug report via
 e-mail at the address
+   polyorb-bugs@lists.adacore.com
 
-	polyorb-bugs@lists.adacore.com
+or seek community support through the public mailing list:
+   polyorb-users@lists.adacore.com
 
 Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
+Please include the complete output of "polyorb-config --version"
+in any problem report.
 
 If you are interested in becoming a supported PolyORB user, you should
 send an email to sales@adacore.com.
@@ -139,10 +146,13 @@ Contributors:
 PolyORB has been developed since January, 1999 by the following
 contributors:
 
+* Dmitriy Anisimkov
 * Nicolas Archambault
 * Fabien Azavant
 * Benjamin Bagland
 * Khaled Barbaria
+* Nikolay Boshnakov
+* Reto Buerki
 * Emmanuel Chavane
 * Karim Chine
 * Jean-Marie Cottin
@@ -157,10 +167,12 @@ contributors:
 * Jerome Hugues
 * Mejdi Kaddour
 * Fabrice Kordon
-* Narinder Kumar 
+* Narinder Kumar
 * Laurent Kubler
+* Stéphane Lanarre
 * Lionel Litty
 * Vincent Niebel
+* Pascal Obry
 * Pablo Oliveira
 * Pierre Palatin
 * Bertrand Paquet
@@ -169,12 +181,13 @@ contributors:
 * Thomas Quinot
 * Nicolas Roche
 * Jerome Roussel
+* Selvaratnam Senthuran
 * Nicolas Setton
-* Frank Singhoff 
+* Frank Singhoff
 * Samuel Tardieu
-* Selvaratnam Senthuran 
+* Santiago Urueña-Pascual
 * Thomas Vergnaud
 * Florian Villoing
 * Guillaume Wisniewski
+* Thomas Wolf
 * Bechir Zalila
-* Santiago Uruena-Pascual

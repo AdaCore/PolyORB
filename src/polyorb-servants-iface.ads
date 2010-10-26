@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 2003-2005 Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,11 +43,16 @@ package PolyORB.Servants.Iface is
       Req : Requests.Request_Access;
       Pro : PolyORB.Binding_Data.Profile_Access;
    end record;
-   --  Request the receiving Servant to execute Req. On the client
-   --  side, Pro is the profile of the target object reference that
-   --  was used to establish a binding object with the target.
-   --  The expected reply is Executed_Request, or Null_Message
-   --  if the request was not processed immediately.
+   --  Request the receiving Servant to execute Req. On the client side, Pro is
+   --  the profile of the target object reference that was used to establish a
+   --  binding object with the target. The expected reply is Executed_Request,
+   --  or Null_Message if the request was not processed immediately.
+
+   type Abort_Request is new Components.Message with record
+      Req : Requests.Request_Access;
+   end record;
+   --  Request the receiving Servant to abort ongoing processing of Req. The
+   --  expected reply is Null_Message.
 
    type Executed_Request is new Components.Message with record
       Req : Requests.Request_Access;

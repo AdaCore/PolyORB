@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Utils.Dynamic_Tables;
@@ -61,13 +62,6 @@ package body PolyORB.Any is
    --  Transfer the value of Src_C to Dst_C; Src_C is empty upon return.
    --  Foreign status is transferred from Src_C to Dst_C. The previous contents
    --  of Dst_C are deallocated if appropriate.
-
-   procedure Set_Value
-     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean);
-   --  Set the designated value of A to CC; set the Foreign indication as
-   --  to the given value. Note that no type conformance check is performed!
-   --  The previous value, and if applicable the associated storage, are
-   --  deallocated.
 
    type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
 
@@ -159,7 +153,7 @@ package body PolyORB.Any is
       procedure Kind_Check (C : Any_Container'Class) is
       begin
          if TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (C))) /= Kind then
-            raise Program_Error;
+            raise Constraint_Error;
          end if;
       end Kind_Check;
 
@@ -186,9 +180,20 @@ package body PolyORB.Any is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V (X : access T_Content) return T_Ptr is
+      function Unchecked_Get_V (X : not null access T_Content) return T_Ptr is
       begin
          return X.V;
+      end Unchecked_Get_V;
+
+      ---------------------
+      -- Unchecked_Get_V --
+      ---------------------
+
+      function Unchecked_Get_V
+        (X : not null access T_Content) return System.Address
+      is
+      begin
+         return X.V.all'Address;
       end Unchecked_Get_V;
 
       ----------
@@ -810,10 +815,7 @@ package body PolyORB.Any is
    -- Add_Aggregate_Element --
    ---------------------------
 
-   procedure Add_Aggregate_Element
-     (Value   : in out Any;
-      Element : Any)
-   is
+   procedure Add_Aggregate_Element (Value : in out Any; Element : Any) is
       CA_Ptr : constant Aggregate_Content_Ptr :=
                  Aggregate_Content_Ptr (Get_Container (Value).The_Value);
    begin
@@ -1093,7 +1095,7 @@ package body PolyORB.Any is
                           Src_El_CC'Unchecked_Access, Foreign => True);
 
                         --  Case of an aggregate element that needs to be set
-                        --  explicitly
+                        --  explicitly.
 
                         if Dst_El_M = By_Value then
                            Set_Aggregate_Element (Dst_ACC, El_TC, J, Src_El_C);
@@ -1311,6 +1313,12 @@ package body PolyORB.Any is
                       renames Elementary_Any_Any.From_Any;
    function From_Any (A : Any) return TypeCode.Local_Ref
                       renames Elementary_Any_TypeCode.From_Any;
+   function From_Any
+     (A : Any) return Ada.Strings.Superbounded.Super_String
+     renames Elementary_Any_Bounded_String.From_Any;
+   function From_Any
+     (A : Any) return Ada.Strings.Wide_Superbounded.Super_String
+     renames Elementary_Any_Bounded_Wide_String.From_Any;
 
    ------------------------
    -- From_Any (strings) --
@@ -1328,8 +1336,7 @@ package body PolyORB.Any is
 
          return To_Standard_String
            (Elementary_Any_String.Unchecked_Get_V
-            (Elementary_Any_String.T_Content
-             (C.The_Value.all)'Access).all);
+            (Elementary_Any_String.T_Content (C.The_Value.all)'Access).all);
 
       else
 
@@ -1467,13 +1474,26 @@ package body PolyORB.Any is
       TC    : TypeCode.Local_Ref;
       Index : Unsigned_Long) return Any
    is
+   begin
+      return Get_Aggregate_Element (Value, TypeCode.Object_Of (TC), Index);
+   end Get_Aggregate_Element;
+
+   function Get_Aggregate_Element
+     (Value : Any;
+      TC    : TypeCode.Object_Ptr;
+      Index : Unsigned_Long) return Any
+   is
+      --  Enforce tag check on Value's container to defend against improper
+      --  access for an Any that is not an aggregate.
+
+      pragma Unsuppress (Tag_Check);
       CA_Ptr : constant Aggregate_Content_Ptr :=
                  Aggregate_Content_Ptr (Get_Container (Value).The_Value);
+
       A : Any;
       M : aliased Mechanism := By_Value;
       CC : constant Content'Class :=
-             Get_Aggregate_Element (CA_Ptr,
-               TypeCode.Object_Of (TC), Index, M'Access);
+             Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
       New_CC : Content_Ptr;
       use PolyORB.Smart_Pointers;
    begin
@@ -1544,7 +1564,8 @@ package body PolyORB.Any is
       if Kind in Aggregate_TCKind then
          Set_Value
            (Get_Container (A).all,
-            Allocate_Default_Aggregate_Content (Kind), Foreign => False);
+            Allocate_Default_Aggregate_Content (Kind),
+            Foreign => False);
       end if;
 
       pragma Debug (C, O ("Get_Empty_Any_Aggregate: end"));
@@ -1600,19 +1621,15 @@ package body PolyORB.Any is
    -----------
 
    function Image (NV : NamedValue) return Standard.String is
+      function Flag_Name (F : Flags) return Standard.String;
+      pragma Inline (Flag_Name);
+      --  Return string representation for F, which denotes an argument mode
 
       ---------------
       -- Flag_Name --
       ---------------
 
-      function Flag_Name
-        (F : Flags)
-        return Standard.String;
-      pragma Inline (Flag_Name);
-
-      function Flag_Name
-        (F : Flags)
-        return Standard.String is
+      function Flag_Name (F : Flags) return Standard.String is
       begin
          case F is
             when ARG_IN =>
@@ -1630,8 +1647,7 @@ package body PolyORB.Any is
 
    begin
       return Flag_Name (NV.Arg_Modes) & " "
-        & To_Standard_String (NV.Name)
-        & " = " & Image (NV.Argument);
+        & To_Standard_String (NV.Name) & " = " & Image (NV.Argument);
    end Image;
 
    ----------------------
@@ -1868,7 +1884,7 @@ package body PolyORB.Any is
       pragma Debug (C, O ("Initializing Any: enter"));
       pragma Assert (Entity_Of (Self) = null);
 
-      Set (Self, PolyORB.Smart_Pointers.Entity_Ptr (Container));
+      Use_Entity (Self, PolyORB.Smart_Pointers.Entity_Ptr (Container));
       pragma Debug (C, O ("Initializing Any: leave"));
    end Initialize;
 
@@ -1944,9 +1960,17 @@ package body PolyORB.Any is
      (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long)
    is
+      Prev_Last : constant Integer := Content_Tables.Last (ACC.V);
    begin
       Content_Tables.Set_Last (ACC.V,
         Content_Tables.First (ACC.V) + Natural (Count) - 1);
+
+      --  Note: there is no default initialization for table elements, so
+      --  make sure here that they are properly initialized to null.
+
+      for J in Prev_Last + 1 .. Content_Tables.Last (ACC.V) loop
+         ACC.V.Table (J) := null;
+      end loop;
    end Set_Aggregate_Count;
 
    ---------------------------
@@ -1996,15 +2020,27 @@ package body PolyORB.Any is
       if ACC.Kind = Tk_Union
         and then Index = 0
         and then not Is_Empty (El_C)
+        and then ACC.V.Table (V_First + 1) /= null
         and then not Is_Empty (ACC.V.Table (V_First + 1).all)
         and then El_C /= From_C
       then
-         --  Changing the discriminant of a union: finalize previous member
+         --  Changing the discriminant of a union: finalize previous member,
+         --  if present.
 
          Finalize_Value (ACC.V.Table (V_First + 1).all);
       end if;
       Set_Type (El_C, TC);
-      Move_Any_Value (Dst_C => El_C, Src_C => From_C);
+
+      if From_C.Foreign then
+
+         --  If From_C is foreign, we are not allowed to steal its contents
+         --  pointer (it may become invalid at any point).
+
+         Copy_Any_Value (Dst_C => El_C, Src_C => From_C);
+
+      else
+         Move_Any_Value (Dst_C => El_C, Src_C => From_C);
+      end if;
    end Set_Aggregate_Element;
 
    -----------------------------
@@ -2109,6 +2145,15 @@ package body PolyORB.Any is
            (X, Max_Length => Bound), C);
    end Set_Any_Value;
 
+   -------------------
+   -- Set_Container --
+   -------------------
+
+   procedure Set_Container (A : in out Any; ACP : Any_Container_Ptr) is
+   begin
+      Set (A, Smart_Pointers.Entity_Ptr (ACP));
+   end Set_Container;
+
    --------------
    -- Set_Type --
    --------------
@@ -2143,17 +2188,10 @@ package body PolyORB.Any is
    -- Set_Value --
    ---------------
 
-   procedure Set_Value (C : in out Any_Container'Class; CC : Content_Ptr) is
-   begin
-      Set_Value (C, CC, Foreign => True);
-   end Set_Value;
-
-   ---------------
-   -- Set_Value --
-   ---------------
-
    procedure Set_Value
-     (C : in out Any_Container'Class; CC : Content_Ptr; Foreign : Boolean)
+     (C       : in out Any_Container'Class;
+      CC      : Content_Ptr;
+      Foreign : Boolean := True)
    is
    begin
       if C.The_Value /= null and then not C.Foreign then
@@ -2282,10 +2320,49 @@ package body PolyORB.Any is
    function To_Any (X : TypeCode.Local_Ref) return Any
                     renames To_Any_Instances.To_Any;
 
+   function To_Any
+     (X  : Ada.Strings.Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any
+   is
+      function To_Any is
+        new To_Any_G
+          (Ada.Strings.Superbounded.Super_String, TC.all,
+           Elementary_Any_Bounded_String.Set_Any_Value);
+   begin
+      return To_Any (X);
+   end To_Any;
+
+   function To_Any
+     (X  : Ada.Strings.Wide_Superbounded.Super_String;
+      TC : access function return TypeCode.Local_Ref) return Any
+   is
+      function To_Any is
+        new To_Any_G
+          (Ada.Strings.Wide_Superbounded.Super_String, TC.all,
+           Elementary_Any_Bounded_Wide_String.Set_Any_Value);
+   begin
+      return To_Any (X);
+   end To_Any;
+
    function To_Any (X : Standard.String) return Any is
    begin
       return To_Any (To_PolyORB_String (X));
    end To_Any;
+
+   ---------------------
+   -- Unchecked_Get_V --
+   ---------------------
+
+   function Unchecked_Get_V
+     (X : not null access Content) return System.Address
+   is
+      pragma Unreferenced (X);
+   begin
+      --  By default, content wrappers do not provide direct access to the
+      --  underlying data.
+
+      return System.Null_Address;
+   end Unchecked_Get_V;
 
    ---------------------
    -- Unwind_Typedefs --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,6 +78,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    use PolyORB.Security.Types;
    use PolyORB.Security.Types.OID_Lists;
    use PolyORB.Types;
+
    use Mechanism_Lists;
    use Service_Configuration_Lists;
 
@@ -101,17 +102,19 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
 
    function Unmarshall (Buffer : access Buffer_Type) return Mechanism;
 
-   function Create_Transport_Mechanisms
-     (TC      : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
-      Profile : PolyORB.Binding_Data.Profile_Access)
-      return PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_List;
+   --  WAG:504 need fully qualified name for visibility on sibling of parent
+   --  (PolyORB.Binding_Data).
+
+   procedure Create_Transport_Mechanisms
+     (TC      : Tagged_Components.Tagged_Component_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List);
 
    procedure Fetch_QoS
      (P : access PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type);
 
    function Fetch_Tagged_Component
-     (Oid : PolyORB.Objects.Object_Id)
-      return Tagged_Component_Access;
+     (Oid : PolyORB.Objects.Object_Id) return Tagged_Component_Access;
 
    function Fetch_QoS
      (End_Point : PolyORB.Transport.Transport_Endpoint_Access)
@@ -153,41 +156,45 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    -- Create_Transport_Mechanisms --
    ---------------------------------
 
-   function Create_Transport_Mechanisms
-     (TC      : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
-      Profile : PolyORB.Binding_Data.Profile_Access)
-      return PolyORB.GIOP_P.Transport_Mechanisms.Transport_Mechanism_List
+   --  WAG:504 need fully qualified name for visibility on sibling of parent
+   --  (PolyORB.Binding_Data).
+
+   procedure Create_Transport_Mechanisms
+     (TC      : Tagged_Components.Tagged_Component_Access;
+      Profile : PolyORB.Binding_Data.Profile_Access;
+      Mechs   : in out Transport_Mechanism_List)
    is
-      Result : Transport_Mechanism_List;
-      Iter   : Mechanism_Lists.Iterator
-        := First (TC_CSI_Sec_Mech_List (TC.all).Mechanisms);
+      Iter   : Mechanism_Lists.Iterator :=
+                 First (TC_CSI_Sec_Mech_List (TC.all).Mechanisms);
 
    begin
       while not Last (Iter) loop
          declare
             TCL : Tagged_Component_List;
             TML : Transport_Mechanism_List;
-
+            TMI : Transport_Mechanism_Lists.Iterator;
+            use Transport_Mechanism_Lists;
          begin
             Append (TCL, Value (Iter).all.Transport_Mechanism_Tag);
-            TML := Create_Transport_Mechanisms (TCL, Profile);
+            Create_Transport_Mechanisms (TCL, Profile, TML);
+            --  possible memory leak, when is TML deallocated???
             Deallocate (TCL);
 
             if Length (TML) = 0 then
                Value (Iter).all.Transport_Mechanism := null;
 
             elsif Length (TML) = 1 then
-               if Element (TML, 0).all
-                   /= Get_Primary_Transport_Mechanism
-                      (GIOP_Profile_Type (Profile.all))
+               TMI := First (TML);
+               if Value (TMI).all /= Get_Primary_Transport_Mechanism
+                                       (GIOP_Profile_Type (Profile.all))
                then
                   Value (Iter).all.Transport_Mechanism := Element (TML, 0).all;
-                  Result := Result & TML;
+                  Append (Mechs, Value (TMI).all);
 
                else
                   Value (Iter).all.Transport_Mechanism :=
                     Get_Primary_Transport_Mechanism
-                    (GIOP_Profile_Type (Profile.all));
+                      (GIOP_Profile_Type (Profile.all));
                end if;
 
             else
@@ -197,8 +204,6 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
 
          Next (Iter);
       end loop;
-
-      return Result;
    end Create_Transport_Mechanisms;
 
    ---------------
@@ -419,9 +424,9 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
                --  Privilege Authorities and Delegation By Client
 
                declare
-                  AP_Iter : Service_Configuration_Lists.Iterator
-                    := First
-                    (Value (Iter).all.Attribute_Privilege_Authorities);
+                  AP_Iter : Service_Configuration_Lists.Iterator :=
+                              First (Value (Iter).all.
+                                       Attribute_Privilege_Authorities);
                   Aux_PA  : Client_Authority_Mechanism_Access;
 
                begin

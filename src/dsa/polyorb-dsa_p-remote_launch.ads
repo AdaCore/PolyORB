@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,9 +38,12 @@
 package PolyORB.DSA_P.Remote_Launch is
 
    procedure Launch_Partition
-     (Host    : String;
-      Command : String);
+     (Host     : String;
+      Command  : String;
+      Env_Vars : String);
    --  Launch a partition with Command on Host. This can be configured with
-   --  parameters [dsa]rsh_command and [dsa]rsh_options.
+   --  parameters [dsa]rsh_command and [dsa]rsh_options. Env_Vars is a space-
+   --  separated list of environment variables to pass from the current context
+   --  to the remote partition.
 
 end PolyORB.DSA_P.Remote_Launch;

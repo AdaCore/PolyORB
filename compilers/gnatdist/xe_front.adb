@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,6 +37,7 @@ with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Utils;    use XE_Utils;
+with XE_Storages; use XE_Storages;
 
 package body XE_Front is
 
@@ -60,6 +61,10 @@ package body XE_Front is
    procedure Build_New_Variable
      (Variable : Variable_Id);
    --  Dispatching procedure to create entities of different types.
+
+   function Comes_From_Source (N : Node_Id) return Boolean;
+   --  True when N's source location denotes a point in the user's config file
+   --  (False for internally generated nodes).
 
    procedure Set_Channel_Attribute
      (Attribute : Attribute_Id;
@@ -155,11 +160,6 @@ package body XE_Front is
          return;
       end if;
 
-      if Debug_Mode then
-         Message ("configuring unit", U,
-                  "on partition", Partitions.Table (P).Name);
-      end if;
-
       --  Mark this configured unit as already partitioned
 
       Set_Partition_Id (U, P);
@@ -249,6 +249,41 @@ package body XE_Front is
       end if;
       Last := L;
    end Add_Location;
+
+   --------------------------
+   -- Add_Required_Storage --
+   --------------------------
+
+   procedure Add_Required_Storage
+     (First    : in out Required_Storage_Id;
+      Last     : in out Required_Storage_Id;
+      Location : Location_Id;
+      Unit     : Unit_Id;
+      Owner    : Boolean)
+   is
+      W : Required_Storage_Id;
+
+   begin
+      --  Add a new element in the required storage table
+
+      Required_Storages.Increment_Last;
+      W := Required_Storages.Last;
+      Required_Storages.Table (W).Location     := Location;
+      Required_Storages.Table (W).Unit         := Unit;
+      Required_Storages.Table (W).Is_Owner     := Owner;
+      Required_Storages.Table (W).Next_Storage := No_Required_Storage_Id;
+
+      --  Link this new required storage to the end of the partition required
+      --  storage list.
+
+      if First = No_Required_Storage_Id then
+         First := W;
+
+      else
+         Required_Storages.Table (Last).Next_Storage := W;
+      end if;
+      Last := W;
+   end Add_Required_Storage;
 
    -----------------------
    -- Build_New_Channel --
@@ -397,6 +432,17 @@ package body XE_Front is
       end case;
    end Build_New_Variable;
 
+   -----------------------
+   -- Comes_From_Source --
+   -----------------------
+
+   function Comes_From_Source (N : Node_Id) return Boolean is
+      X, Y : Int;
+   begin
+      Get_Node_SLOC (N, X, Y);
+      return X /= 0;
+   end Comes_From_Source;
+
    --------------------
    -- Create_Channel --
    --------------------
@@ -491,15 +537,16 @@ package body XE_Front is
          if Is_Variable (Node) then
             Build_New_Variable (Variable_Id (Node));
 
-         elsif Is_Configuration (Node) then
+         elsif Is_Configuration (Node) and then Comes_From_Source (Node) then
+            pragma Assert (Configuration = No_Name);
             Configuration := Get_Node_Name (Node);
+            Set_Application_Names (Configuration);
 
          elsif Is_Type (Node) then
             Set_Type_Attribute (Type_Id (Node));
 
          elsif Is_Statement (Node) then
-            Set_Pragma_Statement
-              (Get_Subprogram_Call (Statement_Id (Node)));
+            Set_Pragma_Statement (Get_Subprogram_Call (Statement_Id (Node)));
 
          end if;
          Next_Configuration_Declaration (Node);
@@ -639,7 +686,7 @@ package body XE_Front is
    -- Get_Tasking --
    -----------------
 
-   function Get_Tasking (A : ALI_Id) return Character is
+   function Get_Tasking (A : ALI_Id) return Tasking_Type is
    begin
       return ALIs.Table (A).Tasking;
    end Get_Tasking;
@@ -678,23 +725,30 @@ package body XE_Front is
       L : Location_Id := No_Location_Id;
 
    begin
+      --  Create default location
+
       Add_Location
         (F, L,
          Id (Get_Def_Storage_Name),
          Id (Get_Def_Storage_Data));
       Default_Data_Location := F;
 
+      --  Create default partition
+
       N := Get_Node_Name (Node_Id (Partition_Type_Node));
       Create_Partition (N, Null_Node, P);
       Default_Partition_Id := P;
 
+      --  Create default channel
+
       Channels.Increment_Last;
       C := Channels.Last;
-      Channels.Table (C).Name := Get_Node_Name (Node_Id (Channel_Type_Node));
-
-      Channels.Table (C).Filter := No_Filter_Name;
       Default_Channel_Id := C;
 
+      --  Set properties of default channel
+
+      Channels.Table (C).Name   := Get_Node_Name (Node_Id (Channel_Type_Node));
+      Channels.Table (C).Filter := No_Filter_Name;
    end Initialize;
 
    ----------------
@@ -873,7 +927,6 @@ package body XE_Front is
       end Write_Attr_Kind_Error;
 
    begin
-
       --  If this attribute applies to partition type itself, it may not
       --  have a value. No big deal, we use defaults.
 
@@ -1098,6 +1151,14 @@ package body XE_Front is
                Name := Get_Variable_Name (Get_Component_Value (Comp_Node));
                Next_Variable_Component (Comp_Node);
                Data := Get_Variable_Name (Get_Component_Value (Comp_Node));
+
+               --  Check validity of choosen storage support
+
+               if Storage_Supports.Get (Name) = Unknown_Storage_Support then
+                  Write_Attr_Kind_Error ("storage",
+                                         "an available storage support");
+               end if;
+
                declare
                   LID : Location_Id;
                begin
@@ -1192,6 +1253,22 @@ package body XE_Front is
                   Get_Variable_Name (Get_Component_Value (Comp_Node)));
                Next_Variable_Component (Comp_Node);
             end loop;
+
+         when Attribute_ORB_Tasking_Policy =>
+
+            if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
+               Write_Attr_Kind_Error ("ORB tasking policy",
+                                      "of ORB tasking policy type");
+            end if;
+
+            --  Check that it has not already been assigned.
+
+            if Current.ORB_Tasking_Policy = No_ORB_Tasking_Policy then
+               Current.ORB_Tasking_Policy :=
+                 ORB_Tasking_Policy_Type (Get_Scalar_Value (Attr_Item));
+            else
+               Write_Attr_Init_Error ("ORB_Tasking_Policy");
+            end if;
 
          when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
@@ -1349,6 +1426,10 @@ package body XE_Front is
             Value := Get_Parameter_Value (Parameter);
             Default_Priority_Policy := Convert (Get_Scalar_Value (Value));
 
+         when Pragma_Name_Server =>
+            Value := Get_Parameter_Value (Parameter);
+            Default_Name_Server := Convert (Get_Scalar_Value (Value));
+
          when Pragma_Unknown =>
             raise Program_Error;
       end case;
@@ -1358,7 +1439,7 @@ package body XE_Front is
    -- Set_Tasking --
    -----------------
 
-   procedure Set_Tasking (A : ALI_Id; T : Character) is
+   procedure Set_Tasking (A : ALI_Id; T : Tasking_Type) is
    begin
       ALIs.Table (A).Tasking := T;
    end Set_Tasking;
@@ -1412,14 +1493,12 @@ package body XE_Front is
 
    procedure Show_Configuration is
    begin
-      Write_Str (" ------------------------------");
+      Write_Line (" ------------------------------");
+      Write_Line (" ---- Configuration report ----");
+      Write_Line (" ------------------------------");
       Write_Eol;
-      Write_Str (" ---- Configuration report ----");
-      Write_Eol;
-      Write_Str (" ------------------------------");
-      Write_Eol;
-      Write_Str ("Configuration :");
-      Write_Eol;
+
+      Write_Line ("Configuration :");
 
       Write_Field (1, "Name");
       Write_Name  (Configuration);
@@ -1439,6 +1518,12 @@ package body XE_Front is
             Write_Str ("none");
       end case;
       Write_Eol;
+
+      if Default_Name_Server /= No_Name_Server then
+         Write_Field (1, "Name_Server");
+         Write_Name  (Name_Server_Img (Default_Name_Server));
+         Write_Eol;
+      end if;
 
       if Default_First_Boot_Location /= No_Location_Id then
          Write_Field (1, "Protocols");
@@ -1465,14 +1550,13 @@ package body XE_Front is
             Write_Eol;
          end;
       end if;
-      Write_Eol;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
+         Write_Eol;
          Show_Partition (P);
       end loop;
 
-      Write_Str (" -------------------------------");
-      Write_Eol;
+      Write_Line (" -------------------------------");
       if Channels.First + 1 <= Channels.Last then
          Write_Eol;
          declare
@@ -1500,8 +1584,7 @@ package body XE_Front is
                Write_Eol;
             end loop;
          end;
-         Write_Str (" -------------------------------");
-         Write_Eol;
+         Write_Line (" -------------------------------");
       end if;
    end Show_Configuration;
 
@@ -1563,6 +1646,24 @@ package body XE_Front is
       if Present (Current.Command_Line) then
          Write_Field (1, "Command");
          Write_Name (Current.Command_Line);
+         Write_Eol;
+      end if;
+
+      if Current.ORB_Tasking_Policy /= No_ORB_Tasking_Policy then
+         Write_Field (1, "ORB tasking");
+         case Current.ORB_Tasking_Policy is
+            when Thread_Pool =>
+               Write_Str ("thread pool");
+
+            when Thread_Per_Session =>
+               Write_Str ("thread per session");
+
+            when Thread_Per_Request =>
+               Write_Str ("thread per request");
+
+            when No_ORB_Tasking_Policy =>
+               null;
+         end case;
          Write_Eol;
       end if;
 
@@ -1648,14 +1749,20 @@ package body XE_Front is
          Write_Eol;
          U := Partitions.Table (P).First_Unit;
          while U /= No_Conf_Unit_Id loop
-            I := Conf_Units.Table (U).My_Unit;
             Write_Str ("             - ");
             Write_Name (Conf_Units.Table (U).Name);
             Write_Str (" (");
 
             --  Indicate unit categorization
 
-            if Units.Table (I).RCI then
+            I := Conf_Units.Table (U).My_Unit;
+
+            if I = No_Unit_Id then
+               --  Case where the unit has not been compiled succesfully
+
+               Write_Str ("unavailable");
+
+            elsif Units.Table (I).RCI then
                Write_Str ("rci");
 
             elsif Units.Table (I).Remote_Types then
@@ -1677,7 +1784,6 @@ package body XE_Front is
             Write_Line (")");
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
-         Write_Eol;
       end if;
 
       if Partitions.Table (P).First_Env_Var /= No_Env_Var_Id then
@@ -1690,7 +1796,6 @@ package body XE_Front is
             Write_Line ("""");
             V := Env_Vars.Table (V).Next_Env_Var;
          end loop;
-         Write_Eol;
       end if;
    end Show_Partition;
 
@@ -1710,6 +1815,10 @@ package body XE_Front is
    procedure Update_Most_Recent_Stamp (P : Partition_Id; F : File_Name_Type) is
       Most_Recent : File_Name_Type;
    begin
+      if Debug_Mode then
+         Message (" update stamp for", Partitions.Table (P).Name, "from", F);
+      end if;
+
       Most_Recent := Partitions.Table (P).Most_Recent;
       if No (Most_Recent) then
          Partitions.Table (P).Most_Recent := F;

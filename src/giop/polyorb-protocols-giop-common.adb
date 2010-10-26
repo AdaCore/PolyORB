@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -150,34 +150,48 @@ package body PolyORB.Protocols.GIOP.Common is
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       MCtx           : access GIOP_Message_Context'Class;
-      Error          : in out Errors.Error_Container)
+      Error          : in out Errors.Error_Container;
+      Recovery       : Boolean := False)
    is
       use PolyORB.Annotations;
       use PolyORB.Any;
       use PolyORB.Components;
       use PolyORB.Errors;
       use PolyORB.Errors.Helper;
-      use PolyORB.Types;
       use type PolyORB.Any.TypeCode.Local_Ref;
 
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
       Header_Space    : constant Reservation :=
-        Reserve (Buffer_Out, GIOP_Header_Size);
+                          Reserve (Buffer_Out, GIOP_Header_Size);
       Reply_Status    : Reply_Status_Type;
       N               : Request_Note;
       Request_Id      : Types.Unsigned_Long renames N.Id;
       CORBA_Occurence : PolyORB.Any.Any;
-      Data_Alignment  : Stream_Element_Offset :=
-        Sess.Implem.Data_Alignment;
+      Data_Alignment  : Alignment_Type := Sess.Implem.Data_Alignment;
+      Success         : Boolean;
 
-      Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
+      Static_Buffer   : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
         QoS_GIOP_Static_Buffer_Parameter_Access
-        (Extract_Request_Parameter (PolyORB.QoS.GIOP_Static_Buffer, Request));
+        (Extract_Request_Parameter (QoS.GIOP_Static_Buffer, Request.all));
    begin
       Get_Note (Request.Notepad, N);
 
       pragma Debug (C, O ("Process reply of request id =" & Request_Id'Img));
+
+      --  Remove request from list of pending server-side (abortable) requests
+
+      Sess.Remove_Pending_Request (Request_Id, Success);
+      if not Success and then not Recovery then
+
+         --  A missing request upon first attempt means the client cancelled
+         --  it: nothing to do (discard reply). On second attempt (Recovery
+         --  case), however, the request is always missing from the pending
+         --  list because it has been found, and removed, during the first
+         --  attempt.
+
+         return;
+      end if;
 
       if PolyORB.Any.Is_Empty (Request.Exception_Info) then
          Reply_Status := No_Exception;
@@ -269,10 +283,11 @@ package body PolyORB.Protocols.GIOP.Common is
             if Static_Buffer = null then
                pragma Debug (C, O ("Using Any to send reply data"));
 
-               if TypeCode.Kind (Get_Type (Request.Result.Argument)) /=
-                 Tk_Void then
+               if TypeCode.Kind (Get_Type (Request.Result.Argument))
+                    /= Tk_Void
+               then
                   Pad_Align (Buffer_Out, Data_Alignment);
-                  Data_Alignment := 1;
+                  Data_Alignment := Align_1;
                end if;
 
                Marshall_From_Any
@@ -323,7 +338,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   return;
                end if;
             else
-               if Length (Static_Buffer.Buffer) /= 0 then
+               if Length (Static_Buffer.Buffer.all) /= 0 then
                   pragma Debug (C, O ("Using buffer to send reply data"));
                   --  The arguments were marshalled and stored in the
                   --  request QoS attribute. We insert the data
@@ -332,12 +347,11 @@ package body PolyORB.Protocols.GIOP.Common is
                   Pad_Align (Buffer_Out, Data_Alignment);
 
                   declare
-                     Data : PolyORB.Opaque.Opaque_Pointer;
-                     Data_Processed : Stream_Element_Count
-                       := Length (Static_Buffer.Buffer);
-                     Data_To_Process : Stream_Element_Count
-                       := Length (Static_Buffer.Buffer);
-                     Position : Ada.Streams.Stream_Element_Offset := 0;
+                     Data            : PolyORB.Opaque.Opaque_Pointer;
+                     Data_To_Process : Stream_Element_Count :=
+                                         Length (Static_Buffer.Buffer.all);
+                     Data_Processed  : Stream_Element_Count := Data_To_Process;
+                     Position        : Ada.Streams.Stream_Element_Offset := 0;
                   begin
                      while Data_To_Process > 0 loop
                         PolyORB.Buffers.Partial_Extract_Data
@@ -413,7 +427,7 @@ package body PolyORB.Protocols.GIOP.Common is
       --  Marshall Header
 
       MCtx.Message_Size := Types.Unsigned_Long
-        (Length (Buffer_Out) - GIOP_Header_Size);
+        (Length (Buffer_Out.all) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess, MCtx, Header_Buffer);
 
@@ -442,7 +456,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Error              : in out Errors.Error_Container)
    is
       use PolyORB.Components;
-      use PolyORB.Types;
 
       Buffer        : Buffer_Access := new Buffer_Type;
       Header_Buffer : Buffer_Access := new Buffer_Type;
@@ -463,7 +476,7 @@ package body PolyORB.Protocols.GIOP.Common is
       end if;
 
       MCtx.Message_Size :=
-        Types.Unsigned_Long (Length (Buffer) - GIOP_Header_Size);
+        Types.Unsigned_Long (Length (Buffer.all) - GIOP_Header_Size);
 
       Marshall_Global_GIOP_Header (Sess, MCtx, Header_Buffer);
 
@@ -475,6 +488,42 @@ package body PolyORB.Protocols.GIOP.Common is
       Emit_Message (Sess.Implem, Sess, MCtx, Buffer, Error);
       Release (Buffer);
    end Common_Locate_Reply;
+
+   -----------------------------------
+   -- Common_Process_Cancel_Request --
+   -----------------------------------
+
+   procedure Common_Process_Cancel_Request
+     (Sess       : access GIOP_Session;
+      Request_Id : Types.Unsigned_Long)
+   is
+      use Components;
+
+      Pending_Req : Pending_Request;
+      Success     : Boolean;
+   begin
+      pragma Debug
+        (C, O ("Cancel_Request received, Request_Id:" & Request_Id'Img));
+
+      Sess.Mutex.Enter;
+      Sess.Get_Pending_Request
+        (Id      => Request_Id,
+         Req     => Pending_Req,
+         Success => Success);
+
+      --  Note: abortion must be done while still holding the Sess mutex,
+      --  to ensure that the request does not disappear under our feet because
+      --  it has completed.
+
+      if Success and then Pending_Req.Req.Surrogate /= null then
+         Emit_No_Reply
+           (Pending_Req.Req.Surrogate,
+            Servants.Iface.Abort_Request'(Req => Pending_Req.Req));
+      end if;
+
+      Sess.Mutex.Leave;
+      Expect_GIOP_Header (Sess);
+   end Common_Process_Cancel_Request;
 
    ---------------------------------
    -- Common_Process_Locate_Reply --
@@ -491,7 +540,7 @@ package body PolyORB.Protocols.GIOP.Common is
         := PolyORB.ORB.ORB_Access (Sess.Server);
 
    begin
-      pragma Debug (C, O ("Locate Reply received, Request Id :"
+      pragma Debug (C, O ("Locate_Reply received, Request Id:"
                        & Locate_Request_Id'Img
                        & " , type: "
                        & Loc_Type'Img));
@@ -509,7 +558,8 @@ package body PolyORB.Protocols.GIOP.Common is
                  (Sess,
                   Locate_Request_Id,
                   Req,
-                  Success);
+                  Success,
+                  Remove => False);
 
                if not Success then
                   raise GIOP_Error;
@@ -544,7 +594,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
 
                if Found (Error) then
-                  Set_Exception (Req.Req, Error);
+                  Set_Exception (Req.Req.all, Error);
                   Catch (Error);
 
                   Expect_GIOP_Header (Sess);
@@ -575,7 +625,8 @@ package body PolyORB.Protocols.GIOP.Common is
                  (Sess,
                   Locate_Request_Id,
                   Req,
-                  Success);
+                  Success,
+                  Remove => False);
 
                if not Success then
                   raise GIOP_Error;
@@ -617,7 +668,8 @@ package body PolyORB.Protocols.GIOP.Common is
                  (Sess,
                   Locate_Request_Id,
                   Req,
-                  Success);
+                  Success,
+                  Remove => False);
 
                if not Success then
                   raise GIOP_Error;
@@ -654,27 +706,30 @@ package body PolyORB.Protocols.GIOP.Common is
       end case;
    end Common_Process_Locate_Reply;
 
-   ----------------------------------
-   -- Common_Process_Abort_Request --
-   ----------------------------------
+   --------------------------------
+   -- Common_Send_Cancel_Request --
+   --------------------------------
 
-   procedure Common_Process_Abort_Request
+   procedure Common_Send_Cancel_Request
      (Sess  : access GIOP_Session;
       R     :        Request_Access;
       MCtx  : access GIOP_Message_Context'Class;
       Error : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
-      use PolyORB.Types;
 
-      Current_Req   : Pending_Request;
-      Current_Note  : Request_Note;
-      Buffer        : Buffer_Access;
-      Success       : Boolean;
+      Current_Req  : Pending_Request;
+      Current_Note : Request_Note;
+      Buffer       : Buffer_Access;
+      Success      : Boolean;
 
    begin
       Get_Note (R.Notepad, Current_Note);
+
+      Sess.Mutex.Enter;
       Get_Pending_Request (Sess, Current_Note.Id, Current_Req, Success);
+      Sess.Mutex.Leave;
+
       if not Success then
          raise GIOP_Error;
       end if;
@@ -689,7 +744,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Emit_Message (Sess.Implem, Sess, MCtx.all'Access, Buffer, Error);
 
       Release (Buffer);
-   end Common_Process_Abort_Request;
+   end Common_Send_Cancel_Request;
 
    ---------------------------
    -- Common_Reply_Received --
@@ -710,8 +765,8 @@ package body PolyORB.Protocols.GIOP.Common is
       Success      : Boolean;
 
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
-      Arguments_Alignment : Buffers.Alignment_Type
-        := Sess.Implem.Data_Alignment;
+      Arguments_Alignment : Buffers.Alignment_Type :=
+                              Sess.Implem.Data_Alignment;
       Error        : Errors.Error_Container;
 
       Static_Buffer : QoS_GIOP_Static_Buffer_Parameter_Access;
@@ -721,26 +776,33 @@ package body PolyORB.Protocols.GIOP.Common is
                        & ", id ="
                        & Types.Unsigned_Long'Image (Request_Id)));
 
+      Sess.Mutex.Enter;
       Get_Pending_Request (Sess, Request_Id, Current_Req, Success);
+      Sess.Mutex.Leave;
+
+      if not Success then
+         --  The request for this reply has been cancelled: just discard the
+         --  message.
+
+         Expect_GIOP_Header (Sess);
+         return;
+      end if;
+
       Static_Buffer :=
         QoS_GIOP_Static_Buffer_Parameter_Access
         (Extract_Request_Parameter
-         (PolyORB.QoS.GIOP_Static_Buffer, Current_Req.Req));
-
-      if not Success then
-         raise GIOP_Error;
-      end if;
+         (QoS.GIOP_Static_Buffer, Current_Req.Req.all));
 
       Add_Reply_QoS
-        (Current_Req.Req,
+        (Current_Req.Req.all,
          GIOP_Service_Contexts,
          QoS_Parameter_Access (Service_Contexts));
-      Rebuild_Reply_QoS_Parameters (Current_Req.Req);
+      Rebuild_Reply_QoS_Parameters (Current_Req.Req.all);
 
       case Reply_Status is
          when No_Exception =>
 
-            --  Unmarshall reply body.
+            --  Unmarshall reply body
 
             if Static_Buffer = null then
                pragma Debug (C, O ("Use Anys"));
@@ -750,7 +812,7 @@ package body PolyORB.Protocols.GIOP.Common is
                  /= Tk_Void
                then
                   Align_Position (Sess.Buffer_In, Arguments_Alignment);
-                  Arguments_Alignment := 1;
+                  Arguments_Alignment := Align_1;
                end if;
 
                Unmarshall_To_Any
@@ -765,7 +827,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   --  the server did not provide a valid codeset
                   --  component. We convert this exception to Inv_ObjRef 2.
 
-                  Set_Exception (Current_Req.Req, Error);
+                  Set_Exception (Current_Req.Req.all, Error);
                   Catch (Error);
 
                else
@@ -780,7 +842,7 @@ package body PolyORB.Protocols.GIOP.Common is
                      --  the server did not provide a valid codeset
                      --  component. We convert this exception to Inv_ObjRef 2.
 
-                     Set_Exception (Current_Req.Req, Error);
+                     Set_Exception (Current_Req.Req.all, Error);
                      Catch (Error);
 
                   end if;
@@ -819,8 +881,6 @@ package body PolyORB.Protocols.GIOP.Common is
          when User_Exception =>
             Align_Position (Sess.Buffer_In, Sess.Implem.Data_Alignment);
             declare
-               use PolyORB.Types;
-
                RepositoryId : constant PolyORB.Types.RepositoryId
                  := Unmarshall (Sess.Buffer_In);
                Except_Index : constant PolyORB.Types.Unsigned_Long
@@ -894,7 +954,7 @@ package body PolyORB.Protocols.GIOP.Common is
                      --  the server did not provide a valid codeset
                      --  component. We convert this exception to Inv_ObjRef 2.
 
-                     Set_Exception (Current_Req.Req, Error);
+                     Set_Exception (Current_Req.Req.all, Error);
                      Catch (Error);
                   end if;
 
@@ -1007,7 +1067,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Status : Errors.Completion_Status)
    is
       use PolyORB.Errors;
-      use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E
         and then System_Exception_Members'Class (Error.Member.all).Minor = 5
@@ -1027,7 +1086,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Status : Errors.Completion_Status)
    is
       use PolyORB.Errors;
-      use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E
         and then System_Exception_Members'Class (Error.Member.all).Minor = 5

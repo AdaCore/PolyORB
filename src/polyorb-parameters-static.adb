@@ -44,7 +44,9 @@ package body PolyORB.Parameters.Static is
    pragma Suppress (Range_Check);
    Parameters : Static_Parameter_Array  (1 .. 1);
    pragma Import (Ada, Parameters, "__PolyORB_static_parameters");
+   pragma Warnings (Off); -- WAG:GPL2007
    pragma Weak_External (Parameters);
+   pragma Warnings (On); -- WAG:GPL2007
    --  This symbol is optional, PolyORB can be configured using other methods
    --  like the command line or environment variables.
    --  In some platforms like VxWorks 5.5 the loader gives a warning even if

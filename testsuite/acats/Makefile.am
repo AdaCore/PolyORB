@@ -1,3 +1,0 @@
-SUBDIRS=	CXE2001 CXE1001 CXE4001 CXE4002
-# CXE4005 RACWs and tagged types
-# CXE4006 RCIs and tagged types

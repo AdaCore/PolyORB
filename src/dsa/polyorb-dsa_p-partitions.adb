@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,18 +49,29 @@ package body PolyORB.DSA_P.Partitions is
      renames L.Enabled;
 
    Partitions_Mutex : Mutex_Access;
-   Next_Partition_ID : Integer := 0;
 
-   function Allocate_Partition_ID
-     (Name : String)
-      return Integer
-   is
+   Next_Partition_ID : Integer := 1;
+   --  ID to be assigned to the next requesting partition. Note that we start
+   --  at 1 because the value 0 is reserved to denote the unset (initial) state
+   --  of System.Standard_Library.Local_Parition_ID.
+
+   function Elaborate return Boolean;
+   --  Initialize the Partitions_Mutex and set the local partition ID.
+   --  See comment at end of this unit for explanation of why a function
+   --  is required.
+
+   ---------------------------
+   -- Allocate_Partition_ID --
+   ---------------------------
+
+   function Allocate_Partition_ID (Name : String) return Integer is
       Current_Partition_ID : Integer;
    begin
       Enter (Partitions_Mutex);
       Current_Partition_ID := Next_Partition_ID;
       Next_Partition_ID := Next_Partition_ID + 1;
       Leave (Partitions_Mutex);
+
       pragma Debug
         (C, O ("Assigned partition id"
               & Integer'Image (Current_Partition_ID)
@@ -68,13 +79,39 @@ package body PolyORB.DSA_P.Partitions is
       return Current_Partition_ID;
    end Allocate_Partition_ID;
 
-   use System.Partition_Interface;
-begin
-   Create (Partitions_Mutex);
+   ---------------
+   -- Elaborate --
+   ---------------
 
-   --  We set the partition Id of the main partition here to avoid a possible
-   --  race condition.
+   function Elaborate return Boolean is
+      use System.Partition_Interface;
+   begin
+      Create (Partitions_Mutex);
 
-   Set_Local_Partition_ID
-     (System.RPC.Partition_ID (Allocate_Partition_ID ("main partition")));
+      --  We set the partition Id of the main partition here to avoid a
+      --  possible race condition.
+
+      Set_Local_Partition_ID
+        (System.RPC.Partition_ID
+         (Allocate_Partition_ID (Get_Local_Partition_Name
+                                 & " (main partition)")));
+      return True;
+   end Elaborate;
+
+   --------------------------------------------
+   -- Initialization of the Partitions_Mutex --
+   --------------------------------------------
+
+   --  We need the mutex to be initialized, and the local partition ID to be
+   --  set, before this package is registered. Otherwise, if we perform these
+   --  steps in the elaboration statements of this packge, then there is
+   --  a tiny, but non-zero, vulnerability window where we can service RPCs
+   --  without having initialized the mutex (because the registration is
+   --  performed before the elaboration statements are executed).
+
+   Dummy : constant Boolean := Elaborate;
+   pragma Unreferenced (Dummy);
+   --  Dummy value declared only for the sake of evaluating the side effects
+   --  of Elaborate.
+
 end PolyORB.DSA_P.Partitions;

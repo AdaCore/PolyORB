@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,8 +36,6 @@ with Ada.Text_IO;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Requests;
-with PolyORB.Servants.Iface;
 with PolyORB.Errors;
 
 package body PolyORB.Test_Object_POA is
@@ -46,7 +44,6 @@ package body PolyORB.Test_Object_POA is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Iface;
 
    --------------------------------------
    -- Application part of the servant. --
@@ -86,77 +83,65 @@ package body PolyORB.Test_Object_POA is
 
    function Execute_Servant
      (Obj : not null access My_Object;
-      Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+      Req : Requests.Request_Access) return Boolean
    is
       use PolyORB.Any.NVList;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Errors;
       use PolyORB.Types;
+
+      Args  : PolyORB.Any.NVList.Ref;
+      Error : Error_Container;
    begin
       Put_Line ("Handle Message : enter");
+      Put_Line ("The server is executing the request:"
+                & PolyORB.Requests.Image (Req.all));
 
-      if Msg in Execute_Request then
-         declare
-            use PolyORB.Any.NVList.Internals;
-            use PolyORB.Any.NVList.Internals.NV_Lists;
-            use PolyORB.Errors;
+      Create (Args);
+      if Req.Operation.all = "echoString" then
+         Add_Item (Args,
+                   (Name => To_PolyORB_String ("S"),
+                    Argument => Get_Empty_Any (TypeCode.TC_String),
+                    Arg_Modes => PolyORB.Any.ARG_IN));
+         Arguments (Req, Args, Error);
 
-            Req   : constant Request_Access
-              := Execute_Request (Msg).Req;
-            Args  : PolyORB.Any.NVList.Ref;
-            Error : Error_Container;
-         begin
-            Put_Line ("The server is executing the request:"
-                      & PolyORB.Requests.Image (Req.all));
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more constructive
 
-            Create (Args);
-            if Req.Operation.all = "echoString" then
-               Add_Item (Args,
-                         (Name => To_PolyORB_String ("S"),
-                          Argument => Get_Empty_Any (TypeCode.TC_String),
+         end if;
+
+         Req.Result.Argument := To_Any
+           (echoString
+            (Obj.all,
+             From_Any
+             (Value (First (List_Of (Args).all)).Argument)));
+         Put_Line ("Result: " & Image (Req.Result));
+
+      elsif Req.Operation.all = "echoInteger" then
+         Add_Item (Args, (Name => To_PolyORB_String ("I"),
+                          Argument => Get_Empty_Any (TypeCode.TC_Long),
                           Arg_Modes => PolyORB.Any.ARG_IN));
-               Arguments (Req, Args, Error);
+         Arguments (Req, Args, Error);
 
-               if Found (Error) then
-                  raise Program_Error;
-                  --  XXX We should do something more constructive
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more constructive
 
-               end if;
+         end if;
 
-               Req.Result.Argument := To_Any
-                 (echoString
-                  (Obj.all,
-                   From_Any
-                   (Value (First (List_Of (Args).all)).Argument)));
-               Put_Line ("Result: " & Image (Req.Result));
-
-            elsif Req.Operation.all = "echoInteger" then
-               Add_Item (Args, (Name => To_PolyORB_String ("I"),
-                                Argument => Get_Empty_Any (TypeCode.TC_Long),
-                                Arg_Modes => PolyORB.Any.ARG_IN));
-               Arguments (Req, Args, Error);
-
-               if Found (Error) then
-                  raise Program_Error;
-                  --  XXX We should do something more constructive
-
-               end if;
-
-               Req.Result.Argument := To_Any
-                 (echoInteger
-                  (Obj.all,
-                   From_Any (Value (First (List_Of (Args).all)).Argument)));
-                  Put_Line ("Result: " & Image (Req.Result));
-
-            else
-               raise Program_Error;
-            end if;
-
-            return Executed_Request'(Req => Req);
-         end;
+         Req.Result.Argument := To_Any
+           (echoInteger
+            (Obj.all,
+             From_Any (Value (First (List_Of (Args).all)).Argument)));
+            Put_Line ("Result: " & Image (Req.Result));
 
       else
          raise Program_Error;
       end if;
+
+      return True;
 
    exception
       when E : others =>

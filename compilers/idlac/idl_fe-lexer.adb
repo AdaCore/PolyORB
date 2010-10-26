@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,12 +34,8 @@
 with Ada.Text_IO;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Characters.Handling;
-with Ada.Strings.Fixed;
-with Ada.Strings;
-with Ada.Strings.Maps;
 
 with GNAT.Case_Util;
-with GNAT.Directory_Operations;
 with GNAT.OS_Lib;
 with GNAT.Table;
 
@@ -941,8 +937,8 @@ package body Idl_Fe.Lexer is
    begin
       Set_Mark;
       if not Is_Escaped
-        and Get_Current_Char = 'L'
-        and View_Next_Char = ''' then
+        and then Get_Current_Char = 'L'
+        and then View_Next_Char = ''' then
          Skip_Char;
          Set_End_Mark;
          case Scan_Char (True) is
@@ -954,8 +950,8 @@ package body Idl_Fe.Lexer is
                raise Idlac_Errors.Internal_Error;
          end case;
       elsif not Is_Escaped
-        and Get_Current_Char = 'L'
-        and View_Next_Char = Quotation then
+        and then Get_Current_Char = 'L'
+        and then View_Next_Char = Quotation then
          Skip_Char;
          Set_End_Mark;
          case Scan_String (True) is
@@ -1025,7 +1021,7 @@ package body Idl_Fe.Lexer is
             Skip_Char;
          end loop;
       end if;
-      if Get_Current_Char /= '.' and View_Next_Char = '.' then
+      if Get_Current_Char /= '.' and then View_Next_Char = '.' then
          Skip_Char;
       end if;
       if Get_Current_Char = '.' then
@@ -1134,7 +1130,7 @@ package body Idl_Fe.Lexer is
                return True;
             else
                Idlac_Errors.Error
-                 ("Uunknow preprocessor directive: "
+                 ("Unknown preprocessor directive: "
                   & Get_Marked_Text & ".",
                   Idlac_Errors.Error,
                   Get_Real_Location);
@@ -1177,11 +1173,6 @@ package body Idl_Fe.Lexer is
                      Set_End_Mark_On_Previous_Char;
                      declare
                         use GNAT.OS_Lib;
-                        use GNAT.Directory_Operations;
-                        use Idlac_Errors;
-                        use Ada.Strings.Fixed;
-                        use Ada.Strings.Maps;
-                        use Ada.Strings;
                         Text : constant String := Get_Marked_Text;
                      begin
                         if Text (Text'First) = '<'
@@ -1209,18 +1200,7 @@ package body Idl_Fe.Lexer is
                               Get_Real_Location);
                         end if;
 
-                        declare
-                           Dirname : constant String := Dir_Name (Text);
-                        begin
-                           if Dirname /= "" then
-                              Current_Location.Dirname := new String'
-                                (Dirname);
-                           else
-                              Current_Location.Dirname := null;
-                           end if;
-                           Current_Location.Filename := new String'
-                             (Base_Name (Text));
-                        end;
+                        Idlac_Errors.Set_Path (Current_Location, Text);
                      end;
 
                   <<Ignore_Location>>
@@ -1284,30 +1264,7 @@ package body Idl_Fe.Lexer is
       Current_Location.Col := 0;
       Current_Line_Len := 0;
 
-      declare
-         use Ada.Strings.Fixed;
-         use Ada.Strings.Maps;
-         use Ada.Strings;
-
-         use Idlac_Errors;
-
-         Separator : Natural;
-
-      begin
-         Separator := Index (Filename,
-                             To_Set (Directory_Separator),
-                             Inside,
-                             Backward);
-         if Separator /= 0 then
-            Current_Location.Dirname :=
-             new String'(Filename (Filename'First .. Separator - 1));
-            Current_Location.Filename :=
-             new String'(Filename (Separator + 1 .. Filename'Last));
-         else
-            Current_Location.Dirname := null;
-            Current_Location.Filename := new String'(Filename);
-         end if;
-      end;
+      Idlac_Errors.Set_Path (Current_Location, Filename);
 
       Idl_File_Name := new String'(Files.Preprocess_File (Filename));
       Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Idl_File_Name.all);

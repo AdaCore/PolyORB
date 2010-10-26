@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,7 @@
 
 with Output; use Output;
 with Types;  use Types;
+with Utils;
 
 with Frontend.Nodes; use Frontend.Nodes;
 
@@ -69,7 +70,7 @@ package Frontend.Debug is
    function Image (N : Operator_Id) return String;
    function Image (N : Boolean) return String;
    function Image (N : Byte) return String;
-   function Image (N : Int) return String;
+   function Image (N : Int) return String renames Utils.Image;
 
    procedure wfi (N : Node_Id);
    pragma Export (C, wfi, "wfi");

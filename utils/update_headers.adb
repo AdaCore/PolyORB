@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,6 +42,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Regpat; use GNAT.Regpat;
 
 procedure Update_Headers is
+
+   pragma Style_Checks ("mM100");  --  Allow long lines below
 
    subtype Line_Type is String (1 .. 256);
 
@@ -83,8 +85,8 @@ procedure Update_Headers is
    OMG_Header_Template : constant String :=
    "-- This specification is derived from the CORBA Specification, and adapted  --" & ASCII.LF &
    "-- for use with PolyORB. The copyright notice above, and the license        --" & ASCII.LF &
-   "-- provisions that follow apply solely to the contents neither explicitely  --" & ASCII.LF &
-   "-- nor implicitely specified by the CORBA Specification defined by the OMG. --" & ASCII.LF &
+   "-- provisions that follow apply solely to the contents neither explicitly   --" & ASCII.LF &
+   "-- nor implicitly specified by the CORBA Specification defined by the OMG.  --" & ASCII.LF &
    "--                                                                          --" & ASCII.LF;
 
    -------------------------
@@ -289,7 +291,7 @@ procedure Update_Headers is
       Copyright_Matches : Match_Array (0 .. Paren_Count (Copyright_Matcher));
 
       Unit_Name_Matcher : constant Pattern_Matcher :=
-                            Compile ("^(private\s+)?"
+                            Compile ("^(private\s+|separate \(([\w.]+)\)\s+)?"
                                      & "(procedure|function|project|package"
                                      & "(\s+body)?)\s+([\w.]+)\b");
       Unit_Name_Matches : Match_Array (0 .. Paren_Count (Unit_Name_Matcher));
@@ -304,7 +306,7 @@ procedure Update_Headers is
 
    begin
       Open   (F, In_File, Filename);
-      Create (Outf, Out_File, Ofilename);
+      Create (Outf, Out_File, Ofilename, Form => "Text_Translation=No");
 
       begin
          --  Check for file kind suffix, but omit possible trailing ".in"
@@ -368,9 +370,20 @@ procedure Update_Headers is
                Append (Buf, ASCII.LF);
                Match (Unit_Name_Matcher, Line (1 .. Last), Unit_Name_Matches);
                if Unit_Name_Matches (0) /= No_Match then
-                  UName := To_Unbounded_String
-                    (Line (Unit_Name_Matches (4).First
-                        .. Unit_Name_Matches (4).Last));
+                  if Unit_Name_Matches (1).First in Line'Range
+                       and then
+                     Line (Unit_Name_Matches (1).First) = 's'
+                  then
+                     --  Case of a separate body
+
+                     UName := To_Unbounded_String
+                                (Line (Unit_Name_Matches (2).First
+                                    .. Unit_Name_Matches (2).Last));
+                     Append (Uname, '.');
+                  end if;
+
+                  Append (UName, Line (Unit_Name_Matches (5).First
+                                    .. Unit_Name_Matches (5).Last));
                   exit;
                end if;
             end if;

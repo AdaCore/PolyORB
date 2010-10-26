@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -48,25 +48,29 @@ package XE_Front is
 
    Default_Partition_Id : Partition_Id;
    Default_Channel_Id   : Channel_Id;
+   --  Default channel and partition. The properties of these objects serve as
+   --  templates for all other channels and partitions.
 
-   Default_Registration_Filter : Filter_Name_Type     := No_Filter_Name;
-   Default_First_Boot_Location : Location_Id          := No_Location_Id;
-   Default_Last_Boot_Location  : Location_Id          := No_Location_Id;
-   Default_Data_Location       : Location_Id          := No_Location_Id;
-   Default_Starter             : Import_Method_Type   := Ada_Import;
-   Default_Version_Check       : Boolean              := True;
-   Default_Rsh_Command         : Name_Id              := No_Name;
-   Default_Rsh_Options         : Name_Id              := No_Name;
-   Default_Priority_Policy     : Priority_Policy_Type := No_Priority_Policy;
+   Default_Registration_Filter : Filter_Name_Type        := No_Filter_Name;
+   Default_First_Boot_Location : Location_Id             := No_Location_Id;
+   Default_Last_Boot_Location  : Location_Id             := No_Location_Id;
+   Default_Data_Location       : Location_Id             := No_Location_Id;
+   Default_Starter             : Import_Method_Type      := Ada_Import;
+   Default_Name_Server         : Name_Server_Type        := No_Name_Server;
+   Default_Version_Check       : Boolean                 := True;
+   Default_Rsh_Command         : Name_Id                 := No_Name;
+   Default_Rsh_Options         : Name_Id                 := No_Name;
+   Default_Priority_Policy     : Priority_Policy_Type    := No_Priority_Policy;
+   Default_ORB_Tasking_Policy  : ORB_Tasking_Policy_Type := Thread_Pool;
 
    Configuration : Unit_Name_Type := No_Unit_Name;
-   --  Name of the configuration.
+   --  Name of the configuration
 
    Main_Partition : Partition_Id := No_Partition_Id;
-   --  Partition where the main procedure has been assigned.
+   --  Partition where the main procedure has been assigned
 
    Main_Subprogram : Unit_Name_Type := No_Unit_Name;
-   --  Several variables related to the main procedure.
+   --  Several variables related to the main procedure
 
    procedure Frontend;
 
@@ -81,6 +85,14 @@ package XE_Front is
       Minor : Name_Id);
    --  Read major and minor from variable and add this pair to
    --  partition location list.
+
+   procedure Add_Required_Storage
+     (First    : in out Required_Storage_Id;
+      Last     : in out Required_Storage_Id;
+      Location : Location_Id;
+      Unit     : Unit_Id;
+      Owner    : Boolean);
+   --  Add a node in the required storages chained list of a partition
 
    procedure Add_Environment_Variable
      (First : in out Env_Var_Id;
@@ -120,8 +132,8 @@ package XE_Front is
    procedure Set_Partition_Id (N : Name_Id; P : Partition_Id);
    procedure Set_Unit_Id      (N : Name_Id; U : Unit_Id);
 
-   function  Get_Tasking (A : ALI_Id) return Character;
-   procedure Set_Tasking (A : ALI_Id; T : Character);
+   function  Get_Tasking (A : ALI_Id) return Tasking_Type;
+   procedure Set_Tasking (A : ALI_Id; T : Tasking_Type);
 
    function Get_Rsh_Command return Name_Id;
    function Get_Rsh_Options return Name_Id;

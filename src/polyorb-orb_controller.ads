@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,8 +50,8 @@ package PolyORB.ORB_Controller is
    --  state of the ORB (running tasks, job processing, etc). It grants access
    --  to ORB internals and affects action to all registered tasks.
 
-   --  It is the ORB Control Policy responsability to ensure that all tasks may
-   --  work concurrently and access safely the ORB internals.
+   --  It is the responsibility of the ORB Control Policy to ensure that all
+   --  tasks work concurrently and access the ORB internals safely.
 
    --  An ORB Controller is an instance of an ORB Control Policy, attached to
    --  an ORB instance. It is a passive object, triggered by the occurence of
@@ -102,10 +102,10 @@ package PolyORB.ORB_Controller is
       --  A task has left Idle state
 
       Task_Registered,
-      --  A task has entered the ORB pool
+      --  A task has joined the ORB pool and has been added to the summary
 
       Task_Unregistered
-      --  A task has left the ORB pool
+      --  A task has left the ORB pool and has been removed from the summary
       );
 
    --  Event type
@@ -118,6 +118,9 @@ package PolyORB.ORB_Controller is
          when Event_Sources_Added =>
             Add_In_Monitor : PAE.Asynch_Ev_Monitor_Access;
             --  Non null iff we add a source to a new monitor
+
+         when Event_Sources_Deleted | Job_Completed | ORB_Shutdown =>
+            null;
 
          when Queue_Event_Job =>
             Event_Job : PJ.Job_Access;
@@ -136,17 +139,10 @@ package PolyORB.ORB_Controller is
          when Task_Registered =>
             Registered_Task : PTI.Task_Info_Access;
 
-         when others =>
-            null;
+         when Task_Unregistered =>
+            Unregistered_Task : PTI.Task_Info_Access;
       end case;
    end record;
-
-   --  Some events have no attached data, we declare constant shortcuts to
-   --  manipulate them.
-
-   Event_Sources_Deleted_E : constant Event (Event_Sources_Deleted);
-   Job_Completed_E         : constant Event (Job_Completed);
-   ORB_Shutdown_E          : constant Event (ORB_Shutdown);
 
    --------------------
    -- ORB_Controller --
@@ -169,28 +165,31 @@ package PolyORB.ORB_Controller is
    --  section.
 
    procedure Register_Task
-     (O  : access ORB_Controller;
-      TI : PTI.Task_Info_Access);
-   --  Register TI to scheduler S. TI may now be used by the ORB Controller to
-   --  process ORB actions.
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
+   --  Register TI to the ORB Controller. TI may now be used by the ORB
+   --  Controller to process ORB actions.
+
+   procedure Terminate_Task
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
+   --  Record that the given task is terminating. If the task was idle, the
+   --  ORB controller is notified. Task state is then set to Terminated.
 
    procedure Unregister_Task
-     (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access);
-   --  Unregister TI from Scheduler
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
+   --  Unregister terminated task TI from the ORB Controller
 
    procedure Notify_Event
      (O : access ORB_Controller;
-      E :        Event)
-      is abstract;
+      E : Event) is abstract;
    --  Notify ORB Controller O of the occurence of event E.
    --  This procedure may change the status of idle or blocked tasks.
 
    procedure Schedule_Task
      (O  : access ORB_Controller;
-      TI :        PTI.Task_Info_Access)
-      is abstract;
-   --  Return the next action to be executed.
+      TI : PTI.Task_Info_Access) is abstract;
+   --  TI is the current task. Set its state to indicate the next action to be
+   --  executed. This operation has no effect and returns immediately if the
+   --  current state of the task is Terminated.
 
    procedure Disable_Polling
      (O : access ORB_Controller;
@@ -208,18 +207,22 @@ package PolyORB.ORB_Controller is
       M : PAE.Asynch_Ev_Monitor_Access) is abstract;
    --  Enable polling on AES monitored by M. If Disable_Polling has been called
    --  N times, Enable_Polling must be called N times to actually enable
-   --  polling. It is the user responsability to ensure that Enable_Polling
+   --  polling. It is the user's responsability to ensure that Enable_Polling
    --  actually enables polling in bounded time.
 
-   function Is_A_Job_Pending (O : access ORB_Controller) return Boolean;
+   function Has_Pending_Job (O : access ORB_Controller) return Boolean;
    --  Return true iff a job is pending
 
    function Get_Pending_Job (O : access ORB_Controller) return PJ.Job_Access;
-   --  Return a pending job, null if there is not pending job
+   --  Return a pending job, null if there is none
+
+   function Shutting_Down (O : ORB_Controller) return Boolean;
+   pragma Inline (Shutting_Down);
+   --  Return True if ORB shutdown is in progress
 
    function Is_Locally_Terminated
      (O                      : access ORB_Controller;
-      Expected_Running_Tasks : Natural := 1) return Boolean;
+      Expected_Running_Tasks : Natural) return Boolean;
    --  Return true if the local node is locally terminated.
    --  Expected_Running_Tasks is the number of expected non terminated tasks
    --  when local termination is computed.
@@ -231,11 +234,12 @@ package PolyORB.ORB_Controller is
    pragma Inline (Get_Monitors);
    --  Return monitors handled by the ORB
 
-   function Get_Idle_Tasks_Count
-     (O : ORB_Controller_Access)
-     return Natural;
-   pragma Inline (Get_Idle_Tasks_Count);
-   --  Return the number of idle tasks
+   function Get_Tasks_Count
+     (OC    : ORB_Controller;
+      Kind  : PTI.Any_Task_Kind  := PTI.Any;
+      State : PTI.Any_Task_State := PTI.Any) return Natural;
+   pragma Inline (Get_Tasks_Count);
+   --  Return the count of tasks for the given kind and state
 
    procedure Wait_For_Completion (O : access ORB_Controller);
    --  When ORB shutdown has been requested, block until all pending jobs are
@@ -251,9 +255,7 @@ package PolyORB.ORB_Controller is
    type ORB_Controller_Factory_Access is
      access all ORB_Controller_Factory'Class;
 
-   function Create
-     (OCF : access ORB_Controller_Factory)
-     return ORB_Controller_Access
+   function Create (OCF : ORB_Controller_Factory) return ORB_Controller_Access
       is abstract;
    --  Use factory to create a new ORB_Controller
 
@@ -262,7 +264,8 @@ package PolyORB.ORB_Controller is
    --  Register an ORB_Controller factory
 
    procedure Create (O : out ORB_Controller_Access);
-   --  Initialize an ORB_Controller
+   --  Initialize an ORB_Controller by dispatching to Create function of the
+   --  currently registered factory.
 
 private
 
@@ -280,30 +283,25 @@ private
      renames L2.Output;
    function C2 (Level : Log_Level := Debug) return Boolean renames L2.Enabled;
 
-   type Counters_Array is array (PTI.Task_State) of Natural;
-   --  Count the number of tasks in each Task_State
-
-   function Status (O : access ORB_Controller) return String;
+   function Status (O : ORB_Controller) return String;
    --  Output status of task running Broker, for debugging purpose
 
-   function ORB_Controller_Counters_Valid
-     (O : access ORB_Controller)
-     return Boolean;
-   --  Return true iff the status of O respects the invariant defined below
-
-   procedure Try_Allocate_One_Task (O : access ORB_Controller);
-   --  Awake one idle task, if any. Else do nothing
+   procedure Try_Allocate_One_Task
+     (O : access ORB_Controller; Allow_Transient : Boolean);
+   --  A job has been queued on the general ORB controller job queue:
+   --  awake one idle task to process it. If no idle task is available, and no
+   --  permanent running task is about to reschedule, unblock a polling task.
 
    function Need_Polling_Task (O : access ORB_Controller) return Natural;
-   pragma Inline (Need_Polling_Task);
    --  Return the index of the AEM_Info of a monitor waiting for polling task,
-   --  else return 0.
+   --  else return 0. Note that the index of the last polled AEM is recorded
+   --  in O to ensure fairness.
 
    function Index
-     (O : access ORB_Controller;
+     (O : ORB_Controller;
       M : PAE.Asynch_Ev_Monitor_Access) return Natural;
    pragma Inline (Index);
-   --  Return the index of M held in O.AEM_Infos
+   --  Return the index of M held in O.AEM_Infos, 0 if not found
 
    type AEM_Info is record
       Monitor : PAE.Asynch_Ev_Monitor_Access;
@@ -334,44 +332,39 @@ private
 
    Maximum_Number_Of_Monitors : constant := 2;
 
-   type ORB_Controller (RS : PRS.Request_Scheduler_Access)
-      is abstract tagged limited record
+   type ORB_Controller (RS : PRS.Request_Scheduler_Access) is
+   abstract tagged limited record
+      ORB_Lock : PTM.Mutex_Access;
+      --  Mutex used to enforce ORB critical section
 
-         ORB_Lock : PTM.Mutex_Access;
-         --  Mutex used to enforce ORB critical section
+      Job_Queue : PJ.Job_Queue_Access;
+      --  The queue of jobs to be processed by ORB tasks
 
-         Job_Queue : PJ.Job_Queue_Access;
-         --  The queue of jobs to be processed by ORB tasks
+      AEM_Infos : AEM_Infos_Array (1 .. Maximum_Number_Of_Monitors);
+      Last_Monitored_AEM : Natural := Maximum_Number_Of_Monitors;
+      --  ??? Needs proper documentation of usage of this component.
+      --  Half_Sync_Half_Async uses it to point to the designated monitoring
+      --  task for each monitor; other ORB controllers use it for the currently
+      --  blocked task (and in the latter only there is an invariant that the
+      --  TI component of each slot points to the existing valid task info for
+      --  a Blocked task.)
 
-         AEM_Infos : AEM_Infos_Array (1 .. Maximum_Number_Of_Monitors);
-         Last_Monitored_AEM : Natural := Maximum_Number_Of_Monitors;
+      Idle_Tasks : Idle_Tasks_Manager_Access;
 
-         Idle_Tasks : Idle_Tasks_Manager_Access;
+      -----------------------------
+      -- Global controller state --
+      -----------------------------
 
-         -----------------------------
-         -- Global controller state --
-         -----------------------------
+      Summary : PTI.Task_Summary;
+      --  Task counters
 
-         Counters : Counters_Array := Counters_Array'(others => 0);
+      Shutdown : Boolean := False;
+      --  True iff ORB is to be shutdown
 
-         Registered_Tasks : Natural := 0;
-         --  Number of task registered by the ORB Controller
-         --  An invariant to be tested is: Registered_Tasks = # (Counter)
-
-         Transient_Tasks : Natural := 0;
-         --  Number of transient tasks borrowed by the ORB Controller
-
-         Number_Of_Pending_Jobs : Natural := 0;
-         --  Number of pending jobs
-
-         Shutdown : Boolean := False;
-         --  True iff ORB is to be shutdown
-
-         Shutdown_CV : PTCV.Condition_Access;
-         --  CV used by callers of Shutdown to wait for completion of all
-         --  pending requests.
-
-      end record;
+      Shutdown_CV : PTCV.Condition_Access;
+      --  CV used by callers of Shutdown to wait for completion of all pending
+      --  requests.
+   end record;
 
    procedure Initialize (OC : in out ORB_Controller);
    --  Initialize OC elements
@@ -380,13 +373,17 @@ private
    --  Called by concrete ORB controllers after processing a task
    --  unregistration notification.
 
-   Event_Sources_Deleted_E : constant Event
-     := Event'(Kind => Event_Sources_Deleted);
+   function Is_Upcall (J : PJ.Job'Class) return Boolean;
+   --  Return True if job J that is queued on the ORB controller job queue
+   --  involves an upcall to application code (in which case it must not be
+   --  handled by a transient task). Note that this predicate is defined only
+   --  for queued jobs.
 
-   Job_Completed_E : constant Event := Event'(Kind => Job_Completed);
-
-   Task_Unregistered_E : constant Event := Event'(Kind => Task_Unregistered);
-
-   ORB_Shutdown_E : constant Event := Event'(Kind => ORB_Shutdown);
+   procedure Reschedule_Task
+     (O  : access ORB_Controller;
+      TI : PTI.Task_Info_Access);
+   --  Cause the given task to be rescheduled (i.e. awakened if it is idle,
+   --  unblocked if it is blocked). Used when a condition occurs that the task
+   --  needs to be informed of.
 
 end PolyORB.ORB_Controller;

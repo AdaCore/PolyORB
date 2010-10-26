@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,7 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 
 with Charset;   use Charset;
 with Errors;    use Errors;
+with Flags;     use Flags;
 with Namet;     use Namet;
 with Output;    use Output;
 with Utils;     use Utils;
@@ -251,9 +252,13 @@ package body Lexer is
    procedure New_Line;
    --  Increment the line number and save the current position in the
    --  buffer in order to compute later on the column number.
+   --  Also, if we have CRLF (carriage return followed by line feed), skip
+   --  ahead one character, in order to treat the two characters as a single
+   --  end-of-line. We do the same for LFCR, even though no supported operating
+   --  systems use that sequence, because that's what the GNAT compiler does.
 
-   procedure Skip_Spaces;
-   --  Skip all spaces
+   procedure Skip_Spaces (Except_Newline : Boolean := False);
+   --  Skip all spaces, except end-of-line markers if Except_Newline is True
 
    function To_Token (Name : Name_Id) return Token_Type;
    --  Return the token matching Name. Otherwise, return T_Error.
@@ -447,6 +452,26 @@ package body Lexer is
 
    procedure New_Line is
    begin
+      --  If we have CRLF or LFCR, skip ahead one character, so we treat that
+      --  as a single end-of-line
+
+      case Buffer (Token_Location.Scan) is
+         when LF =>
+            if Buffer (Token_Location.Scan + 1) = CR then
+               Token_Location.Scan := Token_Location.Scan + 1;
+            end if;
+         when CR =>
+            if Buffer (Token_Location.Scan + 1) = LF then
+               Token_Location.Scan := Token_Location.Scan + 1;
+            end if;
+         when FF | VT =>
+            null;
+         when others =>
+            raise Program_Error;  --  Caller makes sure we're at end-of-line
+      end case;
+
+      --  Increment line number and save current position
+
       Token_Location.Scan := Token_Location.Scan + 1;
       Token_Location.First := Token_Location.Scan;
       Token_Location.Last  := Token_Location.Scan;
@@ -495,20 +520,9 @@ package body Lexer is
    -- Output --
    ------------
 
-   procedure Output
-     (Source : File_Descriptor)
-   is
-      Length  : constant := 1024;
-      Buffer  : String (1 .. Length);
-      Result  : Integer;
+   procedure Output (Source : File_Descriptor) is
    begin
-      loop
-         Result := Read  (Source, Buffer (1)'Address, Length);
-         exit when Result <= 0;
-         Result := Write (Standout, Buffer (1)'Address, Result);
-      end loop;
-      Close (Source);
-
+      Copy_To_Standard_Output (Source);
       Make_Cleanup;
    end Output;
 
@@ -524,12 +538,33 @@ package body Lexer is
       Tmp_FDesc                   : File_Descriptor;
       Tmp_FName                   : Temp_File_Name;
       Preprocessor                : String_Access;
-      Prep_And_Flags_List : constant Argument_List_Access
-        := Argument_String_To_List (Platform.IDL_Preprocessor);
+      Prep_And_Flags_List : constant Argument_List_Access :=
+                              Argument_String_To_List
+                                (Platform.IDL_Preprocessor);
+
+      procedure Open_Original_Source;
+      --  Set Result to an open file descriptor for the original source file
+      --  (not preprocessed).
+
+      --------------------------
+      -- Open_Original_Source --
+      --------------------------
+
+      procedure Open_Original_Source is
+      begin
+         Get_Name_String (Source);
+         Add_Char_To_Name_Buffer (ASCII.NUL);
+         Result := Open_Read (Name_Buffer'Address, Binary);
+      end Open_Original_Source;
 
    begin
       if Initialized then
          Push_Lexer_State;
+      end if;
+
+      if No_Preprocess then
+         Open_Original_Source;
+         return;
       end if;
 
       --  Reinitialize the CPP arguments
@@ -546,7 +581,7 @@ package body Lexer is
       --  Pass user options to the preprocessor.
 
       Goto_Section ("cppargs");
-      while Getopt ("*") /= ASCII.Nul loop
+      while Getopt ("*") /= ASCII.NUL loop
          Add_CPP_Flag (Full_Switch);
       end loop;
 
@@ -585,33 +620,30 @@ package body Lexer is
 
       Preprocessor := Locate_Exec_On_Path
         (Prep_And_Flags_List (Prep_And_Flags_List'First).all);
+
       if Preprocessor = null then
-         DE ("?cannot locate "
-             & Prep_And_Flags_List (Prep_And_Flags_List'First).all);
-         Get_Name_String (Source);
-         Add_Char_To_Name_Buffer (ASCII.NUL);
-         Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
-      else
-         Spawn
-           (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
-
-         if not Success then
-            Error_Name (1) := Source;
-            DE ("fail to preprocess%");
-            raise Fatal_Error;
-         end if;
-
-         Name_Buffer (1 .. Temp_File_Len) := Tmp_FName;
-         Name_Buffer (Temp_File_Len + 1)  := ASCII.NUL;
-
-         Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
-         if Tmp_FDesc = Invalid_FD then
-            DE ("cannot open preprocessor output");
-            raise Fatal_Error;
-         end if;
+         DE ("?cannot locate %",
+             Prep_And_Flags_List (Prep_And_Flags_List'First).all);
+         Open_Original_Source;
+         return;
       end if;
 
-      Result := Tmp_FDesc;
+      Spawn (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
+
+      if not Success then
+         Error_Name (1) := Source;
+         DE ("fail to preprocess%");
+         raise Fatal_Error;
+      end if;
+
+      Name_Buffer (1 .. Temp_File_Len) := Tmp_FName;
+      Name_Buffer (Temp_File_Len + 1)  := ASCII.NUL;
+
+      Result := Open_Read (Name_Buffer'Address, Binary);
+      if Result = Invalid_FD then
+         DE ("cannot open preprocessor output");
+         raise Fatal_Error;
+      end if;
 
    exception when others =>
       Make_Cleanup;
@@ -1079,6 +1111,22 @@ package body Lexer is
 
       if not Escaped then
          Token := To_Token (Token_Name);
+
+         --  Check that the case of keywords is correct.
+         --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
+         --
+         --  keywords must be written exactly as in the above list. Identifiers
+         --  that collide with keywords (...) are illegal.
+
+         if Fatal and then
+           Token in Keyword_Type and then
+           Token_Name /= Token_Image (Token)
+         then
+            Error_Loc (1) := Token_Location;
+            Error_Name (1) := Token_Image (Token);
+            DE ("incorrect case; # expected");
+         end if;
+
          if Token = T_Error then
             Token := T_Identifier;
          elsif Token = T_True then
@@ -1212,29 +1260,24 @@ package body Lexer is
          C := To_Lower (Buffer (L.Scan));
       end if;
 
-      --  Read the base when base is 16.
+      --  Case of an hexadecimal literal (C must not be clobbered here if the
+      --  next character turns out to be other than 'x').
 
-      if C = '0' then
-         C := To_Lower (Buffer (L.Scan + 1));
+      if C = '0' and then To_Lower (Buffer (L.Scan + 1)) = 'x' then
+         Integer_Literal_Base := 16;
+         L.Scan := L.Scan + 2;
 
-         --  Base is 16
+         --  Check the next character is a digit
 
-         if C = 'x' then
-            Integer_Literal_Base := 16;
-            L.Scan := L.Scan + 2;
-
-            --  Check the next character is a digit
-
-            C := To_Lower (Buffer (L.Scan));
-            if C not in '0' .. '9' and then C not in 'a' .. 'f' then
-               if Fatal then
-                  Error_Loc (1) := L;
-                  DE ("digit excepted");
-               end if;
-               Skip_Identifier;
-               Token := T_Error;
-               return;
+         C := To_Lower (Buffer (L.Scan));
+         if C not in '0' .. '9' and then C not in 'a' .. 'f' then
+            if Fatal then
+               Error_Loc (1) := L;
+               DE ("digit excepted");
             end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
          end if;
       end if;
 
@@ -1414,10 +1457,16 @@ package body Lexer is
       --  Scan past '#'
 
       Token_Location.Scan := Token_Location.Scan + 1;
-      Skip_Spaces;
+      Skip_Spaces (Except_Newline => True);
+
       C := Buffer (Token_Location.Scan);
 
-      --  Read line directive: "# <line> "<file>" <code>
+      --  Read line marker:
+      --    # <line>
+      --    # <line> "<file>"
+      --    # <line> "<file>" <flags>
+
+      --  The line marker is terminated by end-of-line
 
       if C in '0' .. '9' then
          declare
@@ -1426,20 +1475,25 @@ package body Lexer is
             Scan_Integer_Literal_Value (10, True);
             Line := Natural (Integer_Literal_Value);
 
-            Skip_Spaces;
-            if Buffer (Token_Location.Scan) = '"' then --  "
+            Skip_Spaces (Except_Newline => True);
+
+            --  Scan optional file name
+
+            if Buffer (Token_Location.Scan) = '"' then
                Token_Location.Scan := Token_Location.Scan + 1;
                Token := T_String_Literal;
                Scan_Chars_Literal_Value (T_String_Literal, True, False);
                Get_Name_String (String_Literal_Value);
 
-               --  Remove CPP special info
+               --  Remove marker for built-in or command line text
+
                if Name_Buffer (1) = '<'
                  and then Name_Buffer (Name_Len) = '>'
                then
                   Skip_Line;
 
                --  Check the suffix is ".idl"
+
                elsif Name_Len < 5
                  or else Name_Buffer (Name_Len - 3 .. Name_Len) /= ".idl"
                then
@@ -1451,9 +1505,14 @@ package body Lexer is
                   Set_New_Location
                     (Token_Location, String_Literal_Value, Int (Line));
                end if;
+            else
+               --  No file name
 
-               return;
+               Skip_Line;
+               Token_Location.Line := Int (Line);
             end if;
+
+            return;
          end;
       end if;
 
@@ -1486,7 +1545,7 @@ package body Lexer is
          end if;
 
          Error_Loc (1) := Loc;
-         DE ("expected token " & Quoted_Image (T));
+         DE ("expected token %", Quoted_Image (T));
          Token := T_Error;
       end if;
    end Scan_Token;
@@ -1501,25 +1560,21 @@ package body Lexer is
       Scan_Token;
       for Index in L'Range loop
          if L (Index) = Token then
-            return;
+            return;  --  All is well
          end if;
       end loop;
-      Set_Str_To_Name_Buffer ("expected token");
-      if L'Length > 1 then
-         Add_Char_To_Name_Buffer ('s');
-      end if;
-      Add_Char_To_Name_Buffer (' ');
+
+      --  Give error message
+
+      Name_Len := 0;
       Add_Str_To_Name_Buffer (Quoted_Image (L (L'First)));
       for Index in L'First + 1 .. L'Last loop
          Add_Str_To_Name_Buffer (" or ");
          Add_Str_To_Name_Buffer (Quoted_Image (L (Index)));
       end loop;
-      declare
-         S : constant String := Name_Buffer (1 .. Name_Len);
-      begin
-         Error_Loc (1) := Token_Location;
-         DE (S);
-      end;
+      Error_Loc (1) := Token_Location;
+      Error_Name (1) := Name_Find;
+      DE ("expected tokens %");
       Token := T_Error;
    end Scan_Token;
 
@@ -1559,6 +1614,8 @@ package body Lexer is
             when '{' =>
                Token_Location.Scan := Token_Location.Scan + 1;
                Token := T_Left_Brace;
+
+      --  The line marker is terminated by end-of-line
 
             when '}' =>
                Token_Location.Scan := Token_Location.Scan + 1;
@@ -1731,7 +1788,7 @@ package body Lexer is
 
                      --  Read wide string literal
 
-                     elsif Buffer (Token_Location.Scan + 1) = '"' then --  "
+                     elsif Buffer (Token_Location.Scan + 1) = '"' then
                         Token_Location.Scan := Token_Location.Scan + 2;
                         Scan_Chars_Literal_Value
                           (T_Wide_String_Literal, Fatal, True);
@@ -1770,7 +1827,7 @@ package body Lexer is
    begin
       loop
          Save_Lexer (State);
-         Scan_Token (False);
+         Scan_Token (Fatal => False);
 
          exit when Token = T_EOF;
 
@@ -1830,15 +1887,20 @@ package body Lexer is
    -- Skip_Spaces --
    -----------------
 
-   procedure Skip_Spaces is
+   procedure Skip_Spaces (Except_Newline : Boolean := False) is
    begin
       loop
          case Buffer (Token_Location.Scan) is
-            when ' '
-              | HT =>
+            when ' ' | HT =>
                Token_Location.Scan := Token_Location.Scan + 1;
+
             when LF | FF | CR | VT =>
-               New_Line;
+               if Except_Newline then
+                  exit;
+               else
+                  New_Line;
+               end if;
+
             when others =>
                exit;
          end case;
@@ -1865,15 +1927,14 @@ package body Lexer is
    -- Unexpected_Token --
    ----------------------
 
-   procedure Unexpected_Token (T : Token_Type; C : String := "") is
-      Where  : constant String  := " in " & C;
-      Length : Natural := 0;
+   procedure Unexpected_Token (T : Token_Type; C : String) is
    begin
-      if C'Length /= 0 then
-         Length := Where'Length;
-      end if;
       Error_Loc (1) := Token_Location;
-      DE ("unexpected " & Quoted_Image (T) & Where (1 .. Length));
+      Set_Str_To_Name_Buffer (Quoted_Image (T));
+      Error_Name (1) := Name_Find;
+      Set_Str_To_Name_Buffer (C);
+      Error_Name (2) := Name_Find;
+      DE ("unexpected % in %");
    end Unexpected_Token;
 
    -----------

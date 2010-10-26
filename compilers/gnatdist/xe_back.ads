@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,6 +51,9 @@ package XE_Back is
 
    procedure Run_Backend (Self : access Backend) is abstract;
    --  Generate stubs, skels, PCS units and executables.
+
+   procedure Register_Storages (Self : access Backend) is abstract;
+   --  Register available storage supports
 
    function Find_Backend (PCS_Name : String) return Backend_Access;
    --  Return an instance of the backend appropriate for the specified PCS
@@ -97,8 +100,14 @@ private
    --  main partition subprogram. This can be a shell script or an Ada
    --  program.
 
-   function Get_Env_Vars (P : Partition_Id) return String;
+   function Get_Env_Vars
+     (P          : Partition_Id;
+      Q          : Character := ' ';
+      Names_Only : Boolean) return String;
    --  Return a series of environment variables assignment for partition P
+   --  (if Names_Only is False, in which case values are encosed with Q), or a
+   --  space separated list of environment variable names only (if Names_Only
+   --  is True).
 
    procedure Generate_Application_Project_Files;
    --  Generate a project file for the appplication code, extending the one
@@ -134,6 +143,9 @@ private
    --  the procedure name. The next parameters are parameters for this
    --  procedure call.
 
+   function Location_List_Image (Location : Location_Id) return Name_Id;
+   --  Explore linked list of locations to build its image
+
    procedure Write_Image (I : out Name_Id; H : Host_Id; P : Partition_Id);
    --  Write in I the text to get the partition hostname. This can be
    --  a shell script.
@@ -142,18 +154,23 @@ private
      (W : Name_Id;
       U : Boolean := False;
       E : Boolean := False);
-   --  Add a with clause W, a use clause when U is true and an
-   --  elaborate clause when E is true.
+   --  Add a with clause W, a use clause when U is true and an Elaborate_All
+   --  pragma when E is true.
 
    function Prefix (Check_For : String) return String;
    --  Return the PCS installation prefix as dynamically determined by the
    --  location of the gnatdist executable, or fall back to the default
    --  (configure-time) prefix. The validity of a candidate prefix is
    --  checked by testing whether file Check_For exists under that prefix.
+   --  The returned string always ends with a directory separator.
 
    procedure Apply_Casing_Rules (S : in out String);
    procedure Register_Casing_Rule (S : String);
    --  ??? documentation needed!
+
+   function Partition_Dir_Flag (P : Partition_Id) return String;
+   --  Return a gnatmake command line flag setting external variable
+   --  PARTITION_DIR for partition P.
 
    Build_Stamp_File    : File_Name_Type;
    Partition_Main_File : File_Name_Type;

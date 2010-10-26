@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,7 +64,7 @@ package body PolyORB.Request_QoS is
    -------------------
 
    procedure Add_Reply_QoS
-     (Req  : PolyORB.Requests.Request_Access;
+     (Req  : in out Requests.Request;
       Kind : QoS_Kind;
       QoS  : QoS_Parameter_Access)
    is
@@ -86,7 +86,7 @@ package body PolyORB.Request_QoS is
    ---------------------
 
    procedure Add_Request_QoS
-     (Req  : PolyORB.Requests.Request_Access;
+     (Req  : in out Requests.Request;
       Kind : QoS_Kind;
       QoS  : QoS_Parameter_Access)
    is
@@ -121,14 +121,12 @@ package body PolyORB.Request_QoS is
 
    function Extract_Reply_Parameter
      (Kind : QoS_Kind;
-      Req  : PolyORB.Requests.Request_Access)
-      return QoS_Parameter_Access
+      Req  : Requests.Request) return QoS_Parameter_Access
    is
       Note : QoS_Note;
 
    begin
       Get_Note (Req.Notepad, Note, Default_Note);
-
       return Note.Reply_QoS (Kind);
    end Extract_Reply_Parameter;
 
@@ -138,14 +136,12 @@ package body PolyORB.Request_QoS is
 
    function Extract_Request_Parameter
      (Kind : QoS_Kind;
-      Req  : PolyORB.Requests.Request_Access)
-      return QoS_Parameter_Access
+      Req  : Requests.Request) return QoS_Parameter_Access
    is
       Note : QoS_Note;
 
    begin
       Get_Note (Req.Notepad, Note, Default_Note);
-
       return Note.Request_QoS (Kind);
    end Extract_Request_Parameter;
 
@@ -154,8 +150,7 @@ package body PolyORB.Request_QoS is
    ---------------
 
    function Fetch_QoS
-     (Ref : PolyORB.References.Ref)
-      return QoS_Parameters
+     (Ref : PolyORB.References.Ref) return QoS_Parameters
    is
       Result      : QoS_Parameters;
       A_Parameter : QoS_Parameter_Access;
@@ -185,8 +180,7 @@ package body PolyORB.Request_QoS is
    -------------------
 
    function Get_Reply_QoS
-     (Req : PolyORB.Requests.Request_Access)
-      return QoS_Parameters
+     (Req : Requests.Request) return QoS_Parameters
    is
       Note : QoS_Note;
    begin
@@ -199,8 +193,7 @@ package body PolyORB.Request_QoS is
    ---------------------
 
    function Get_Request_QoS
-     (Req : PolyORB.Requests.Request_Access)
-      return QoS_Parameters
+     (Req : Requests.Request) return QoS_Parameters
    is
       Note : QoS_Note;
    begin
@@ -226,7 +219,7 @@ package body PolyORB.Request_QoS is
    -------------------
 
    procedure Set_Reply_QoS
-     (Req : PolyORB.Requests.Request_Access;
+     (Req : in out Requests.Request;
       QoS : QoS_Parameters)
    is
       Note : QoS_Note;
@@ -242,7 +235,7 @@ package body PolyORB.Request_QoS is
    ---------------------
 
    procedure Set_Request_QoS
-     (Req : PolyORB.Requests.Request_Access;
+     (Req : in out Requests.Request;
       QoS : QoS_Parameters)
    is
       Note : QoS_Note;

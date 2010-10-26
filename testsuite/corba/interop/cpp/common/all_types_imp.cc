@@ -35,6 +35,14 @@ public:
       all_types::B_sequence(arg);
     return t;
   }
+
+  all_types::unionSequence* echoUnionSequence(const all_types::unionSequence& arg)
+  {
+    all_types::unionSequence *t = new
+      all_types::unionSequence(arg);
+    return t;
+  }
+
   all_types::simple_array_slice* echoArray(const all_types::simple_array arg)
   {
     return all_types::simple_array_dup(arg);
@@ -82,6 +90,11 @@ public:
     return (all_types::myUnionEnumSwitch*) &arg;
   }
   
+  all_types::noMemberUnion echoNoMemberUnion(const all_types::noMemberUnion& arg)
+  {
+    return (all_types::noMemberUnion) arg;
+  }
+
   CORBA::Long Counter() {return ++tmp;};
   
   all_types::Color myColor() {return tmpColor;};
