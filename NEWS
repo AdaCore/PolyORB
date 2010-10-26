@@ -55,6 +55,9 @@ See the features-27 file.
 Bug fixes
 ---------
 
+A range check would fail in PolyORB.CORBA_P.Naming_Tools.Locate for names
+less than four characters in length. (JA26-018)
+
 The iac compiler failed to check the rule that requires IDL keywords to have
 the correct case (for example, "any" is correct, but "ANY" is wrong).
 (J921-012)
