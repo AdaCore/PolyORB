@@ -1014,8 +1014,8 @@ package body PolyORB.ORB is
                Request_QoS.Get_Request_QoS (Req.all),
                Req.Surrogate,
                Req.Profile,
-               False,
-               Error);
+               Local_Only => False,
+               Error      => Error);
             --  Potential race condition, we may protect this call, TBD???
 
             if Found (Error) then
@@ -1042,16 +1042,15 @@ package body PolyORB.ORB is
          if Is_Set (Sync_With_Server, Req.Req_Flags)
            and then Is_Profile_Local (ORB, Req.Profile)
          then
-            --  We are on the server side, and use Sync_With_Server
-            --  synchronization: we can send an Executed_Request
-            --  message to the client prior to run the request.
+            --  We are on the server side, and use Sync_With_Server sync scope:
+            --  we can send an Executed_Request message to the client prior to
+            --  running the request.
 
             pragma Debug (C, O ("With_Server completed, sending"
                              & " Acknowledge_Request message"));
 
             Emit_No_Reply (Req.Requesting_Component,
-                           Servants.Iface.Acknowledge_Request'
-                           (Req => Req));
+                           Servants.Iface.Acknowledge_Request'(Req => Req));
          end if;
 
          --  Setup_Environment (Oid);
