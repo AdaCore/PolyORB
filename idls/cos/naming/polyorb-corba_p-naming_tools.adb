@@ -34,11 +34,15 @@
 with CORBA.ORB;
 with CosNaming.NamingContext.Helper;
 
+with PolyORB.Utils;
+
 package body PolyORB.CORBA_P.Naming_Tools is
 
    use CosNaming;
    use CosNaming.NamingContext;
    use CosNaming.NamingContext.Helper;
+
+   use PolyORB.Utils;
 
    subtype NameComponent_Array is
      CosNaming.IDL_SEQUENCE_CosNaming_NameComponent.Element_Array;
@@ -92,7 +96,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
       Sep         : Character := '/') return CORBA.Object.Ref
    is
    begin
-      if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
+      if Has_Prefix (IOR_Or_Name, Prefix => "IOR:") then
          declare
             Obj : CORBA.Object.Ref;
          begin
@@ -115,7 +119,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
       Sep         : Character := '/') return CORBA.Object.Ref
    is
    begin
-      if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
+      if Has_Prefix (IOR_Or_Name, Prefix => "IOR:") then
          declare
             Obj : CORBA.Object.Ref;
          begin
