@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -477,14 +477,12 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    ------------
 
    function Get_OA
-     (Profile : UIPMC_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
+     (Profile : UIPMC_Profile_Type) return PolyORB.Smart_Pointers.Entity_Ptr
    is
       pragma Unreferenced (Profile);
 
    begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.Setup.UIPMC.UIPMC_GOA);
+      return PolyORB.Smart_Pointers.Entity_Ptr (PolyORB.Setup.UIPMC.UIPMC_GOA);
    end Get_OA;
 
    ----------------
