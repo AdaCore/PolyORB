@@ -69,7 +69,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       A_S : Session_Access;
    end record;
 
-   procedure Run (R : access Session_Runnable);
+   procedure Run (R : not null access Session_Runnable);
 
    procedure Initialize;
 
@@ -269,8 +269,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Run --
    ---------
 
-   procedure Run (R : access Session_Runnable)
-   is
+   procedure Run (R : not null access Session_Runnable) is
       Sem : Semaphore_Access     := null;
       L   : Request_Queue_Access := null;
       N   : Notepad_Access       := null;

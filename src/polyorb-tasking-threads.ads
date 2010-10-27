@@ -60,7 +60,7 @@ package PolyORB.Tasking.Threads is
    --------------
 
    type Runnable is abstract tagged limited null record;
-   procedure Run (R : access Runnable) is abstract;
+   procedure Run (R : not null access Runnable) is abstract;
    --  Runnable is a type for elementary work units.
 
    type Runnable_Access is access all Runnable'Class;

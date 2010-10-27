@@ -43,13 +43,13 @@ package body PolyORB.Servants is
       Aborted  : Boolean := True;
    end record;
 
-   procedure Run (RR : access Req_Runnable);
+   procedure Run (RR : not null access Req_Runnable);
 
    ---------
    -- Run --
    ---------
 
-   procedure Run (RR : access Req_Runnable) is
+   procedure Run (RR : not null access Req_Runnable) is
    begin
       RR.Req.Completed := Execute_Servant (RR.Servant, RR.Req);
       RR.Aborted := False;

@@ -52,7 +52,7 @@ package body PolyORB.Lanes is
    -- Run --
    ---------
 
-   procedure Run (R : access Lane_Runnable) is
+   procedure Run (R : not null access Lane_Runnable) is
    begin
       pragma Debug (C, O ("Entering lane's main loop"));
 

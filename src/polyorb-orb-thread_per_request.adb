@@ -67,7 +67,7 @@ package body PolyORB.ORB.Thread_Per_Request is
       A_Job : Jobs.Job_Access;
    end record;
 
-   procedure Run (R : access Request_Runnable);
+   procedure Run (R : not null access Request_Runnable);
 
    procedure Initialize;
 
@@ -181,7 +181,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Run --
    ---------
 
-   procedure Run (R : access Request_Runnable) is
+   procedure Run (R : not null access Request_Runnable) is
    begin
 
       --  Running Job

@@ -110,7 +110,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end record;
    --  Simplified runnable for parameterless procedure
 
-   procedure Run (SR : access Simple_Runnable);
+   procedure Run (SR : not null access Simple_Runnable);
 
    task Reaper is
       entry Free (GT : Generic_Task_Access);
@@ -183,7 +183,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Run --
    ---------
 
-   procedure Run (SR : access Simple_Runnable)
+   procedure Run (SR : not null access Simple_Runnable)
    is
       use type PTT.Parameterless_Procedure;
    begin

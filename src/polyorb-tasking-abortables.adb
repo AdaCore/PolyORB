@@ -42,7 +42,7 @@ package body PolyORB.Tasking.Abortables is
    -- Abort_Run --
    ---------------
 
-   procedure Abort_Run (AR : access Abortable) is
+   procedure Abort_Run (AR : not null access Abortable) is
    begin
       --  By default abortion is not supported and this opeartion has no effect
       null;
@@ -91,7 +91,7 @@ package body PolyORB.Tasking.Abortables is
    -- Run --
    ---------
 
-   procedure Run (AR : access Abortable) is
+   procedure Run (AR : not null access Abortable) is
    begin
       PTT.Run (AR.R);
    end Run;

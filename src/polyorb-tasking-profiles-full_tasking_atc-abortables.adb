@@ -84,8 +84,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
       P : Abortable_PO;
    end record;
 
-   overriding procedure Run (AR : access ATC_Abortable);
-   overriding procedure Abort_Run (AR : access ATC_Abortable);
+   overriding procedure Run (AR : not null access ATC_Abortable);
+   overriding procedure Abort_Run (AR : not null access ATC_Abortable);
    overriding function Create
                 (R : not null access PTT.Runnable'Class) return ATC_Abortable;
 
@@ -93,7 +93,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
    -- Run --
    ---------
 
-   procedure Run (AR : access ATC_Abortable) is
+   procedure Run (AR : not null access ATC_Abortable) is
    begin
       select
          AR.P.Wait;
@@ -106,7 +106,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
    -- Abort_Run --
    ---------------
 
-   procedure Abort_Run (AR : access ATC_Abortable) is
+   procedure Abort_Run (AR : not null access ATC_Abortable) is
    begin
       AR.P.Signal;
    end Abort_Run;
