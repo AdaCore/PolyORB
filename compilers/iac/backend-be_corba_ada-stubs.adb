@@ -628,8 +628,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Container       : constant Node_Id := Scope_Entity (Identifier (E));
 
          function Map_Parameter_Type_Designator
-           (Entity : Node_Id)
-           return Node_Id;
+           (Entity : Node_Id) return Node_Id;
          --  Maps Ada type from the entity type specifier
 
          -----------------------------------
@@ -650,6 +649,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             return Result;
          end Map_Parameter_Type_Designator;
+
+      --  Start of processing for Visit_Operation_Declaration
 
       begin
          Profile := New_List;
