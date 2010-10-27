@@ -41,7 +41,9 @@ with PolyORB.Tasking.Threads;
 
 package PolyORB.Tasking.Abortables is
 
-   pragma Preelaborate;
+   --  pragma Preelaborate;
+   --  WAG:64
+   --  pragma Preelaborate_05 in Ada.Tags is not always obeyed
 
    package PTT renames PolyORB.Tasking.Threads;
 
@@ -52,14 +54,14 @@ package PolyORB.Tasking.Abortables is
    --  A Runnable that can be asynchronously aborted (if supported by the
    --  underlying tasking profile).
 
-   type Abortable (R : access PTT.Runnable'Class) is
+   type Abortable (R : not null access PTT.Runnable'Class) is
      new PTT.Runnable with null record;
    function Create (R : not null access PTT.Runnable'Class) return Abortable;
 
-   procedure Run (AR : access Abortable);
+   procedure Run (AR : not null access Abortable);
    --  Runs R, but abort if Abort_Run is called
 
-   procedure Abort_Run (AR : access Abortable);
+   procedure Abort_Run (AR : not null access Abortable);
    --  Abort current call to Run
 
    -----------------------
