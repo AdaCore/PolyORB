@@ -106,7 +106,7 @@ polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server
 polyorb-rtcorba_p-setup.ads: $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads
 	cp -f $< .
 
-polyorb-setup-tasking-ravenscar.ads: $(top_srcdir)/src/polyorb-setup-tasking-ravenscar.ads
+polyorb-setup-tasking-ravenscar.ads: $(top_srcdir)/src/setup/polyorb-setup-tasking-ravenscar.ads
 	cp -f $< .
 
 echo.idl: $(top_srcdir)/examples/corba/echo/echo.idl
