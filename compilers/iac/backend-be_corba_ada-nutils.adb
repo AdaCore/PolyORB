@@ -415,6 +415,20 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Last_Node (L, Last);
    end Append_To;
 
+   ----------------
+   -- Prepend_To --
+   ----------------
+
+   procedure Prepend_To (L : List_Id; E : Node_Id) is
+   begin
+      pragma Assert (No (Next_Node (E)));
+      Set_Next_Node (E, First_Node (L));
+      Set_First_Node (L, E);
+      if No (Last_Node (L)) then
+         Set_Last_Node (L, E);
+      end if;
+   end Prepend_To;
+
    -------------
    -- Convert --
    -------------
@@ -744,8 +758,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       D := Make_Selected_Component
-        (Expand_Designator (P, False),
-         Get_Base_Identifier (D));
+        (Expand_Designator (P, False), Get_Base_Identifier (D));
       P := Get_Parent_Unit_Name (D);
 
       --  Adding the with clause

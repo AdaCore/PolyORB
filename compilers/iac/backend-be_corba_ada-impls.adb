@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -96,6 +96,12 @@ package body Backend.BE_CORBA_Ada.Impls is
          D       : Node_Id;
          L       : List_Id;
          P       : Node_Id;
+
+         Elaborate_Body_Required : Boolean := True;
+         --  Set False as soon as an operation or attribute is encountered.
+         --  If True after processing all declarations, need to generate a
+         --  pragma Elaborate_Body for this impl.
+
       begin
          --  No Impl package is generated for an abstract interface
 
@@ -120,15 +126,13 @@ package body Backend.BE_CORBA_Ada.Impls is
             if No (P) then
                P := Expand_Designator
                  (Impl_Node
-                  (BE_Node
-                   (Identifier
-                    (Reference
-                     (First_Entity
-                      (L))))));
+                  (BE_Node (Identifier (Reference (First_Entity (L))))));
             end if;
          end if;
 
          --  The Object (or LocalObject) type
+         --  Always declaring Object, never LocalObject???
+         --  Note that Skel code relies on this being the case???
 
          I := Make_Defining_Identifier (TN (T_Object));
          N := Make_Full_Type_Declaration
@@ -161,13 +165,27 @@ package body Backend.BE_CORBA_Ada.Impls is
             (Subtype_Indication    => P,
              Record_Extension_Part =>
                Make_Record_Definition
-             (New_List (N, New_Node (K_Null_Statement)))));
+                 (New_List (N, New_Node (K_Null_Statement)))));
          Append_To (Private_Part (Current_Package), N);
+
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
+            if FEN.Kind (N) = K_Operation_Declaration
+                 or else
+               FEN.Kind (N) = K_Attribute_Declaration
+            then
+               Elaborate_Body_Required := False;
+            end if;
             N := Next_Entity (N);
          end loop;
+
+         --  Add a pragma Elaborate_Body if needed
+
+         if Elaborate_Body_Required then
+            Prepend_To (Visible_Part (Current_Package),
+                        Make_Pragma (Pragma_Elaborate_Body));
+         end if;
 
          --  In case of multiple inheritance, generate the mappings
          --  for the operations and attributes of the parents except

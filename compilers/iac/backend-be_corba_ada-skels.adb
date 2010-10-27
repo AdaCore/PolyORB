@@ -98,11 +98,11 @@ package body Backend.BE_CORBA_Ada.Skels is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         --  No Skel package is generated for an abstract or a local
-         --  interface.
+         --  No Skel package is generated for an abstract or local interface
 
-         if FEN.Is_Abstract_Interface (E) or else
-           FEN.Is_Local_Interface (E)
+         if FEN.Is_Abstract_Interface (E)
+              or else
+            FEN.Is_Local_Interface (E)
          then
             return;
          end if;
@@ -111,8 +111,15 @@ package body Backend.BE_CORBA_Ada.Skels is
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Skeleton_Spec;
 
-         N := Make_Pragma (Pragma_Elaborate_Body);
-         Append_To (Visible_Part (Current_Package), N);
+         --  Generate declaration of Deferred_Initialization so that a package
+         --  body is required. We do not use a pragma Elaborate_Body here
+         --  because we need to support having one in the Impl (in the case
+         --  of an interface with no operations).
+
+         Append_To (Visible_Part (Current_Package),
+           Make_Subprogram_Specification
+             (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+              No_List));
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -477,17 +484,19 @@ package body Backend.BE_CORBA_Ada.Skels is
             return Result;
          end Exception_Handler_Alternative;
 
-         --  Start of processing for Gen_Invoke_Part
+      --  Start of processing for Gen_Invoke_Part
 
       begin
          --  The first argument in the implementation call is an
          --  access to the object implementation. We create here this
          --  access and append it to the actual profile of the
-         --  implementtation call.
+         --  implementation call.
 
          N := Implementation_Package (Current_Entity);
-         N := First_Node (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
+         N := Make_Selected_Component
+                (Prefix        => N,
+                 Selector_Name => Make_Identifier (TN (T_Object)));
          N := Make_Attribute_Reference (N, A_Class);
          C := Make_Explicit_Dereference (Make_Identifier (PN (P_Self)));
          N := Make_Type_Conversion (N, C);
@@ -1990,9 +1999,10 @@ package body Backend.BE_CORBA_Ada.Skels is
          N          : Node_Id;
       begin
          N := Implementation_Package (Current_Entity);
-         N := First_Node
-           (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
+         N := Make_Selected_Component
+                (Prefix        => N,
+                 Selector_Name => Make_Identifier (TN (T_Object)));
          N := Make_Attribute_Reference (N, A_Class);
          N := Make_Expression
            (Make_Explicit_Dereference (Make_Defining_Identifier (PN (P_Obj))),
@@ -2585,19 +2595,22 @@ package body Backend.BE_CORBA_Ada.Skels is
       --  Start of processing for Visit_Interface_Declaration
 
       begin
-         --  No Skel package is generated for an abstract or a local
-         --  interface.
+         --  No Skel package is generated for an abstract or local interface
 
          if FEN.Is_Abstract_Interface (E)
-           or else FEN.Is_Local_Interface (E)
+              or else
+            FEN.Is_Local_Interface (E)
          then
             return;
          end if;
 
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
-
          Set_Skeleton_Body;
+
+         Add_With_Package
+           (Expand_Designator (Implementation_Package (Current_Entity),
+            Add_With_Clause => False));
 
          Invoke_Then_Statements := New_List;
          Invoke_Methods         := New_List;

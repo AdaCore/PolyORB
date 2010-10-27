@@ -515,6 +515,9 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  the list structure will get garbled. ???Perhaps we should distinguish
    --  appending a node from appending a list.
 
+   procedure Prepend_To (L : List_Id; E : Node_Id);
+   --  Prepend node E (which must not be on a list) at the head of L
+
    function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
    --  If K is an IDL base type, returns the corresponding CORBA type
    --  (according to the mapping specifications. Otherwise, raises
@@ -619,10 +622,8 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    function Expand_Designator
      (N               : Node_Id;
-      Add_With_Clause : Boolean := True)
-     return Node_Id;
-   --  This function creates a new designator from the node N which
-   --  may be:
+      Add_With_Clause : Boolean := True) return Node_Id;
+   --  This function creates a new designator from the node N which may be:
 
    --  * a type declaration
    --  * a subprogram specification
@@ -637,6 +638,8 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  handling a forward interface declaration.
 
    --  * the "Parent" field of N in all other cases.
+
+   --  Formal parameter Add_With_Clause is completely undocumented???
 
    ---------------------------------
    -- Ada Tree Building Functions --
