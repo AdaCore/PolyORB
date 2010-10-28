@@ -123,7 +123,7 @@ package body Test000_Common is
    --  Simple generic Runnable, that use a access to procedure
    --  for its main procedure
 
-   procedure Run (R : access Generic_Run);
+   procedure Run (R : not null access Generic_Run);
    --  Call to R.P.all
 
    Ok             : Boolean := True;
@@ -218,7 +218,7 @@ package body Test000_Common is
       P  : Identified_Runnable_Main_Procedure;
    end record;
 
-   procedure Run (R : access Identified_Runnable);
+   procedure Run (R : not null access Identified_Runnable);
 
    type Id_Runnable_Arr is array (Task_Index) of Runnable_Access;
    Id_R  : Id_Runnable_Arr;
@@ -299,12 +299,12 @@ package body Test000_Common is
    -- Run --
    ---------
 
-   procedure Run (R : access Generic_Run) is
+   procedure Run (R : not null access Generic_Run) is
    begin
       R.P.all;
    end Run;
 
-   procedure Run (R : access Identified_Runnable) is
+   procedure Run (R : not null access Identified_Runnable) is
    begin
       R.P.all (R.Id);
    end Run;
