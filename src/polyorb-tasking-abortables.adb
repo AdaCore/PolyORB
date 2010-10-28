@@ -31,12 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Tags.Generic_Dispatching_Constructor;
-
 package body PolyORB.Tasking.Abortables is
 
-   Abortable_Tag : Ada.Tags.Tag := Abortable'Tag;
-   Initialized   : Boolean      := False;
+   Initialized : Boolean      := False;
 
    ---------------
    -- Abort_Run --
@@ -56,22 +53,6 @@ package body PolyORB.Tasking.Abortables is
    begin
       return Abortable'(R => PTT.Runnable_Access (R));
    end Create;
-
-   --------------------
-   -- Make_Abortable --
-   --------------------
-
-   function Make_Abortable
-     (R : access PTT.Runnable'Class) return Abortable'Class
-   is
-      function Create is
-        new Ada.Tags.Generic_Dispatching_Constructor
-              (T           => Abortable,
-               Parameters  => PTT.Runnable'Class,
-               Constructor => Create);
-   begin
-      return Create (Abortable_Tag, R);
-   end Make_Abortable;
 
    ----------------------------
    -- Register_Abortable_Tag --

@@ -35,7 +35,7 @@
 
 pragma Ada_2005;
 
-with Ada.Tags;
+with Ada.Tags.Generic_Dispatching_Constructor;
 
 with PolyORB.Tasking.Threads;
 
@@ -68,8 +68,20 @@ package PolyORB.Tasking.Abortables is
    -- Abortable factory --
    -----------------------
 
+   Abortable_Tag : Ada.Tags.Tag := Abortable'Tag;
    procedure Register_Abortable_Tag (T : Ada.Tags.Tag);
-   function Make_Abortable
-     (R : access PTT.Runnable'Class) return Abortable'Class;
+
+   function Make_Abortable is
+     new Ada.Tags.Generic_Dispatching_Constructor
+       (T           => Abortable,
+        Parameters  => PTT.Runnable'Class,
+        Constructor => Create);
+
+   --  WAG:64
+   --  Ideally, variable Abortable_Tag should be hidden in the body of this
+   --  package, and the instantiation and call to the generic dispatching
+   --  constructor hidden in a subprogram. However in GNAT 6.4 a bug causes
+   --  this architecture to cause an unwanted early finalization of the
+   --  returned Abortable.
 
 end PolyORB.Tasking.Abortables;

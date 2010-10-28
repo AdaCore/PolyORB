@@ -69,7 +69,8 @@ package body PolyORB.Servants is
 
       pragma Warnings (Off); --  WAG:FSF-4.5.0
       --  Hide warning "A is not referenced"
-      A : aliased Abortable'Class := Make_Abortable (R'Unchecked_Access);
+      A : aliased Abortable'Class :=
+            Make_Abortable (Abortable_Tag, R'Unchecked_Access);
       pragma Warnings (On);
 
    begin
