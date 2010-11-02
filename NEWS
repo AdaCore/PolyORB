@@ -41,6 +41,10 @@ See the features-28 file.
 Bug fixes
 ---------
 
+Implementation template package specs for empty interfaces lacked a pragma
+Elaborate_Body to make their body legal (the body is necessary to drag the
+Skel into the closure). (JA27-008)
+
 * PolyORB 2.7 (branched on 2010-10-01)
 ======================================
 
