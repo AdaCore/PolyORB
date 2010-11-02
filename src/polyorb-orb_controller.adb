@@ -49,12 +49,23 @@ package body PolyORB.ORB_Controller is
      (O : access ORB_Controller; TI : PTI.Task_Info_Access)
    is
    begin
-      --  If terminating an idle task, notify ourselves
+      --  If terminating an idle or blocked task, notify ourselves
 
-      if State (TI.all) = Idle then
-         Notify_Event (ORB_Controller'Class (O.all)'Access,
-           Event'(Kind => Idle_Awake, Awakened_Task => TI));
-      end if;
+      case State (TI.all) is
+         when Idle =>
+            Notify_Event
+              (ORB_Controller'Class (O.all)'Access,
+               Event'(Kind => Idle_Awake, Awakened_Task => TI));
+
+         when Blocked =>
+            Notify_Event
+              (ORB_Controller'Class (O.all)'Access,
+               Event'(Kind       => End_Of_Check_Sources,
+                      On_Monitor => Selector (TI.all)));
+
+         when others =>
+            null;
+      end case;
 
       Set_State_Terminated (O.Summary, TI.all);
    end Terminate_Task;
