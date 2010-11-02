@@ -4224,14 +4224,10 @@ different executables. To avoid naming conflicts between Ada and the
 configuration language, all the Ada keywords have been reserved even if
 they are not used in the configuration language.
 
-There are three new keywords:
-
+In addition, the following keywords are defined:
 @itemize @bullet
-
 @item @i{configuration} to encapsulate a configuration
-
-@item @i{Partition} that is a predefined type to declare partitions
-
+@item @i{partition} that is a predefined type to declare partitions
 @end itemize
 
 @node Pragmas and Representation Clauses, Configuration Declaration, Language Keywords, The Configuration Language
