@@ -907,10 +907,11 @@ You can add specific build options to GNAT using the
 You can also pass compiler-only flags using the @code{ADAFLAGS} variable.
 
 NOTE: Developers building PolyORB from the version control repository
-will need to rebuild the configure script and other files. To do so, run
-the support/reconfig script after each update from the repository. In
-addition to the requirements above, developers will need autoconf 2.57
-or newer, automake 1.6.3 or newer, and libtool 1.5.8 or newer.
+will need to rebuild the configure script and other files. To do so, from
+the top-level source directory, run the support/reconfig script after each
+update from the repository. In addition to the requirements above, developers
+will need autoconf 2.57 or newer, automake 1.6.3 or newer, and libtool 1.5.8
+or newer.
 
 @c -------------------------------------------------------------------
 @node Platform notes
