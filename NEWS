@@ -41,6 +41,10 @@ See the features-27 file.
 Bug fixes
 ---------
 
+Boolean values in composite user data might in some rare cases be incorrectly
+handled, causing the wrong value to be transmitted, or an application crash.
+(JB04-017)
+
 A range check would fail in PolyORB.CORBA_P.Naming_Tools.Locate for names
 less than four characters in length. (JA26-018)
 

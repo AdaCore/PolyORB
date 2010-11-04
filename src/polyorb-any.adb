@@ -200,9 +200,9 @@ package body PolyORB.Any is
       -- Wrap --
       ----------
 
-      function Wrap (X : access T) return Content'Class is
+      function Wrap (X : not null access T) return Content'Class is
       begin
-         return T_Content'(V => T_Ptr (X));
+         return T_Content'(V => X.all'Unchecked_Access);
       end Wrap;
 
    end Elementary_Any;
@@ -2391,54 +2391,66 @@ package body PolyORB.Any is
    -- Wrap --
    ----------
 
-   function Wrap (X : access Types.Octet) return Content'Class
-                    renames Elementary_Any_Octet.Wrap;
-   function Wrap (X : access Types.Short) return Content'Class
-                    renames Elementary_Any_Short.Wrap;
-   function Wrap (X : access Types.Long) return Content'Class
-                    renames Elementary_Any_Long.Wrap;
-   function Wrap (X : access Types.Long_Long) return Content'Class
-                    renames Elementary_Any_Long_Long.Wrap;
-   function Wrap (X : access Types.Unsigned_Short) return Content'Class
-                    renames Elementary_Any_UShort.Wrap;
-   function Wrap (X : access Types.Unsigned_Long) return Content'Class
-                    renames Elementary_Any_ULong.Wrap;
-   function Wrap (X : access Types.Unsigned_Long_Long) return Content'Class
-                    renames Elementary_Any_ULong_Long.Wrap;
-   function Wrap (X : access Types.Boolean) return Content'Class
-                    renames Elementary_Any_Boolean.Wrap;
-   function Wrap (X : access Types.Char) return Content'Class
-                    renames Elementary_Any_Char.Wrap;
-   function Wrap (X : access Types.Wchar) return Content'Class
-                    renames Elementary_Any_Wchar.Wrap;
-   function Wrap (X : access Types.Float) return Content'Class
-                    renames Elementary_Any_Float.Wrap;
-   function Wrap (X : access Types.Double) return Content'Class
-                    renames Elementary_Any_Double.Wrap;
-   function Wrap (X : access Types.Long_Double) return Content'Class
-                    renames Elementary_Any_Long_Double.Wrap;
-   function Wrap (X : access Types.String) return Content'Class
-                    renames Elementary_Any_String.Wrap;
-   function Wrap (X : access Types.Wide_String) return Content'Class
-                    renames Elementary_Any_Wide_String.Wrap;
+   function Wrap
+     (X : not null access Types.Octet) return Content'Class
+     renames Elementary_Any_Octet.Wrap;
+   function Wrap
+     (X : not null access Types.Short) return Content'Class
+     renames Elementary_Any_Short.Wrap;
+   function Wrap
+     (X : not null access Types.Long) return Content'Class
+     renames Elementary_Any_Long.Wrap;
+   function Wrap
+     (X : not null access Types.Long_Long) return Content'Class
+     renames Elementary_Any_Long_Long.Wrap;
+   function Wrap
+     (X : not null access Types.Unsigned_Short) return Content'Class
+     renames Elementary_Any_UShort.Wrap;
+   function Wrap
+     (X : not null access Types.Unsigned_Long) return Content'Class
+     renames Elementary_Any_ULong.Wrap;
+   function Wrap
+     (X : not null access Types.Unsigned_Long_Long) return Content'Class
+     renames Elementary_Any_ULong_Long.Wrap;
+   function Wrap
+     (X : not null access Types.Boolean) return Content'Class
+     renames Elementary_Any_Boolean.Wrap;
+   function Wrap
+     (X : not null access Types.Char) return Content'Class
+     renames Elementary_Any_Char.Wrap;
+   function Wrap
+     (X : not null access Types.Wchar) return Content'Class
+     renames Elementary_Any_Wchar.Wrap;
+   function Wrap
+     (X : not null access Types.Float) return Content'Class
+     renames Elementary_Any_Float.Wrap;
+   function Wrap
+     (X : not null access Types.Double) return Content'Class
+     renames Elementary_Any_Double.Wrap;
+   function Wrap
+     (X : not null access Types.Long_Double) return Content'Class
+     renames Elementary_Any_Long_Double.Wrap;
+   function Wrap
+     (X : not null access Types.String) return Content'Class
+     renames Elementary_Any_String.Wrap;
+   function Wrap
+     (X : not null access Types.Wide_String) return Content'Class
+     renames Elementary_Any_Wide_String.Wrap;
 
-   --  For compatibility with Ada 2005, we cannot use a renaming-as-body
-   --  here, as the formal of the renamed subprogram would have to be
-   --  explicitly null-excluding, which would make it illegal in Ada 95.
+   function Wrap (X : not null access Any) return Content'Class
+     renames Elementary_Any_Any.Wrap;
 
-   function Wrap (X : access Any) return Content'Class is
-   begin
-      return Elementary_Any_Any.Wrap (X);
-   end Wrap;
+   function Wrap (X : not null access TypeCode.Local_Ref) return Content'Class
+     renames Elementary_Any_TypeCode.Wrap;
 
-   function Wrap (X : access TypeCode.Local_Ref) return Content'Class
-                    renames Elementary_Any_TypeCode.Wrap;
-   function Wrap (X : access Ada.Strings.Superbounded.Super_String)
-                    return Content'Class
-                    renames Elementary_Any_Bounded_String.Wrap;
-   function Wrap (X : access Ada.Strings.Wide_Superbounded.Super_String)
-                    return Content'Class
-                    renames Elementary_Any_Bounded_Wide_String.Wrap;
+   function Wrap
+     (X : not null access Ada.Strings.Superbounded.Super_String)
+      return Content'Class
+     renames Elementary_Any_Bounded_String.Wrap;
+   function Wrap
+     (X : not null access Ada.Strings.Wide_Superbounded.Super_String)
+      return Content'Class
+     renames Elementary_Any_Bounded_Wide_String.Wrap;
 
    --------------
    -- TypeCode --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ package PolyORB.Any.ObjRef is
    procedure Set_Any_Value
      (X : References.Ref; C : in out Any_Container'Class);
    function To_Any (X : References.Ref) return Any;
-   function Wrap (X : access References.Ref) return Content'Class;
+   function Wrap (X : not null access References.Ref) return Content'Class;
 
    function From_Any (A : Any) return References.Ref;
    function From_Any (C : Any_Container'Class) return References.Ref;

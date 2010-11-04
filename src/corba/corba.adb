@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1098,97 +1098,85 @@ package body CORBA is
    -- Wrap --
    ----------
 
-   function Wrap (X : access Short)              return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Short (X.all)'Unrestricted_Access);
-   end Wrap;
+   --  Generic wrapper around PolyORB neutral Wrap functions, performing
+   --  conversion from access to CORBA type to access to neutral type.
 
-   function Wrap (X : access Long)               return Content'Class is
-   begin
-      return PolyORB.Any.Wrap (PolyORB.Types.Long (X.all)'Unrestricted_Access);
-   end Wrap;
+   generic
+      type CT is private;
+      type PT is private;
+      with function Wrap
+        (X : not null access PT) return PolyORB.Any.Content'Class is <>;
+   function WG (CX : not null access CT) return Content'Class;
 
-   function Wrap (X : access Long_Long)          return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Long_Long (X.all)'Unrestricted_Access);
-   end Wrap;
+   --------
+   -- WG --
+   --------
 
-   function Wrap (X : access Unsigned_Short)     return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Unsigned_Short (X.all)'Unrestricted_Access);
-   end Wrap;
+   function WG (CX : not null access CT) return Content'Class is
+      PX : access PT;
+      --  WAG:64
+      --  Should be "not null access PT" but the compiler currently rejects
+      --  a null excluding access object without initialization, even though
+      --  the object is imported.
 
-   function Wrap (X : access Unsigned_Long)      return Content'Class is
+      for PX'Address use CX'Address;
+      pragma Import (Ada, PX);
    begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Unsigned_Long (X.all)'Unrestricted_Access);
-   end Wrap;
+      return Wrap (PX);
+   end WG;
 
-   function Wrap (X : access Unsigned_Long_Long) return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Unsigned_Long_Long (X.all)'Unrestricted_Access);
-   end Wrap;
+   package PT renames PolyORB.Types;
+   use PolyORB.Any;
 
-   function Wrap (X : access CORBA.Float)        return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Float (X.all)'Unrestricted_Access);
-   end Wrap;
+   function W is new WG (CT => Short, PT => PT.Short);
+   function Wrap (X : not null access Short) return Content'Class renames W;
+   function W is new WG (CT => Long, PT => PT.Long);
+   function Wrap (X : not null access Long) return Content'Class renames W;
+   function W is new WG (CT => Long_Long, PT => PT.Long_Long);
+   function Wrap
+     (X : not null access Long_Long) return Content'Class renames W;
 
-   function Wrap (X : access Double)             return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Double (X.all)'Unrestricted_Access);
-   end Wrap;
+   function W is new WG (CT => Unsigned_Short, PT => PT.Unsigned_Short);
+   function Wrap
+     (X : not null access Unsigned_Short) return Content'Class renames W;
+   function W is new WG (CT => Unsigned_Long, PT => PT.Unsigned_Long);
+   function Wrap
+     (X : not null access Unsigned_Long) return Content'Class renames W;
+   function W is new WG
+     (CT => Unsigned_Long_Long, PT => PT.Unsigned_Long_Long);
+   function Wrap (X : not null access Unsigned_Long_Long) return Content'Class
+     renames W;
 
-   function Wrap (X : access Long_Double)        return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Long_Double (X.all)'Unrestricted_Access);
-   end Wrap;
+   function W is new WG (CT => Float, PT => PT.Float);
+   function Wrap (X : not null access Float) return Content'Class renames W;
+   function W is new WG (CT => Double, PT => PT.Double);
+   function Wrap (X : not null access Double) return Content'Class renames W;
+   function W is new WG (CT => Long_Double, PT => PT.Long_Double);
+   function Wrap
+     (X : not null access Long_Double) return Content'Class renames W;
 
-   function Wrap (X : access Boolean)            return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Boolean (X.all)'Unrestricted_Access);
-   end Wrap;
+   --  Boolean, Char and Wchar are subtypes, not derived types: no need for
+   --  conversion.
 
-   function Wrap (X : access Char)               return Content'Class is
-   begin
-      return PolyORB.Any.Wrap (PolyORB.Types.Char (X.all)'Unrestricted_Access);
-   end Wrap;
+   function Wrap (X : not null access Boolean) return Content'Class
+     renames PolyORB.Any.Wrap;
+   function Wrap (X : not null access Char) return Content'Class
+     renames PolyORB.Any.Wrap;
+   function Wrap (X : not null access Wchar) return Content'Class
+     renames PolyORB.Any.Wrap;
 
-   function Wrap (X : access Wchar)              return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Wchar (X.all)'Unrestricted_Access);
-   end Wrap;
+   function W is new WG (CT => Octet, PT => PT.Octet);
+   function Wrap (X : not null access Octet) return Content'Class renames W;
 
-   function Wrap (X : access Octet)              return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Octet (X.all)'Unrestricted_Access);
-   end Wrap;
+   function W is new WG (CT => CORBA.String, PT => PT.String);
+   function Wrap (X : not null access String) return Content'Class renames W;
+   function W is new WG (CT => CORBA.Wide_String, PT => PT.Wide_String);
+   function Wrap
+     (X : not null access Wide_String) return Content'Class renames W;
 
-   function Wrap (X : access TypeCode.Object) return Content'Class is
+   function Wrap (X : not null access TypeCode.Object) return Content'Class is
    begin
       return TypeCode.Internals.Wrap (X);
-   end Wrap;
-
-   function Wrap (X : access CORBA.String)       return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.String (X.all)'Unrestricted_Access);
-   end Wrap;
-
-   function Wrap (X : access CORBA.Wide_String)  return Content'Class is
-   begin
-      return PolyORB.Any.Wrap
-        (PolyORB.Types.Wide_String (X.all)'Unrestricted_Access);
    end Wrap;
 
    --------------
@@ -1884,7 +1872,7 @@ package body CORBA is
          -- Wrap --
          ----------
 
-         function Wrap (X : access Object) return Content'Class is
+         function Wrap (X : not null access Object) return Content'Class is
          begin
             return PolyORB.Any.Wrap
               (PolyORB.Any.TypeCode.Local_Ref (X.all)'Unrestricted_Access);
