@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -366,9 +366,17 @@ package body PolyORB.Sequences.Unbounded is
 
    procedure Finalize (X : in out Sequence) is
    begin
+      --  Note: X.Content'Length is the allocated length of the sequence, can
+      --  be greater than X.Length (the current length). If X.Content'Length
+      --  is 0, we know that X.Content is Empty, not an access to a dynamically
+      --  allocated array.
+
       if X.Content'Length > 0 then
          Free (X.Content);
       end if;
+
+      X.Length  := 0;
+      X.Content := Empty;
    end Finalize;
 
    -----------------
