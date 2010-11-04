@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,7 +57,7 @@ package body PolyORB.Any.ObjRef is
    -- Wrap --
    ----------
 
-   function Wrap (X : access References.Ref) return Content'Class
-                  renames Elementary_Any_Ref.Wrap;
+   function Wrap (X : not null access References.Ref) return Content'Class
+     renames Elementary_Any_Ref.Wrap;
 
 end PolyORB.Any.ObjRef;
