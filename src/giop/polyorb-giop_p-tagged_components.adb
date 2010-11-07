@@ -268,8 +268,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ---------------------------------
 
    function Unmarshall_Tagged_Component
-     (Buffer : access Buffer_Type)
-     return Tagged_Component_List
+     (Buffer : access Buffer_Type) return Tagged_Component_List
    is
       Components : Tagged_Component_List := Null_Tagged_Component_List;
       Length     : Types.Unsigned_Long;
@@ -283,8 +282,8 @@ package body PolyORB.GIOP_P.Tagged_Components is
          declare
             use PolyORB.Errors;
 
-            TC : Tagged_Component_Access;
-            Tag : Tag_Value;
+            TC    : Tagged_Component_Access;
+            Tag   : Tag_Value;
             Error : Error_Container;
          begin
             Tag := Tag_Value (Types.Unsigned_Long'(Unmarshall (Buffer)));
@@ -342,8 +341,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    function Get_Component
      (List : Tagged_Component_List;
-      Tag  : Tag_Value)
-     return Tagged_Component_Access
+      Tag  : Tag_Value) return Tagged_Component_Access
    is
       use type PolyORB.Types.Unsigned_Long;
 
@@ -371,8 +369,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    function Get_Components
      (List : Tagged_Component_List;
-      Tag  : Tag_Value)
-     return Tagged_Component_Array
+      Tag  : Tag_Value) return Tagged_Component_Array
    is
       It     : Iterator := First (List);
       Result : Tagged_Component_Array (1 .. Length (List));
@@ -400,8 +397,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ----------------------
 
    function Fetch_Components
-     (Oid : access PolyORB.Objects.Object_Id)
-     return Tagged_Component_List
+     (Oid : access PolyORB.Objects.Object_Id) return Tagged_Component_List
    is
       Result : Tagged_Component_List;
       New_Component : Tagged_Component_Access;
@@ -463,8 +459,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ---------------
 
    function Deep_Copy
-     (List : Tagged_Component_List)
-     return Tagged_Component_List
+     (List : Tagged_Component_List) return Tagged_Component_List
    is
       Result : Tagged_Component_List;
       Iter : Iterator := First (List);

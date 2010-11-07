@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Binding data concrete implementation for MIOP.
+--  Binding data concrete implementation for MIOP
 
 with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.GIOP_P.Tagged_Components;
@@ -85,8 +85,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    ---------------------
 
    function Get_Profile_Tag
-     (Profile : UIPMC_Profile_Type)
-     return Profile_Tag
+     (Profile : UIPMC_Profile_Type) return Profile_Tag
    is
       pragma Unreferenced (Profile);
 
@@ -99,8 +98,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    ----------------------------
 
    function Get_Profile_Preference
-     (Profile : UIPMC_Profile_Type)
-     return Profile_Preference
+     (Profile : UIPMC_Profile_Type) return Profile_Preference
    is
       pragma Unreferenced (Profile);
 
@@ -133,8 +131,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
    function Create_Profile
      (PF  : access UIPMC_Profile_Factory;
-      Oid :        Objects.Object_Id)
-     return Profile_Access
+      Oid :        Objects.Object_Id) return Profile_Access
    is
       use PolyORB.Errors;
       use PolyORB.GIOP_P.Tagged_Components;
@@ -209,8 +206,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -----------------------
 
    function Duplicate_Profile (P : UIPMC_Profile_Type) return Profile_Access is
-      Result : constant Profile_Access := new UIPMC_Profile_Type;
-
+      Result  : constant Profile_Access := new UIPMC_Profile_Type;
       TResult : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
 
    begin
@@ -308,11 +304,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       use PolyORB.Sockets;
       use PolyORB.Utils;
 
-      UIPMC_Profile : UIPMC_Profile_Type
-        renames UIPMC_Profile_Type (P.all);
+      UIPMC_Profile : UIPMC_Profile_Type renames UIPMC_Profile_Type (P.all);
 
-      TC_G_I : constant Tagged_Component_Access
-        := Get_Component (UIPMC_Profile.Components, Tag_Group);
+      TC_G_I : constant Tagged_Component_Access :=
+                 Get_Component (UIPMC_Profile.Components, Tag_Group);
 
    begin
       pragma Debug (C, O ("UIPMC Profile to corbaloc"));
@@ -362,9 +357,9 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       Host_First, Host_Last : Natural;
       Port : Sockets.Port_Type;
 
-      S       : String renames Str;
-      Index   : Integer := S'First;
-      Index2  : Integer;
+      S        : String renames Str;
+      Index    : Integer := S'First;
+      Index2   : Integer;
       Temp_Ref : TC_Group_Info_Access;
    begin
       pragma Debug (C, O ("UIPMC corbaloc to profile: enter"));
