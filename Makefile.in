@@ -59,12 +59,17 @@ MAKEFLAGS := --no-builtin-rules \
 top_srcdir	:= @abs_top_srcdir@
 top_builddir	:= @abs_top_builddir@
 
-MOVEIFCHANGE	:= ${top_builddir}/support/move-if-change
-RM		:= @RM@
-XARGS_I		:= @XARGS_I@
-INSTALL		:= @INSTALL@
-LN_S		:= @LN_S@
-SHELL           := @SHELL@
+install_sh		:= @install_sh@
+MOVEIFCHANGE		:= ${top_builddir}/support/move-if-change
+RM			:= @RM@
+XARGS_I			:= @XARGS_I@
+INSTALL			:= @INSTALL@
+INSTALL_SCRIPT		:= @INSTALL_SCRIPT@
+INSTALL_PROGRAM		:= @INSTALL_PROGRAM@
+INSTALL_STRIP_PROGRAM	:= @INSTALL_STRIP_PROGRAM@
+INSTALL_BIN		:= @INSTALL_BIN@
+LN_S			:= @LN_S@
+SHELL			:= @SHELL@
 
 TOOL_EXE_SUFFIX		:= @TOOL_EXE_SUFFIX@
 COMPILER_EXE_SUFFIX	:= @COMPILER_EXE_SUFFIX@
@@ -97,7 +102,7 @@ CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
 ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
 GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
-HAVE_SSL	:= @HAVE_SSL@
+HAVE_SSL := @HAVE_SSL@
 
 include ${top_builddir}/Makefile.common.project
 
@@ -821,21 +826,21 @@ install: all
 	${RM} -fr "${prefix}/include/polyorb"
 	${INSTALL} -d ${prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
-	  ${INSTALL} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
+	  ${INSTALL_BIN} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
 	  : Special case, symlink iac as idlac for backwards compatibility; \
 	  if [ `basename $${comp}` = iac ]; then \
 	    (cd ${prefix}/bin && ${RM} -f idlac${TOOL_EXE_SUFFIX} && ${LN_S} iac${TOOL_EXE_SUFFIX} idlac${TOOL_EXE_SUFFIX}); \
           fi; \
 	done
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/ir_ab_names${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_ir/po_ir${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_catref/po_catref${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_createref/po_createref${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_names/po_names${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_cos_naming/po_cos_naming${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_cos_naming/ir_ab_names${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_ir/po_ir${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_catref/po_catref${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_createref/po_createref${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_names/po_names${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_BIN} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
+	${INSTALL_SCRIPT} ${top_builddir}/polyorb-config ${prefix}/bin
 	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb/static
 	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
 	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat

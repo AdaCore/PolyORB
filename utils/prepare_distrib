@@ -89,6 +89,10 @@ sed_in_place() {
 
 echo "define([DEFAULT_WARNINGS_MODE], [n])"
 
+# Strip binaries when installing in non-debug mode
+
+echo "define([STRIP_PRODUCTION_BINARIES], [true])"
+
 # Release name override and additional version information from command line
 
 if [ -n "$override_release" ]; then

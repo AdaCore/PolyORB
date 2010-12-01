@@ -48,6 +48,7 @@ define(DEBUG_OPTIONS, [dnl
   ASSERTION_POLICY_DEFAULT=Check
   DEBUG_POLICY_DEFAULT=Check
   DEBUG_ONLY=""
+  INSTALL_BIN='${INSTALL_PROGRAM}'
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
@@ -55,6 +56,9 @@ define(NODEBUG_OPTIONS, [dnl
   BASE_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
+  INSTALL_BIN='${]ifdef([STRIP_PRODUCTION_BINARIES],
+          [INSTALL_STRIP_PROGRAM],
+          [INSTALL_PROGRAM])[}'
   debug=false])
 
 AC_ARG_ENABLE(debug,
@@ -88,6 +92,8 @@ AC_SUBST(WARNINGS_MODE)
 
 AM_ARG_ENABLE_POLICY(assertion, Ignore)
 AM_ARG_ENABLE_POLICY(debug, Check)
+
+AC_SUBST(INSTALL_BIN)
 
 #######################################
 # Additional configuration pragmas file
