@@ -596,52 +596,17 @@ AC_SUBST(EXCLUDED_SOURCE_FILES)
 # XML/Ada
 ##########################################
 
-XMLADA_INCS=""
-XMLADA_LIBS=""
-has_xmlada=no
-
-dnl Legacy build infrastructure: find XmlAda using xmlada-config
-
-AC_MSG_CHECKING([for XML/Ada])
-if xmlada-config --version 2>&1 | ${GREP} "^XmlAda" > /dev/null 2>&1; then
-   XMLADA_INCS="`xmlada-config --cflags`"
-   XMLADA_LIBS="`xmlada-config --libs`"
-   has_xmlada=yes
-else
-   has_xmlada=no
-fi
-AC_MSG_RESULT($has_xmlada)
-AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
-
 dnl Projects-based build infrastructure: find XML/Ada project in project path
-dnl AM_HAS_GNAT_PROJECT([xmlada])
-dnl AM_CONDITIONAL(HAS_XMLADA, test x"$HAVE_GNAT_PROJECT_xmlada" = xyes)
 
 soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
 
-##########################################
-# Test : if SOAP personality is built,
-#        then XmlAda must be configured
-##########################################
-
-if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
-then
-   AC_MSG_ERROR("Protocol personality SOAP requires XML/Ada")
+if test x"$soap_enabled" = xyes; then
+  AC_MSG_CHECKING([for XML/Ada])
+  AM_HAS_GNAT_PROJECT([xmlada])
+  if test x"$HAVE_GNAT_PROJECT_xmlada" != xyes; then
+    AC_MSG_ERROR(["Protocol personality SOAP requires XML/Ada"])
+  fi
 fi
-
-##########################################
-# Update XML/Ada configuration flags
-# iff SOAP is built
-##########################################
-
-if test x"$soap_enabled" != xyes
-then
-   XMLADA_INCS=""
-   XMLADA_LIBS=""
-fi
-
-AC_SUBST(XMLADA_INCS)
-AC_SUBST(XMLADA_LIBS)
 
 ##########################################
 # SSL/TLS Support with OpenSSL
