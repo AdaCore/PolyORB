@@ -140,10 +140,8 @@ package body CORBA.ORB is
       Not_Initialized_One : Boolean := False;
 
    begin
-
-      --  Implementation Note: We first run Initialize_World to allow
-      --  packages to register helper routines to parse specific
-      --  command line arguments.
+      --  Implementation Note: We first run Initialize_World to allow packages
+      --  to register helper routines to parse specific command line arguments.
 
       if not Is_Initialized then
          Initialize_World;
