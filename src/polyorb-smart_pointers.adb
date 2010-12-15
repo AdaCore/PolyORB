@@ -219,6 +219,8 @@ package body PolyORB.Smart_Pointers is
 
       Obj : Entity_Ptr := The_Ref.A_Ref;
 
+   --  Start of processing for Finalize
+
    begin
       pragma Debug (C, O (Return_Ref_External_Tag));
 
@@ -349,8 +351,14 @@ package body PolyORB.Smart_Pointers is
 
    procedure Set
      (The_Ref    : in out Ref;
-      The_Entity :        Entity_Ptr) is
+      The_Entity : Entity_Ptr) is
    begin
+      if The_Ref.A_Ref = The_Entity then
+         --  Same entity: no-op
+
+         return;
+      end if;
+
       Finalize (The_Ref);
       The_Ref.A_Ref := The_Entity;
       Adjust (The_Ref);
