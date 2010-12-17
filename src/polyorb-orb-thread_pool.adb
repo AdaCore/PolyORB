@@ -108,7 +108,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_Close_Connection
      (P   : access Thread_Pool_Policy;
-      TE  :        Transport_Endpoint_Access)
+      TE  : Transport_Endpoint_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -125,8 +125,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_New_Server_Connection
      (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
-      AC  :        Active_Connection)
+      ORB : ORB_Access;
+      AC  : Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);

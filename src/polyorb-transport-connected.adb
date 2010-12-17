@@ -151,8 +151,7 @@ package body PolyORB.Transport.Connected is
             end if;
 
             if not Is_Error (Error) then
-               return Emit (TE.Upper, Data_Indication'
-                            (Data_Amount => Size));
+               return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
 
             else
                return Filter_Error'(Error => Error);
