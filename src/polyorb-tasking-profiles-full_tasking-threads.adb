@@ -420,7 +420,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
       Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
 
-      TID : Task_Id;
+      S_TID : System.Tasking.Task_Id;
+      A_TID : Ada.Task_Identification.Task_Id;
+      for A_TID'Address use S_TID'Address;
+      pragma Import (Ada, A_TID);
       --  Task identifier used to climb up task tree until we reach the
       --  environment task.
 
@@ -428,11 +431,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
-      TID := System.Tasking.Self;
-      while TID.Common.Parent /= null loop
-         TID := TID.Common.Parent;
+      S_TID := System.Tasking.Self;
+      while S_TID.Common.Parent /= null loop
+         S_TID := S_TID.Common.Parent;
       end loop;
-      The_Thread_Factory.Environment_Task := TID;
+      The_Thread_Factory.Environment_Task := S_TID;
+      pragma Debug (C, O ("Environment task: "
+                            & Ada.Task_Identification.Image (A_TID)));
    end Initialize;
 
    use PolyORB.Initialization;
