@@ -171,15 +171,15 @@ package body PolyORB.ORB_Controller is
    procedure Initialize (OC : in out ORB_Controller) is
       use PolyORB.Parameters;
 
-      Polling_Interval : constant Natural
+      Polling_Interval : constant Duration
         := Get_Conf ("orb_controller",
                      "polyorb.orb_controller.polling_interval",
-                     0);
+                     PolyORB.Constants.Forever);
 
-      Polling_Timeout : constant Natural
+      Polling_Timeout : constant Duration
         := Get_Conf ("orb_controller",
                      "polyorb.orb_controller.polling_timeout",
-                     0);
+                     PolyORB.Constants.Forever);
 
    begin
       PTM.Create (OC.ORB_Lock);
@@ -192,17 +192,8 @@ package body PolyORB.ORB_Controller is
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
 
       for J in OC.AEM_Infos'Range loop
-         if Polling_Interval = 0 then
-            OC.AEM_Infos (J).Polling_Interval := PolyORB.Constants.Forever;
-         else
-            OC.AEM_Infos (J).Polling_Interval := Polling_Interval * 0.01;
-         end if;
-
-         if Polling_Timeout = 0 then
-            OC.AEM_Infos (J).Polling_Timeout := PolyORB.Constants.Forever;
-         else
-            OC.AEM_Infos (J).Polling_Timeout := Polling_Timeout * 0.01;
-         end if;
+         OC.AEM_Infos (J).Polling_Interval := Polling_Interval;
+         OC.AEM_Infos (J).Polling_Timeout := Polling_Timeout;
       end loop;
    end Initialize;
 
