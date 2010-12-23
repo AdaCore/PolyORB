@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Constants;
 with PolyORB.Initialization;
 with PolyORB.Parameters;
 with PolyORB.Tasking.Abortables;
@@ -85,22 +86,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
    end record;
 
    overriding procedure Run (AR : not null access ATC_Abortable);
+   overriding procedure Run_With_Timeout
+     (AR      : not null access ATC_Abortable;
+      Timeout : Duration;
+      Expired : out Boolean);
    overriding procedure Abort_Run (AR : not null access ATC_Abortable);
    overriding function Create
                 (R : not null access PTT.Runnable'Class) return ATC_Abortable;
-
-   ---------
-   -- Run --
-   ---------
-
-   procedure Run (AR : not null access ATC_Abortable) is
-   begin
-      select
-         AR.P.Wait;
-      then abort
-         AR.R.Run;
-      end select;
-   end Run;
 
    ---------------
    -- Abort_Run --
@@ -136,6 +128,42 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
          PTA.Register_Abortable_Tag (ATC_Abortable'Tag);
       end if;
    end Initialize;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run (AR : not null access ATC_Abortable) is
+   begin
+      select
+         AR.P.Wait;
+      then abort
+         AR.R.Run;
+      end select;
+   end Run;
+
+   ----------------------
+   -- Run_With_Timeout --
+   ----------------------
+
+   procedure Run_With_Timeout
+     (AR      : not null access ATC_Abortable;
+      Timeout : Duration;
+      Expired : out Boolean)
+   is
+   begin
+      Expired := False;
+      if Timeout = Constants.Forever then
+         AR.Run;
+      else
+         select
+            delay Timeout;
+            Expired := True;
+         then abort
+            AR.Run;
+         end select;
+      end if;
+   end Run_With_Timeout;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

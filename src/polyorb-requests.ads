@@ -249,8 +249,12 @@ package PolyORB.Requests is
                                      Ident_By_Position;
       Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null);
 
-   procedure Invoke (Self : access Request; Invoke_Flags : Flags := 0);
-   --  Run Self.
+   procedure Invoke
+     (Self         : access Request;
+      Invoke_Flags : Flags := 0;
+      Timeout      : Duration := 0.0);
+   --  Run Self. If Timeout is non-zero, and the underlying tasking profile
+   --  supports it, execution is aborted if it exceeds the specified duration.
    --  XXX Invoke_Flags is currently set to 0, and not used. It is kept
    --  for future use.
 

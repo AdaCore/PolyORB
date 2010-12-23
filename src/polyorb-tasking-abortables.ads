@@ -58,8 +58,16 @@ package PolyORB.Tasking.Abortables is
      new PTT.Runnable with null record;
    function Create (R : not null access PTT.Runnable'Class) return Abortable;
 
-   procedure Run (AR : not null access Abortable);
+   overriding procedure Run (AR : not null access Abortable);
    --  Runs R, but abort if Abort_Run is called
+
+   procedure Run_With_Timeout
+     (AR      : not null access Abortable;
+      Timeout : Duration;
+      Expired : out Boolean);
+   --  Like Run but additionally abort if Timeout expires (if supported by the
+   --  underlying tasking profile). Timeout = Constants.Forever means no
+   --  timeout.
 
    procedure Abort_Run (AR : not null access Abortable);
    --  Abort current call to Run

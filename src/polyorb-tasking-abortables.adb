@@ -77,4 +77,19 @@ package body PolyORB.Tasking.Abortables is
       PTT.Run (AR.R);
    end Run;
 
+   ----------------------
+   -- Run_With_Timeout --
+   ----------------------
+
+   procedure Run_With_Timeout
+     (AR      : not null access Abortable;
+      Timeout : Duration;
+      Expired : out Boolean)
+   is
+      pragma Unreferenced (Timeout);
+   begin
+      Expired := False;
+      AR.Run;
+   end Run_With_Timeout;
+
 end PolyORB.Tasking.Abortables;

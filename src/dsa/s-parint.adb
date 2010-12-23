@@ -95,6 +95,7 @@ package body System.Partition_Interface is
    package PSNNC  renames PolyORB.Services.Naming.NamingContext;
    package PTC    renames PolyORB.Tasking.Condition_Variables;
    package PTM    renames PolyORB.Tasking.Mutexes;
+   package PTT    renames PolyORB.Tasking.Threads;
    package PUCFCT renames PolyORB.Utils.Configuration_File.Configuration_Table;
 
    function To_Lower (S : String) return String
@@ -280,6 +281,9 @@ package body System.Partition_Interface is
    function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
    --  Some parameters in section DSA describe attributes of RCI units.
    --  Their names are of the force RCI_Name'Attribute_Name.
+
+   RPC_Timeout : Duration;
+   --  Default timeout applied to all remote calls
 
    ------------------------
    -- Internal functions --
@@ -1573,6 +1577,12 @@ package body System.Partition_Interface is
           (Section => "dsa",
            Key     => "max_failed_requests",
            Default => 10);
+
+      RPC_Timeout :=
+        PolyORB.Parameters.Get_Conf
+          (Section => "dsa",
+           Key     => "rpc_timeout",
+           Default => 0.0);
    end Initialize;
 
    ---------------------------
@@ -2210,7 +2220,7 @@ package body System.Partition_Interface is
 
    procedure Request_Invoke
      (R            : access PolyORB.Requests.Request;
-      Invoke_Flags : PolyORB.Requests.Flags          := 0)
+      Invoke_Flags : PolyORB.Requests.Flags := 0)
    is
       use PolyORB.QoS;
       use PolyORB.QoS.Term_Manager_Info;
@@ -2226,7 +2236,7 @@ package body System.Partition_Interface is
                (Kind   => DSA_TM_Info,
                 TM_Ref => The_TM_Ref));
 
-      PolyORB.Requests.Invoke (R, Invoke_Flags);
+      PolyORB.Requests.Invoke (R, Invoke_Flags, Timeout => RPC_Timeout);
    end Request_Invoke;
 
    -----------------------
@@ -2303,8 +2313,7 @@ package body System.Partition_Interface is
                   Info.State := Dead;
 
                when Block_Until_Restart =>
-                  PolyORB.Tasking.Threads.Relative_Delay
-                    (Time_Between_Requests);
+                  PTT.Relative_Delay (Time_Between_Requests);
                   goto Lookup;
 
                when Fail_Until_Restart =>

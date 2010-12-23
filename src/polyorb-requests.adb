@@ -39,6 +39,7 @@ with PolyORB.ORB.Iface;
 with PolyORB.Protocols.Iface;
 with PolyORB.Request_QoS;
 with PolyORB.Setup;
+with PolyORB.Tasking.Threads;
 
 package body PolyORB.Requests is
 
@@ -86,6 +87,10 @@ package body PolyORB.Requests is
    --  the personalities.
 
    procedure Free is new Ada.Unchecked_Deallocation (Request, Request_Access);
+
+   type Request_Completion_Runnable (Req : access Request) is
+     new Tasking.Threads.Runnable with null record;
+   overriding procedure Run (R : not null access Request_Completion_Runnable);
 
    --------------------
    -- Create_Request --
@@ -163,7 +168,8 @@ package body PolyORB.Requests is
 
    procedure Invoke
      (Self         : access Request;
-      Invoke_Flags : Flags := 0)
+      Invoke_Flags : Flags := 0;
+      Timeout      : Duration := 0.0)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Invoke_Flags);
@@ -175,6 +181,8 @@ package body PolyORB.Requests is
 
       Req : constant Request_Access := Self.all'Unchecked_Access;
 
+      R : aliased Request_Completion_Runnable (Self);
+
    begin
       PolyORB.ORB.Queue_Request_To_Handler (The_ORB,
         Queue_Request'(Request   => Req,
@@ -182,7 +190,26 @@ package body PolyORB.Requests is
 
       --  Execute the ORB until the request is completed
 
-      PolyORB.ORB.Run (The_ORB, Req, May_Exit => True);
+      if Timeout = 0.0 then
+         R.Run;
+      else
+         declare
+            use Tasking.Abortables;
+            AR      : aliased Abortable'Class :=
+                        Make_Abortable (Abortable_Tag, R'Access);
+            Expired : Boolean := False;
+            Error   : Errors.Error_Container;
+         begin
+            AR.Run_With_Timeout (Timeout, Expired);
+            if Expired then
+               Throw
+                 (Error, Timeout_E,
+                  System_Exception_Members'
+                    (Minor => 1, Completed => Completed_Maybe));
+               Set_Exception (Req.all, Error);
+            end if;
+         end;
+      end if;
    end Invoke;
 
    -----------------------------------
@@ -702,6 +729,16 @@ package body PolyORB.Requests is
       Request.Arguments_Called := False;
       Request.Exception_Info   := Null_Any;
    end Reset_Request;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run (R : not null access Request_Completion_Runnable) is
+      use PolyORB.Setup;
+   begin
+      PolyORB.ORB.Run (The_ORB, R.Req.all'Unchecked_Access, May_Exit => True);
+   end Run;
 
    ---------------
    -- Arguments --
