@@ -1158,7 +1158,10 @@ package body XE_Back.PolyORB is
       for J in Partitions.First + 1 .. Partitions.Last loop
          Current := Partitions.Table (J);
 
-         pragma Assert (Current.Termination /= No_Termination);
+         --  Termination policy has been set for all built partitions
+
+         pragma Assert (Current.Termination /= No_Termination
+                          or else not Current.To_Build);
 
          --  Enable a termination initiator only if at least one node has
          --  global termination.
