@@ -586,17 +586,24 @@ AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
 
 #
-# If ATC is not supported, remove corresponding unit
+# If ATC is not supported, remove corresponding units
+# Note: can't use a multi-line value for an AC_SUBST variable, this works only
+# with recent versions of autoconf (which use awk(1) for all substitutions).
+# Older versions that rely on sed(1) don't handle multi-line substitutions
+# correctly.
 #
 
+EXCLUDED_SOURCE_FILES=config.excluded_source_files
 if $HAVE_ADA_ATC; then
-  EXCLUDED_SOURCE_FILES=""
+  : No excluded files
 else
-  EXCLUDED_SOURCE_FILES="polyorb-tasking-profiles-full_tasking_atc.ads
+  cat <<__EOF__
+polyorb-tasking-profiles-full_tasking_atc.ads
 polyorb-tasking-profiles-full_tasking_atc-abortables.ads
-polyorb-tasking-profiles-full_tasking_atc-abortables.adb"
-fi
-AC_SUBST(EXCLUDED_SOURCE_FILES)
+polyorb-tasking-profiles-full_tasking_atc-abortables.adb
+__EOF__
+fi > ${EXCLUDED_SOURCE_FILES}
+AC_SUBST_FILE(EXCLUDED_SOURCE_FILES)
 
 ##########################################
 # XML/Ada
