@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2791,7 +2791,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Entity := First_Entity (Interface_Body (Parent_Interface));
 
       while Present (Entity) loop
-         case  FEN.Kind (Entity) is
+         case FEN.Kind (Entity) is
             when K_Type_Declaration =>
                declare
                   D             : Node_Id;
@@ -2802,19 +2802,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   D := First_Entity (Declarators (Entity));
 
                   while Present (D) loop
-                     if not FEU.Is_Redefined (D, Child_Interface) and then
-                       not Already_Inherited
-                       (IDL_Name (Identifier (D)))
+                     if not FEU.Is_Redefined (D, Child_Interface)
+                          and then
+                        not Already_Inherited (IDL_Name (Identifier (D)))
                      then
-
-                        --  Adding an explaining comment
+                        --  Add explanatory comment
 
                         Explaining_Comment
                           (FEN.IDL_Name (Identifier (D)),
                            FEU.Fully_Qualified_Name
-                           (Identifier (Parent_Interface),
+                             (Identifier (Parent_Interface),
                             Separator => "."),
-                           " : inherited from ");
+                           ": inherited from ");
 
                         if Stub then
                            --  Subtype declaration
