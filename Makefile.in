@@ -91,8 +91,14 @@ EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs -L${top_builddir}/lib ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+ifneq ($(filter -%args,$(EXTRA_GNATMAKE_FLAGS)),)
+MARGS:=-margs
+endif
+
+BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs -L${top_builddir}/lib ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS} ${MARGS}
 # Gnatmake flags for units built from project files
+# Note: if EXTRA_GNATMAKE_FLAGS contains a -%args argument, we add -margs at
+# the end because further builder flags may need to be passed.
 
 COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
 # Gnatmake flags for compilation tools mains, built without project files
