@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -195,8 +195,12 @@ package body PolyORB.Requests is
       else
          declare
             use Tasking.Abortables;
+            pragma Warnings (Off);
+            --  WAG:FSF-4.5.0
+            --  Hide warning "AR is not referenced"
             AR      : aliased Abortable'Class :=
                         Make_Abortable (Abortable_Tag, R'Access);
+            pragma Warnings (On);
             Expired : Boolean := False;
             Error   : Errors.Error_Container;
          begin
