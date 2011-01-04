@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -304,12 +304,14 @@ package body PolyORB.Transport.Connected.Sockets is
    --  Start of processing for Write
 
    begin
+      pragma Abort_Defer;
+
       pragma Debug (C, O ("Write: enter"));
 
       --  Send_Buffer is not atomic, needs to be protected.
 
       Enter (TE.Mutex);
-      pragma Debug (C, O ("TE mutex acquired"));
+      pragma Debug (C, O ("Write: TE mutex acquired"));
 
       begin
          Send_Buffer (Buffer);
@@ -327,6 +329,8 @@ package body PolyORB.Transport.Connected.Sockets is
                 (Minor => 0, Completed => Completed_Maybe));
       end;
       Leave (TE.Mutex);
+
+      pragma Debug (C, O ("Write: leave"));
    end Write;
 
    --------------------
