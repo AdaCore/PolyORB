@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -336,8 +336,8 @@ package body PolyORB.Protocols.GIOP is
      (Sess : access GIOP_Session; Error : Errors.Error_Container)
    is
       use Pend_Req_Tables;
-      P     : Pending_Request_Access;
-      ORB   : constant ORB_Access := ORB_Access (Sess.Server);
+      P   : Pending_Request_Access;
+      ORB : constant ORB_Access := ORB_Access (Sess.Server);
 
    begin
       pragma Debug (C, O ("Handle_Disconnect: enter"));
