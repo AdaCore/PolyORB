@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,7 +72,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    private
 
-      To_Free   : Natural := 0;
+      To_Free : Natural := 0;
       --   Number of remaining tasks in the queue that must be freed
 
    end Condition_PO;
@@ -83,9 +83,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    protected body Condition_PO is
 
-      ----------------------------
-      -- Condition_PO.Broadcast --
-      ----------------------------
+      ---------------
+      -- Broadcast --
+      ---------------
 
       entry Broadcast when To_Free = 0 is
       begin
@@ -95,9 +95,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
                           & " tasks."));
       end Broadcast;
 
-      -------------------------
-      -- Condition_PO.Signal --
-      -------------------------
+      ------------
+      -- Signal --
+      ------------
 
       entry Signal when To_Free = 0 is
       begin
@@ -107,9 +107,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
          pragma Debug (C, O ("Signal."));
       end Signal;
 
-      ------------------------------------
-      -- Condition_PO.Release_Then_Wait --
-      ------------------------------------
+      -----------------------
+      -- Release_Then_Wait --
+      -----------------------
 
       entry Release_Then_Wait (M : PTM.Mutex_Access) when True is
       begin
@@ -117,9 +117,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
          requeue Condition_PO.Wait with abort;
       end Release_Then_Wait;
 
-      -----------------------
-      -- Condition_PO.Wait --
-      -----------------------
+      ----------
+      -- Wait --
+      ----------
 
       entry Wait when To_Free > 0 is
       begin
@@ -152,8 +152,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       --  XXX The use of Name is not yet implemented
       pragma Warnings (On);
 
-      Cond : constant Full_Tasking_Condition_Access
-        := new Full_Tasking_Condition_Type;
+      Cond : constant Full_Tasking_Condition_Access :=
+               new Full_Tasking_Condition_Type;
 
    begin
       pragma Debug (C, O ("Create"));
@@ -205,7 +205,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    begin
       pragma Debug (C, O ("Wait: enter"));
       Cond.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
-      pragma Debug (C, O ("Wait: Leave"));
+      pragma Debug (C, O ("Wait: leave"));
       PTM.Enter (M);
    end Wait;
 
