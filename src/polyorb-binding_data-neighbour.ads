@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2006, Free Software Foundation, Inc.             --
+--         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,10 +77,6 @@ package PolyORB.Binding_Data.Neighbour is
    pragma Inline (Get_Profile_Preference);
 
    function Image (Prof : Neighbour_Profile_Type) return String;
-
-   function Get_OA (Profile : Neighbour_Profile_Type)
-      return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
 
    function Is_Colocated
      (Left  : Neighbour_Profile_Type;

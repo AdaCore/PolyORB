@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,13 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Binding data for the Simple Request Protocol over TCP.
-
 with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
-with PolyORB.Setup;
 with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
 
@@ -238,20 +235,6 @@ package body PolyORB.Binding_Data.SRP is
       return "Address : " & Image (Prof.Address.all) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : SRP_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-   is
-      pragma Unreferenced (Profile);
-   begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
-   end Get_OA;
 
    ------------------
    -- Is_Colocated --

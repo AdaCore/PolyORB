@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Contact information for an object that exists
---  within the local ORB.
+--  Profile type for objects registered with the local ORB
 
 with PolyORB.Objects;
 
@@ -70,11 +69,6 @@ package PolyORB.Binding_Data.Local is
    pragma Inline (Get_Profile_Preference);
 
    function Image (Prof : Local_Profile_Type) return String;
-
-   function Get_OA
-     (Profile : Local_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
 
    function Is_Colocated
      (Left  : Local_Profile_Type;

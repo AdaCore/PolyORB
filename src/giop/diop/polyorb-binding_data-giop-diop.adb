@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,17 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Binding data concrete implementation for DIOP.
-
 with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
 with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
-with PolyORB.Setup;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Sockets;
 
@@ -258,21 +254,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
 
       return Result;
    end Corbaloc_To_Profile;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : DIOP_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-   is
-      pragma Unreferenced (Profile);
-
-   begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
-   end Get_OA;
 
    ----------------
    -- Initialize --
