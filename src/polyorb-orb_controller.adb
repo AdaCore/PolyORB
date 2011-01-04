@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -84,9 +84,21 @@ package body PolyORB.ORB_Controller is
    --------------------------------
 
    procedure Enter_ORB_Critical_Section (O : access ORB_Controller) is
+      use PTT;
+      Self : constant Thread_Id := Current_Task;
    begin
-      pragma Debug (C1, O1 ("Enter_ORB_Critical_Section"));
-      PTM.Enter (O.ORB_Lock);
+      pragma Debug (C1, O1 ("Enter_ORB_Critical_Section " & Image (Self)));
+
+      begin
+         pragma Abort_Defer;
+         if O.ORB_Lock_Owner = Self then
+            O1 ("attempt to re-enter critical section", Warning);
+
+         else
+            PTM.Enter (O.ORB_Lock);
+            O.ORB_Lock_Owner := Self;
+         end if;
+      end;
    end Enter_ORB_Critical_Section;
 
    ------------------
@@ -248,9 +260,15 @@ package body PolyORB.ORB_Controller is
    --------------------------------
 
    procedure Leave_ORB_Critical_Section (O : access ORB_Controller) is
+      use PTT;
    begin
-      pragma Debug (C1, O1 ("Leave_ORB_Critical_Section"));
-      PTM.Leave (O.ORB_Lock);
+      pragma Debug (C1, O1 ("Leave_ORB_Critical_Section "
+                              & Image (Current_Task)));
+      begin
+         pragma Abort_Defer;
+         O.ORB_Lock_Owner := Null_Thread_Id;
+         PTM.Leave (O.ORB_Lock);
+      end;
    end Leave_ORB_Critical_Section;
 
    -----------------------

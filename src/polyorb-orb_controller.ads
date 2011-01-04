@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,9 +62,9 @@ package PolyORB.ORB_Controller is
    package PR   renames PolyORB.References;
    package PRS  renames PolyORB.Request_Scheduler;
    package PTI  renames PolyORB.Task_Info;
-   package PTM  renames PolyORB.Tasking.Mutexes;
-   package PT   renames PolyORB.Tasking.Threads;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
+   package PTM  renames PolyORB.Tasking.Mutexes;
+   package PTT  renames PolyORB.Tasking.Threads;
 
    -----------
    -- Event --
@@ -124,7 +124,7 @@ package PolyORB.ORB_Controller is
 
          when Queue_Event_Job =>
             Event_Job : PJ.Job_Access;
-            By_Task   : PT.Thread_Id;
+            By_Task   : PTT.Thread_Id;
 
          when Queue_Request_Job =>
             Request_Job : PJ.Job_Access;
@@ -336,6 +336,10 @@ private
    abstract tagged limited record
       ORB_Lock : PTM.Mutex_Access;
       --  Mutex used to enforce ORB critical section
+
+      ORB_Lock_Owner : PTT.Thread_Id := PTT.Null_Thread_Id;
+      --  Current owner of ORB_Lock, used to detect incorrect attempt to
+      --  recursively seize ORB_Lock.
 
       Job_Queue : PJ.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks
