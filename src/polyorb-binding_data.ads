@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,8 +45,6 @@ with PolyORB.Transport;
 with PolyORB.Types;
 
 package PolyORB.Binding_Data is
-
-   pragma Elaborate_Body;
 
    ----------------------------------------------
    -- Abstract inter-ORB protocol profile type --
@@ -89,11 +87,9 @@ package PolyORB.Binding_Data is
    --  Default value for profile preference.
 
    function Get_OA
-     (Profile : Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-     is abstract;
-   --  Get the object adapter in which Profile's OID are stored. Note that the
-   --  returned Entity_Ptr cannot be modified nor destroyed.
+     (Profile : Profile_Type) return PolyORB.Smart_Pointers.Entity_Ptr;
+   --  For object group profiles, return the group object adapter that controls
+   --  Profile's OID. For other profiles, return null.
 
    function Get_Object_Key
      (Profile : Profile_Type) return Objects.Object_Id_Access;
@@ -149,6 +145,10 @@ package PolyORB.Binding_Data is
 
    procedure Destroy_Profile (P : in out Profile_Access);
    pragma Inline (Destroy_Profile);
+
+   function Is_Multicast_Profile (P : Profile_Type) return Boolean;
+   --  True if this profile designates a group of objects that may exist on
+   --  different nodes. False by default, overridden for group profiles.
 
    function Is_Local_Profile
      (PF : access Profile_Factory;
