@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -520,20 +520,9 @@ package body Lexer is
    -- Output --
    ------------
 
-   procedure Output
-     (Source : File_Descriptor)
-   is
-      Length  : constant := 1024;
-      Buffer  : String (1 .. Length);
-      Result  : Integer;
+   procedure Output (Source : File_Descriptor) is
    begin
-      loop
-         Result := Read  (Source, Buffer (1)'Address, Length);
-         exit when Result <= 0;
-         Result := Write (Standout, Buffer (1)'Address, Result);
-      end loop;
-      Close (Source);
-
+      Copy_To_Standard_Output (Source);
       Make_Cleanup;
    end Output;
 
@@ -633,8 +622,8 @@ package body Lexer is
         (Prep_And_Flags_List (Prep_And_Flags_List'First).all);
 
       if Preprocessor = null then
-         DE ("?cannot locate "
-             & Prep_And_Flags_List (Prep_And_Flags_List'First).all);
+         DE ("?cannot locate %",
+             Prep_And_Flags_List (Prep_And_Flags_List'First).all);
          Open_Original_Source;
          return;
       end if;
@@ -1122,6 +1111,22 @@ package body Lexer is
 
       if not Escaped then
          Token := To_Token (Token_Name);
+
+         --  Check that the case of keywords is correct.
+         --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
+         --
+         --  keywords must be written exactly as in the above list. Identifiers
+         --  that collide with keywords (...) are illegal.
+
+         if Fatal and then
+           Token in Keyword_Type and then
+           Token_Name /= Token_Image (Token)
+         then
+            Error_Loc (1) := Token_Location;
+            Error_Name (1) := Token_Image (Token);
+            DE ("incorrect case; # expected");
+         end if;
+
          if Token = T_Error then
             Token := T_Identifier;
          elsif Token = T_True then
@@ -1540,7 +1545,7 @@ package body Lexer is
          end if;
 
          Error_Loc (1) := Loc;
-         DE ("expected token " & Quoted_Image (T));
+         DE ("expected token %", Quoted_Image (T));
          Token := T_Error;
       end if;
    end Scan_Token;
@@ -1555,25 +1560,21 @@ package body Lexer is
       Scan_Token;
       for Index in L'Range loop
          if L (Index) = Token then
-            return;
+            return;  --  All is well
          end if;
       end loop;
-      Set_Str_To_Name_Buffer ("expected token");
-      if L'Length > 1 then
-         Add_Char_To_Name_Buffer ('s');
-      end if;
-      Add_Char_To_Name_Buffer (' ');
+
+      --  Give error message
+
+      Name_Len := 0;
       Add_Str_To_Name_Buffer (Quoted_Image (L (L'First)));
       for Index in L'First + 1 .. L'Last loop
          Add_Str_To_Name_Buffer (" or ");
          Add_Str_To_Name_Buffer (Quoted_Image (L (Index)));
       end loop;
-      declare
-         S : constant String := Name_Buffer (1 .. Name_Len);
-      begin
-         Error_Loc (1) := Token_Location;
-         DE (S);
-      end;
+      Error_Loc (1) := Token_Location;
+      Error_Name (1) := Name_Find;
+      DE ("expected tokens %");
       Token := T_Error;
    end Scan_Token;
 
@@ -1926,15 +1927,14 @@ package body Lexer is
    -- Unexpected_Token --
    ----------------------
 
-   procedure Unexpected_Token (T : Token_Type; C : String := "") is
-      Where  : constant String  := " in " & C;
-      Length : Natural := 0;
+   procedure Unexpected_Token (T : Token_Type; C : String) is
    begin
-      if C'Length /= 0 then
-         Length := Where'Length;
-      end if;
       Error_Loc (1) := Token_Location;
-      DE ("unexpected " & Quoted_Image (T) & Where (1 .. Length));
+      Set_Str_To_Name_Buffer (Quoted_Image (T));
+      Error_Name (1) := Name_Find;
+      Set_Str_To_Name_Buffer (C);
+      Error_Name (2) := Name_Find;
+      DE ("unexpected % in %");
    end Unexpected_Token;
 
    -----------

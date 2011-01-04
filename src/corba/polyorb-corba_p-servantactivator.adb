@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,8 +86,7 @@ package body PolyORB.CORBA_P.ServantActivator is
       CORBA_Servant : PortableServer.Servant;
 
       Activator : constant PortableServer.ServantActivator.Local_Ref'Class :=
-                    PortableServer.ServantActivator.Local_Ref'Class
-                      (Get_Servant_Manager (Self.all));
+                    Get_Servant_Manager (Self.all);
 
    begin
       PortableServer.POA_Forward.Set
@@ -120,8 +119,7 @@ package body PolyORB.CORBA_P.ServantActivator is
       if CORBA_Servant = null then
          Returns := null;
       else
-         Returns := PolyORB.Servants.Servant_Access
-           (PortableServer.To_PolyORB_Servant (CORBA_Servant));
+         Returns := PortableServer.To_PolyORB_Servant (CORBA_Servant);
       end if;
    end Incarnate;
 
@@ -143,8 +141,7 @@ package body PolyORB.CORBA_P.ServantActivator is
         PortableServer.Servant (CORBA.Impl.Internals.To_CORBA_Servant (Serv));
 
       Activator : constant PortableServer.ServantActivator.Local_Ref'Class :=
-                    PortableServer.ServantActivator.Local_Ref'Class
-                      (Get_Servant_Manager (Self.all));
+                    Get_Servant_Manager (Self.all);
 
    begin
       PortableServer.POA_Forward.Set

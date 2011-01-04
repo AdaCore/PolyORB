@@ -1,3 +1,34 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                                C H E C K                                 --
+--                                                                          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 dnl Ada compiler handling
 dnl $Id$
 dnl Contributed by Samuel Tardieu <sam@inf.enst.fr>
@@ -53,7 +84,7 @@ dnl Check whether a given configuration pragma is supported.
 
 AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [procedure Check is begin null; end Check;],[$1],[$2],[$3])])
 
 dnl Usage: AM_TRY_ADA_COMPILER_SWITCH(switch, success, failure)
@@ -61,7 +92,7 @@ dnl Check whether a given compiler command line switch is supported.
 
 AC_DEFUN([AM_TRY_ADA_COMPILER_SWITCH],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
-AM_TRY_ADA([$GNATMAKE_FOR_TARGET $1],[check.adb],
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $1],[check.adb],
 [procedure Check is begin null; end Check;],[],[$2],[$3])])
 
 dnl Usage: AM_PROG_WORKING_ADA
@@ -223,7 +254,7 @@ AC_BEFORE([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS])
 AC_BEFORE([AM_HAS_PRAGMA_PROFILE_RAVENSCAR])
 AC_BEFORE([AM_HAS_PRAGMA_PROFILE_WARNINGS])
 AC_MSG_CHECKING([whether you have GNAT.Sockets.Copy])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [with GNAT.Sockets;
 procedure Check is
    S1, S2 : GNAT.Sockets.Socket_Set_Type;
@@ -243,7 +274,7 @@ dnl Determine whether GNAT.OS_Lib has a Close operation with status report.
 AC_DEFUN([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether you have GNAT.OS_Lib.Close (FD : File_Descriptor; Status : out Boolean)])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [with GNAT.OS_Lib;
 procedure Check is
    FD : GNAT.OS_Lib.File_Descriptor;
@@ -264,7 +295,7 @@ dnl Determine whether GNAT.Perfect_Hash_Generators exists
 AC_DEFUN([AM_HAS_GNAT_PERFECT_HASH_GENERATORS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether you have GNAT.Perfect_Hash_Generators])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [with GNAT.Perfect_Hash_Generators;
 procedure Check is begin null; end Check;
 ], [], [AC_MSG_RESULT(yes)
@@ -333,15 +364,35 @@ STYLE_SWITCH="-gnatyg"],
 STYLE_SWITCH="-gnaty"])
 AC_SUBST(STYLE_SWITCH)])
 
+dnl Syntax: AM_HAS_ADA_ATC
+dnl Determines whether the target environment supports Ada Asynchronous
+dnl Transfer of Control.
+
+AC_DEFUN([AM_HAS_ADA_ATC],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether environment supports ATC])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+[procedure Check is
+begin
+   select delay 1.0; then abort null; end select;
+end Check;
+], [], [AC_MSG_RESULT(yes)
+HAVE_ADA_ATC=true],
+[AC_MSG_RESULT(no)
+ADA_ATC="--  "
+HAVE_ADA_ATC=false])
+AC_SUBST(ADA_ATC)])
+
 dnl Usage: AM_SUPPORT_RPC_ABORTION
 dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this
 dbl case, RPC execution may fail even when not aborted. Remove this feature
 dnl except when user really wants it to be enabled. When we can provide
 dnl this feature with SJLJ exception model and when the user really wants
-dnl it, then build GLADE with SJLJ model being the default.
+dnl it, then build PolyORB with SJLJ model being the default.
 
 AC_DEFUN([AM_SUPPORT_RPC_ABORTION],
 [AC_REQUIRE([AM_CROSS_PROG_GNATLS])
+AC_REQUIRE([AM_HAS_ADA_ATC])
 GNAT_RTS_FLAG="";
 am_gnat_major_version=`$GNATLS_FOR_TARGET -v | $SED -ne 's/^GNATLS [[^0-9]]*\(.\).*$/\1/p'`
 am_system_ads=`$GNATLS_FOR_TARGET -a -s system.ads`
@@ -411,7 +462,7 @@ dnl operations
 AC_DEFUN([AM_HAS_INTRINSIC_SYNC_COUNTERS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether platform supports atomic increment/decrement])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET],[check.adb],
 [
 with Interfaces; use Interfaces;
 procedure Check is

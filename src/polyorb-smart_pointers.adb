@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,8 +56,16 @@ package body PolyORB.Smart_Pointers is
    --  Produce debugging trace for the indicated event on Obj, if applicable
    --  (must be called just before updating Obj's reference counter).
 
-   Entity_External_Tag : Entity_External_Tag_Hook := null;
-   Ref_External_Tag    : Ref_External_Tag_Hook    := null;
+   function Dummy_Entity_External_Tag (X : Unsafe_Entity'Class) return String;
+   function Dummy_Ref_External_Tag (X : Ref'Class) return String;
+   --  Dummy version of functions returning External_Tag (X'Tag) to prevent
+   --  crashes at elaboration time for early initialization of references
+   --  (before complete ORB initialization).
+
+   Entity_External_Tag : Entity_External_Tag_Hook :=
+                           Dummy_Entity_External_Tag'Access;
+   Ref_External_Tag    : Ref_External_Tag_Hook    :=
+                           Dummy_Ref_External_Tag'Access;
    --  Debugging hooks, set at initialization
 
    Default_Trace : Boolean := True;
@@ -145,6 +153,28 @@ package body PolyORB.Smart_Pointers is
       Obj.Counter := -1;
    end Disable_Reference_Counting;
 
+   -------------------------------
+   -- Dummy_Entity_External_Tag --
+   -------------------------------
+
+   function Dummy_Entity_External_Tag
+     (X : Unsafe_Entity'Class) return String
+   is
+      pragma Unreferenced (X);
+   begin
+      return "";
+   end Dummy_Entity_External_Tag;
+
+   ----------------------------
+   -- Dummy_Ref_External_Tag --
+   ----------------------------
+
+   function Dummy_Ref_External_Tag (X : Ref'Class) return String is
+      pragma Unreferenced (X);
+   begin
+      return "";
+   end Dummy_Ref_External_Tag;
+
    ---------------
    -- Entity_Of --
    ---------------
@@ -188,6 +218,8 @@ package body PolyORB.Smart_Pointers is
       end Return_Ref_External_Tag;
 
       Obj : Entity_Ptr := The_Ref.A_Ref;
+
+   --  Start of processing for Finalize
 
    begin
       pragma Debug (C, O (Return_Ref_External_Tag));
@@ -297,7 +329,7 @@ package body PolyORB.Smart_Pointers is
          --  Was 0, can't reuse entity, reset counter
 
          pragma Debug (C, Trace_Event (Dec_Usage, The_Entity));
-         Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, -11);
+         Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, -1);
 
       else
          The_Ref.A_Ref := The_Entity;
@@ -319,8 +351,14 @@ package body PolyORB.Smart_Pointers is
 
    procedure Set
      (The_Ref    : in out Ref;
-      The_Entity :        Entity_Ptr) is
+      The_Entity : Entity_Ptr) is
    begin
+      if The_Ref.A_Ref = The_Entity then
+         --  Same entity: no-op
+
+         return;
+      end if;
+
       Finalize (The_Ref);
       The_Ref.A_Ref := The_Entity;
       Adjust (The_Ref);
@@ -346,5 +384,21 @@ package body PolyORB.Smart_Pointers is
               & Integer_32'Image (Obj.Counter + Event_Values (Event_Kind)));
       end if;
    end Trace_Event;
+
+   ----------------
+   -- Use_Entity --
+   ----------------
+
+   procedure Use_Entity
+     (The_Ref    : in out Ref;
+      The_Entity : Entity_Ptr)
+   is
+   begin
+      pragma Assert (The_Ref.A_Ref = null and then The_Entity.Counter = 0);
+
+      pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
+      The_Entity.Counter := 1;
+      The_Ref.A_Ref := The_Entity;
+   end Use_Entity;
 
 end PolyORB.Smart_Pointers;

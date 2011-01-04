@@ -1,7 +1,4 @@
-${eval ${define_test}}
-
 ${current_dir}bbs.idl-stamp: idlac_flags :=
 ${test_target}: ${current_dir}bbs.idl-stamp
-
 ${current_dir}common.idl-stamp: idlac_flags :=
 ${test_target}: ${current_dir}common.idl-stamp

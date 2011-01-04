@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -143,9 +144,9 @@ package body PolyORB.Log is
 
    type Log_Request is record
       Facility_Level : Log_Level_Ptr;
-      Facility : String_Ptr;
-      Message  : String_Ptr;
-      Level    : Log_Level;
+      Facility       : String_Ptr;
+      Message        : String_Ptr;
+      Level          : Log_Level;
    end record;
 
    --  During initialization (before the configuration and logging modules
@@ -159,13 +160,13 @@ package body PolyORB.Log is
    Buffer : Request_List_Access;
 
    Buffer_Enable : Boolean := True;
-   --  Buffering is disabled as soon as Flush is called
+   --  Buffering is disabled as soon as Initialize is called
 
-   -----------
-   -- Flush --
-   -----------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Flush is
+   procedure Initialize is
       use Request_Lists;
       It : Request_Lists.Iterator;
    begin
@@ -194,7 +195,7 @@ package body PolyORB.Log is
       end loop;
       Deallocate (Buffer.all);
       Free (Buffer);
-   end Flush;
+   end Initialize;
 
    ------------
    -- Output --

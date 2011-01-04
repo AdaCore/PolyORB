@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -205,6 +205,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Expression := Make_Literal (FEU.Expr_Value (E));
                   end if;
                end;
+
+            when K_Enumerator =>
+
+               --  If it's an enumeration literal, we need to use an expanded
+               --  name.
+
+               Expression := Make_Literal_With_Parent
+                 (FEU.Expr_Value (E),
+                  Parent => Get_Parent_Unit_Name (Constant_Type));
+
             when others =>
                Expression := Make_Literal (FEU.Expr_Value (E));
          end case;
@@ -372,7 +382,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
          N := Map_Get_Members_Spec
            (Make_Selected_Component
-            (Defining_Identifier (Main_Package (Current_Entity)),
+            (Defining_Identifier (Stubs_Package (Current_Entity)),
              Identifier));
 
          Append_To (Visible_Part (Current_Package), N);
@@ -618,8 +628,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Container       : constant Node_Id := Scope_Entity (Identifier (E));
 
          function Map_Parameter_Type_Designator
-           (Entity : Node_Id)
-           return Node_Id;
+           (Entity : Node_Id) return Node_Id;
          --  Maps Ada type from the entity type specifier
 
          -----------------------------------
@@ -640,6 +649,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
             return Result;
          end Map_Parameter_Type_Designator;
+
+      --  Start of processing for Visit_Operation_Declaration
 
       begin
          Profile := New_List;
@@ -820,7 +831,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Append_To (Visible_Part (Current_Package), Fixed_Type_Node);
 
                T := Make_Selected_Component
-                 (Defining_Identifier (Main_Package (Current_Entity)), T);
+                 (Defining_Identifier (Stubs_Package (Current_Entity)), T);
 
                --  Link the front end node to the Ada type definition
 
@@ -891,7 +902,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                T := Make_Selected_Component
                  (Make_Selected_Component
-                  (Defining_Identifier (Main_Package (Current_Entity)),
+                  (Defining_Identifier (Stubs_Package (Current_Entity)),
                    Seq_Package_Node),
                   Make_Identifier (TN (T_Sequence)));
 
@@ -958,7 +969,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                T := Make_Selected_Component
                  (Make_Selected_Component
-                  (Defining_Identifier (Main_Package (Current_Entity)),
+                  (Defining_Identifier (Stubs_Package (Current_Entity)),
                    Pkg_Node),
                   T);
 
@@ -1659,7 +1670,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
          NVList_Name := VN (V_Argument_List);
          Profile := New_List;
 
-         --  1st parameter association
+         --  Request object
+
+         N := Make_Parameter_Association
+           (Selector_Name    => Make_Defining_Identifier (PN (P_Req)),
+            Actual_Parameter => Make_Defining_Identifier (VN (V_Request)));
+         Append_To (Profile, N);
+
+         --  Target
 
          N := Make_Type_Conversion
            (RE (RE_Ref_2),
@@ -1671,7 +1689,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Actual_Parameter => N);
          Append_To (Profile, N);
 
-         --  2nd parameter association
+         --  Operation
 
          R := Map_Operation_Name_Literal (E);
          N := Make_Parameter_Association
@@ -1679,14 +1697,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Actual_Parameter => Make_Literal (New_String_Value (R, False)));
          Append_To (Profile, N);
 
-         --  3rd parameter association
+         --  Arguments list
 
          N := Make_Parameter_Association
            (Selector_Name    => Make_Defining_Identifier (PN (P_Arg_List)),
             Actual_Parameter => Make_Defining_Identifier (NVList_Name));
          Append_To (Profile, N);
 
-         --  4th parameter association
+         --  Result
 
          N := Make_Parameter_Association
            (Selector_Name    => Make_Defining_Identifier (PN (P_Result)),
@@ -1703,7 +1721,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                (Make_Identifier
                 (VN (V_Exception_List))));
 
-            --  5th parameter association
+            --  Exception list
 
             N := Make_Parameter_Association
               (Selector_Name    => Make_Defining_Identifier (PN (P_Exc_List)),
@@ -1711,31 +1729,22 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_To (Profile, N);
          end if;
 
-         --  6th parameter association
+         --  Handling the case of Oneway Operations. Extract from The CORBA
+         --  mapping specification : "IDL oneway operations are mapped the same
+         --  as other operation; that is, there is no indication whether an
+         --  operation is oneway or not in the mapped Ada specification".
 
-         N := Make_Parameter_Association
-           (Selector_Name    => Make_Defining_Identifier (PN (P_Req)),
-            Actual_Parameter => Make_Defining_Identifier (VN (V_Request)));
-         Append_To (Profile, N);
-
-         --  Handling the case of Oneway Operations.  Extract from The
-         --  CORBA mapping specification : "IDL oneway operations are
-         --  mapped the same as other operation; that is, there is no
-         --  indication whether an operation is oneway or not in the
-         --  mapped Ada specification".
-
-         --  The extract above means that the call to a oneway
-         --  operation is performed in the same way as a call to a
-         --  classic synchronous operation. However, the ORB need to
-         --  know oneway operations. The stub precise that by adding
-         --  an additional parameter to the procedure
-         --  "PolyORB.Requests.Create_Request". This additional
-         --  parameter indicate the calling way of the operation (see
-         --  the file polyorb-requests.ads for more information about
-         --  different ways of calls)
+         --  The extract above means that the call to a oneway operation is
+         --  performed in the same way as a call to a classic synchronous
+         --  operation. However, the ORB need to know oneway operations. The
+         --  stub precise that by adding an additional parameter to the
+         --  procedure "PolyORB.Requests.Create_Request". This additional
+         --  parameter indicate the calling way of the operation (see the file
+         --  polyorb-requests.ads for more information about different ways of
+         --  calls).
 
          if FEN.Is_Oneway (E) then
-            --  7th parameter association
+            --  Sync scope flag
 
             N := Make_Parameter_Association
               (Selector_Name    => Make_Defining_Identifier (PN (P_Req_Flags)),
@@ -1743,9 +1752,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
             Append_To (Profile, N);
          end if;
 
-         --  Call Create_Request
-
-         N := Make_Subprogram_Call (RE (RE_Create_Request), Profile);
+         N := Make_Subprogram_Call (RE (RE_Setup_Request), Profile);
          Append_To (Statements, N);
 
          if Use_SII then
@@ -1926,8 +1933,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
          N := Make_Subprogram_Call
            (RE (RE_Client_Invoke),
             New_List
-            (Make_Defining_Identifier (VN (V_Request)),
-             N));
+              (Make_Attribute_Reference
+                 (Make_Defining_Identifier (VN (V_Request)), A_Access),
+               N));
          Append_To (Statements, N);
 
          if Use_SII and then (Has_Out_Params or else Non_Void) then
@@ -1983,13 +1991,6 @@ package body Backend.BE_CORBA_Ada.Stubs is
            Make_Subprogram_Call
              (RE (RE_Request_Raise_Occurrence),
               New_List (Make_Identifier (VN (V_Request)))));
-
-         --  Destroy the request
-
-         N := Make_Subprogram_Call
-           (RE (RE_Destroy_Request),
-            New_List (Make_Identifier (VN (V_Request))));
-         Append_To (Statements, N);
 
          --  Retrieve return value
 
@@ -2369,7 +2370,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
               (Defining_Identifier =>
                  Make_Defining_Identifier (VN (V_Request)),
                Constant_Present    => False,
-               Object_Definition   => RE (RE_Request_Access),
+               Aliased_Present     => True,
+               Object_Definition   => RE (RE_Request),
                Expression          => No_Node);
             Append_To (L, N);
 

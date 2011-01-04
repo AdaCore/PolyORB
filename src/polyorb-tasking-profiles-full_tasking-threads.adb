@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -91,8 +91,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end record;
 
    function Get_Thread_Id
-     (T : access Full_Tasking_Thread_Type)
-     return PTT.Thread_Id;
+     (T : access Full_Tasking_Thread_Type) return PTT.Thread_Id;
 
    type Full_Tasking_Thread_Access
       is access all Full_Tasking_Thread_Type'Class;
@@ -111,12 +110,16 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end record;
    --  Simplified runnable for parameterless procedure
 
-   procedure Run (SR : access Simple_Runnable);
+   procedure Run (SR : not null access Simple_Runnable);
 
    task Reaper is
       entry Free (GT : Generic_Task_Access);
       --  Busy-wait for the designated task to terminate, then free it
    end Reaper;
+
+   ------------
+   -- Reaper --
+   ------------
 
    task body Reaper is
       Terminated_Task : Generic_Task_Access;
@@ -180,7 +183,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Run --
    ---------
 
-   procedure Run (SR : access Simple_Runnable)
+   procedure Run (SR : not null access Simple_Runnable)
    is
       use type PTT.Parameterless_Procedure;
    begin
@@ -208,16 +211,18 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       GT : Generic_Task_Access;
 
    begin
-      T.Priority := System.Priority
-        (PolyORB.Parameters.Get_Conf
-           ("tasking", "polyorb.tasking.threads." & Name & ".priority",
-            Default_Priority));
+      T.Priority :=
+        System.Priority
+          (Parameters.Get_Conf
+            ("tasking",
+             "polyorb.tasking.threads." & Name & ".priority",
+             Default_Priority));
 
       if Storage_Size = 0 then
-         T.Stack_Size := PolyORB.Parameters.Get_Conf
-           ("tasking",
-            "storage_size",
-            PTT.Default_Storage_Size);
+         T.Stack_Size := Parameters.Get_Conf
+                           ("tasking",
+                            "storage_size",
+                            PTT.Default_Storage_Size);
       else
          T.Stack_Size := Storage_Size;
       end if;
@@ -415,7 +420,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
       Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
 
-      TID : Task_Id;
+      S_TID : System.Tasking.Task_Id;
+      A_TID : Ada.Task_Identification.Task_Id;
+      for A_TID'Address use S_TID'Address;
+      pragma Import (Ada, A_TID);
       --  Task identifier used to climb up task tree until we reach the
       --  environment task.
 
@@ -423,11 +431,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
-      TID := System.Tasking.Self;
-      while TID.Common.Parent /= null loop
-         TID := TID.Common.Parent;
+      S_TID := System.Tasking.Self;
+      while S_TID.Common.Parent /= null loop
+         S_TID := S_TID.Common.Parent;
       end loop;
-      The_Thread_Factory.Environment_Task := TID;
+      The_Thread_Factory.Environment_Task := S_TID;
+      pragma Debug (C, O ("Environment task: "
+                            & Ada.Task_Identification.Image (A_TID)));
    end Initialize;
 
    use PolyORB.Initialization;

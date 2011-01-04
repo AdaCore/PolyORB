@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -103,7 +103,7 @@ package body PolyORB.Transport.Connected is
    --------------------
 
    function Handle_Message
-     (TE  : access Connected_Transport_Endpoint;
+     (TE  : not null access Connected_Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Buffers;
@@ -151,8 +151,7 @@ package body PolyORB.Transport.Connected is
             end if;
 
             if not Is_Error (Error) then
-               return Emit (TE.Upper, Data_Indication'
-                            (Data_Amount => Size));
+               return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
 
             else
                return Filter_Error'(Error => Error);

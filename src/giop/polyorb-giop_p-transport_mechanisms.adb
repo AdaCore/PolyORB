@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,7 +57,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
       Mechs   : in out Transport_Mechanism_List)
    is
       use Registry_Item_Lists;
-      Iter   : Registry_Item_Lists.Iterator := First (Registry);
+      Iter : Registry_Item_Lists.Iterator := First (Registry);
    begin
       while not Last (Iter) loop
          declare
@@ -158,9 +158,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
       Component : Transport_Mechanism_Access;
 
    begin
-      while List
-              /= Transport_Mechanism_List (Transport_Mechanism_Lists.Empty)
-      loop
+      while not Is_Empty (List) loop
          Extract_First (List, Component);
          Release_Contents (Component);
          Free (Component);

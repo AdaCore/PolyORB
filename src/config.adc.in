@@ -1,4 +1,4 @@
---  Set policies
+--  Set assertion and debug policies
 
 pragma Assertion_Policy (@ASSERTION_POLICY@);
 pragma Debug_Policy (@DEBUG_POLICY@);

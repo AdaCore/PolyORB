@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,6 @@ with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.RT_POA;
-with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Priorities;
@@ -217,7 +216,7 @@ package body RTPortableServer.POA is
    begin
       PolyORB.RT_POA.Activate_Object_With_Id_And_Priority
         (RT_POA,
-         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
+         To_PolyORB_Servant (P_Servant),
          null,
          PolyORB.RTCORBA_P.To_ORB_Priority (Priority),
          External_Priority (Priority),
@@ -262,7 +261,7 @@ package body RTPortableServer.POA is
    begin
       PolyORB.RT_POA.Activate_Object_With_Id_And_Priority
         (RT_POA,
-         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
+         To_PolyORB_Servant (P_Servant),
          A_Oid'Unchecked_Access,
          PolyORB.RTCORBA_P.To_ORB_Priority (Priority),
          External_Priority (Priority),

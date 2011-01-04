@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,6 @@ with XE_IO;       use XE_IO;
 with XE_Names;    use XE_Names;
 with XE_Units;    use XE_Units;
 with XE_Utils;    use XE_Utils;
-pragma Elaborate_All (XE_Utils);
 
 package body XE_List is
 
@@ -557,7 +556,7 @@ package body XE_List is
 
       Register_Temp_File (Monolithic_Src_File, Monolithic_Src_Name);
       Set_Output (Monolithic_Src_File);
-      Write_Line ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       --  Record the associated object and ALI files as temporary files to
       --  be cleaned up eventually.
@@ -849,17 +848,20 @@ package body XE_List is
    -------------------------------
 
    procedure Load_All_Registered_Units is
-      Comp_Flags : constant Argument_List := (1 => Semantic_Only_Flag);
+      Comp_Flags : constant Argument_List :=
+                     (Semantic_Only_Flag,
+                      Object_Dir_Flag,
+                      new String'(Get_Name_String (Monolithic_Obj_Dir)));
 
       List_Args : constant Argument_List :=
-        (GLADE_List_Flag,
-         Project_File_Flag,
-         Project_File_Name);
+                    (GLADE_List_Flag,
+                     Project_File_Flag,
+                     Project_File_Name);
 
       Make_Args : constant Argument_List :=
-        (Compile_Only_Flag,
-         Project_File_Flag,
-         Project_File_Name);
+                    (Compile_Only_Flag,
+                     Project_File_Flag,
+                     Project_File_Name);
 
       List_Args_Length, Make_Args_Length : Natural;
 

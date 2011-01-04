@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -83,9 +83,9 @@ package body Periodic_Clients is
    -- Run --
    ---------
 
-   procedure Run (R : access Periodic_Runnable);
+   procedure Run (R : not null access Periodic_Runnable);
 
-   procedure Run (R : access Periodic_Runnable) is
+   procedure Run (R : not null access Periodic_Runnable) is
       use Ada.Real_Time;
       use CORBA;
       use CORBA.ORB;

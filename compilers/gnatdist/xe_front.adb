@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -158,11 +158,6 @@ package body XE_Front is
    begin
       if Get_Partition_Id (U) = P then
          return;
-      end if;
-
-      if Debug_Mode then
-         Message ("configuring unit", U,
-                  "on partition", Partitions.Table (P).Name);
       end if;
 
       --  Mark this configured unit as already partitioned
@@ -730,23 +725,30 @@ package body XE_Front is
       L : Location_Id := No_Location_Id;
 
    begin
+      --  Create default location
+
       Add_Location
         (F, L,
          Id (Get_Def_Storage_Name),
          Id (Get_Def_Storage_Data));
       Default_Data_Location := F;
 
+      --  Create default partition
+
       N := Get_Node_Name (Node_Id (Partition_Type_Node));
       Create_Partition (N, Null_Node, P);
       Default_Partition_Id := P;
 
+      --  Create default channel
+
       Channels.Increment_Last;
       C := Channels.Last;
-      Channels.Table (C).Name := Get_Node_Name (Node_Id (Channel_Type_Node));
-
-      Channels.Table (C).Filter := No_Filter_Name;
       Default_Channel_Id := C;
 
+      --  Set properties of default channel
+
+      Channels.Table (C).Name   := Get_Node_Name (Node_Id (Channel_Type_Node));
+      Channels.Table (C).Filter := No_Filter_Name;
    end Initialize;
 
    ----------------
@@ -1491,14 +1493,12 @@ package body XE_Front is
 
    procedure Show_Configuration is
    begin
-      Write_Str (" ------------------------------");
+      Write_Line (" ------------------------------");
+      Write_Line (" ---- Configuration report ----");
+      Write_Line (" ------------------------------");
       Write_Eol;
-      Write_Str (" ---- Configuration report ----");
-      Write_Eol;
-      Write_Str (" ------------------------------");
-      Write_Eol;
-      Write_Str ("Configuration :");
-      Write_Eol;
+
+      Write_Line ("Configuration :");
 
       Write_Field (1, "Name");
       Write_Name  (Configuration);
@@ -1518,6 +1518,12 @@ package body XE_Front is
             Write_Str ("none");
       end case;
       Write_Eol;
+
+      if Default_Name_Server /= No_Name_Server then
+         Write_Field (1, "Name_Server");
+         Write_Name  (Name_Server_Img (Default_Name_Server));
+         Write_Eol;
+      end if;
 
       if Default_First_Boot_Location /= No_Location_Id then
          Write_Field (1, "Protocols");
@@ -1544,14 +1550,13 @@ package body XE_Front is
             Write_Eol;
          end;
       end if;
-      Write_Eol;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
+         Write_Eol;
          Show_Partition (P);
       end loop;
 
-      Write_Str (" -------------------------------");
-      Write_Eol;
+      Write_Line (" -------------------------------");
       if Channels.First + 1 <= Channels.Last then
          Write_Eol;
          declare
@@ -1579,8 +1584,7 @@ package body XE_Front is
                Write_Eol;
             end loop;
          end;
-         Write_Str (" -------------------------------");
-         Write_Eol;
+         Write_Line (" -------------------------------");
       end if;
    end Show_Configuration;
 
@@ -1780,7 +1784,6 @@ package body XE_Front is
             Write_Line (")");
             U := Conf_Units.Table (U).Next_Unit;
          end loop;
-         Write_Eol;
       end if;
 
       if Partitions.Table (P).First_Env_Var /= No_Env_Var_Id then
@@ -1793,7 +1796,6 @@ package body XE_Front is
             Write_Line ("""");
             V := Env_Vars.Table (V).Next_Env_Var;
          end loop;
-         Write_Eol;
       end if;
    end Show_Partition;
 
@@ -1813,6 +1815,10 @@ package body XE_Front is
    procedure Update_Most_Recent_Stamp (P : Partition_Id; F : File_Name_Type) is
       Most_Recent : File_Name_Type;
    begin
+      if Debug_Mode then
+         Message (" update stamp for", Partitions.Table (P).Name, "from", F);
+      end if;
+
       Most_Recent := Partitions.Table (P).Most_Recent;
       if No (Most_Recent) then
          Partitions.Table (P).Most_Recent := F;

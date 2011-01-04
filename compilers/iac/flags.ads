@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ package Flags is
    Main_Source      : Types.Name_Id := Types.No_Name;
    --  IDL source name
 
-   Print_On_Stdout  : Boolean       := False;
+   Use_Stdout       : Boolean       := False;
    --  True when we want to generate sources in the standard output
 
    Print_Full_Tree  : Boolean       := False;

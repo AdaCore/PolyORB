@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,10 +46,28 @@ package body PolyORB.ORB_Controller is
    --------------------
 
    procedure Terminate_Task
-     (O  : access ORB_Controller; TI : in out PTI.Task_Info)
+     (O : access ORB_Controller; TI : PTI.Task_Info_Access)
    is
    begin
-      Set_State_Terminated (O.Summary, TI);
+      --  If terminating an idle or blocked task, notify ourselves
+
+      case State (TI.all) is
+         when Idle =>
+            Notify_Event
+              (ORB_Controller'Class (O.all)'Access,
+               Event'(Kind => Idle_Awake, Awakened_Task => TI));
+
+         when Blocked =>
+            Notify_Event
+              (ORB_Controller'Class (O.all)'Access,
+               Event'(Kind       => End_Of_Check_Sources,
+                      On_Monitor => Selector (TI.all)));
+
+         when others =>
+            null;
+      end case;
+
+      Set_State_Terminated (O.Summary, TI.all);
    end Terminate_Task;
 
    ------------
@@ -153,15 +171,15 @@ package body PolyORB.ORB_Controller is
    procedure Initialize (OC : in out ORB_Controller) is
       use PolyORB.Parameters;
 
-      Polling_Interval : constant Natural
+      Polling_Interval : constant Duration
         := Get_Conf ("orb_controller",
                      "polyorb.orb_controller.polling_interval",
-                     0);
+                     PolyORB.Constants.Forever);
 
-      Polling_Timeout : constant Natural
+      Polling_Timeout : constant Duration
         := Get_Conf ("orb_controller",
                      "polyorb.orb_controller.polling_timeout",
-                     0);
+                     PolyORB.Constants.Forever);
 
    begin
       PTM.Create (OC.ORB_Lock);
@@ -174,17 +192,8 @@ package body PolyORB.ORB_Controller is
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
 
       for J in OC.AEM_Infos'Range loop
-         if Polling_Interval = 0 then
-            OC.AEM_Infos (J).Polling_Interval := PolyORB.Constants.Forever;
-         else
-            OC.AEM_Infos (J).Polling_Interval := Polling_Interval * 0.01;
-         end if;
-
-         if Polling_Timeout = 0 then
-            OC.AEM_Infos (J).Polling_Timeout := PolyORB.Constants.Forever;
-         else
-            OC.AEM_Infos (J).Polling_Timeout := Polling_Timeout * 0.01;
-         end if;
+         OC.AEM_Infos (J).Polling_Interval := Polling_Interval;
+         OC.AEM_Infos (J).Polling_Timeout := Polling_Timeout;
       end loop;
    end Initialize;
 

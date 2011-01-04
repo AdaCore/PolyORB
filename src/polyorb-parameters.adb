@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,9 @@
 
 --  PolyORB runtime configuration facility
 
+pragma Ada_2005;
+
+with PolyORB.Constants;
 with PolyORB.Initialization;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -126,10 +129,20 @@ package body PolyORB.Parameters is
      (Section, Key : String;
       Default      : Duration := 0.0) return Duration
    is
-      Milliseconds : constant Natural :=
-                       Get_Conf (Section, Key, Natural (Default * 1000));
+      Default_Milliseconds : Integer;
+      Milliseconds         : Integer;
    begin
-      return Duration (Milliseconds) / 1000.0;
+      if Default = Constants.Forever then
+         Default_Milliseconds := -1;
+      else
+         Default_Milliseconds := Natural (Default * 1000);
+      end if;
+      Milliseconds := Get_Conf (Section, Key, Default_Milliseconds);
+      if Milliseconds < 0 then
+         return Constants.Forever;
+      else
+         return Milliseconds * 0.001;
+      end if;
    end Get_Conf;
 
    ------------------------

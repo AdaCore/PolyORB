@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,24 +86,19 @@ package body PortableInterceptor.IORInterceptor_3_0.Impl is
    ----------
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : Standard.String)
-      return Boolean
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean
    is
       pragma Unreferenced (Self);
    begin
       return CORBA.Is_Equivalent
-        (Logical_Type_Id,
-         PortableInterceptor.IORInterceptor_3_0.Repository_Id)
+        (Logical_Type_Id, PortableInterceptor.IORInterceptor_3_0.Repository_Id)
         or else CORBA.Is_Equivalent
-          (Logical_Type_Id,
-           "IDL:omg.org/CORBA/Object:1.0")
+           (Logical_Type_Id, PortableInterceptor.IORInterceptor.Repository_Id)
         or else CORBA.Is_Equivalent
-           (Logical_Type_Id,
-         PortableInterceptor.IORInterceptor.Repository_Id)
+           (Logical_Type_Id, PortableInterceptor.Interceptor.Repository_Id)
         or else CORBA.Is_Equivalent
-           (Logical_Type_Id,
-         PortableInterceptor.Interceptor.Repository_Id);
+          (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
 end PortableInterceptor.IORInterceptor_3_0.Impl;

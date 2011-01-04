@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,7 +60,7 @@ with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Log;
 
-with AWS.URL;
+with PolyORB.Web.URL;
 
 package body PolyORB.Binding_Data.SOAP is
 
@@ -282,10 +282,10 @@ package body PolyORB.Binding_Data.SOAP is
      (URI : Types.String)
      return Profile_Access
    is
-      use AWS.URL;
+      use PolyORB.Web.URL;
       use Sockets;
 
-      URL : AWS.URL.Object :=
+      URL : PolyORB.Web.URL.Object :=
         Parse (To_Standard_String (URI));
 
       Result : constant Profile_Access := new SOAP_Profile_Type;
@@ -297,7 +297,7 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Address  := new Socket_Name'
                             (Server_Name (URL)
                              + Port_Type (Positive'(Port (URL))));
-      TResult.URI_Path := To_PolyORB_String (AWS.URL.URI (URL));
+      TResult.URI_Path := To_PolyORB_String (PolyORB.Web.URL.URI (URL));
 
       if ORB.Is_Profile_Local (Setup.The_ORB, Result) then
 

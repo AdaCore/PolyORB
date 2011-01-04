@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,11 +34,15 @@
 with CORBA.ORB;
 with CosNaming.NamingContext.Helper;
 
+with PolyORB.Utils;
+
 package body PolyORB.CORBA_P.Naming_Tools is
 
    use CosNaming;
    use CosNaming.NamingContext;
    use CosNaming.NamingContext.Helper;
+
+   use PolyORB.Utils;
 
    subtype NameComponent_Array is
      CosNaming.IDL_SEQUENCE_CosNaming_NameComponent.Element_Array;
@@ -92,7 +96,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
       Sep         : Character := '/') return CORBA.Object.Ref
    is
    begin
-      if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
+      if Has_Prefix (IOR_Or_Name, Prefix => "IOR:") then
          declare
             Obj : CORBA.Object.Ref;
          begin
@@ -115,7 +119,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
       Sep         : Character := '/') return CORBA.Object.Ref
    is
    begin
-      if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
+      if Has_Prefix (IOR_Or_Name, Prefix => "IOR:") then
          declare
             Obj : CORBA.Object.Ref;
          begin
@@ -262,9 +266,9 @@ package body PolyORB.CORBA_P.Naming_Tools is
 
                Append
                  (Result, NameComponent'
-                  (Id   => To_CORBA_String
+                  (id   => To_CORBA_String
                              (Unescaped (First .. Last_Unescaped_Period - 1)),
-                   Kind => To_CORBA_String
+                   kind => To_CORBA_String
                              (Unescaped (Last_Unescaped_Period + 1 .. Last))));
 
                Last_Unescaped_Period := Last;

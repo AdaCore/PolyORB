@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -96,8 +96,7 @@ package PolyORB.Protocols is
 
    procedure Abort_Request
      (S : access Session;
-      R :        Request_Access)
-      is abstract;
+      R : Request_Access) is abstract;
    --  Abort pending invocation of R.
 
    procedure Send_Reply
@@ -150,10 +149,9 @@ package PolyORB.Protocols is
    ---------------------
 
    function Handle_Message
-     (Sess : access Session;
-      S    :        Components.Message'Class)
-     return Components.Message'Class;
-   --  Demultiplex Messages to the above specialized operations.
+     (Sess : not null access Session;
+      S    : Components.Message'Class) return Components.Message'Class;
+   --  Demultiplex Messages to the above specialized operations
 
 private
 

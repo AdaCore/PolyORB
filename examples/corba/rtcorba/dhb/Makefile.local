@@ -1,4 +1,2 @@
-${eval ${define_test}}
-
 ${current_dir}dhb.idl-stamp: idlac_flags :=-I${top_srcdir}/idls/RTCORBA -I${top_srcdir}/idls/CORBA_IDL -I${top_srcdir}/idls/CORBA_PIDL -I${top_srcdir}/idls/cos/time -I${top_srcdir}/idls/Interop
 ${test_target}: ${current_dir}dhb.idl-stamp

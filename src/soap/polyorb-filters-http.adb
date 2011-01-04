@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with Ada.Unchecked_Conversion;
 
 with System;
 
-with AWS.MIME;
+with PolyORB.Web.MIME;
 with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.AWS_Interface;
@@ -171,7 +171,7 @@ package body PolyORB.Filters.HTTP is
    --  Main filter message processing
 
    function Handle_Message
-     (F : access HTTP_Filter;
+     (F : not null access HTTP_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is
       Res : Components.Null_Message;
@@ -302,8 +302,7 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : Filters.Iface.Data_Indication)
    is
-      Data_Received : Stream_Element_Count :=
-                        Stream_Element_Count (S.Data_Amount);
+      Data_Received : Stream_Element_Count := S.Data_Amount;
 
       New_Data : PolyORB.Opaque.Opaque_Pointer;
       New_Data_Position : Stream_Element_Offset :=
@@ -1100,10 +1099,11 @@ package body PolyORB.Filters.HTTP is
          when POST =>
             if SOAP_Action'Length /= 0 then
                Put_Line
-                 (Buf, Header (H_Content_Type, AWS.MIME.Text_XML));
+                 (Buf, Header (H_Content_Type, PolyORB.Web.MIME.Text_XML));
             else
                Put_Line
-                 (Buf, Header (H_Content_Type, AWS.MIME.Appl_Form_Data));
+                 (Buf,
+                  Header (H_Content_Type, PolyORB.Web.MIME.Appl_Form_Data));
             end if;
             Put_Line
               (Buf, Header (H_Content_Length,

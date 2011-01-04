@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -85,8 +85,9 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
    procedure Add_Additional_Transport_Mechanisms
      (P : access IIOP_Profile_Type);
-   --  Add additional transport mechanisms. Primary transport mechanism
-   --  should be created before this subprogram call.
+   --  Add transport mechanisms associated with tagged components in P.
+   --  The primary transport mechanism (associated with the base IIOP profile
+   --  body) should already have been created.
 
    procedure Add_Profile_QoS (P : access IIOP_Profile_Type);
    --  Add profile QoS parameters. This subprogram should be called
@@ -187,8 +188,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    is
       pragma Unreferenced (ORB);
 
-      MF : constant Transport_Mechanism_Factory_Access
-        := new IIOP_Transport_Mechanism_Factory;
+      MF : constant Transport_Mechanism_Factory_Access :=
+             new IIOP_Transport_Mechanism_Factory;
 
    begin
       Create_Factory (MF.all, TAP);
@@ -217,7 +218,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       TResult.Version_Minor := IIOP_Version_Minor;
       TResult.Object_Id     := new Object_Id'(Oid);
 
-      --  Create primary transport mechanism
+      --  Create primary transport mechanism (which has no associated tagged
+      --  component).
 
       Append
         (TResult.Mechanisms,
@@ -238,7 +240,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          Next (Iter);
       end loop;
 
-      --  Append tagged components attached to the Object Adapter
+      --  Create tagged components attached to the Object Adapter
 
       declare
          use Ada.Streams;
@@ -276,20 +278,25 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
             end;
          end if;
 
+         --  Create security related tagged component
+
          if Security_Fetch_Tagged_Component /= null then
             declare
-               Aux : constant Tagged_Component_Access
-                 := Security_Fetch_Tagged_Component (Oid);
+               Sec_TC : constant Tagged_Component_Access :=
+                          Security_Fetch_Tagged_Component (Oid);
 
             begin
-               if Aux /= null then
-                  Add (TResult.Components, Aux);
+               if Sec_TC /= null then
+                  Add (TResult.Components, Sec_TC);
                end if;
             end;
          end if;
       end;
 
+      --  Now create additional transport mechanisms from tagged components
+
       Add_Additional_Transport_Mechanisms (TResult'Access);
+
       Add_Profile_QoS (TResult'Access);
 
       return Result;

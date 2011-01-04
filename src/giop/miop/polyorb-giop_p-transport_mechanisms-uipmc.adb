@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,8 +38,7 @@ with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
-with PolyORB.Transport.Datagram.Sockets_Out;
+with PolyORB.Transport.Datagram.Sockets;
 
 package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
@@ -47,8 +46,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    use PolyORB.Errors;
    use PolyORB.Parameters;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
-   use PolyORB.Transport.Datagram.Sockets_Out;
+   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.Sockets;
 
    ----------------
@@ -115,9 +113,11 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
         (Sock,
          IP_Protocol_For_IP_Level, (Multicast_TTL, TTL));
 
-      TE := new Socket_Out_Endpoint;
-
-      Create (Socket_Out_Endpoint (TE.all), Sock, Mechanism.Address.all);
+      TE := new Socket_Endpoint;
+      Create
+        (Socket_Endpoint (TE.all),
+         Sock,
+         To_Address (Mechanism.Address.all));
 
       Binding_Objects.Setup_Binding_Object
         (The_ORB,
@@ -147,7 +147,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    is
    begin
       MF.Address :=
-        new Socket_Name'(Address_Of (Socket_In_Access_Point (TAP.all)));
+        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
    end Create_Factory;
 
    ------------------------------

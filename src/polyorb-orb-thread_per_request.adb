@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,7 @@ package body PolyORB.ORB.Thread_Per_Request is
       A_Job : Jobs.Job_Access;
    end record;
 
-   procedure Run (R : access Request_Runnable);
+   procedure Run (R : not null access Request_Runnable);
 
    procedure Initialize;
 
@@ -148,26 +148,23 @@ package body PolyORB.ORB.Thread_Per_Request is
 
    procedure Idle
      (P         : access Thread_Per_Request_Policy;
-      This_Task : in out PolyORB.Task_Info.Task_Info;
-      ORB       :        ORB_Access)
+      This_Task : PTI.Task_Info_Access;
+      ORB       : ORB_Access)
    is
       pragma Unreferenced (P, ORB);
-
-      package PTI  renames PolyORB.Task_Info;
    begin
-
       --  In Thread_Per_Request policy, only one task is executing ORB.Run.
       --  However, it can be set to idle while another thread modifies
       --  ORB internals.
 
       pragma Debug (C, O ("Thread "
-                       & Image (PTI.Id (This_Task))
+                       & Image (PTI.Id (This_Task.all))
                        & " is going idle."));
 
-      Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
+      Wait (PTI.Condition (This_Task.all), PTI.Mutex (This_Task.all));
 
       pragma Debug (C, O ("Thread "
-                       & Image (PTI.Id (This_Task))
+                       & Image (PTI.Id (This_Task.all))
                        & " is leaving Idle state"));
    end Idle;
 
@@ -184,7 +181,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Run --
    ---------
 
-   procedure Run (R : access Request_Runnable) is
+   procedure Run (R : not null access Request_Runnable) is
    begin
 
       --  Running Job

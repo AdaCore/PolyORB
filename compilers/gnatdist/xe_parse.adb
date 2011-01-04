@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -269,7 +269,7 @@ package body XE_Parse is
       Parameter_Sloc  : XE_Scan.Location_Type)
    is
       Ignore : Parameter_Id;
-      pragma Warnings (Off, Ignore);
+      pragma Unreferenced (Ignore);
    begin
       Declare_Subprogram_Parameter
         (Parameter_Name, Para_Type_Node, Subprogram_Node, Parameter_Sloc,
@@ -350,7 +350,7 @@ package body XE_Parse is
       Attribute_Sloc     : Location_Type)
    is
       Ignore : Attribute_Id;
-      pragma Warnings (Off, Ignore);
+      pragma Unreferenced (Ignore);
    begin
       Declare_Type_Attribute
         (Type_Node, Attribute_Name, Attr_Type_Node, Attribute_Kind,
@@ -390,7 +390,7 @@ package body XE_Parse is
       Component_Sloc     : Location_Type)
    is
       Ignore : Component_Id;
-      pragma Warnings (Off, Ignore);
+      pragma Unreferenced (Ignore);
    begin
       Declare_Type_Component
         (Type_Node, Component_Name, Comp_Type_Node, Component_Sloc,
@@ -1176,19 +1176,14 @@ package body XE_Parse is
       --  Token PROCEDURE has already been parsed.
 
       T_Identifier;
-
-      Procedure_Name := Token_Name;
       Procedure_Sloc := Get_Token_Location;
 
-      Take_Token ((Tok_Is, Tok_Semicolon, Tok_Dot));
+      P_Full_Ada_Identifier;
+      Procedure_Name := Token_Name;
 
       Search_Variable (Procedure_Name, Ada_Unit_Node);
 
-      if Token = Tok_Dot then
-         Write_Error_Message
-           (Get_Token_Location,
-            "main subprogram cannot be a child subprogram");
-      end if;
+      Take_Token ((Tok_Is, Tok_Semicolon));
 
       --  This procedure has to be declared when this statement is
       --  a declaration or when it has not been already declared.

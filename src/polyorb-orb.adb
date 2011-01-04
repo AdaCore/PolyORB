@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,7 @@
 --  The ORB core module
 
 with Ada.Exceptions;
+with Ada.Finalization;
 with Ada.Tags;
 
 with PolyORB.Any.Initialization;
@@ -76,7 +77,6 @@ package body PolyORB.ORB is
    use PolyORB.Tasking.Threads;
    use PolyORB.Transport;
    use PolyORB.Transport.Handlers;
-   use PolyORB.Types;
    use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb");
@@ -122,6 +122,16 @@ package body PolyORB.ORB is
    -- ORB object operations --
    ---------------------------
 
+   procedure Perform_Work
+     (ORB       : access ORB_Type;
+      This_Task : in out PTI.Task_Info);
+   pragma Inline (Perform_Work);
+   --  Perform one item of work assigned to This_Task
+   --  Precondition:  Must be called from within ORB critical section.
+   --  Postcondition: On exit, ORB critical section has been reasserted.
+   --  Note: tasks running this function may exit ORB critical section
+   --  temporarily.
+
    ------------
    -- Create --
    ------------
@@ -147,97 +157,76 @@ package body PolyORB.ORB is
    is
       use PBOL;
 
-      It     : Iterator;
+      function Is_Reusable (BO_Acc : Binding_Object_Access) return Boolean;
+      --  True if this BO can be reused to contact the given profile with
+      --  the given QoS.
+
+      -----------------
+      -- Is_Reusable --
+      -----------------
+
+      function Is_Reusable (BO_Acc : Binding_Object_Access) return Boolean is
+      begin
+         if Get_Profile (BO_Acc) /= null then
+
+            --  Until bidirectionnal BO are implemented we cannot reuse the
+            --  server BOs as client BOs and inversely. So for the moment,
+            --  server BOs have a null profile and are not handled here. This
+            --  check shall be removed once bidirectional BO are implemented.
+
+            return Same_Node (Pro.all, Get_Profile (BO_Acc).all)
+                     and then
+                   PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS);
+         else
+            return False;
+         end if;
+      end Is_Reusable;
+
+      use BO_Ref_Lists;
+
+      Reusable_BOs : BO_Ref_List;
       Result : Smart_Pointers.Ref;
+
+   --  Start of processing for Find_Reusable_Binding_Object
 
    begin
       pragma Debug (C, O ("Find_Reusable_Binding_Object: enter"));
       pragma Debug (C, O ("#BO registered = "
         & Natural'Image (Length (ORB.Binding_Objects))));
 
-      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      Reusable_BOs := Get_Binding_Objects (ORB, Is_Reusable'Access);
 
-      It := First (ORB.Binding_Objects);
+      if not Is_Empty (Reusable_BOs) then
+         Extract_First (Reusable_BOs, Result);
 
-      --  Loop through all the BOs registered in ORB, and try to find one
-      --  that can be reused.
+         --  Get_Binding_Objects with a non-null predicate is expected to
+         --  return at most one object.
 
-      All_Binding_Objects :
-      while not Last (It) loop
+         pragma Assert (Is_Empty (Reusable_BOs));
+      end if;
 
-         declare
-            BO_Acc : Binding_Object_Access renames Value (It);
-         begin
-            if not Valid (BO_Acc) then
-
-               --  Mark binding object as not referenced anymore and purge
-
-               Set_Referenced (BO_Acc, Referenced => False);
-               Remove (ORB.Binding_Objects, It);
-
-            elsif Get_Profile (BO_Acc) /= null then
-
-               --  Until bidirectionnal BO are implemented we cannot reuse the
-               --  server BOs as client BOs and inversely. So for the moment,
-               --  server BOs have a null profile and are not handled here.
-               --  This check shall be removed once bidirectional BO are
-               --  implemented.
-
-               if Same_Node (Pro.all, Get_Profile (BO_Acc).all)
-                    and then
-                  PolyORB.Binding_Object_QoS.Is_Compatible (BO_Acc, QoS)
-               then
-
-                  --  We know that BO_Acc is still valid, because the
-                  --  finalization of the binding object involves unregistering
-                  --  it in ORB critical section. However, BO_Acc.all might be
-                  --  in the process of being finalized already, i.e. its
-                  --  usage counter might have dropped to 0 already. In that
-                  --  case, Smart_Pointers.Reuse_Entity will leave Result
-                  --  unchanged (nil).
-
-                  Smart_Pointers.Reuse_Entity
-                    (Result, Smart_Pointers.Entity_Ptr (BO_Acc));
-                  exit All_Binding_Objects
-                    when not Smart_Pointers.Is_Nil (Result);
-               end if;
-
-            end if;
-         end;
-
-         Next (It);
-      end loop All_Binding_Objects;
-
-      Leave_ORB_Critical_Section (ORB.ORB_Controller);
       pragma Debug (C, O ("Find_Reusable_Binding_Object: leave"));
 
-      --  If no reusable Binding Object has been found, Result is a nil
-      --  Reference.
+      --  If no reusable Binding Object has been found, Result is a nil Ref
 
       return Result;
    end Find_Reusable_Binding_Object;
-
-   -----------------------
-   -- The ORB main loop --
-   -----------------------
-
-   --  This is the main loop for all general-purpose ORB tasks. This subprogram
-   --  must not be called recursively. Exceptions must not be propagated from
-   --  within ORB critical section.
 
    ------------------
    -- Perform_Work --
    ------------------
 
-   procedure Perform_Work
-     (ORB       : access ORB_Type;
-      This_Task : in out PTI.Task_Info);
-   pragma Inline (Perform_Work);
-   --  Perform one item of work from Q.
-   --  Precondition:  Must be called from within ORB critical section.
-   --  Postcondition: On exit, ORB critical section has been reasserted.
-   --  Note: tasks running this function may exit ORB critical section
-   --  temporarily.
+   procedure Perform_Work (ORB : access ORB_Type) is
+      Job : Job_Access;
+   begin
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      Job := Get_Pending_Job (ORB.ORB_Controller);
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+
+      if Job /= null then
+         Run (Job);
+      end if;
+   end Perform_Work;
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
@@ -341,121 +330,202 @@ package body PolyORB.ORB is
    -- Run --
    ---------
 
+   --  Controlled type Task_Witness implements the Scope Lock idiom to handle
+   --  exceptions and asynchronous abort while we are executing the ORB main
+   --  loop.
+
+   type Task_Witness
+     (This           : access Task_Info.Task_Info;
+      ORB_Controller : access POC.ORB_Controller'Class;
+      TI_Reference   : access PTI.Task_Info_Access;
+      Req            : access Requests.Request)
+     is new Ada.Finalization.Limited_Controlled with
+   record
+      Normal_Exit : Boolean := False;
+      --  Set True when exiting through normal completion of the protected
+      --  block (as opposed to abort or exception).
+   end record;
+
+   procedure Initialize (TW : in out Task_Witness);
+   --  Register TW.This with OC
+
+   procedure Finalize (TW : in out Task_Witness);
+   --  Unregister TW.This from OC
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (TW : in out Task_Witness) is
+   begin
+      pragma Debug
+        (O ("Initializing task witness for " & PTI.Image (TW.This.all)));
+      Enter_ORB_Critical_Section (TW.ORB_Controller);
+
+      if TW.TI_Reference /= null then
+         --  This pointer must be reset to null before exiting Run so as to
+         --  not leave a dangling reference.
+
+         TW.TI_Reference.all := TW.This.all'Unchecked_Access;
+      end if;
+
+      Register_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (TW : in out Task_Witness) is
+   begin
+      pragma Debug
+        (O ("Finalizing task witness for " & PTI.Image (TW.This.all)
+            & ", Normal_Exit = " & TW.Normal_Exit'Img));
+
+      --  Remove references to TW.This
+
+      if TW.TI_Reference /= null then
+         TW.TI_Reference.all := null;
+      end if;
+
+      if not TW.Normal_Exit then
+         --  Reassert critical section to remove current task from ORB
+         --  controller if terminating because of abort or exception.
+
+         Enter_ORB_Critical_Section (TW.ORB_Controller);
+
+         if TW.Req /= null and then TW.Req.Surrogate /= null then
+
+            --  Notify surrogate that request was aborted
+
+            Emit_No_Reply
+              (TW.Req.Surrogate,
+               Servants.Iface.Abort_Request'
+                 (Req => TW.Req.all'Unchecked_Access));
+         end if;
+
+         Terminate_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
+      end if;
+
+      Unregister_Task (TW.ORB_Controller, TW.This.all'Unchecked_Access);
+      Leave_ORB_Critical_Section (TW.ORB_Controller);
+   end Finalize;
+
+   --  An ORB task is Permanent if its Request is null (case True), Transient
+   --  if it is not.
+
+   --  This is the main loop for all general-purpose ORB tasks. This subprogram
+   --  must not be called recursively. Exceptions must not be propagated from
+   --  within ORB critical section.
+
    procedure Run
-     (ORB            : access ORB_Type;
-      Exit_Condition : Exit_Condition_T := (null, null);
-      May_Exit       : Boolean)
+     (ORB      : access ORB_Type;
+      Request  : Requests.Request_Access := null;
+      May_Exit : Boolean)
    is
-      use PolyORB.Task_Info;
+      use PTI;
 
-      This_Task : aliased Task_Info.Task_Info
-        (Task_Kind_For_Exit_Condition (Exit_Condition.Condition = null));
-
+      Task_Kinds : constant array (Boolean) of Task_Kind :=
+                     (False => Transient, True => Permanent);
+      This_Task  : aliased PTI.Task_Info (Task_Kinds (Request = null));
+      TI_Ref     : access Task_Info_Access := null;
    begin
       pragma Assert (This_Task.Kind = Permanent or else May_Exit);
       --  May_Exit is expected to always be True for transient tasks
 
-      Enter_ORB_Critical_Section (ORB.ORB_Controller);
-
       --  Set up task information for This_Task
 
       Set_Id (This_Task);
-      Set_Exit_Condition (This_Task, Exit_Condition.Condition);
-      Set_May_Exit       (This_Task, May_Exit);
-
-      if Exit_Condition.Task_Info /= null then
-         --  This pointer must be reset to null before exiting Run so as to
-         --  not leave a dangling reference.
-
-         Exit_Condition.Task_Info.all := This_Task'Unchecked_Access;
+      if Request /= null then
+         Set_Exit_Condition (This_Task, Request.Completed'Access);
+         TI_Ref := Request.Requesting_Task'Access;
+      else
+         Set_Exit_Condition (This_Task, null);
       end if;
+      Set_May_Exit (This_Task, May_Exit);
 
-      Register_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+      --  Enter critical section (scope lock using Witness)
 
-      --  ORB Main loop
+      declare
+         Witness : Task_Witness
+                     (This           => This_Task'Unchecked_Access,
+                      ORB_Controller => ORB.ORB_Controller,
+                      TI_Reference   => TI_Ref,
+                      Req            => Request);
+         pragma Unreferenced (Witness);
+      begin
+         --  ORB Main loop
 
-      Main_Loop :
-      loop
-         Schedule_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+         Main_Loop :
+         loop
+            Schedule_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
 
-         case State (This_Task) is
-            when Running =>
+            case State (This_Task) is
+               when Running =>
 
-               --  This task will process one job
+                  --  This task will process one job
 
-               Perform_Work (ORB, This_Task);
+                  Perform_Work (ORB, This_Task);
 
-            when Blocked =>
+               when Blocked =>
 
-               --  This task will block on event sources, waiting for events
+                  --  This task will block on event sources, waiting for events
 
-               Try_Check_Sources (ORB, This_Task);
+                  Try_Check_Sources (ORB, This_Task);
 
-            when Idle =>
+               when Idle =>
 
-               --  This task is going idle. We are still inside the ORB
-               --  critical section at this point. The tasking policy will
-               --  release it while we are idle, and re-assert it before
-               --  returning.
+                  --  This task is going idle. We are still inside the ORB
+                  --  critical section at this point. The tasking policy will
+                  --  release it while we are idle, and re-assert it before
+                  --  returning.
 
-               Idle (ORB.Tasking_Policy, This_Task, ORB_Access (ORB));
-               Notify_Event
-                 (ORB.ORB_Controller,
-                  Event'(Kind          => Idle_Awake,
-                         Awakened_Task => This_Task'Unchecked_Access));
+                  Idle
+                    (ORB.Tasking_Policy,
+                     This_Task'Unchecked_Access,
+                     ORB_Access (ORB));
 
-            when Terminated =>
+                  --  Note: tasking policy may have decided to terminate this
+                  --  task, in which case the ORB controller has already been
+                  --  notified.
 
-               --  This task has reached its exit condition: leave main loop
+                  if State (This_Task) /= Terminated then
+                     Notify_Event
+                       (ORB.ORB_Controller,
+                        Event'(Kind          => Idle_Awake,
+                               Awakened_Task => This_Task'Unchecked_Access));
+                  end if;
 
-               exit Main_Loop;
+               when Terminated =>
 
-            when Unscheduled =>
+                  --  This task has reached its exit condition: leave main loop
 
-               --  This task is still unscheduled, this should not happen!
+                  exit Main_Loop;
 
-               raise Program_Error;
+               when Unscheduled =>
 
-         end case;
+                  --  This task is still unscheduled, this should not happen!
 
-         --  Condition at end of loop: inside the ORB critical section
+                  raise Program_Error;
 
-      end loop Main_Loop;
+            end case;
 
-      --  Remove reference to This_Task
+            --  Condition at end of loop: inside the ORB critical section
 
-      if Exit_Condition.Task_Info /= null then
-         Exit_Condition.Task_Info.all := null;
-      end if;
+         end loop Main_Loop;
 
-      Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
+         Witness.Normal_Exit := True;
+
+         --  Upon exiting this block, Witness is finalized, causing This_Task
+         --  to be unregistered from the ORB controller.
+      end;
 
       pragma Debug (C, O ("Run: leave."));
-      Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
    exception
       when E : others =>
-
-         --  At this point it is assumed that we are not in the ORB
-         --  critical section.
-
          O ("ORB.Run got exception:", Error);
          O (Ada.Exceptions.Exception_Information (E), Error);
-
-         --  Remove reference to This_Task
-
-         if Exit_Condition.Task_Info /= null then
-            Exit_Condition.Task_Info.all := null;
-         end if;
-
-         --  Reassert critical section to remove current task from ORB
-         --  controller.
-
-         Enter_ORB_Critical_Section (ORB.ORB_Controller);
-         Terminate_Task (ORB.ORB_Controller, This_Task);
-         Unregister_Task (ORB.ORB_Controller, This_Task'Unchecked_Access);
-         Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
          raise;
    end Run;
 
@@ -473,22 +543,6 @@ package body PolyORB.ORB is
       return Result;
    end Work_Pending;
 
-   ------------------
-   -- Perform_Work --
-   ------------------
-
-   procedure Perform_Work (ORB : access ORB_Type) is
-      Job : Job_Access;
-   begin
-      Enter_ORB_Critical_Section (ORB.ORB_Controller);
-      Job := Get_Pending_Job (ORB.ORB_Controller);
-      Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
-      if Job /= null then
-         Run (Job);
-      end if;
-   end Perform_Work;
-
    --------------
    -- Shutdown --
    --------------
@@ -498,8 +552,11 @@ package body PolyORB.ORB is
       Wait_For_Completion : Boolean := True)
    is
    begin
-
       pragma Debug (C, O ("Shutdown: enter"));
+
+      if ORB = null then
+         raise Program_Error with "ORB not initialized";
+      end if;
 
       --  Stop accepting incoming connections
 
@@ -907,9 +964,6 @@ package body PolyORB.ORB is
 
       declare
          use type Task_Info.Task_Info_Access;
-         Surrogate : Components.Component_Access;
-         Pro       : PolyORB.Binding_Data.Profile_Access;
-
       begin
          pragma Debug (C, O ("Task " & Image (Current_Task)
                           & " executing: "
@@ -960,13 +1014,12 @@ package body PolyORB.ORB is
             References.Binding.Bind
               (Req.Target,
                ORB_Access (ORB),
-               Request_QoS.Get_Request_QoS (Req),
-               Surrogate,
-               Pro,
-               False,
-               Error);
-            --  XXX potential race condition, we may protect this
-            --  call, to be discussed.
+               Request_QoS.Get_Request_QoS (Req.all),
+               Req.Surrogate,
+               Req.Profile,
+               Local_Only => False,
+               Error      => Error);
+            --  Potential race condition, we may protect this call, TBD???
 
             if Found (Error) then
                pragma Debug (C, O ("Run_Request: Got an error when binding: "
@@ -976,7 +1029,7 @@ package body PolyORB.ORB is
                --  implies a problem within the object adapter. We bounce the
                --  exception to the user for further processing.
 
-               Set_Exception (Req, Error);
+               Set_Exception (Req.all, Error);
                Catch (Error);
 
                Emit_No_Reply (Req.Requesting_Component,
@@ -990,18 +1043,17 @@ package body PolyORB.ORB is
          --  the request to the target.
 
          if Is_Set (Sync_With_Server, Req.Req_Flags)
-           and then Is_Profile_Local (ORB, Pro)
+           and then Is_Profile_Local (ORB, Req.Profile)
          then
-            --  We are on the server side, and use Sync_With_Server
-            --  synchronization: we can send an Executed_Request
-            --  message to the client prior to run the request.
+            --  We are on the server side, and use Sync_With_Server sync scope:
+            --  we can send an Executed_Request message to the client prior to
+            --  running the request.
 
             pragma Debug (C, O ("With_Server completed, sending"
                              & " Acknowledge_Request message"));
 
             Emit_No_Reply (Req.Requesting_Component,
-                           Servants.Iface.Acknowledge_Request'
-                           (Req => Req));
+                           Servants.Iface.Acknowledge_Request'(Req => Req));
          end if;
 
          --  Setup_Environment (Oid);
@@ -1011,8 +1063,9 @@ package body PolyORB.ORB is
 
          declare
             Result : constant Components.Message'Class :=
-                       Emit (Surrogate, Servants.Iface.Execute_Request'
-                                          (Req => Req, Pro => Pro));
+                       Emit (Req.Surrogate, Servants.Iface.Execute_Request'
+                                              (Req => Req,
+                                               Pro => Req.Profile));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
@@ -1116,7 +1169,7 @@ package body PolyORB.ORB is
    --------------------
 
    function Handle_Message
-     (ORB : access ORB_Type;
+     (ORB : not null access ORB_Type;
       Msg : Components.Message'Class) return Components.Message'Class
    is
       use Servants.Iface;
@@ -1254,8 +1307,11 @@ package body PolyORB.ORB is
    -- Get_Binding_Objects --
    -------------------------
 
-   function Get_Binding_Objects (ORB : access ORB_Type)
-     return BO_Ref_List
+   function Get_Binding_Objects
+     (ORB       : access ORB_Type;
+      Predicate : access function
+                           (BO_Acc : Binding_Object_Access) return Boolean
+                    := null) return BO_Ref_List
    is
       use PBOL;
       use Smart_Pointers;
@@ -1270,19 +1326,37 @@ package body PolyORB.ORB is
       All_Binding_Objects :
       while not Last (It) loop
          declare
-            Ref : Smart_Pointers.Ref;
+            BO_Acc : Binding_Object_Access renames Value (It);
+            Ref    : Smart_Pointers.Ref;
          begin
-            Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+            if not Valid (BO_Acc) then
 
-            --  If binding object is being finalized, Reuse_Entity leaves Ref
-            --  unset.
+               --  Mark binding object as not referenced anymore and purge.
+               --  Note no "Next (It);" in this case, because Remove does that
+               --  automatically.
 
-            if not Is_Nil (Ref) then
-               BO_Ref_Lists.Prepend (Result, Ref);
+               Set_Referenced (BO_Acc, Referenced => False);
+               Remove (ORB.Binding_Objects, It);
+
+            else
+               if Predicate = null or else Predicate (BO_Acc) then
+                  Smart_Pointers.Reuse_Entity (Ref, Entity_Ptr (Value (It)));
+
+                  --  If binding object is being finalized, Reuse_Entity leaves
+                  --  Ref unset.
+
+                  if not Is_Nil (Ref) then
+                     BO_Ref_Lists.Prepend (Result, Ref);
+                  end if;
+
+                  --  If Predicate is not null, return first matching BO only
+
+                  exit All_Binding_Objects when Predicate /= null;
+               end if;
+
+               Next (It);
             end if;
          end;
-
-         Next (It);
       end loop All_Binding_Objects;
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);

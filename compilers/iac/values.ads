@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -82,44 +82,36 @@ package Values is
    No_Value  : constant Value_Id;
 
    function New_Boolean_Value
-     (Value : Boolean)
-     return Value_Id;
+     (Value : Boolean) return Value_Id;
 
    function New_Character_Value
      (Value : Unsigned_Short;
-      Wide  : Boolean)
-     return Value_Id;
+      Wide  : Boolean) return Value_Id;
 
    function New_Enumerator
      (Img : Name_Id;
-      Pos : Unsigned_Long_Long)
-     return Value_Id;
+      Pos : Unsigned_Long_Long) return Value_Id;
 
    function New_Fixed_Point_Value
      (Value : Unsigned_Long_Long;
       Sign  : Short_Short;
       Total : Unsigned_Short_Short;
-      Scale : Unsigned_Short_Short)
-     return Value_Id;
+      Scale : Unsigned_Short_Short) return Value_Id;
 
    function New_Floating_Point_Value
-     (Value : Long_Double)
-     return Value_Id;
+     (Value : Long_Double) return Value_Id;
 
    function New_Integer_Value
      (Value : Unsigned_Long_Long;
       Sign  : Short_Short;
-      Base  : Unsigned_Short_Short)
-     return Value_Id;
+      Base  : Unsigned_Short_Short) return Value_Id;
 
    function New_String_Value
      (Value : Name_Id;
-      Wide  : Boolean)
-     return Value_Id;
+      Wide  : Boolean) return Value_Id;
 
    function New_Value
-     (Value : Value_Type)
-     return Value_Id;
+     (Value : Value_Type) return Value_Id;
 
    function Convert (V : Value_Type; K : Node_Kind) return Value_Type;
 
@@ -159,8 +151,8 @@ package Values is
 
    function Negative (V : Value_Type) return Boolean;
    function Negative (V : Value_Id) return Boolean;
-   --  Return True when R is a strictly negative number. Raise an
-   --  error if R is not a number.
+   --  Return True when R is a strictly negative number. Raise an exception if
+   --  if R is not a number.
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,7 @@ package PolyORB.Filters is
    type Filter_Access is access all Filter'Class;
 
    function Handle_Message
-     (F   : access Filter;
+     (F   : not null access Filter;
       Msg : Components.Message'Class) return Components.Message'Class;
    --  Implement default propagation: just transmit message to the appropriate
    --  neighbour (lower or upper, depending on message type, as documented in

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -170,9 +170,9 @@ package PolyORB.ORB_Controller is
    --  Controller to process ORB actions.
 
    procedure Terminate_Task
-     (O  : access ORB_Controller; TI : in out PTI.Task_Info);
-   --  Record that the given task is terminating. Its state is set to
-   --  Terminated.
+     (O  : access ORB_Controller; TI : PTI.Task_Info_Access);
+   --  Record that the given task is terminating. If the task was idle, the
+   --  ORB controller is notified. Task state is then set to Terminated.
 
    procedure Unregister_Task
      (O  : access ORB_Controller; TI : PTI.Task_Info_Access);

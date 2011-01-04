@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,9 +77,7 @@ package body PolyORB.POA_Types is
       Error : in out PolyORB.Errors.Error_Container);
    --  Extract a time stamp
 
-   function Put_Time_Stamp
-     (TS : Time_Stamp)
-     return Object_Id;
+   function Put_Time_Stamp (TS : Time_Stamp) return Object_Id;
    --  Store a time stamp
 
    procedure Get_ULong
@@ -89,9 +87,7 @@ package body PolyORB.POA_Types is
       Error : in out PolyORB.Errors.Error_Container);
    --  Extract an unsigned long.
 
-   function Put_ULong
-     (ULo : Types.Unsigned_Long)
-     return Object_Id;
+   function Put_ULong (ULo : Types.Unsigned_Long) return Object_Id;
    --  Store an unsigned long as 8 hexadecimal digits
 
    procedure Get_Boolean
@@ -101,9 +97,7 @@ package body PolyORB.POA_Types is
       Error : in out PolyORB.Errors.Error_Container);
    --  Extract a boolean
 
-   function Put_Boolean
-     (Boo : Types.Boolean)
-     return Object_Id;
+   function Put_Boolean (Boo : Types.Boolean) return Object_Id;
    --  Store a boolean
 
    procedure Get_String_With_Length
@@ -115,8 +109,7 @@ package body PolyORB.POA_Types is
 
    function Put_String
      (Str         : Types.String;
-      With_Length : Boolean := True)
-     return Object_Id;
+      With_Length : Boolean := True) return Object_Id;
    --  Store a string (with optional U_Long length prefixed)
    --  If a string is stored without length, it is the caller's responsibility
    --  to delimit it as appropriate.
@@ -125,9 +118,7 @@ package body PolyORB.POA_Types is
    -- "=" --
    ---------
 
-   function "="
-     (Left, Right : Unmarshalled_Oid)
-     return Standard.Boolean is
+   function "=" (Left, Right : Unmarshalled_Oid) return Standard.Boolean is
    begin
       return True
         and then Left.Id = Right.Id
@@ -143,8 +134,7 @@ package body PolyORB.POA_Types is
      (Name             : Standard.String;
       System_Generated : Types.Boolean;
       Persistency_Flag : Lifespan_Cookie;
-      Creator          : Standard.String)
-     return Unmarshalled_Oid_Access is
+      Creator          : Standard.String) return Unmarshalled_Oid_Access is
    begin
       return new Unmarshalled_Oid'
         (Id               => To_PolyORB_String (Name),
@@ -157,8 +147,7 @@ package body PolyORB.POA_Types is
      (Name             : Standard.String;
       System_Generated : Boolean;
       Persistency_Flag : Time_Stamp;
-      Creator          : Standard.String)
-     return Unmarshalled_Oid is
+      Creator          : Standard.String) return Unmarshalled_Oid is
    begin
       return Unmarshalled_Oid'
         (Id               => To_PolyORB_String (Name),
@@ -171,9 +160,7 @@ package body PolyORB.POA_Types is
      (Name             : Standard.String;
       System_Generated : Types.Boolean;
       Persistency_Flag : Lifespan_Cookie;
-      Creator          : Standard.String)
-     return Object_Id_Access
-   is
+      Creator          : Standard.String) return Object_Id_Access is
    begin
       return U_Oid_To_Oid
         (Unmarshalled_Oid'
@@ -210,10 +197,7 @@ package body PolyORB.POA_Types is
    -- Put_Time_Stamp --
    --------------------
 
-   function Put_Time_Stamp
-     (TS : Time_Stamp)
-     return Object_Id
-   is
+   function Put_Time_Stamp (TS : Time_Stamp) return Object_Id is
       ULongs : constant Time_Stamp_As_ULongs := To_ULongs (TS);
       Result : Object_Id (1 .. 8 * ULongs'Length);
       First  : Stream_Element_Offset := Result'First;
@@ -231,29 +215,29 @@ package body PolyORB.POA_Types is
    ---------------
 
    Hex_Val : constant array (Stream_Element) of Types.Unsigned_Long :=
-     (Character'Pos ('0') => 0,
-      Character'Pos ('1') => 1,
-      Character'Pos ('2') => 2,
-      Character'Pos ('3') => 3,
-      Character'Pos ('4') => 4,
-      Character'Pos ('5') => 5,
-      Character'Pos ('6') => 6,
-      Character'Pos ('7') => 7,
-      Character'Pos ('8') => 8,
-      Character'Pos ('9') => 9,
-      Character'Pos ('A') => 10,
-      Character'Pos ('a') => 10,
-      Character'Pos ('B') => 11,
-      Character'Pos ('b') => 11,
-      Character'Pos ('C') => 12,
-      Character'Pos ('c') => 12,
-      Character'Pos ('D') => 13,
-      Character'Pos ('d') => 13,
-      Character'Pos ('E') => 14,
-      Character'Pos ('e') => 14,
-      Character'Pos ('F') => 15,
-      Character'Pos ('f') => 15,
-      others => 0);
+               (Character'Pos ('0') => 0,
+                Character'Pos ('1') => 1,
+                Character'Pos ('2') => 2,
+                Character'Pos ('3') => 3,
+                Character'Pos ('4') => 4,
+                Character'Pos ('5') => 5,
+                Character'Pos ('6') => 6,
+                Character'Pos ('7') => 7,
+                Character'Pos ('8') => 8,
+                Character'Pos ('9') => 9,
+                Character'Pos ('A') => 10,
+                Character'Pos ('a') => 10,
+                Character'Pos ('B') => 11,
+                Character'Pos ('b') => 11,
+                Character'Pos ('C') => 12,
+                Character'Pos ('c') => 12,
+                Character'Pos ('D') => 13,
+                Character'Pos ('d') => 13,
+                Character'Pos ('E') => 14,
+                Character'Pos ('e') => 14,
+                Character'Pos ('F') => 15,
+                Character'Pos ('f') => 15,
+                others => 0);
 
    procedure Get_ULong
      (SEA   : Object_Id;
@@ -273,8 +257,8 @@ package body PolyORB.POA_Types is
          return;
       end if;
 
-      for J in 0 .. 7 loop
-         R := R * 16 + Hex_Val (SEA (SEI + Stream_Element_Offset (J)));
+      for J in Stream_Element_Offset range 0 .. 7 loop
+         R := R * 16 + Hex_Val (SEA (SEI + J));
       end loop;
 
       ULo := R;
@@ -303,10 +287,7 @@ package body PolyORB.POA_Types is
          Character'Pos ('e'),
          Character'Pos ('f'));
 
-   function Put_ULong
-     (ULo : Types.Unsigned_Long)
-     return Object_Id
-   is
+   function Put_ULong (ULo : Types.Unsigned_Long) return Object_Id is
       R : Object_Id (0 .. 7);
       U : Types.Unsigned_Long := ULo;
    begin
@@ -354,10 +335,7 @@ package body PolyORB.POA_Types is
    Bool_To_SE : constant array (Boolean) of Stream_Element :=
      (False => Character'Pos ('F'), True => Character'Pos ('T'));
 
-   function Put_Boolean
-     (Boo : Types.Boolean)
-     return Object_Id
-   is
+   function Put_Boolean (Boo : Types.Boolean) return Object_Id is
    begin
       return Object_Id'(0 .. 0 => Bool_To_SE (Boo));
    end Put_Boolean;
@@ -408,8 +386,7 @@ package body PolyORB.POA_Types is
 
    function Put_String
      (Str         : Types.String;
-      With_Length : Boolean := True)
-     return Object_Id
+      With_Length : Boolean := True) return Object_Id
    is
       S : constant Standard.String := To_Standard_String (Str);
    begin
@@ -439,7 +416,7 @@ package body PolyORB.POA_Types is
    -----------------
 
    function Get_Creator (Oid : Object_Id) return String is
-      Sep : Integer;
+      Sep     : Integer;
       Oid_Str : String (1 .. Oid'Length);
       pragma Import (Ada, Oid_Str);
       for Oid_Str'Address use Oid (Oid'First)'Address;
@@ -511,7 +488,6 @@ package body PolyORB.POA_Types is
 
    function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid) return Object_Id_Access is
       Oid   : constant Object_Id := U_Oid_To_Oid (U_Oid);
-
       Oid_A : constant Object_Id_Access := new Object_Id'(Oid);
 
    begin

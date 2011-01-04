@@ -106,7 +106,7 @@ polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server
 polyorb-rtcorba_p-setup.ads: $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads
 	cp -f $< .
 
-polyorb-setup-tasking-ravenscar.ads: $(top_srcdir)/src/polyorb-setup-tasking-ravenscar.ads
+polyorb-setup-tasking-ravenscar.ads: $(top_srcdir)/src/setup/polyorb-setup-tasking-ravenscar.ads
 	cp -f $< .
 
 echo.idl: $(top_srcdir)/examples/corba/echo/echo.idl
@@ -175,6 +175,7 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 
 # The PolyORB User's Guide texi file does not provide Up links in @node
 # commands, but we want to force generation of all documentation anyway.
+
 %.html: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PNGFILES)
 	-${MAKEINFO} -o $@ --force --html --number-sections $<
 	cp *.png $@
@@ -250,23 +251,30 @@ clean-local: maintainer-clean
 		idl.sed ada.sed cfg.sed *.ads *.adb *.idl
 	-@${RM} -fr polyorb_ug.html polyorb_dg.html polyorb_ug_toc.html
 
+# Note: the target below can be invoked locally from the doc build dir,
+# in which case it will install the locally built documentation, or from
+# the top-level Makefile with doc_build_dir pointing to the doc source
+# directory, to install pre-built documentation.
+
 install-data-local:
-	$(INSTALL) -d $(prefix)/share/doc/polyorb
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/info
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/ps
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/pdf
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/txt
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/html
-	$(INSTALL) -d $(prefix)/share/doc/polyorb/html/polyorb_ug
+	$(INSTALL) -d $(datadir)/doc/polyorb
+	$(INSTALL) -d $(datadir)/doc/polyorb/info
+	$(INSTALL) -d $(datadir)/doc/polyorb/ps
+	$(INSTALL) -d $(datadir)/doc/polyorb/pdf
+	$(INSTALL) -d $(datadir)/doc/polyorb/txt
+	$(INSTALL) -d $(datadir)/doc/polyorb/html
+	$(INSTALL) -d $(datadir)/doc/polyorb/html/polyorb_ug
 
 	for fmt in info ps pdf txt; \
 	do \
-		$(INSTALL_DATA) polyorb_ug.$$fmt $(prefix)/share/doc/polyorb/$$fmt/; \
+		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(datadir)/doc/polyorb/$$fmt/; \
 	done
 	for f in polyorb_ug.html/*.html; \
 	do \
-		$(INSTALL_DATA) $$f $(prefix)/share/doc/polyorb/html/polyorb_ug; \
+		$(INSTALL_DATA) $(doc_build_dir)$$f $(datadir)/doc/polyorb/html/polyorb_ug; \
 	done
+	$(INSTALL) -d $(datadir)/gps/plug-ins/
+	$(INSTALL_DATA) $(srcdir)/polyorb_gps.xml $(datadir)/gps/plug-ins/
 
 MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
 	polyorb_dg.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps

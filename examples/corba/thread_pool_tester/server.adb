@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2008, Free Software Foundation, Inc.             --
+--         Copyright (C) 2008-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,10 +51,11 @@ with PolyORB.ORB;             use PolyORB.ORB;
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Unreferenced (PolyORB.Setup.Thread_Pool_Server);
 
+with PolyORB.Asynch_Ev;       use PolyORB.Asynch_Ev;
 with PolyORB.ORB.Thread_Pool; use PolyORB.ORB.Thread_Pool;
 with PolyORB.ORB_Controller;  use PolyORB.ORB_Controller;
+with PolyORB.Requests;
 with PolyORB.Task_Info;       use PolyORB.Task_Info;
-with PolyORB.Asynch_Ev;       use PolyORB.Asynch_Ev;
 
 with Svc.Impl;
 
@@ -67,23 +68,19 @@ procedure Server is
 
    Count : Integer;
 
-   type Transient_Info is record
-      Condition   : aliased Boolean;
-      Info_Access : aliased Task_Info_Access;
-   end record;
-   type Transient_Info_Array is array (Natural range <>) of Transient_Info;
+   type Transient_Info_Array is array (Natural range <>) of
+     aliased PolyORB.Requests.Request;
    type Transient_Info_Array_Access is access all Transient_Info_Array;
    Transient_Infos : Transient_Info_Array_Access;
 
    procedure Transient_Processing (Id : Natural) is
    begin
-      Transient_Infos (Id).Condition := False;
+      Transient_Infos (Id).Completed := False;
       Put_Line ("Server transient" & Id'Img & ": enter");
       PolyORB.ORB.Run
         (PolyORB.Setup.The_ORB,
-         Exit_Condition => (Transient_Infos (Id).Condition'Unchecked_Access,
-                            Transient_Infos (Id).Info_Access'Unchecked_Access),
-         May_Exit       => True);
+         Request  => Transient_Infos (Id)'Unchecked_Access,
+         May_Exit => True);
       Put_Line ("Server transient" & Id'Img & ": leave");
    end Transient_Processing;
 
@@ -133,13 +130,13 @@ procedure Server is
          when Del =>
             declare
                Id : constant Natural := Natural'Value (Argument);
-               TI : Task_Info renames Transient_Infos (Id).Info_Access.all;
+               TI : Task_Info renames Transient_Infos (Id).Requesting_Task.all;
             begin
                Enter_ORB_Critical_Section
                  (PolyORB.Setup.The_ORB.ORB_Controller);
                Put_Line ("awaking transient task" & Id'Img
                  & " from " & State (TI)'Img);
-               Transient_Infos (Id).Condition := True;
+               Transient_Infos (Id).Completed := True;
                case State (TI) is
                   when Idle =>
                      Signal (Condition (TI));

@@ -4,5 +4,5 @@ import sys
 
 if not client_server(r'../examples/corba/rtcorba/dhb/rtcorba_iiop_client', r'',
                      r'../examples/corba/rtcorba/dhb/rtcorba_iiop_server', r''):
-    sys.exit(1)
+    fail()
 

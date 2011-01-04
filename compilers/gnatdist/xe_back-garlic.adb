@@ -281,7 +281,7 @@ package body XE_Back.GARLIC is
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       Write_With_Clause (RU (RU_System_Garlic_Filters), True);
       Write_With_Clause (RU (RU_System_Garlic_Heart), True);
@@ -658,7 +658,7 @@ package body XE_Back.GARLIC is
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       Write_With_Clause (RU (RU_System_Partition_Interface), True);
       Write_With_Clause (RU (RU_System_RPC));
@@ -903,7 +903,7 @@ package body XE_Back.GARLIC is
 
       Create_File (File, Filename);
       Set_Output  (File);
-      Write_Line  ("pragma Warnings (Off);");
+      Write_Warnings_Pragmas;
 
       --  Required location protocols
 
@@ -1011,7 +1011,7 @@ package body XE_Back.GARLIC is
 
             Create_File (File, Filename);
             Set_Output  (File);
-            Write_Line  ("pragma Warnings (Off);");
+            Write_Warnings_Pragmas;
          end if;
       end Setup_Output;
 

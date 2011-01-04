@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,15 +40,14 @@ with PolyORB.Sockets;
 
 package PolyORB.Utils.Sockets is
 
-   function String_To_Addr
-     (Str : Standard.String) return PolyORB.Sockets.Inet_Addr_Type;
-   --  Convert an IP address in dotted decimal form or a host name into an
-   --  Inet_Addr_Type value.
-
    type Socket_Name (Name_Len : Natural) is record
       Host_Name : String (1 .. Name_Len);
       Port      : PolyORB.Sockets.Port_Type;
    end record;
+
+   function To_Address
+     (SN : Socket_Name) return PolyORB.Sockets.Sock_Addr_Type;
+   --  Convert socket name to socket address
 
    type Socket_Name_Ptr is access all Socket_Name;
    procedure Free is
@@ -72,12 +71,16 @@ package PolyORB.Utils.Sockets is
    --  Unmarshall socket address and port from a buffer
 
    procedure Connect_Socket
-     (Sock        : PolyORB.Sockets.Socket_Type;
+     (Sock        : in out PolyORB.Sockets.Socket_Type;
       Remote_Name : Socket_Name);
-   --  Front-end to PolyORB.Sockets.Connect_Socket, handles production of log
-   --  trace if the operation fails.
+   --  Front-end to PolyORB.Sockets.Connect_Socket. In case of failure, Sock is
+   --  closed, and a log trace is produced.
 
    function Is_IP_Address (Name : String) return Boolean;
    --  True iff S is an IP address in dotted quad notation
+
+   function Local_Inet_Address return PolyORB.Sockets.Inet_Addr_Type;
+   --  Return an IP address associated with the local host name, preferring
+   --  non-loopback addresses over loopback ones.
 
 end PolyORB.Utils.Sockets;

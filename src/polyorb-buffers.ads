@@ -310,8 +310,8 @@ package PolyORB.Buffers is
       --  actually received.
    procedure Receive_Buffer
      (Buffer   : access Buffer_Type;
-      Max      :        Ada.Streams.Stream_Element_Count;
-      Received :    out Ada.Streams.Stream_Element_Count);
+      Max      : Ada.Streams.Stream_Element_Count;
+      Received : out Ada.Streams.Stream_Element_Count);
    --  Received at most Max octets of data into Buffer at current position.
    --  On return, Received is set to the effective amount of data received.
    --  The current position is unchanged.

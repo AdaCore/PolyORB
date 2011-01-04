@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,8 +44,8 @@ package body PolyORB.Protocols.GIOP.UIPMC is
      (Proto   : access UIPMC_Protocol;
       Session :    out Filter_Access) is
    begin
-      PolyORB.Protocols.GIOP.Create (GIOP_Protocol (Proto.all)'Access,
-                                     Session);
+      PolyORB.Protocols.GIOP.Create
+        (GIOP_Protocol (Proto.all)'Access, Session);
       GIOP_Session (Session.all).Conf := UIPMC_Conf'Access;
    end Create;
 
@@ -56,9 +56,7 @@ package body PolyORB.Protocols.GIOP.UIPMC is
    procedure Initialize;
 
    procedure Initialize is
-      F : constant Flags :=
-        Sync_None or
-        Sync_With_Transport;
+      F : constant Flags := Sync_None or Sync_With_Transport;
    begin
       PolyORB.Protocols.GIOP.Initialize
         (UIPMC_Conf'Access,

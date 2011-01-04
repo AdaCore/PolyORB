@@ -2,7 +2,7 @@
 from test_utils import *
 import sys
 
-if not client_server(r'../examples/corba/send/send', r'scenarios/polyorb_conf/miop.conf',
-                     r'../examples/corba/send/listener', r'scenarios/polyorb_conf/miop.conf'):
-    sys.exit(1)
+if not client_server(r'../examples/corba/send/send', r'miop.conf',
+                     r'../examples/corba/send/listener', r'miop.conf'):
+    fail()
 

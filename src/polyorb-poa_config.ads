@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Global POA configuration.
+--  Global POA configuration
 
 with PolyORB.POA_Policies;
 
@@ -42,25 +42,21 @@ package PolyORB.POA_Config is
    type Configuration_Type is abstract tagged limited private;
    type Configuration_Access is access all Configuration_Type'Class;
 
-   procedure Initialize
-     (C : Configuration_Type)
-      is abstract;
+   procedure Initialize (C : Configuration_Type) is abstract;
    --  Create all policies available in this configuration,
    --  and register them with policy repository F.
 
    function Default_Policies
      (C : Configuration_Type)
-     return PolyORB.POA_Policies.PolicyList
-      is abstract;
-   --  Return the list of default OA policies for this configuration.
+      return PolyORB.POA_Policies.PolicyList is abstract;
+   --  Return the list of default OA policies for this configuration
 
-   procedure Set_Configuration
-     (C : Configuration_Access);
+   procedure Set_Configuration (C : Configuration_Access);
    --  Set the configuration for the whole runtime.
    --  May be called only once. C must be non-null.
 
    function Configuration return Configuration_Access;
-   --  The value set by Set_Configuration.
+   --  The value set by Set_Configuration
 
 private
 

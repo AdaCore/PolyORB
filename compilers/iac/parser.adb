@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Errors;            use Errors;
 with Namet;             use Namet;
-with Scopes;            use Scopes;
+with Scopes;
 with Values;            use Values;
 
 with Frontend.Nodes;    use Frontend.Nodes;
@@ -503,8 +503,13 @@ package body Parser is
       function Precede (L, R : Node_Id) return Boolean;
       --  Does operator L precedes operator R
 
-      Exp_Err_Msg : constant String := "cannot parse expression";
+      procedure Exp_Err_Msg;
       --  Standard error message
+
+      procedure Exp_Err_Msg is
+      begin
+         DE ("cannot parse expression");
+      end Exp_Err_Msg;
 
       -----------------------------
       -- Is_Expression_Completed --
@@ -673,7 +678,7 @@ package body Parser is
                         Right_Expr := P_Constant_Expression;
                         if No (Right_Expr) then
                            Error_Loc (1) := Loc (Expression);
-                           DE (Exp_Err_Msg);
+                           Exp_Err_Msg;
                            return No_Node;
                         end if;
                         Set_Right_Expr (Expression, Right_Expr);
@@ -693,7 +698,7 @@ package body Parser is
 
             when others =>
                Error_Loc (1) := Token_Location;
-               DE (Exp_Err_Msg);
+               Exp_Err_Msg;
                return No_Node;
          end case;
 
@@ -728,7 +733,7 @@ package body Parser is
 
       if Is_Binary_Operator (Expr) then
          Error_Loc (1) := Loc (Expr);
-         DE (Exp_Err_Msg);
+         Exp_Err_Msg;
          return No_Node;
       end if;
 
@@ -753,7 +758,7 @@ package body Parser is
 
       if not Is_Binary_Operator (Expr) then
          Error_Loc (1) := Loc (Expr);
-         DE (Exp_Err_Msg);
+         Exp_Err_Msg;
          Set_Last (First - 1);
          return No_Node;
       end if;
@@ -784,7 +789,7 @@ package body Parser is
            and then Is_Binary_Operator (Table (Last - 1))
          then
             Error_Loc (1) := Loc (Expr);
-            DE (Exp_Err_Msg);
+            Exp_Err_Msg;
             Set_Last (First - 1);
             return No_Node;
          end if;
@@ -821,7 +826,7 @@ package body Parser is
 
       if Is_Binary_Operator (Table (Last)) then
          Error_Loc (1) := Loc (Table (Last));
-         DE (Exp_Err_Msg);
+         Exp_Err_Msg;
          Set_Last (First - 1);
          return No_Node;
       end if;
@@ -1027,7 +1032,7 @@ package body Parser is
 
          when T_Module =>
             Restore_Lexer (State);
-            Definition := Node_Id (P_Module);
+            Definition := P_Module;
 
          when T_Value_Type
            | T_Custom =>
@@ -2498,8 +2503,8 @@ package body Parser is
          Definitions := FEN.Definitions (Specification);
          Imports     := FEN.Imports (Specification);
       else
-         Identifier :=
-           Make_Identifier (Token_Location, IDL_Spec_Name, No_Node, No_Node);
+         Identifier := Make_Identifier
+           (Token_Location, Scopes.IDL_Spec_Name, No_Node, No_Node);
          Specification := New_Node (K_Specification, Token_Location);
          Bind_Identifier_To_Entity (Identifier, Specification);
          Definitions   := New_List (Token_Location);

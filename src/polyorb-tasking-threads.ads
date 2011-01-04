@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -60,7 +60,7 @@ package PolyORB.Tasking.Threads is
    --------------
 
    type Runnable is abstract tagged limited null record;
-   procedure Run (R : access Runnable) is abstract;
+   procedure Run (R : not null access Runnable) is abstract;
    --  Runnable is a type for elementary work units.
 
    type Runnable_Access is access all Runnable'Class;

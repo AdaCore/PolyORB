@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2000-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,8 +43,6 @@ with PolyORB.References.Binding;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Log;
 with PolyORB.Types;
-
-with SOAP.Utils;
 
 package body PolyORB.SOAP_P.Types is
 
@@ -726,8 +724,7 @@ package body PolyORB.SOAP_P.Types is
                                    (Get_Unwound_Type (NV.Argument)));
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => True));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => True));
       Append (Result, New_Line);
 
       declare
@@ -752,8 +749,7 @@ package body PolyORB.SOAP_P.Types is
          end loop;
       end;
 
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => False));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => False));
 
       return To_String (Result);
    end XML_Sequence_Image;
@@ -767,8 +763,7 @@ package body PolyORB.SOAP_P.Types is
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       pragma Debug (C, O ("XML_Record_Image: enter"));
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => True));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => True));
       Append (Result, New_Line);
 
       declare
@@ -793,8 +788,7 @@ package body PolyORB.SOAP_P.Types is
          end loop;
       end;
 
-      Append (Result, SOAP.Utils.Tag
-              (To_Standard_String (NV.Name), Start => False));
+      Append (Result, Tag (To_Standard_String (NV.Name), Start => False));
 
       pragma Debug (C, O ("XML_Record_Image: leave"));
       return To_String (Result);

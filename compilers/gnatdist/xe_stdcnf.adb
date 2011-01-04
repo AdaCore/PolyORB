@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -510,7 +510,7 @@ package body XE_Stdcnf is
          Pragma_Starter_Node,
          Null_Location);
 
-      --  type Name_Server is (Embedded, Standalone);
+      --  type Name_Server is (Embedded, Standalone, Multicast);
 
       Declare_Type
         (Type_Name    => Type_Prefix & "name_server",

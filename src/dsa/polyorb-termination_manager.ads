@@ -76,7 +76,8 @@ package PolyORB.Termination_Manager is
    --  Start the Termination Manager with the chosen policy
 
 private
-   type Stamp_Type is mod 2 ** 8;
+   type Stamp_Type is mod 2 ** Integer'Size;
+   --  Termination wave time stamp
 
    type Term_Manager is tagged limited record
       Terminated : Boolean := False;
@@ -104,4 +105,5 @@ private
       --  The number of expected non terminated tasks when we perform a local
       --  termination computation.
    end record;
+
 end PolyORB.Termination_Manager;

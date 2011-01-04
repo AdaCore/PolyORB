@@ -656,7 +656,7 @@ package body Backend.BE_CORBA_Ada.Common is
             Append_To (Visible_Part (Current_Package), Type_Node);
 
             Designator := Make_Selected_Component
-              (Defining_Identifier (Main_Package (Current_Entity)),
+              (Defining_Identifier (Stubs_Package (Current_Entity)),
                Defining_Identifier (Type_Node));
 
             return Designator;

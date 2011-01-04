@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,7 +69,7 @@ package body CORBA.ORB is
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
-      IOR        : String);
+      IOR        : CORBA.String);
    --  Register an initial reference from an IOR given
    --  through the configuration subsystem.
 
@@ -140,10 +140,8 @@ package body CORBA.ORB is
       Not_Initialized_One : Boolean := False;
 
    begin
-
-      --  Implementation Note: We first run Initialize_World to allow
-      --  packages to register helper routines to parse specific
-      --  command line arguments.
+      --  Implementation Note: We first run Initialize_World to allow packages
+      --  to register helper routines to parse specific command line arguments.
 
       if not Is_Initialized then
          Initialize_World;
@@ -506,7 +504,7 @@ package body CORBA.ORB is
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
-      IOR        : String)
+      IOR        : CORBA.String)
    is
       Ref : CORBA.Object.Ref;
    begin

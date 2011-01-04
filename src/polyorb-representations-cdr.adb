@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -966,8 +966,6 @@ package body PolyORB.Representations.CDR is
                                                    Label_M'Access);
                Label_C  : Any_Container;
             begin
-               pragma Assert (Any.Get_Aggregate_Count (ACC) = 2);
-
                Set_Type (Label_C, Label_TC);
                Set_Value (Label_C, Label_CC'Unchecked_Access);
                Marshall_From_Any (R, Buffer, Label_C, Error);
@@ -988,10 +986,14 @@ package body PolyORB.Representations.CDR is
                   --  for this label.
 
                   if Any.TypeCode.Kind (Member_TC) /= Tk_Void then
+                     pragma Assert (Any.Get_Aggregate_Count (ACC) = 2);
                      Marshall_Aggregate_Element (Member_TC, ACC'Access, 1);
+
                   else
+                     pragma Assert (Any.Get_Aggregate_Count (ACC) = 1);
                      pragma Debug (C, O ("Marshall_From_Any: "
                        & "union with no member for this label"));
+
                      null;
                   end if;
                end;

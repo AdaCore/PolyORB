@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -278,8 +278,7 @@ package body PolyORB.Utils.Report is
 
       procedure Analyse_Vector (V : Stat_Vector; Filename : String) is
          P : constant Partitions
-           := Partition (V, 100,
-                         Float (0.9 * Avg (V)), Float (1.1 * Avg (V)));
+           := Partition (V, 100, 0.9 * Avg (V), 1.1 * Avg (V));
       begin
          Put_Line ("Output data for " & Filename);
          Put_Line ("   Min:" & T'Image (Min (V)));

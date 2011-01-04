@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Event handlers associated with all transport access points and
---  transport endpoints.
+--  Event handlers associated with all transport access points and endpoints
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Components;
@@ -55,7 +54,6 @@ package body PolyORB.Transport.Handlers is
       --  The size of the data received is not known yet
 
    begin
-
       if Reply in Filters.Iface.Filter_Error then
 
          --  Notify the tasking policy that an endpoint is being destroyed.

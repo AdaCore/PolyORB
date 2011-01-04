@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,9 +35,6 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with PolyORB.Any.NVList;
-
-with PolyORB.Requests;
-with PolyORB.Servants.Iface;
 with PolyORB.Tasking.Threads;
 
 package body PolyORB.Test_Object_SOA is
@@ -45,7 +42,6 @@ package body PolyORB.Test_Object_SOA is
    use Ada.Text_IO;
 
    use PolyORB.Any;
-   use PolyORB.Servants.Iface;
    use PolyORB.Requests;
 
    --------------------------------------
@@ -106,70 +102,61 @@ package body PolyORB.Test_Object_SOA is
 
    function Execute_Servant
      (Obj : not null access My_Object;
-      Msg : Components.Message'Class)
-     return Components.Message'Class
+      Req : Requests.Request_Access) return Boolean
    is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
+      It  : Iterator := First (List_Of (Req.Args).all);
    begin
       Put_Line ("Handle Message : enter");
-      if Msg in Execute_Request then
+      Put_Line ("The server is executing the request:"
+                & PolyORB.Requests.Image (Req.all));
+
+      if Req.Operation.all = "echoString" then
          declare
-            Req : Request_Access renames Execute_Request (Msg).Req;
-            It  : Iterator := First (List_Of (Req.Args).all);
+            echoString_Arg : constant Types.String
+              := From_Any (Value (It).Argument);
          begin
-            Put_Line ("The server is executing the request:"
-                      & PolyORB.Requests.Image (Req.all));
-
-            if Req.Operation.all = "echoString" then
-               declare
-                  echoString_Arg : constant Types.String
-                    := From_Any (Value (It).Argument);
-               begin
-                  Put_Line ("Echoing in task "
-                            & PolyORB.Tasking.Threads.Image
-                            (PolyORB.Tasking.Threads.Current_Task));
-                  Req.Result.Argument := To_Any
-                    (echoString (Obj.all, echoString_Arg));
-                  Put_Line ("Result: " & Image (Req.Result));
-               end;
-
-            elsif Req.Operation.all = "waitAndEchoString" then
-               declare
-                  Arg1, Arg2 : Element_Access;
-               begin
-                  Arg1 := Value (It);
-                  Next (It);
-                  Arg2 := Value (It);
-
-                  Req.Result.Argument := To_Any
-                    (waitAndEchoString (Obj.all,
-                                        From_Any (Arg1.Argument),
-                                        From_Any (Arg2.Argument)));
-                  Put_Line ("Result: " & Image (Req.Result));
-               end;
-
-            elsif Req.Operation.all = "echoInteger" then
-               declare
-                  echoInteger_Arg : constant Types.Long
-                     := From_Any (Value (It).Argument);
-               begin
-                  Req.Result.Argument := To_Any
-                    (echoInteger (Obj.all, echoInteger_Arg));
-                  Put_Line ("Result: " & Image (Req.Result));
-               end;
-
-            else
-               raise Program_Error;
-            end if;
-
-            return Executed_Request'(Req => Req);
+            Put_Line ("Echoing in task "
+                      & PolyORB.Tasking.Threads.Image
+                      (PolyORB.Tasking.Threads.Current_Task));
+            Req.Result.Argument := To_Any
+              (echoString (Obj.all, echoString_Arg));
+            Put_Line ("Result: " & Image (Req.Result));
          end;
+
+      elsif Req.Operation.all = "waitAndEchoString" then
+         declare
+            Arg1, Arg2 : Element_Access;
+         begin
+            Arg1 := Value (It);
+            Next (It);
+            Arg2 := Value (It);
+
+            Req.Result.Argument := To_Any
+              (waitAndEchoString (Obj.all,
+                                  From_Any (Arg1.Argument),
+                                  From_Any (Arg2.Argument)));
+            Put_Line ("Result: " & Image (Req.Result));
+         end;
+
+      elsif Req.Operation.all = "echoInteger" then
+         declare
+            echoInteger_Arg : constant Types.Long
+               := From_Any (Value (It).Argument);
+         begin
+            Req.Result.Argument := To_Any
+              (echoInteger (Obj.all, echoInteger_Arg));
+            Put_Line ("Result: " & Image (Req.Result));
+         end;
+
       else
          raise Program_Error;
       end if;
+
+      return True;
 
    exception
       when E : others =>

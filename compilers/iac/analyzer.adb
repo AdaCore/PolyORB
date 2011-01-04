@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -342,7 +342,7 @@ package body Analyzer is
          then
             Error_Loc (1)  := Loc (T);
             Error_Name (1) := IDL_Name (Identifier (T));
-            Error_Name (1) := IDL_Name (Identifier (I));
+            Error_Name (2) := IDL_Name (Identifier (I));
             DE ("local interface#cannot appear as attribute " &
                 "in unconstrained interface#");
          end if;
@@ -689,6 +689,8 @@ package body Analyzer is
 
    procedure Analyze_Module (E : Node_Id)
    is
+      pragma Assert (Kind (E) = K_Specification or else Kind (E) = K_Module);
+
       C : Node_Id;
       L : List_Id;
    begin
@@ -706,6 +708,38 @@ package body Analyzer is
          end loop;
          Pop_Scope;
       end if;
+
+      --  Now go through the definitions, and merge all modules with the same
+      --  into a single module that includes all the definitions nested in all
+      --  of them. The last one is the one that remains; the others are erased
+      --  from the tree, and from the Homonym chain. This has to happen after
+      --  they have all been analyzed, so that visibility will work properly
+      --  during analysis.
+
+      L := Definitions (E);
+      C := First_Entity (L);
+      while Present (C) loop
+         if Kind (C) = K_Module then
+            declare
+               H : constant Node_Id := Homonym (Identifier (C));
+               Prev : Node_Id;
+               New_Defs : List_Id;
+            begin
+               if Present (H) then
+                  Prev := Corresponding_Entity (H);
+                  New_Defs := Definitions (Prev);
+                  Append_To
+                    (New_Defs,
+                     First_Entity (Definitions (C)));
+                  Set_Definitions (C, New_Defs);
+                  Remove_Node_From_List (Prev, L);
+                  Set_Homonym (Identifier (C), No_Node);
+               end if;
+            end;
+         end if;
+
+         C := Next_Entity (C);
+      end loop;
    end Analyze_Module;
 
    -------------------------
@@ -762,7 +796,7 @@ package body Analyzer is
                then
                   Error_Loc (1)  := Loc (EM);
                   Error_Name (1) := IDL_Name (Identifier (MT));
-                  Error_Name (1) := IDL_Name (Identifier (I));
+                  Error_Name (2) := IDL_Name (Identifier (I));
                   DE ("local interface#cannot appear " &
                       "as an exception declaration " &
                       "in unconstrained interface#");
@@ -796,7 +830,7 @@ package body Analyzer is
          then
             Error_Loc (1)  := Loc (T);
             Error_Name (1) := IDL_Name (Identifier (T));
-            Error_Name (1) := IDL_Name (Identifier (I));
+            Error_Name (2) := IDL_Name (Identifier (I));
             DE ("local interface#cannot appear as parameter " &
                 "in unconstrained interface#");
          end if;
@@ -990,9 +1024,9 @@ package body Analyzer is
          end if;
 
       --  Analyze multiple scoped names. Analyze parent of P first and then the
-      --  entity itself. Find the entity in the newly-analyzed parent
-      --  scope. Check whether the scope is a correct scope for a scoped name
-      --  (not an operation for instance).
+      --  entity itself. Find the entity in the newly-analyzed parent scope.
+      --  Check whether the scope is a correct scope for a scoped name (not an
+      --  operation for instance).
 
       else
          Analyze_Scoped_Name (P);
@@ -1577,7 +1611,7 @@ package body Analyzer is
 
       procedure Cannot_Interpret
         (E : Node_Id;
-         S : String;
+         S : Message_Template;
          T : Node_Kind);
       --  Output an error message to indicate that a value cannot be cast to
       --  a given type. E denotes the entity in which the cast occurs, V the
@@ -1587,7 +1621,11 @@ package body Analyzer is
       -- Cannot_Interpret --
       ----------------------
 
-      procedure Cannot_Interpret (E : Node_Id; S : String; T : Node_Kind) is
+      procedure Cannot_Interpret
+        (E : Node_Id;
+         S : Message_Template;
+         T : Node_Kind)
+      is
       begin
          Error_Loc (1)  := Loc (E);
          Error_Name (1) := Quoted (Image (T));

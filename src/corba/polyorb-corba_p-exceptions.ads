@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,9 +43,9 @@ with PolyORB.Requests;
 
 package PolyORB.CORBA_P.Exceptions is
 
-   procedure Request_Raise_Occurrence (R : in out Requests.Request_Access);
-   --  If R has non-empty exception information, call Raise_From_Any
-   --  with an appropriate information message after having destroyed R.
+   procedure Request_Raise_Occurrence (R : Requests.Request);
+   --  If R has non-empty exception information, call Raise_From_Any with an
+   --  appropriate information message.
 
    procedure Raise_From_Any
      (Occurrence : PolyORB.Any.Any;

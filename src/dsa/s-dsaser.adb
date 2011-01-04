@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Exceptions;
 
 with PolyORB.DSA_P.Partitions;
 pragma Elaborate_All (PolyORB.DSA_P.Partitions);
@@ -79,4 +81,11 @@ begin
    System.Partition_Interface.Activate_RPC_Receivers;
 
    pragma Debug (C, O ("DSA_Services Initialized"));
+
+exception
+   when E : others =>
+      O ("exception raised during DSA services initialization: "
+         & Ada.Exceptions.Exception_Information (E));
+      PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
+      raise;
 end System.DSA_Services;

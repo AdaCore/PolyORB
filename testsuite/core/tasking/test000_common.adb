@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -123,7 +123,7 @@ package body Test000_Common is
    --  Simple generic Runnable, that use a access to procedure
    --  for its main procedure
 
-   procedure Run (R : access Generic_Run);
+   procedure Run (R : not null access Generic_Run);
    --  Call to R.P.all
 
    Ok             : Boolean := True;
@@ -218,7 +218,7 @@ package body Test000_Common is
       P  : Identified_Runnable_Main_Procedure;
    end record;
 
-   procedure Run (R : access Identified_Runnable);
+   procedure Run (R : not null access Identified_Runnable);
 
    type Id_Runnable_Arr is array (Task_Index) of Runnable_Access;
    Id_R  : Id_Runnable_Arr;
@@ -299,12 +299,12 @@ package body Test000_Common is
    -- Run --
    ---------
 
-   procedure Run (R : access Generic_Run) is
+   procedure Run (R : not null access Generic_Run) is
    begin
       R.P.all;
    end Run;
 
-   procedure Run (R : access Identified_Runnable) is
+   procedure Run (R : not null access Identified_Runnable) is
    begin
       R.P.all (R.Id);
    end Run;
@@ -507,7 +507,7 @@ package body Test000_Common is
             & " is in the mutex");
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          O ("task "
             & Integer'Image (Id)
             & " will leave in the mutex");
@@ -582,7 +582,7 @@ package body Test000_Common is
             pragma Assert (False);
             Wait (My_SCondition, My_SMutex);
          end loop;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          O ("task "
             & Integer'Image (Id)
             & " will leave the mutex");
@@ -641,7 +641,7 @@ package body Test000_Common is
          end loop;
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          O ("task "
             & Integer'Image (Id)
             & " will leave mutex ");
@@ -677,7 +677,7 @@ package body Test000_Common is
          end loop;
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          O ("task "
             & Integer'Image (Id)
             & " will leave the mutex ");
@@ -719,7 +719,7 @@ package body Test000_Common is
          PTMX.Enter (My_Mutex);
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Leave (My_Mutex);
       exception
          when Exc : others =>
@@ -739,7 +739,7 @@ package body Test000_Common is
          PTMX.Enter (My_Mutex);
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Leave (My_Mutex);
       exception
          when Exc : others =>
@@ -760,13 +760,13 @@ package body Test000_Common is
          PTMX.Enter (My_Mutex);
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Enter (My_Mutex);
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Leave (My_Mutex);
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Leave (My_Mutex);
       exception
          when Exc : others =>
@@ -1005,7 +1005,7 @@ package body Test000_Common is
          PTMX.Enter (My_Mutex);
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Leave (My_Mutex);
       exception
          when Exc : others =>
@@ -1028,13 +1028,13 @@ package body Test000_Common is
          PTMX.Enter (My_Mutex);
          J := Id;
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Enter (My_Mutex);
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Leave (My_Mutex);
          Tempo;
-         Ok := Ok and (J = Id);
+         Ok := Ok and then (J = Id);
          PTMX.Leave (My_Mutex);
       exception
          when Exc : others =>
@@ -1099,7 +1099,7 @@ package body Test000_Common is
                & Exception_Message (Exc));
       end;
       Synchro_Joiner.Join;
-      Thr_Ok := (Counter.Get = Number_Of_Tasks) and Thr_Ok;
+      Thr_Ok := (Counter.Get = Number_Of_Tasks) and then Thr_Ok;
       PolyORB.Utils.Report.Output
         ("test that the expected number of tasks is created", Thr_Ok);
 
@@ -1130,7 +1130,7 @@ package body Test000_Common is
                & " : "
                & Exception_Message (Exc));
       end;
-      Thr_Ok := (Counter.Get >= 1) and Thr_Ok;
+      Thr_Ok := (Counter.Get >= 1) and then Thr_Ok;
       PolyORB.Utils.Report.Output ("test Get_Current_Thread",
                                    Thr_Ok);
    end Test_Threads;

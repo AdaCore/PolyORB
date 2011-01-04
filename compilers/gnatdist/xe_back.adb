@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -470,8 +470,7 @@ package body XE_Back is
    -- Generate_Starter_File --
    ---------------------------
 
-   procedure Generate_Starter_File (Backend : Backend_Access)
-   is
+   procedure Generate_Starter_File (Backend : Backend_Access) is
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id);
       procedure Generate_Host_Name_Evaluation   (P : Partition_Id);
       procedure Generate_Executable_Invocation  (P : Partition_Id);
@@ -482,7 +481,6 @@ package body XE_Back is
 
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id) is
          L : Location_Id := Partitions.Table (P).First_Network_Loc;
-
       begin
          if L = No_Location_Id then
             L := Default_First_Boot_Location;
@@ -532,14 +530,13 @@ package body XE_Back is
 
          if P /= Main_Partition then
             Write_Name (Get_Rsh_Command);
-            Write_Str  (" $");
+            Write_Str  (" ${");
             Write_Name (Current.Name);
-            Write_Str  ("_HOST ");
+            Write_Str  ("_HOST} ");
             Write_Name (Get_Rsh_Options);
             Write_Char (' ');
             Write_Char (Ext_Quote);
-            Write_Str (Get_Env_Vars (P, Names_Only => False));
-            Write_Char (' ');
+            Write_Str  (Get_Env_Vars (P, Q => Int_Quote, Names_Only => False));
          end if;
 
          --  Executable file name must be quoted because it may contain
@@ -550,11 +547,19 @@ package body XE_Back is
          Write_Name (To_Absolute_File (Current.Executable_File));
          Write_Char (Int_Quote);
 
-         Write_Str  (" --boot_location ");
+         --  Boot_Location not currently supported with PolyORB, instead pass
+         --  name service reference directly.
 
+         --  Write_Str  (" --boot_location ");
+         --  Write_Char (Int_Quote);
+         --  Write_Str  ("${BOOT_LOCATION}");
+         --  Write_Char (Int_Quote);
+
+         Write_Str (" --polyorb-dsa-name_service=");
          Write_Char (Int_Quote);
-         Write_Str  ("$BOOT_LOCATION");
+         Write_Str  ("${POLYORB_DSA_NAME_SERVICE}");
          Write_Char (Int_Quote);
+
          Write_Name (Current.Command_Line);
 
          if P /= Main_Partition then
@@ -574,7 +579,6 @@ package body XE_Back is
 
       procedure Generate_Host_Name_Evaluation (P : Partition_Id) is
          H : Name_Id;
-
       begin
          Write_Image (H, Partitions.Table (P).Host, P);
          if No (H) then
@@ -598,6 +602,8 @@ package body XE_Back is
       File      : File_Descriptor;
       Exec_File : File_Name_Type;
       Success   : Boolean;
+
+   --  Start of processing for Generate_Starter_File
 
    begin
       --  Do not build start unless also building all partitions
@@ -810,7 +816,9 @@ package body XE_Back is
    ------------------
 
    function Get_Env_Vars
-     (P : Partition_Id; Names_Only : Boolean) return String
+     (P          : Partition_Id;
+      Q          : Character := ' ';
+      Names_Only : Boolean) return String
    is
       V : Env_Var_Id;
    begin
@@ -820,20 +828,21 @@ package body XE_Back is
 
       V := Partitions.Table (P).First_Env_Var;
       while V /= No_Env_Var_Id loop
+         if V = Partitions.Table (P).First_Env_Var then
+            Add_Str_To_Name_Buffer ("env ");
+         end if;
          Get_Name_String_And_Append (Env_Vars.Table (V).Name);
          if not Names_Only then
-            Add_Str_To_Name_Buffer ("=$");
+            Add_Char_To_Name_Buffer ('=');
+            Add_Char_To_Name_Buffer (Q);
+            Add_Str_To_Name_Buffer ("${");
             Get_Name_String_And_Append (Env_Vars.Table (V).Name);
+            Add_Char_To_Name_Buffer ('}');
+            Add_Char_To_Name_Buffer (Q);
          end if;
          Add_Str_To_Name_Buffer (" ");
          V := Env_Vars.Table (V).Next_Env_Var;
       end loop;
-
-      --  Remove trailing space, if the string is not empty
-
-      if Name_Len > 0 then
-         Name_Len := Name_Len - 1;
-      end if;
 
       return Name_Buffer (1 .. Name_Len);
    end Get_Env_Vars;

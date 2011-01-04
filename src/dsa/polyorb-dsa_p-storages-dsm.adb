@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -211,8 +211,7 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    function Create
      (Manager_Factory : access DSM_Manager;
-      Full_Name       : String)
-      return Shared_Data_Manager_RACW
+      Full_Name       : String) return Shared_Data_Manager_RACW
    is
       use Copy_Set_Tables;
       Manager    : DSM_Manager_Access;
@@ -242,9 +241,10 @@ package body PolyORB.DSA_P.Storages.DSM is
 
          Manager.Status     := Write;
          Manager.Prob_Owner := DSM_Manager_RACW (Manager);
+
       else
          pragma Debug (C, O ("Retrieve initial owner of variable "
-                             & Full_Name & " in name serveur"));
+                             & Full_Name & " from name server"));
 
          --  Retrieve initial owner of the variable
 

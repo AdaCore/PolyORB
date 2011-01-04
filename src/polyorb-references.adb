@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -437,6 +437,22 @@ package body PolyORB.References is
       --  XXX Perhaps some cases of R not designating
       --  a ref_info should be supported here?
    end Type_Id_Of;
+
+   -----------------
+   -- Set_Type_Id --
+   -----------------
+
+   procedure Set_Type_Id
+     (R : Ref; Type_Id : String)
+   is
+   begin
+      if not Is_Null (R) then
+         Ref_Info_Of (R).Type_Id := new String'(Type_Id);
+      else
+         pragma Debug (C, O ("Set_Type_Id: nil ref."));
+         null;
+      end if;
+   end Set_Type_Id;
 
    -----------
    -- Write --

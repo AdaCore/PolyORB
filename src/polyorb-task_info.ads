@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,10 +57,6 @@ package PolyORB.Task_Info is
    --  A Permanent task executes ORB.Run indefinitely.
    --  A Transient task executes ORB.Run until a given exit condition is met.
    --  Transient tasks are lent to neutral core middleware by user code.
-
-   Task_Kind_For_Exit_Condition : constant array (Boolean)
-     of Task_Kind := (True => Permanent, False => Transient);
-   --  The task kind according to whether Exit_Condition is null (True) or not
 
    type Any_Task_State is
      (Any, Unscheduled, Running, Blocked, Idle, Terminated);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,7 +76,7 @@ package PolyORB.Transport is
    --  of the newly-created event source is TAP.Handler.
 
    function Handle_Message
-     (TAP : access Transport_Access_Point;
+     (TAP : not null access Transport_Access_Point;
       Msg : Components.Message'Class) return Components.Message'Class;
 
    -----------------------------------------------------------------
@@ -101,12 +101,11 @@ package PolyORB.Transport is
    pragma Inline (Notepad_Of);
 
    function Handle_Message
-     (TE  : access Transport_Endpoint;
+     (TE  : not null access Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class;
 
    function Upper
-     (TE : Transport_Endpoint_Access)
-     return Components.Component_Access;
+     (TE : Transport_Endpoint_Access) return Components.Component_Access;
    --  Return a component access to the upper layer of TE
 
    ----------------------------------------------------
@@ -127,27 +126,27 @@ package PolyORB.Transport is
 
    procedure Read
      (TE     : in out Transport_Endpoint;
-      Buffer :        Buffers.Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Errors.Error_Container)
+      Error  : out Errors.Error_Container)
       is abstract;
-   --  Receive data from TE into Buffer. When Read is Called,
-   --  Size is set to the maximum size of the data to be received.
+   --  Receive data from TE into Buffer at the current position. On entry,
+   --  called, Size is set to the maximum size of the data to be received.
    --  On return, Size is set to the effective amount of data received.
+   --  The current position in Buffer remains unchanged.
 
    procedure Write
      (TE     : in out Transport_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
       is abstract;
-   --  Write out the contents of Buffer onto TE.
+   --  Write out the contents of Buffer onto TE
 
    procedure Close (TE : access Transport_Endpoint);
-   --  Dissociate the transport endpoint from any communication
-   --  resource.
+   --  Dissociate the transport endpoint from any communication resource
 
    procedure Destroy (TE : in out Transport_Endpoint);
-   --  Destroy any resources allocated to TE.
+   --  Destroy any resources allocated to TE
 
    procedure Destroy (TE : in out Transport_Endpoint_Access);
    --  Destroy TE and the protocol stack built upon it, recursively.
@@ -186,5 +185,9 @@ private
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;
       end record;
+
+   procedure Check_Validity (TE : access Transport_Endpoint);
+   --  Check whether TE (which must not be closed) is still valid, and if not,
+   --  close it. Used for handling of Check_Validity filter message.
 
 end PolyORB.Transport;

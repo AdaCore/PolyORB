@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,9 +47,8 @@ private
      new PortableInterceptor.IORInterceptor.Impl.Object with null record;
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id :        Standard.String)
-      return Boolean;
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean;
 
    procedure Establish_Components
      (Self : access Object;

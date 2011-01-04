@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,7 +57,7 @@ package body Test002_Common is
       P  : Parameterless_Procedure;
    end record;
 
-   procedure Run (R : access Generic_Runnable);
+   procedure Run (R : not null access Generic_Runnable);
 
    type Generic_Runnable_Arr is array (Task_Index) of Runnable_Access;
    R  : Generic_Runnable_Arr;
@@ -83,7 +83,7 @@ package body Test002_Common is
    -- Run --
    ---------
 
-   procedure Run (R : access Generic_Runnable) is
+   procedure Run (R : not null access Generic_Runnable) is
    begin
       R.P.all;
    end Run;

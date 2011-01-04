@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,29 +35,128 @@ with Interfaces.C;
 with System;
 
 with PolyORB.Initialization;
+with PolyORB.Parameters;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Log.Stderr is
+
+   use PolyORB.Parameters;
+
+   Enable_Timestamps   : Boolean := False;
+   --  If set true, all messages are prefixed with a timestamp
+
+   Failed_Message      : constant String :=
+                           "polyorb.log.stderr: write failed" & ASCII.LF;
+   Interrupted_Message : constant String :=
+                           "polyorb.log.stderr: write interrupted" & ASCII.LF;
+
+   type Write_Status is (Success, Interrupted, Failed);
+
+   function Write (S : String) return Write_Status;
+   --  Outputs string to standard error. Output operation can be interrupted
+   --  by a signal, in which case we try to complete output and return
+   --  Interrupted status.
 
    --------------
    -- Put_Line --
    --------------
 
    procedure Put_Line (S : String);
+   --  Write S to output, possibly prefixed with a timestamp.
+   --  If write operation fails or is interrupted, generate an additional
+   --  informational message.
 
    procedure Put_Line (S : String) is
-      SS : aliased String := S & ASCII.LF;
+      function Timestamp return String;
+      --  If timestamps are enabled, return a timestamp for this message,
+      --  else return an empty string.
 
-      procedure C_Write
-        (Fd  : Interfaces.C.int;
-         P   : System.Address;
-         Len : Interfaces.C.int);
-      pragma Import (C, C_Write, "write");
+      function Timestamp return String is
+         Result : String := "0000-00-00 00:00:00  ";
+         --  Note additional empty space at end of string to account for the
+         --  fact that we will use strftime(2) to fill in this string, which
+         --  will append a NUL character.
+
+         procedure C_Timestamp
+           (Buf     : System.Address;
+            Bufsize : Interfaces.C.int);
+         pragma Import (C, C_Timestamp, "__PolyORB_timestamp");
+
+      begin
+         if Enable_Timestamps then
+            C_Timestamp (Result'Address, Result'Length);
+            return Result (Result'First .. Result'Last - 1);
+         else
+            return "";
+         end if;
+      end Timestamp;
+
+      SS : aliased constant String := Timestamp & S & ASCII.LF;
+      X  : Write_Status;
+      pragma Unreferenced (X);
+
+   --  Start of processing for Put_Line
 
    begin
-      C_Write (2, SS (SS'First)'Address, SS'Length);
-      --  2 is standard error
+      case Write (SS) is
+         when Success =>
+            null;
+
+         when Interrupted =>
+            X := Write (Interrupted_Message);
+
+         when Failed =>
+            X := Write (Failed_Message);
+      end case;
    end Put_Line;
+
+   -----------
+   -- Write --
+   -----------
+
+   function Write (S : String) return Write_Status is
+      use type Interfaces.C.int;
+      use type Interfaces.C.size_t;
+
+      function C_Write
+        (Fd  : Interfaces.C.int;
+         P   : System.Address;
+         Len : Interfaces.C.int) return Interfaces.C.size_t;
+      pragma Import (C, C_Write, "write");
+      --  write(2) system call
+
+      P : Natural          := 0;
+      C : Interfaces.C.int := 0;
+      R : Interfaces.C.size_t;
+      --  Comments needed???
+
+   --  Start of processing for Write
+
+   begin
+      loop
+         R := C_Write (2, S (S'First + Integer (C))'Address, S'Length - C);
+         P := P + 1;
+
+         if R = -1 then
+            --  Operation was failed.
+
+            return Failed;
+         end if;
+
+         C := C + Interfaces.C.int (R);
+
+         if C = S'Length then
+            --  Output complete
+
+            if P = 1 then
+               return Success;
+
+            else
+               return Interrupted;
+            end if;
+         end if;
+      end loop;
+   end Write;
 
    ----------------
    -- Initialize --
@@ -71,6 +170,8 @@ package body PolyORB.Log.Stderr is
       if PolyORB.Log.Internals.Log_Hook = null then
          PolyORB.Log.Internals.Log_Hook := Put_Line'Access;
       end if;
+
+      Enable_Timestamps := Get_Conf ("log", "timestamp", Default => False);
    end Initialize;
 
    use PolyORB.Initialization;

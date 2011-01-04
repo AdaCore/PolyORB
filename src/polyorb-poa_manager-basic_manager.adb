@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,16 +33,15 @@
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.ORB.Iface;
-with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 
 package body PolyORB.POA_Manager.Basic_Manager is
 
    use PolyORB.Errors;
    use PolyORB.Log;
-   use PolyORB.Servants.Iface;
    use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log
@@ -423,25 +422,16 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    function Execute_Servant
      (Obj : not null access Hold_Servant;
-      Msg : Components.Message'Class) return Components.Message'Class
+      Req : Requests.Request_Access) return Boolean
    is
       use Requests_Queues;
-
-      S            : constant Hold_Servant_Access := Hold_Servant_Access (Obj);
-      Null_Message : Components.Null_Message;
-
+      S : constant Hold_Servant_Access := Hold_Servant_Access (Obj);
    begin
-      if Msg in Execute_Request then
-         pragma Debug (C, O ("Hold_Servant: Queuing request"));
-         Enter (S.PM.Lock);
-         Append (S.PM.Held_Requests, Execute_Request (Msg).Req);
-         Leave (S.PM.Lock);
-      else
-         pragma Debug (C, O ("Hold_Servant: Message not in Execute_Request"));
-         raise Program_Error;
-      end if;
-
-      return Null_Message;
+      pragma Debug (C, O ("Hold_Servant: Queuing request"));
+      Enter (S.PM.Lock);
+      Append (S.PM.Held_Requests, Req);
+      Leave (S.PM.Lock);
+      return False;
    end Execute_Servant;
 
 end PolyORB.POA_Manager.Basic_Manager;

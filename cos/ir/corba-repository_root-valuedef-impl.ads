@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -107,7 +107,7 @@ package CORBA.Repository_Root.ValueDef.Impl is
 
    function get_base_value
      (Self : access Object)
-     return CORBA.Repository_Root.ValueDef.Ref;
+     return CORBA.Repository_Root.ValueDef.Ref'Class;
 
    procedure set_base_value
      (Self : access Object;

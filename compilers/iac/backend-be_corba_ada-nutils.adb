@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,7 +70,32 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    use Entity_Stack;
 
-   procedure New_Operator (O : Operator_Type; I : String := "");
+   --  The following strings are included in internally generated identifiers
+   --  to create names that are guaranteed never to clash with any legal
+   --  IDL identifier.
+
+   Latin_1_Unique_String : constant String :=
+                             (1 => Character'Val (16#DC#));
+   Latin_1_Unique_Suffix : aliased constant String :=
+                             "_" & Latin_1_Unique_String;
+   Latin_1_Unique_Infix  : aliased constant String :=
+                             Latin_1_Unique_Suffix & "_";
+
+   UTF_8_Unique_String : constant String :=
+                           (Character'Val (16#C3#), Character'Val (16#9C#));
+   UTF_8_Unique_Suffix : aliased constant String :=
+                           "_" & UTF_8_Unique_String;
+   UTF_8_Unique_Infix  : aliased constant String :=
+                           UTF_8_Unique_Suffix & "_";
+
+   --  The following are returned by the Unique_Suffix and Unique_Infix
+   --  functions. We initialize them to the default Latin_1 values, and if
+   --  -gnatW8 is given on the command line, they get set to the UTF_8 values.
+
+   The_Unique_Suffix : access constant String := Latin_1_Unique_Suffix'Access;
+   The_Unique_Infix  : access constant String := Latin_1_Unique_Infix'Access;
+
+   procedure New_Operator (Op : Operator_Type; I : String := "");
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
@@ -176,7 +201,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          if No (U) then
             if Output_Tree_Warnings then
                Write_Str  ("WARNING: node ");
-               Write_Name (Name (Defining_Identifier (E)));
+               Write_Name (Name (E));
                Write_Line (" has a null corresponding node");
             end if;
 
@@ -362,7 +387,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Set_Unreferenced (W, V => True);
       end if;
 
-      Append_To (Withed_Packages (Current_Package), W);
+      Append_To (Context_Clause (Current_Package), W);
    end Add_With_Package;
 
    ---------------
@@ -389,6 +414,20 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Set_Last_Node (L, Last);
    end Append_To;
+
+   ----------------
+   -- Prepend_To --
+   ----------------
+
+   procedure Prepend_To (L : List_Id; E : Node_Id) is
+   begin
+      pragma Assert (No (Next_Node (E)));
+      Set_Next_Node (E, First_Node (L));
+      Set_First_Node (L, E);
+      if No (Last_Node (L)) then
+         Set_Last_Node (L, E);
+      end if;
+   end Prepend_To;
 
    -------------
    -- Convert --
@@ -493,6 +532,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return C;
    end Copy_Node;
+
+   -------------------
+   -- Unique_Suffix --
+   -------------------
+
+   function Unique_Suffix return String is
+   begin
+      return The_Unique_Suffix.all;
+   end Unique_Suffix;
+
+   ------------------
+   -- Unique_Infix --
+   ------------------
+
+   function Unique_Infix return String is
+   begin
+      return The_Unique_Infix.all;
+   end Unique_Infix;
 
    --------------------------
    -- Get_Declaration_Node --
@@ -701,8 +758,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       D := Make_Selected_Component
-        (Expand_Designator (P, False),
-         Get_Base_Identifier (D));
+        (Expand_Designator (P, False), Get_Base_Identifier (D));
       P := Get_Parent_Unit_Name (D);
 
       --  Adding the with clause
@@ -801,8 +857,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Image --
    -----------
 
-   function Image (O : Operator_Type) return String is
-      S : String := Operator_Type'Image (O);
+   function Image (Op : Operator_Type) return String is
+      S : String := Operator_Type'Image (Op);
    begin
       To_Lower (S);
 
@@ -981,7 +1037,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       for V in Variable_Id loop
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         Add_Str_To_Name_Buffer (Var_Suffix);
+         Add_Str_To_Name_Buffer (Unique_Suffix);
          GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
@@ -1008,10 +1064,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Set_Str_To_Name_Buffer ("CORBA");
       CORBA_Name := Name_Find;
+
       Set_Str_To_Name_Buffer ("Repository_Root");
       Repository_Root_Name := Name_Find;
+
       Set_Str_To_Name_Buffer ("IDL_Sequences");
       IDL_Sequences_Name := Name_Find;
+
+      Set_Str_To_Name_Buffer ("DomainManager");
+      DomainManager_Name := Name_Find;
    end Initialize;
 
    --------------
@@ -1606,9 +1667,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------------------
 
    function Make_Literal_With_Parent
-     (Value  : Value_Id;
-      Parent : Node_Id  := No_Node)
-     return Node_Id
+     (Value  : Value_Id; Parent : Node_Id) return Node_Id
    is
       N : Node_Id := New_Node (K_Literal);
 
@@ -1685,40 +1744,43 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------------------
 
    function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
-
-      function Get_Style_State return Value_Id;
-      --  This function returns a string literal which is the value
-      --  given to the pragma style_checks. The 'Off' value is does
-      --  not ignore line length.
-
-      ---------------------
-      -- Get_Style_State --
-      ---------------------
-
-      function Get_Style_State return Value_Id is
-         --  The maximum line length allowed by GNAT is 32766
-
-         Max_Line_Length : constant Int := 32766;
-         Result          : Value_Id;
-      begin
-         Set_Str_To_Name_Buffer ("NM");
-         Add_Nat_To_Name_Buffer (Max_Line_Length);
-         Result := New_String_Value (Name_Find, False);
-         return Result;
-      end Get_Style_State;
-
       Pkg         : Node_Id;
       Unit        : Node_Id;
-      N           : Node_Id;
-      Style_State : constant Value_Id := Get_Style_State;
+
+      function Make_Style_Check_Pragma return Node_Id;
+      --  Returns a node for a pragma deactivating style checks
+
+      -----------------------------
+      -- Make_Style_Check_Pragma --
+      -----------------------------
+
+      function Make_Style_Check_Pragma return Node_Id is
+      begin
+         --  Note: just using Style_Checks (Off) wouldn't turn off line length
+         --  checks, so we need to define the maximum line length explicitly.
+         --  We set it to the maximum value supported by GNAT: 32766.
+
+         Set_Str_To_Name_Buffer ("NM32766");
+
+         return Make_Pragma
+                  (Pragma_Style_Checks,
+                   New_List
+                     (Make_Literal
+                        (New_String_Value (Name_Find, Wide => False))));
+      end Make_Style_Check_Pragma;
+
+   --  Start of processing for Make_Package_Declaration
+
    begin
       Unit := New_Node (K_Package_Declaration);
       Set_Defining_Identifier (Unit, Identifier);
 
       if Kind (Identifier) = K_Defining_Identifier then
          Set_Declaration_Node (Identifier, Unit);
+
       elsif Kind (Identifier) = K_Selected_Component then
          Set_Declaration_Node (Selector_Name (Identifier), Unit);
+
       else
          raise Program_Error;
       end if;
@@ -1731,24 +1793,22 @@ package body Backend.BE_CORBA_Ada.Nutils is
            (Current_Entity))),
          FEN.K_Specification)
       then
-         Set_Parent (Unit, Main_Package (Current_Entity));
+         Set_Parent (Unit, Stubs_Package (Current_Entity));
       end if;
 
       --  Building the specification part of the package
 
       Pkg := New_Node (K_Package_Specification);
-      Set_Withed_Packages (Pkg, New_List);
+      Set_Context_Clause (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
-      N := Make_Pragma
-        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
-      Append_To (Withed_Packages (Pkg), N);
+      Append_To (Context_Clause (Pkg), Make_Style_Check_Pragma);
 
       --  Adding a comment header
 
-      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
+      Make_Comment_Header (Context_Clause (Pkg), Identifier);
 
       Set_Visible_Part (Pkg, New_List);
       Set_Subunits (Pkg, New_List);
@@ -1758,23 +1818,21 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Building the implementation part of the package
 
-      Pkg := New_Node (K_Package_Implementation);
-      Set_Withed_Packages (Pkg, New_List);
+      Pkg := New_Node (K_Package_Body);
+      Set_Context_Clause (Pkg, New_List);
 
       --  Disabling style checks. We put the pragma before the header
       --  comment because some lines in the header may be very long.
 
-      N := Make_Pragma
-        (Pragma_Style_Checks, New_List (Make_Literal (Style_State)));
-      Append_To (Withed_Packages (Pkg), N);
+      Append_To (Context_Clause (Pkg), Make_Style_Check_Pragma);
 
       --  Adding a comment header
 
-      Make_Comment_Header (Withed_Packages (Pkg), Identifier);
+      Make_Comment_Header (Context_Clause (Pkg), Identifier);
 
       Set_Statements (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
-      Set_Package_Implementation (Unit, Pkg);
+      Set_Package_Body (Unit, Pkg);
 
       return Unit;
    end Make_Package_Declaration;
@@ -1787,8 +1845,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
      (Defining_Identifier : Node_Id;
       Generic_Package     : Node_Id;
       Parameter_List      : List_Id := No_List;
-      Parent              : Node_Id := Current_Package)
-     return Node_Id
+      Parent              : Node_Id := Current_Package) return Node_Id
    is
       N : Node_Id;
    begin
@@ -2019,7 +2076,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Present (Prefix) then
          pragma Assert (Kind (Prefix) /= K_Package_Declaration      and then
                         Kind (Prefix) /= K_Package_Specification    and then
-                        Kind (Prefix) /= K_Package_Implementation   and then
+                        Kind (Prefix) /= K_Package_Body             and then
                         Kind (Prefix) /= K_Subprogram_Specification and then
                         Kind (Prefix) /= K_Subprogram_Body          and then
                         Kind (Prefix) /= K_Full_Type_Declaration);
@@ -2356,16 +2413,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------
 
    procedure New_Operator
-     (O : Operator_Type;
+     (Op : Operator_Type;
       I : String := "") is
    begin
-      if O in Keyword_Operator then
-         Set_Str_To_Name_Buffer (Image (O));
+      if Op in Keyword_Operator then
+         Set_Str_To_Name_Buffer (Image (Op));
       else
          Set_Str_To_Name_Buffer (I);
       end if;
 
-      Operator_Image (Operator_Type'Pos (O)) := Name_Find;
+      Operator_Image (Operator_Type'Pos (Op)) := Name_Find;
    end New_Operator;
 
    ----------------
@@ -2474,7 +2531,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_CDR_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (CDR_Package (N));
+        Package_Body (CDR_Package (N));
    end Set_CDR_Body;
 
    ------------------
@@ -2504,7 +2561,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Buffers_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Buffers_Package (N));
+        Package_Body (Buffers_Package (N));
    end Set_Buffers_Body;
 
    ----------------------
@@ -2524,7 +2581,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Helper_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Helper_Package (N));
+        Package_Body (Helper_Package (N));
    end Set_Helper_Body;
 
    ---------------------
@@ -2544,7 +2601,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Internals_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Internals_Package (N));
+        Package_Body (Internals_Package (N));
    end Set_Internals_Body;
 
    ------------------------
@@ -2564,7 +2621,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Impl_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Implementation_Package (N));
+        Package_Body (Implementation_Package (N));
    end Set_Impl_Body;
 
    -------------------
@@ -2584,7 +2641,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_IR_Info_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Ir_Info_Package (N));
+        Package_Body (Ir_Info_Package (N));
    end Set_IR_Info_Body;
 
    ----------------------
@@ -2604,7 +2661,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Main_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Main_Package (N));
+        Package_Body (Stubs_Package (N));
    end Set_Main_Body;
 
    -------------------
@@ -2614,7 +2671,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Main_Spec (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Specification (Main_Package (N));
+        Package_Specification (Stubs_Package (N));
    end Set_Main_Spec;
 
    -----------------------
@@ -2624,7 +2681,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Skeleton_Body (N : Node_Id := Current_Entity) is
    begin
       Table (Last).Current_Package :=
-        Package_Implementation (Skeleton_Package (N));
+        Package_Body (Skeleton_Package (N));
    end Set_Skeleton_Body;
 
    -----------------------
@@ -2783,5 +2840,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return The_List;
    end Get_GList;
+
+   ------------------------
+   -- Set_UTF_8_Encoding --
+   ------------------------
+
+   procedure Set_UTF_8_Encoding is
+   begin
+      The_Unique_Suffix := UTF_8_Unique_Suffix'Access;
+      The_Unique_Infix  := UTF_8_Unique_Infix'Access;
+   end Set_UTF_8_Encoding;
 
 end Backend.BE_CORBA_Ada.Nutils;

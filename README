@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -146,10 +146,13 @@ Contributors:
 PolyORB has been developed since January, 1999 by the following
 contributors:
 
+* Dmitriy Anisimkov
 * Nicolas Archambault
 * Fabien Azavant
 * Benjamin Bagland
 * Khaled Barbaria
+* Nikolay Boshnakov
+* Reto Buerki
 * Emmanuel Chavane
 * Karim Chine
 * Jean-Marie Cottin

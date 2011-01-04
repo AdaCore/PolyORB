@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,10 @@
 --  Common definitions for all socket-based access points
 
 package body PolyORB.Utils.Socket_Access_Points is
+
+   ----------------------
+   -- To_Port_Interval --
+   ----------------------
 
    function To_Port_Interval (I : Interval) return Port_Interval is
    begin

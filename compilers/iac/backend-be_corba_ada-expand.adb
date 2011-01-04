@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,6 +80,11 @@ package body Backend.BE_CORBA_Ada.Expand is
    --  Return True if the type spec is an interface based type and
    --  then if the scope entity of this interface is the same as
    --  Entity's scope entity.
+
+   procedure Insert_Definition (E, Before, In_Container : Node_Id);
+   --  Inserts E in the container's definition list immediately before
+   --  Before. The container must be a module, specification, or interface
+   --  declaration, and Before must be in its list of definitions.
 
    procedure Define_Array_Type_Outside
      (Member : Node_Id;
@@ -321,7 +326,6 @@ package body Backend.BE_CORBA_Ada.Expand is
       Type_Spec             : Node_Id;
       Array_Id              : Node_Id;
       Container             : Node_Id;
-      Definitions           : List_Id;
       Old_Declarator_Id     : Node_Id;
       New_Type_Def          : Node_Id;
       New_Scoped_Name       : Node_Id;
@@ -365,15 +369,6 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       Container := FEN.Scope_Entity (FEN.Identifier (Entity));
 
-      if FEN.Kind (Container) = K_Module or else
-        FEN.Kind (Container) = K_Specification then
-         Definitions := FEN.Definitions (Container);
-      elsif FEN.Kind (Container) = K_Interface_Declaration then
-         Definitions := FEN.Interface_Body (Container);
-      else
-         raise Program_Error with "Bad container";
-      end if;
-
       --  Create the identifier of the new array type
 
       Array_Id := FEU.Make_Identifier
@@ -404,7 +399,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       --  Insert the new type declaration
 
-      FEU.Insert_Before_Node (New_Type_Def, Before, Definitions);
+      Insert_Definition (New_Type_Def, Before, In_Container => Container);
 
       --  Re-Create the identifier of the new array type
 
@@ -465,7 +460,6 @@ package body Backend.BE_CORBA_Ada.Expand is
       Type_Spec       : Node_Id;
       New_Identifier  : Node_Id;
       New_Scoped_Name : Node_Id;
-      Definitions     : List_Id;
       Container       : Node_Id;
    begin
       Type_Spec := FEN.Type_Spec (Member);
@@ -495,16 +489,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       Container := FEN.Scope_Entity (FEN.Identifier (Entity));
 
-      if FEN.Kind (Container) = K_Module or else
-        FEN.Kind (Container) = K_Specification then
-         Definitions := FEN.Definitions (Container);
-      elsif FEN.Kind (Container) = K_Interface_Declaration then
-         Definitions := FEN.Interface_Body (Container);
-      else
-         raise Program_Error with "Bad container";
-      end if;
-
-      FEU.Insert_Before_Node (Type_Spec, Before, Definitions);
+      Insert_Definition (Type_Spec, Before, In_Container => Container);
 
       --  Modify the Scope_Entity and the Potential_Scope of the Type_Spec
 
@@ -777,18 +762,7 @@ package body Backend.BE_CORBA_Ada.Expand is
 
       --  Insert the new declaration
 
-      if FEN.Kind (Parent) = K_Module or else
-        FEN.Kind (Parent) = K_Specification
-      then
-         List := FEN.Definitions (Parent);
-      elsif FEN.Kind (Parent) = K_Interface_Declaration then
-         List := FEN.Interface_Body (Parent);
-      else
-         raise Program_Error with "Wrong parent kind: "
-           & FEN.Node_Kind'Image (FEN.Kind (Parent));
-      end if;
-
-      FEU.Insert_Before_Node (Node, Before, List);
+      Insert_Definition (Node, Before, In_Container => Parent);
 
       --  The type spec has to be modified using the new defined type
       --  declaration.
@@ -902,8 +876,8 @@ package body Backend.BE_CORBA_Ada.Expand is
    ----------------------------------
 
    procedure Expand_Attribute_Declaration (Entity : Node_Id) is
-      Getter_Prefix     : constant String := "Get_";
-      Setter_Prefix     : constant String := "Set_";
+      Getter_Prefix     : constant String := "get_";
+      Setter_Prefix     : constant String := "set_";
       Parent_Interface  : Node_Id;
       D                 : Node_Id;
       Accessor          : Node_Id;
@@ -1652,6 +1626,26 @@ package body Backend.BE_CORBA_Ada.Expand is
    begin
       Handle_Anonymous_Type (Entity, Parent, Before);
    end Expand_Member;
+
+   -----------------------
+   -- Insert_Definition --
+   -----------------------
+
+   procedure Insert_Definition (E, Before, In_Container : Node_Id) is
+      Definitions : List_Id;
+   begin
+      if FEN.Kind (In_Container) = K_Module or else
+        FEN.Kind (In_Container) = K_Specification
+      then
+         Definitions := FEN.Definitions (In_Container);
+      elsif FEN.Kind (In_Container) = K_Interface_Declaration then
+         Definitions := FEN.Interface_Body (In_Container);
+      else
+         raise Program_Error with "Bad container";
+      end if;
+
+      FEU.Insert_Before_Node (E, Before, Definitions);
+   end Insert_Definition;
 
    ------------------------
    -- Is_CORBA_IR_Entity --

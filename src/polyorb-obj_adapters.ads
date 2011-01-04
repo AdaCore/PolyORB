@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,10 +52,13 @@ package PolyORB.Obj_Adapters is
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    procedure Create (OA : access Obj_Adapter) is abstract;
-   --  Initialize OA
+   --  Set up OA's internal structures
 
    procedure Destroy (OA : access Obj_Adapter);
-   --  Finalize OA
+   --  Deallocate OA's internal structures
+
+   procedure Finalize (OA : in out Obj_Adapter);
+   --  Makes a dispatching call on Destroy
 
    --------------------------------------
    -- Interface to application objects --

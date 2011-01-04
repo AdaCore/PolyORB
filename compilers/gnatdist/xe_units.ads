@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -163,7 +163,6 @@ package XE_Units is
    --  Indicator of whether unit can be used as main program
 
    type ALIs_Record is record
-
       Ofile : File_Name_Type;
       --  Name of object file
 
@@ -195,28 +194,32 @@ package XE_Units is
 
       Tasking : Tasking_Type;
       --  Indicator of whether the unit (or the collocated units it
-      --  depends on) drags tasking.
+      --  depends on) drags in tasking.
       --  Notation:
       --     Unknown_Tasking : tasking has not been established
       --     PCS_Tasking     : tasking is required because of PCS code
       --     User_Tasking    : tasking is required because of user code
       --     No_Tasking      : tasking is not required for this unit
       --  Note that PCS_Tasking is a stronger property than User_Tasking
-      --  as this has also an impact on the termination policy.
+      --  as this also has an impact on the termination policy.
 
+      Stamp_Checked : Boolean;
+      --  Set true when ALI file time stamp has been checked (reset
+      --  for each partition).
    end record;
 
    Default_ALI : constant ALIs_Record := (
-      Ofile        => No_File_Name,
-      Afile        => No_File_Name,
-      Sfile        => No_File_Name,
-      Uname        => No_Unit_Name,
-      First_Unit   => No_Unit_Id,
-      Last_Unit    => No_Unit_Id,
-      First_Sdep   => First_Sdep_Id,
-      Last_Sdep    => No_Sdep_Id,
-      Main_Program => None,
-      Tasking      => Unknown_Tasking);
+      Ofile         => No_File_Name,
+      Afile         => No_File_Name,
+      Sfile         => No_File_Name,
+      Uname         => No_Unit_Name,
+      First_Unit    => No_Unit_Id,
+      Last_Unit     => No_Unit_Id,
+      First_Sdep    => First_Sdep_Id,
+      Last_Sdep     => No_Sdep_Id,
+      Main_Program  => None,
+      Tasking       => Unknown_Tasking,
+      Stamp_Checked => False);
 
    package ALIs is new GNAT.Table (
      Table_Component_Type => ALIs_Record,
@@ -257,6 +260,7 @@ package XE_Units is
       Has_RACW : Boolean;
       --  Indicates presence of RA parameter for a package that declares
       --  at least one Remote Access to Class_Wide (RACW) object.
+
       Remote_Types : Boolean;
       --  Indicates a Remote_Types package.
 

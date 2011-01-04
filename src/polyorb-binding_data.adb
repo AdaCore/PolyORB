@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,13 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Management of binding data, i. e. the elements of information
---  that designate a remote middleware TSAP.
+--  Management of binding data, i. e. the elements of information that denote
+--  the association of a middleware TSAP address, a protocol, and an object id,
+--  together constituting a profile.
 
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
+with PolyORB.ORB;
+with PolyORB.Setup;
 
 package body PolyORB.Binding_Data is
 
@@ -68,6 +71,19 @@ package body PolyORB.Binding_Data is
       Free (P);
    end Destroy_Profile;
 
+   ------------
+   -- Get_OA --
+   ------------
+
+   function Get_OA
+     (Profile : Profile_Type) return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Unreferenced (Profile);
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
+
    --------------------
    -- Get_Object_Key --
    --------------------
@@ -86,6 +102,16 @@ package body PolyORB.Binding_Data is
    begin
       return P.Known_Local;
    end Is_Local_Profile;
+
+   --------------------------
+   -- Is_Multicast_Profile --
+   --------------------------
+
+   function Is_Multicast_Profile (P : Profile_Type) return Boolean is
+      pragma Unreferenced (P);
+   begin
+      return False;
+   end Is_Multicast_Profile;
 
    ----------------
    -- Notepad_Of --
