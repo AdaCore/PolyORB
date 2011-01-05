@@ -337,10 +337,6 @@ private
       ORB_Lock : PTM.Mutex_Access;
       --  Mutex used to enforce ORB critical section
 
-      ORB_Lock_Owner : PTT.Thread_Id := PTT.Null_Thread_Id;
-      --  Current owner of ORB_Lock, used to detect incorrect attempt to
-      --  recursively seize ORB_Lock.
-
       Job_Queue : PJ.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks
 

@@ -38,8 +38,59 @@ with PolyORB.Parameters;
 package body PolyORB.ORB_Controller is
 
    use PolyORB.Task_Info;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
 
    My_Factory : ORB_Controller_Factory_Access;
+
+   type Tracked_Mutex is new Mutex_Type with record
+      Mutex : Mutex_Access;
+      Owner : Thread_Id := Null_Thread_Id;
+   end record;
+
+   overriding procedure Enter (M : access Tracked_Mutex);
+   overriding procedure Leave (M : access Tracked_Mutex);
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create (O : out ORB_Controller_Access) is
+   begin
+      O := Create (My_Factory.all);
+   end Create;
+
+   -----------
+   -- Enter --
+   -----------
+
+   overriding procedure Enter (M : access Tracked_Mutex) is
+      Self : constant Thread_Id := Current_Task;
+   begin
+      pragma Abort_Defer;
+      pragma Debug (C1, O1 ("Enter Tracked_Mutex: " & Image (Self)
+                            & ", current owner " & Image (M.Owner)));
+
+      if M.Owner = Self then
+         O1 ("attempt to re-enter critical section", Warning);
+
+      else
+         M.Mutex.Enter;
+         M.Owner := Self;
+      end if;
+   end Enter;
+
+   -----------
+   -- Leave --
+   -----------
+
+   overriding procedure Leave (M : access Tracked_Mutex) is
+   begin
+      pragma Abort_Defer;
+      pragma Debug (C1, O1 ("Leave Tracked_Mutex " & Image (Current_Task)));
+      M.Owner := Null_Thread_Id;
+      M.Mutex.Leave;
+   end Leave;
 
    --------------------
    -- Terminate_Task --
@@ -70,35 +121,13 @@ package body PolyORB.ORB_Controller is
       Set_State_Terminated (O.Summary, TI.all);
    end Terminate_Task;
 
-   ------------
-   -- Create --
-   ------------
-
-   procedure Create (O : out ORB_Controller_Access) is
-   begin
-      O := Create (My_Factory.all);
-   end Create;
-
    --------------------------------
    -- Enter_ORB_Critical_Section --
    --------------------------------
 
    procedure Enter_ORB_Critical_Section (O : access ORB_Controller) is
-      use PTT;
-      Self : constant Thread_Id := Current_Task;
    begin
-      pragma Debug (C1, O1 ("Enter_ORB_Critical_Section " & Image (Self)));
-
-      begin
-         pragma Abort_Defer;
-         if O.ORB_Lock_Owner = Self then
-            O1 ("attempt to re-enter critical section", Warning);
-
-         else
-            PTM.Enter (O.ORB_Lock);
-            O.ORB_Lock_Owner := Self;
-         end if;
-      end;
+      O.ORB_Lock.Enter;
    end Enter_ORB_Critical_Section;
 
    ------------------
@@ -194,7 +223,8 @@ package body PolyORB.ORB_Controller is
                      PolyORB.Constants.Forever);
 
    begin
-      PTM.Create (OC.ORB_Lock);
+      OC.ORB_Lock := new Tracked_Mutex;
+      PTM.Create (Tracked_Mutex (OC.ORB_Lock.all).Mutex);
 
       for J in OC.AEM_Infos'Range loop
          PTCV.Create (OC.AEM_Infos (J).Polling_Completed);
@@ -217,7 +247,6 @@ package body PolyORB.ORB_Controller is
      (O                      : access ORB_Controller;
       Expected_Running_Tasks : Natural) return Boolean
    is
-      use PolyORB.Tasking.Threads;
       Result : Boolean;
    begin
       pragma Debug
@@ -260,15 +289,8 @@ package body PolyORB.ORB_Controller is
    --------------------------------
 
    procedure Leave_ORB_Critical_Section (O : access ORB_Controller) is
-      use PTT;
    begin
-      pragma Debug (C1, O1 ("Leave_ORB_Critical_Section "
-                              & Image (Current_Task)));
-      begin
-         pragma Abort_Defer;
-         O.ORB_Lock_Owner := Null_Thread_Id;
-         PTM.Leave (O.ORB_Lock);
-      end;
+      O.ORB_Lock.Leave;
    end Leave_ORB_Critical_Section;
 
    -----------------------
@@ -414,8 +436,6 @@ package body PolyORB.ORB_Controller is
    ------------
 
    function Status (O : ORB_Controller) return String is
-      use PolyORB.Tasking.Threads;
-
       function Counters_For_State (S : Any_Task_State) return String;
       --  Return the task counters for state S
 
