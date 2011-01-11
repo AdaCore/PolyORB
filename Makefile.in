@@ -108,6 +108,7 @@ CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
 ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
 GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
+HAVE_ADA_DYNAMIC_PRIORITIES := @HAVE_ADA_DYNAMIC_PRIORITIES@
 HAVE_SSL := @HAVE_SSL@
 
 include ${top_builddir}/Makefile.common.project
@@ -697,6 +698,10 @@ endif
 
 ifneq "${filter aws, ${APPLI_LIST}}" "aws"
   active_tests := ${filter-out examples/aws/%,${active_tests}}
+endif
+
+ifneq "${HAVE_DYNAMIC_PRIORITIES}" "tru"
+  active_tests := ${filter-out examples/corba/rtcorba/%,${active_tests}}
 endif
 
 #???The following are disabled for now, because of minor build problems:

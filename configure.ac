@@ -238,6 +238,7 @@ AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
 AM_HAS_INTRINSIC_SYNC_COUNTERS
+AM_HAS_ADA_DYNAMIC_PRIORITIES
 
 ##########################################
 # Check C environment features (for target)
@@ -571,9 +572,9 @@ AS_HELP_STRING([--enable-rpc-abortion], [Enable RPC abortion even when not suppo
 AM_SUPPORT_RPC_ABORTION
 AC_MSG_CHECKING(whether we support RPC abortion)
 if test "$SUPPORT_RPC_ABORTION" = "True"; then
-  AC_MSG_RESULT([true])
+  AC_MSG_RESULT([yes])
 else
-  AC_MSG_RESULT([false])
+  AC_MSG_RESULT([no])
 fi
 AC_SUBST(SUPPORT_RPC_ABORTION)
 
@@ -586,7 +587,7 @@ AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
 
 #
-# If ATC is not supported, remove corresponding units
+# If ATC or dynamic priritoes are not supported, remove corresponding units.
 # Note: can't use a multi-line value for an AC_SUBST variable, this works only
 # with recent versions of autoconf (which use awk(1) for all substitutions).
 # Older versions that rely on sed(1) don't handle multi-line substitutions
@@ -594,6 +595,7 @@ AC_SUBST(GNAT_RTS_FLAG)
 #
 
 EXCLUDED_SOURCE_FILES=config.excluded_source_files
+
 if $HAVE_ADA_ATC; then
   : No excluded files
 else
@@ -603,6 +605,16 @@ polyorb-tasking-profiles-full_tasking_atc-abortables.ads
 polyorb-tasking-profiles-full_tasking_atc-abortables.adb
 __EOF__
 fi > ${EXCLUDED_SOURCE_FILES}
+
+if $HAVE_ADA_DYNAMIC_PRIORITIES; then
+  : No excluded files
+else
+  cat <<__EOF__
+polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.ads
+polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
+__EOF__
+fi >> ${EXCLUDED_SOURCE_FILES}
+
 AC_SUBST_FILE(EXCLUDED_SOURCE_FILES)
 
 ##########################################

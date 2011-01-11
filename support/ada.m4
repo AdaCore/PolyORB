@@ -383,6 +383,25 @@ ADA_ATC="--  "
 HAVE_ADA_ATC=false])
 AC_SUBST(ADA_ATC)])
 
+dnl Syntax: AM_HAS_ADA_DYNAMIC_PRIORITIES
+dnl Determines whether the target environment supports dynamic task priotities
+
+AC_DEFUN([AM_HAS_ADA_DYNAMIC_PRIORITIES],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether environment supports dynamic task priorities])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+[with Ada.Dynamic_Priorities;
+procedure Check is
+begin
+   null;
+end Check;
+], [], [AC_MSG_RESULT(yes)
+HAVE_ADA_DYNAMIC_PRIORITIES=true],
+[AC_MSG_RESULT(no)
+HAVE_ADA_DYNAMIC_PRIORITIES=false])
+AC_SUBST(ADA_DYNAMIC_PRIORITIES)
+AC_SUBST(HAVE_ADA_DYNAMIC_PRIORITIES)])
+
 dnl Usage: AM_SUPPORT_RPC_ABORTION
 dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this
 dbl case, RPC execution may fail even when not aborted. Remove this feature
