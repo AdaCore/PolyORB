@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -77,6 +77,7 @@ package PolyORB.Tasking.Threads is
    --  each thread at creation time.
 
    function Null_Thread_Id return Thread_Id;
+   pragma Inline (Null_Thread_Id);
 
    function Image (TID : Thread_Id) return String;
    --  Return a human-readable representation of TID

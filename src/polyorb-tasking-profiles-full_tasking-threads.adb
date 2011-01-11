@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -335,11 +335,17 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF  : access Full_Tasking_Thread_Factory_Type;
       TID : PTT.Thread_Id) return String
    is
+      use PTT;
+
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
    begin
-      return Ada.Task_Identification.Image (P_To_A_Task_Id (TID));
+      if TID = Null_Thread_Id then
+         return "<null thread id>";
+      else
+         return Ada.Task_Identification.Image (P_To_A_Task_Id (TID));
+      end if;
    end Thread_Id_Image;
 
    ------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -132,8 +132,7 @@ package body PolyORB.Tasking.Threads is
    -- Null_Thread_Id --
    --------------------
 
-   function Null_Thread_Id
-     return Thread_Id is
+   function Null_Thread_Id return Thread_Id is
    begin
       return Thread_Id (System.Null_Address);
    end Null_Thread_Id;
