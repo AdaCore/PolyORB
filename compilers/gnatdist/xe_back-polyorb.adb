@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -152,6 +152,7 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options,
       PE_Boot_Location,
       PE_Self_Location,
+      PE_Tasking_Available,
       PE_Termination_Initiator,
       PE_Termination_Policy,
       PE_Partition_Name,
@@ -164,6 +165,7 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options           => PS_DSA,
       PE_Boot_Location         => PS_DSA,
       PE_Self_Location         => PS_DSA,
+      PE_Tasking_Available     => PS_DSA,
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
       PE_Partition_Name        => PS_DSA,
@@ -602,6 +604,11 @@ package body XE_Back.PolyORB is
       --  Set partition name
 
       Set_Conf (PE_Partition_Name, Current.Name);
+
+      --  Set tasking mode
+
+      Set_Str_To_Name_Buffer (Boolean'Image (Current.Tasking /= No_Tasking));
+      Set_Conf (PE_Tasking_Available, Name_Find);
 
       --  Add the termination policy to the configuration table, if no
       --  termination policy is set, the default is Global_Termination.

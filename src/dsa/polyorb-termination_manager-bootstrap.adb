@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,6 @@ with PolyORB.POA_Manager;
 with PolyORB.QoS.Term_Manager_Info;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Tasking.Threads;
 with System.Partition_Interface;
 
 package body PolyORB.Termination_Manager.Bootstrap is
@@ -108,7 +107,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
    ----------------------------------
 
    procedure Extract_TM_Reference_From_BO
-      (BO  :     Binding_Object_Access;
+      (BO  : Binding_Object_Access;
        Ref : out References.Ref;
        NK  : out Node_Kind)
    is
@@ -249,7 +248,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
    begin
       pragma Debug (C, O ("Initialize_Termination_Manager: enter"));
 
-      if not Tasking_Available then
+      if not Get_Conf ("dsa", "tasking_available") then
          if Term_Policy_Value (Term_Policy) = Local_Termination then
 
             --  If our profile is a no_tasking node with local_termination
@@ -257,6 +256,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
             pragma Debug (C, O ("No-tasking, Local_Termination node"));
             return;
+
          else
 
             --  Except local_termination, all the others termination policies
@@ -361,17 +361,6 @@ package body PolyORB.Termination_Manager.Bootstrap is
                    Is_RAS       => False,
                    Asynchronous => False));
    end Ref_To_Term_Manager_Access;
-
-   -----------------------
-   -- Tasking_Available --
-   -----------------------
-
-   function Tasking_Available return Boolean
-   is
-      use PolyORB.Tasking.Threads;
-   begin
-      return Current_Task /= Null_Thread_Id;
-   end Tasking_Available;
 
    --------------------------------
    -- Term_Manager_Access_To_Ref --
