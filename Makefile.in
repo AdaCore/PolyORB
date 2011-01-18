@@ -700,8 +700,9 @@ ifneq "${filter aws, ${APPLI_LIST}}" "aws"
   active_tests := ${filter-out examples/aws/%,${active_tests}}
 endif
 
-ifneq "${HAVE_DYNAMIC_PRIORITIES}" "tru"
+ifneq "${HAVE_DYNAMIC_PRIORITIES}" "true"
   active_tests := ${filter-out examples/corba/rtcorba/%,${active_tests}}
+  active_tests := ${filter-out testsuite/corba/rtcorba/%,${active_tests}}
 endif
 
 #???The following are disabled for now, because of minor build problems:
