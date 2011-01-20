@@ -27,6 +27,9 @@ TEST_NAME = os.environ['TEST_NAME']
 # Restore testsuite environment
 Env().restore(os.environ['TEST_CONFIG'])
 
+# If POLYORB_TEST_VERBOSE is set to true, then output more data
+VERBOSE = Env().options.verbose # set by testsuite.py
+
 # All executable tests path are relative to PolyORB testsuite dir
 BASE_DIR = os.path.join(Env().options.build_dir, 'testsuite')
 
@@ -71,7 +74,10 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
 
     try:
         # Run the server command and retrieve the IOR string
-        server_handle = Popen(['rlimit', str(RLIMIT), server], stdout=PIPE, env=server_env)
+        p_cmd_server = ['rlimit', str(RLIMIT), server]
+        server_handle = Popen(p_cmd_server, stdout=PIPE, env=server_env)
+        if VERBOSE:
+            print 'RUN: POLYORB_CONF=%s %s' % (server_conf, " ".join(p_cmd_server))
         while True:
             line = server_handle.stdout.readline()
             if "IOR:" in line:
@@ -83,12 +89,15 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         print IOR_str
 
         # Run the client with the IOR argument
+        p_cmd_client = [client, IOR_str]
 
         if client_conf != server_conf:
             client_env = os.environ.copy()
             client_env[POLYORB_CONF] = client_conf
+            print 'RUN: POLYORB_CONF=%s %s' % (client_conf, " ".join(p_cmd_client))
         else:
             client_env = None
+            print "RUN: %s" % " ".join(p_cmd_client)
 
         Run(make_run_cmd([client, IOR_str], Env().options.coverage),
             output=OUTPUT_FILENAME + 'server', error=STDOUT,
@@ -126,7 +135,16 @@ def local(cmd, config_file, args=None):
 
     command = os.path.join(BASE_DIR, cmd + EXE_EXT)
     assert_exists(command)
-    Run(make_run_cmd([command] + args, Env().options.coverage),
+
+    p_cmd = [command] + args
+
+    if VERBOSE:
+        if config_file:
+            print 'RUN: POLYORB_CONF=%s %s' % (config_file, " ".join(p_cmd))
+        else:
+            print 'RUN: %s' % " ".join(p_cmd)
+
+    Run(make_run_cmd(p_cmd, Env().options.coverage),
         output=OUTPUT_FILENAME + 'local', error=STDOUT,
         timeout=RLIMIT)
     if Env().options.coverage:

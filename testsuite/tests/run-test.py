@@ -4,11 +4,9 @@
 Run a test located in test_dir
 """
 
-from gnatpython.fileutils import mv
 from gnatpython.main import Main
 from gnatpython.testdriver import TestRunner, add_run_test_options
 
-import glob
 import os
 import sys
 
