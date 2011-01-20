@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1420,11 +1420,12 @@ package body PolyORB.Representations.CDR is
       Data   : out TypeCode.Local_Ref;
       Error  : in out Errors.Error_Container)
    is
-
       Complex : Boolean := False;
       --  Set true in the case of a complex typecode that may contain nested
       --  typecodes (False for empty and simple typecodes, but also for complex
       --  typecodes that contain only elementary types).
+
+      Complex_Buffer : aliased Buffer_Type;
 
       TypeCode_Id : constant Types.Unsigned_Long := Unmarshall (Buffer);
       Offset      : constant Types.Long :=
@@ -1484,9 +1485,8 @@ package body PolyORB.Representations.CDR is
             Data := TypeCode.TC_Object;
 
             declare
-               Complex_Encap  : aliased Encapsulation := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
-               Id, Name       : Types.String;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
+               Id, Name      : Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
                Id :=
@@ -1503,9 +1503,8 @@ package body PolyORB.Representations.CDR is
          when TC_Struct_Id =>
             Data := TypeCode.TC_Struct;
             declare
-               Complex_Encap  : aliased Encapsulation := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
-               Id, Name       : Types.String;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
+               Id, Name      : Types.String;
 
                Nb          : Types.Unsigned_Long;
                Member_Name : Types.String;
@@ -1547,8 +1546,7 @@ package body PolyORB.Representations.CDR is
          when TC_Union_Id =>
             Data := TypeCode.TC_Union;
             declare
-               Complex_Encap  : aliased Encapsulation := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
 
                Id, Name, Member_Name : PolyORB.Types.String;
                Nb : PolyORB.Types.Unsigned_Long;
@@ -1620,8 +1618,7 @@ package body PolyORB.Representations.CDR is
          when TC_Enum_Id =>
             Data := TypeCode.TC_Enum;
             declare
-               Complex_Encap  : aliased Encapsulation := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
                Nb : PolyORB.Types.Unsigned_Long;
             begin
@@ -1667,8 +1664,7 @@ package body PolyORB.Representations.CDR is
          when TC_Sequence_Id =>
             Data := TypeCode.TC_Sequence;
             declare
-               Complex_Encap :  aliased Encapsulation := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Length : PolyORB.Types.Unsigned_Long;
                Content_Type : TypeCode.Local_Ref;
             begin
@@ -1692,9 +1688,7 @@ package body PolyORB.Representations.CDR is
          when TC_Array_Id =>
             Data := TypeCode.TC_Array;
             declare
-               Complex_Encap : aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Length : PolyORB.Types.Unsigned_Long;
                Content_Type : TypeCode.Local_Ref;
             begin
@@ -1717,9 +1711,7 @@ package body PolyORB.Representations.CDR is
          when TC_Alias_Id =>
             Data := TypeCode.TC_Alias;
             declare
-               Complex_Encap : aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
                Content_Type : TypeCode.Local_Ref;
             begin
@@ -1748,9 +1740,7 @@ package body PolyORB.Representations.CDR is
          when TC_Except_Id =>
             Data := TypeCode.TC_Except;
             declare
-               Complex_Encap : aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
                Nb : PolyORB.Types.Unsigned_Long;
                Member_Type : TypeCode.Local_Ref;
@@ -1825,9 +1815,7 @@ package body PolyORB.Representations.CDR is
          when TC_Value_Id =>
             Data := TypeCode.TC_Value;
             declare
-               Complex_Encap : aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
                Type_Modifier, Visibility : PolyORB.Types.Short;
                Nb : PolyORB.Types.Unsigned_Long;
@@ -1886,9 +1874,7 @@ package body PolyORB.Representations.CDR is
          when TC_Valuebox_Id =>
             Data := TypeCode.TC_Valuebox;
             declare
-               Complex_Encap :  aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
                Content_Type : TypeCode.Local_Ref;
             begin
@@ -1918,9 +1904,7 @@ package body PolyORB.Representations.CDR is
          when TC_Native_Id =>
             Data := TypeCode.TC_Native;
             declare
-               Complex_Encap :  aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
@@ -1937,9 +1921,7 @@ package body PolyORB.Representations.CDR is
          when TC_Abstract_Interface_Id =>
             Data := TypeCode.TC_Abstract_Interface;
             declare
-               Complex_Encap :  aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
@@ -1956,9 +1938,7 @@ package body PolyORB.Representations.CDR is
          when TC_Local_Interface_Id =>
             Data := TypeCode.TC_Local_Interface;
             declare
-               Complex_Encap :  aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
@@ -1975,9 +1955,7 @@ package body PolyORB.Representations.CDR is
          when TC_Component_Id =>
             Data := TypeCode.TC_Component;
             declare
-               Complex_Encap :  aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
@@ -1994,9 +1972,8 @@ package body PolyORB.Representations.CDR is
          when TC_Home_Id =>
             Data := TypeCode.TC_Home;
             declare
-               Complex_Encap  :  aliased Encapsulation := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
-               Id, Name       : PolyORB.Types.String;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
+               Id, Name      : PolyORB.Types.String;
             begin
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
                Id :=
@@ -2012,9 +1989,7 @@ package body PolyORB.Representations.CDR is
          when TC_Event_Id =>
             Data := TypeCode.TC_Event;
             declare
-               Complex_Encap : aliased Encapsulation
-                 := Unmarshall (Buffer);
-               Complex_Buffer : aliased Buffer_Type;
+               Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
                Type_Modifier, Visibility : PolyORB.Types.Short;
                Nb : PolyORB.Types.Unsigned_Long;
