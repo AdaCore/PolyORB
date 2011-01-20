@@ -11,7 +11,7 @@ You should never call this module directly. To run a single testcase, use
 
 from gnatpython.env import Env
 from gnatpython.ex import Run, STDOUT
-from gnatpython.fileutils import mkdir
+from gnatpython.fileutils import FileUtilsError, mkdir
 
 from subprocess import Popen, PIPE
 
@@ -40,8 +40,12 @@ EXE_EXT = Env().target.os.exeext
 
 OUTPUT_FILENAME = os.path.join(Env().log_dir, TEST_NAME)
 
-mkdir(os.path.dirname(OUTPUT_FILENAME))
-
+try:
+    if not os.path.isdir(os.path.dirname(OUTPUT_FILENAME)):
+        mkdir(os.path.dirname(OUTPUT_FILENAME))
+except FileUtilsError:
+    # Ignore errors, multiple tests can be run in parallel
+    pass
 
 def assert_exists(filename):
     """Assert that the given filename exists"""
