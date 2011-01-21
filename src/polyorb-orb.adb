@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -235,23 +235,21 @@ package body PolyORB.ORB is
       use PolyORB.Task_Info;
 
    begin
-      pragma Debug (C, O ("TPF " & Image (This_Task) & ": "
-                       & "enter Perform_Work"));
+      pragma Debug (C, O ("Perform_Work: enter " & Image (This_Task)));
 
       pragma Assert (Task_Info.Job (This_Task) /= null);
 
       Leave_ORB_Critical_Section (ORB.ORB_Controller);
 
-      pragma Debug (C, O ("TPF " & Image (This_Task) & ": "
-                       & "working on job "
+      pragma Debug (C, O ("Perform_Work: " & Image (This_Task)
+                       & " working on job "
                        & Ada.Tags.External_Tag
                        (Task_Info.Job (This_Task)'Tag)));
 
       Run (Task_Info.Job (This_Task));
 
       Enter_ORB_Critical_Section (ORB.ORB_Controller);
-      pragma Debug (C, O ("TPF " & Image (This_Task) & ": "
-                       & "leaving Perform_Work"));
+      pragma Debug (C, O ("Perform_Work: leave " & Image (This_Task)));
 
       Notify_Event (ORB.ORB_Controller, Event'(Kind => Job_Completed));
    end Perform_Work;
@@ -1080,12 +1078,14 @@ package body PolyORB.ORB is
             if Result not in Null_Message then
                begin
                   Emit_No_Reply (Req.Requesting_Component, Result);
+
                   --  XXX issue: if we are on the server side, and the
                   --  transport layer has detected a disconnection while we
                   --  were processing the request, the Requestor (Session)
                   --  object here could have become invalid. For now we hack
                   --  around this issue in an ugly fashion by catching all
                   --  exceptions.
+
                exception
                   when E : others =>
                      O ("Got exception sending Executed_Request:" & ASCII.LF
