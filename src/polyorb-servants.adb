@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,9 +37,10 @@ with PolyORB.Tasking.Threads;
 package body PolyORB.Servants is
 
    type Req_Runnable is new PolyORB.Tasking.Threads.Runnable with record
-      Servant  : access Servants.Servant'Class;
-      Req      : Requests.Request_Access;
-      Aborted  : Boolean := True;
+      Servant   : access Servants.Servant'Class;
+      Req       : Requests.Request_Access;
+      Completed : Boolean := False;
+      Aborted   : Boolean := True;
    end record;
 
    procedure Run (RR : access Req_Runnable);
@@ -50,8 +51,14 @@ package body PolyORB.Servants is
 
    procedure Run (RR : access Req_Runnable) is
    begin
-      RR.Req.Completed := Execute_Servant (RR.Servant, RR.Req);
-      RR.Aborted := False;
+      RR.Completed := Execute_Servant (RR.Servant, RR.Req);
+
+      --  Note: Can't set RR.Req.Completed here, since this would allow the
+      --  requesting task to destroy RR.Req and prevent us from obtaining
+      --  the RR.Req.Upcall_Abortable_Mutex to clean RR.Req.Upcall_Abortable
+      --  (see Abortable_Execute_Servant).
+
+      RR.Aborted   := False;
    end Run;
 
    -------------------------------
@@ -75,13 +82,20 @@ package body PolyORB.Servants is
    begin
       Req.Upcall_Abortable := A'Unchecked_Access;
       A.Run;
+
       Req.Upcall_Abortable_Mutex.Enter;
       Req.Upcall_Abortable := null;
       Req.Upcall_Abortable_Mutex.Leave;
 
+      --  If aborted, mark the request to inhibit sending of a reply
+
+      if R.Aborted then
+         Req.Aborted := True;
+      end if;
+
       --  Generate Executed_Request if completed normally or aborted
 
-      return Req.Completed or R.Aborted;
+      return R.Completed or R.Aborted;
    end Abortable_Execute_Servant;
 
    ------------------------
