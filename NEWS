@@ -41,6 +41,9 @@ See the features-28 file.
 Bug fixes
 ---------
 
+A rare race condition might cause PolyORB partitions to perform an incorrect
+memory access, causing the partition to crash. (K121-014)
+
 Implementation template package specs for empty interfaces lacked a pragma
 Elaborate_Body to make their body legal (the body is necessary to drag the
 Skel into the closure). (JA27-008)
