@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.7.1]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.7.2]))
 
 AC_PREREQ(2.57)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
