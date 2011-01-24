@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -246,7 +246,7 @@ package body PolyORB.Protocols is
                   Protocols.Iface.Flush'(Message with null record));
             end if;
 
-            if Req.Completed
+            if not Req.Aborted
                  and then
                (Is_Set (Sync_With_Target, Req.Req_Flags)
                   or else
