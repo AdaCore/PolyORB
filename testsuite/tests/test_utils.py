@@ -28,7 +28,7 @@ TEST_NAME = os.environ['TEST_NAME']
 Env().restore(os.environ['TEST_CONFIG'])
 
 # If POLYORB_TEST_VERBOSE is set to true, then output more data
-VERBOSE = Env().options.verbose # set by testsuite.py
+VERBOSE = Env().options.verbose  # set by testsuite.py
 
 # All executable tests path are relative to PolyORB testsuite dir
 BASE_DIR = os.path.join(Env().options.build_dir, 'testsuite')
@@ -44,9 +44,28 @@ except FileUtilsError:
     # Ignore errors, multiple tests can be run in parallel
     pass
 
+
 def assert_exists(filename):
     """Assert that the given filename exists"""
     assert os.path.exists(filename), "%s not found" % filename
+
+
+def terminate(handle):
+    """Terminate safely a process spawned using Popen"""
+
+    if sys.platform.startswith('win'):
+        try:
+            handle.terminate()
+        except WindowsError:
+            # We got a WindowsError exception. This might occurs when we try to
+            # terminate a process that is already dead. In that case we check
+            # if the process is still alive. If yes we reraise the exception.
+            # Otherwise we ignore it.
+            if handle.poll() is None:
+                # Process is still not terminated so reraise the exception
+                raise
+    else:
+        handle.terminate()
 
 
 def client_server(client_cmd, client_conf, server_cmd, server_conf):
@@ -80,7 +99,8 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         # Run the server command and retrieve the IOR string
         p_cmd_server = ['rlimit', str(RLIMIT), server]
         if VERBOSE:
-            print 'RUN: POLYORB_CONF=%s %s' % (server_polyorb_conf, " ".join(p_cmd_server))
+            print 'RUN: POLYORB_CONF=%s %s' % \
+                (server_polyorb_conf, " ".join(p_cmd_server))
         server_handle = Popen(p_cmd_server, stdout=PIPE, env=server_env)
         while True:
             line = server_handle.stdout.readline()
@@ -106,7 +126,8 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         if client_polyorb_conf != server_polyorb_conf:
             client_env = os.environ.copy()
             client_env[POLYORB_CONF] = client_polyorb_conf
-            print 'RUN: POLYORB_CONF=%s %s' % (client_polyorb_conf, " ".join(p_cmd_client))
+            print 'RUN: POLYORB_CONF=%s %s' % \
+                (client_polyorb_conf, " ".join(p_cmd_client))
         else:
             client_env = None
             print "RUN: %s" % " ".join(p_cmd_client)
@@ -122,7 +143,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     except Exception, e:
         print e
     finally:
-        server_handle.terminate()
+        terminate(server_handle)
 
     return _check_output(OUTPUT_FILENAME + 'server', 'server')
 
