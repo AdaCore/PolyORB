@@ -93,7 +93,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
             assert_exists(os.path.join(CONF_DIR, conf_file))
 
     server_env = os.environ.copy()
-    server_env[POLYORB_CONF] = server_conf
+    server_env[POLYORB_CONF] = os.path.join(CONF_DIR, server_conf)
 
     try:
         # Run the server command and retrieve the IOR string
@@ -117,7 +117,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
 
         if client_conf != server_conf:
             client_env = os.environ.copy()
-            client_env[POLYORB_CONF] = client_conf
+            client_env[POLYORB_CONF] = os.path.join(CONF_DIR, client_conf)
             print 'RUN: POLYORB_CONF=%s %s' % \
                 (client_conf, " ".join(p_cmd_client))
         else:
