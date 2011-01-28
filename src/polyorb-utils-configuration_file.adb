@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Directories;
 with Ada.Text_IO;
+
+with GNAT.OS_Lib;
 
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -128,22 +129,13 @@ package body PolyORB.Utils.Configuration_File is
       Reset_Sections_List;
    end Reset;
 
-   -----------------------------
-   -- Load_Configuration_File --
-   -----------------------------
-
-   procedure Load_Configuration_File (Configuration_Filename : String) is
-   begin
-      Load_Configuration_Table
-        (Configuration_Filename, Local_Configuration_Table);
-   end Load_Configuration_File;
-
    ------------------------------
    -- Load_Configuration_Table --
    ------------------------------
 
    procedure Load_Configuration_Table
      (Configuration_Filename : String;
+      Is_Default             : Boolean;
       Table                  : in out Configuration_Table.Table_Instance)
    is
       Current_Section : String_Ptr := null;
@@ -166,16 +158,15 @@ package body PolyORB.Utils.Configuration_File is
       use PolyORB.Utils;
 
    begin
-
       --  Reset the table and the sections list
 
       Reset_Table (Table);
       Reset_Sections_List;
 
-      if not Ada.Directories.Exists (Configuration_Filename) then
-
-         pragma Debug (C, O ("No " & Configuration_Filename
-                          & " configuration file."));
+      if not GNAT.OS_Lib.Is_Regular_File (Configuration_Filename) then
+         if not Is_Default then
+            O (Configuration_Filename & " is not a regular file", Error);
+         end if;
          return;
       end if;
 
