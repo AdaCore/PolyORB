@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,7 +49,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
-     ("polyorb.transport.datagram.sockets_in");
+     ("polyorb.transport.datagram.sockets");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
