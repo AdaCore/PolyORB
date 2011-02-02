@@ -131,8 +131,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      P                : PTT.Parameterless_Procedure)
-     return PTT.Thread_Access
+      P                : PTT.Parameterless_Procedure) return PTT.Thread_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
