@@ -417,7 +417,7 @@ package body System.Partition_Interface is
 
    function Any_Member_Type
      (A     : Any;
-      Index : System.Unsigned_Types.Long_Unsigned) return PATC.Local_Ref
+      Index : U32) return PATC.Local_Ref
    is
    begin
       return PATC.To_Ref
@@ -803,7 +803,8 @@ package body System.Partition_Interface is
                  (Name      => PolyORB.Types.To_PolyORB_String
                     ("result"),
                   Arg_Modes => ARG_OUT,
-                  Argument  => TA_I (Integer (Get_Local_Partition_ID)));
+                  Argument  => Integer'To_Any
+                                 (Integer (Get_Local_Partition_ID)));
                goto Request_Completed;
             end;
          end if;
@@ -885,75 +886,60 @@ package body System.Partition_Interface is
       return Float (PolyORB.Types.Float'(From_Any (Item)));
    end FA_F;
 
-   function FA_I (Item : PolyORB.Any.Any) return Integer is
+   function FA_I8 (Item : PolyORB.Any.Any) return I8 is
    begin
-      return Integer (PolyORB.Types.Long'(From_Any (Item)));
-   end FA_I;
+      return I8 (PolyORB.Types.Short'(From_Any (Item)));
+   end FA_I8;
 
-   function FA_U (Item : PolyORB.Any.Any) return Unsigned is
+   function FA_I16 (Item : PolyORB.Any.Any) return I16 is
    begin
-      return Unsigned (PolyORB.Types.Unsigned_Long'(From_Any (Item)));
-   end FA_U;
+      return I16 (PolyORB.Types.Short'(From_Any (Item)));
+   end FA_I16;
+
+   function FA_I32 (Item : PolyORB.Any.Any) return I32 is
+   begin
+      return I32 (PolyORB.Types.Long'(From_Any (Item)));
+   end FA_I32;
+
+   function FA_I64 (Item : PolyORB.Any.Any) return I64 is
+   begin
+      return I64 (PolyORB.Types.Long_Long'(From_Any (Item)));
+   end FA_I64;
+
+   function FA_U8 (Item : PolyORB.Any.Any) return U8 is
+   begin
+      return U8 (PolyORB.Types.Octet'(From_Any (Item)));
+   end FA_U8;
+
+   function FA_U16 (Item : PolyORB.Any.Any) return U16 is
+   begin
+      return U16 (PolyORB.Types.Unsigned_Short'(From_Any (Item)));
+   end FA_U16;
+
+   function FA_U32 (Item : PolyORB.Any.Any) return U32 is
+   begin
+      return U32 (PolyORB.Types.Unsigned_Long'(From_Any (Item)));
+   end FA_U32;
+
+   function FA_U64 (Item : PolyORB.Any.Any) return U64 is
+   begin
+      return U64 (PolyORB.Types.Unsigned_Long_Long'(From_Any (Item)));
+   end FA_U64;
 
    function FA_LF (Item : PolyORB.Any.Any) return Long_Float is
    begin
       return Long_Float (PolyORB.Types.Double'(From_Any (Item)));
    end FA_LF;
 
-   function FA_LI (Item : PolyORB.Any.Any) return Long_Integer is
-   begin
-      return Long_Integer (PolyORB.Types.Long'(From_Any (Item)));
-   end FA_LI;
-
-   function FA_LU (Item : PolyORB.Any.Any) return Long_Unsigned is
-   begin
-      return Long_Unsigned (PolyORB.Types.Unsigned_Long'(From_Any (Item)));
-   end FA_LU;
-
    function FA_LLF (Item : PolyORB.Any.Any) return Long_Long_Float is
    begin
       return Long_Long_Float (PolyORB.Types.Long_Double'(From_Any (Item)));
    end FA_LLF;
 
-   function FA_LLI (Item : PolyORB.Any.Any) return Long_Long_Integer is
-   begin
-      return Long_Long_Integer (PolyORB.Types.Long_Long'(From_Any (Item)));
-   end FA_LLI;
-
-   function FA_LLU (Item : PolyORB.Any.Any) return Long_Long_Unsigned is
-   begin
-      return Long_Long_Unsigned
-        (PolyORB.Types.Unsigned_Long_Long'(From_Any (Item)));
-   end FA_LLU;
-
    function FA_SF (Item : PolyORB.Any.Any) return Short_Float is
    begin
       return Short_Float (PolyORB.Types.Float'(From_Any (Item)));
    end FA_SF;
-
-   function FA_SI (Item : PolyORB.Any.Any) return Short_Integer is
-   begin
-      return Short_Integer (PolyORB.Types.Short'(From_Any (Item)));
-   end FA_SI;
-
-   function FA_SU (Item : PolyORB.Any.Any) return Short_Unsigned is
-   begin
-      return Short_Unsigned (PolyORB.Types.Unsigned_Short'(From_Any (Item)));
-   end FA_SU;
-
-   function FA_SSI (Item : PolyORB.Any.Any) return Short_Short_Integer is
-      function To_SSI is new Ada.Unchecked_Conversion
-        (PolyORB.Types.Octet, Short_Short_Integer);
-   begin
-      return To_SSI (From_Any (Item));
-   end FA_SSI;
-
-   function FA_SSU (Item : PolyORB.Any.Any) return Short_Short_Unsigned is
-      function To_SSU is new Ada.Unchecked_Conversion
-        (PolyORB.Types.Octet, Short_Short_Unsigned);
-   begin
-      return To_SSU (From_Any (Item));
-   end FA_SSU;
 
    function FA_WC (Item : PolyORB.Any.Any) return Wide_Character is
    begin
@@ -975,8 +961,8 @@ package body System.Partition_Interface is
    function Get_Aggregate_Element
      (Value : Any;
       TC    : PATC.Local_Ref;
-      Index : System.Unsigned_Types.Long_Unsigned)
-      return Any is
+      Index : U32) return Any
+   is
    begin
       return PolyORB.Any.Get_Aggregate_Element
         (Value, TC, PolyORB.Types.Unsigned_Long (Index));
@@ -1022,7 +1008,7 @@ package body System.Partition_Interface is
 
             PolyORB.Any.NVList.Create (Arg_List);
             Result := (Name      => To_PolyORB_String ("result"),
-                       Argument  => Get_Empty_Any (TC_I),
+                       Argument  => Get_Empty_Any (Integer'Typecode),
                        Arg_Modes => 0);
 
             PolyORB.Requests.Create_Request
@@ -1036,7 +1022,7 @@ package body System.Partition_Interface is
             PolyORB.Requests.Destroy_Request (Request);
             Info.Known_Partition_ID := True;
             Info.RCI_Partition_ID   :=
-              RPC.Partition_ID (FA_I (Result.Argument));
+              RPC.Partition_ID (Integer'From_Any (Result.Argument));
          end;
       end if;
       pragma Assert (Info.Known_Partition_ID);
@@ -1249,7 +1235,7 @@ package body System.Partition_Interface is
 
    function Get_Nested_Sequence_Length
      (Value : Any;
-      Depth : Positive) return Unsigned
+      Depth : Positive) return U32
    is
       use type PolyORB.Types.Unsigned_Long;
 
@@ -1277,11 +1263,11 @@ package body System.Partition_Interface is
       end if;
 
       declare
-         use type Unsigned;
+         use type U32;
 
-         Outer_Length : constant Unsigned :=
-                          FA_U (PolyORB.Any.Get_Aggregate_Element
-                                  (Seq_Any, TC_U, 0));
+         Outer_Length : constant U32 :=
+                          FA_U32 (PolyORB.Any.Get_Aggregate_Element
+                                   (Seq_Any, TC_U32, 0));
       begin
          if Depth = 1 or else Outer_Length = 0 then
             return Outer_Length;
@@ -2507,74 +2493,60 @@ package body System.Partition_Interface is
       return To_Any (PolyORB.Types.Float (Item));
    end TA_F;
 
-   function TA_I (Item : Integer) return PolyORB.Any.Any is
+   function TA_I8 (Item : I8) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Short (Item));
+   end TA_I8;
+
+   function TA_I16 (Item : I16) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Short (Item));
+   end TA_I16;
+
+   function TA_I32 (Item : I32) return PolyORB.Any.Any is
    begin
       return To_Any (PolyORB.Types.Long (Item));
-   end TA_I;
+   end TA_I32;
 
-   function TA_U (Item : Unsigned) return PolyORB.Any.Any is
+   function TA_I64 (Item : I64) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Long_Long (Item));
+   end TA_I64;
+
+   function TA_U8 (Item : U8) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Octet (Item));
+   end TA_U8;
+
+   function TA_U16 (Item : U16) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Unsigned_Short (Item));
+   end TA_U16;
+
+   function TA_U32 (Item : U32) return PolyORB.Any.Any is
    begin
       return To_Any (PolyORB.Types.Unsigned_Long (Item));
-   end TA_U;
+   end TA_U32;
+
+   function TA_U64 (Item : U64) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Unsigned_Long_Long (Item));
+   end TA_U64;
 
    function TA_LF (Item : Long_Float) return PolyORB.Any.Any is
    begin
       return To_Any (PolyORB.Types.Double (Item));
    end TA_LF;
 
-   function TA_LI (Item : Long_Integer) return PolyORB.Any.Any is
-   begin
-      return To_Any (PolyORB.Types.Long (Item));
-   end TA_LI;
-
-   function TA_LU (Item : Long_Unsigned) return PolyORB.Any.Any is
-   begin
-      return To_Any (PolyORB.Types.Unsigned_Long (Item));
-   end TA_LU;
-
    function TA_LLF (Item : Long_Long_Float) return PolyORB.Any.Any is
    begin
       return To_Any (PolyORB.Types.Long_Double (Item));
    end TA_LLF;
 
-   function TA_LLI (Item : Long_Long_Integer) return PolyORB.Any.Any is
-   begin
-      return To_Any (PolyORB.Types.Long_Long (Item));
-   end TA_LLI;
-
-   function TA_LLU (Item : Long_Long_Unsigned) return PolyORB.Any.Any is
-   begin
-      return To_Any (PolyORB.Types.Unsigned_Long_Long (Item));
-   end TA_LLU;
-
    function TA_SF (Item : Short_Float) return PolyORB.Any.Any is
    begin
       return To_Any (PolyORB.Types.Float (Item));
    end TA_SF;
-
-   function TA_SI (Item : Short_Integer) return PolyORB.Any.Any is
-   begin
-      return To_Any (PolyORB.Types.Short (Item));
-   end TA_SI;
-
-   function TA_SU (Item : Short_Unsigned) return PolyORB.Any.Any is
-   begin
-      return To_Any (PolyORB.Types.Unsigned_Short (Item));
-   end TA_SU;
-
-   function TA_SSI (Item : Short_Short_Integer) return PolyORB.Any.Any is
-      function To_Octet is new Ada.Unchecked_Conversion
-        (Short_Short_Integer, PolyORB.Types.Octet);
-   begin
-      return To_Any (To_Octet (Item));
-   end TA_SSI;
-
-   function TA_SSU (Item : Short_Short_Unsigned) return PolyORB.Any.Any is
-      function To_Octet is new Ada.Unchecked_Conversion
-        (Short_Short_Unsigned, PolyORB.Types.Octet);
-   begin
-      return To_Any (To_Octet (Item));
-   end TA_SSU;
 
    function TA_WC (Item : Wide_Character) return PolyORB.Any.Any is
    begin

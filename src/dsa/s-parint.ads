@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,11 @@ with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Tags;
 
+with Interfaces;
+
+with System.DSA_Types;
+with System.RPC;
+
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
@@ -60,10 +65,6 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
-with System.DSA_Types;
-with System.RPC;
-with System.Unsigned_Types;
-
 package System.Partition_Interface is
 
    pragma Elaborate_Body;
@@ -72,7 +73,7 @@ package System.Partition_Interface is
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
    --  Identification of this DSA implementation variant
 
-   PCS_Version : constant := 4;
+   PCS_Version : constant := 5;
    --  Version of the PCS API (for Exp_Dist consistency check).
    --  This version number is matched against Gnatvsn.PCS_Version_Number to
    --  ensure that the versions of Exp_Dist and the PCS are consistent.
@@ -109,6 +110,20 @@ package System.Partition_Interface is
    function Local_PID_Allocated return Boolean;
    pragma Inline (Local_PID_Allocated);
    --  True once the local partition ID is known
+
+   ---------------------------------
+   -- Interoperable numeric types --
+   ---------------------------------
+
+   subtype I8  is Interfaces.Integer_8;
+   subtype I16 is Interfaces.Integer_16;
+   subtype I32 is Interfaces.Integer_32;
+   subtype I64 is Interfaces.Integer_64;
+
+   subtype U8  is Interfaces.Unsigned_8;
+   subtype U16 is Interfaces.Unsigned_16;
+   subtype U32 is Interfaces.Unsigned_32;
+   subtype U64 is Interfaces.Unsigned_64;
 
    ---------------------------------------
    -- Remote access-to-subprogram types --
@@ -368,7 +383,7 @@ package System.Partition_Interface is
 
    function Any_Member_Type
      (A     : Any;
-      Index : System.Unsigned_Types.Long_Unsigned) return PATC.Local_Ref;
+      Index : U32) return PATC.Local_Ref;
    --  Return type of the Index'th component in Tk_Struct or Tk_Union Any A
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
@@ -385,40 +400,25 @@ package System.Partition_Interface is
    -- Elementary From_Any and To_Any operations --
    -----------------------------------------------
 
-   subtype Unsigned is System.Unsigned_Types.Unsigned;
-   subtype Long_Unsigned is
-     System.Unsigned_Types.Long_Unsigned;
-   subtype Long_Long_Unsigned is
-     System.Unsigned_Types.Long_Long_Unsigned;
-   subtype Short_Unsigned is
-     System.Unsigned_Types.Short_Unsigned;
-   subtype Short_Short_Unsigned is
-     System.Unsigned_Types.Short_Short_Unsigned;
-
---       function FA_AD (Item : Any) return X;
---       function FA_AS (Item : Any) return X;
-
    function FA_A (Item : Any) return DSAT.Any_Container_Ptr;
    function FA_B (Item : Any) return Boolean;
    function FA_C (Item : Any) return Character;
    function FA_F (Item : Any) return Float;
-   function FA_I (Item : Any) return Integer;
-   function FA_U (Item : Any) return Unsigned;
 
-   function FA_LF (Item : Any) return Long_Float;
-   function FA_LI (Item : Any) return Long_Integer;
-   function FA_LU (Item : Any) return Long_Unsigned;
+   function FA_I8  (Item : Any) return I8;
+   function FA_I16 (Item : Any) return I16;
+   function FA_I32 (Item : Any) return I32;
+   function FA_I64 (Item : Any) return I64;
 
+   function FA_U8  (Item : Any) return U8;
+   function FA_U16 (Item : Any) return U16;
+   function FA_U32 (Item : Any) return U32;
+   function FA_U64 (Item : Any) return U64;
+
+   function FA_SF  (Item : Any) return Short_Float;
+   function FA_LF  (Item : Any) return Long_Float;
    function FA_LLF (Item : Any) return Long_Long_Float;
-   function FA_LLI (Item : Any) return Long_Long_Integer;
-   function FA_LLU (Item : Any) return Long_Long_Unsigned;
 
-   function FA_SF (Item : Any) return Short_Float;
-   function FA_SI (Item : Any) return Short_Integer;
-   function FA_SU (Item : Any) return Short_Unsigned;
-
-   function FA_SSI (Item : Any) return Short_Short_Integer;
-   function FA_SSU (Item : Any) return Short_Short_Unsigned;
    function FA_WC (Item : Any) return Wide_Character;
 
    function FA_String
@@ -430,19 +430,21 @@ package System.Partition_Interface is
    function TA_B (Item : Boolean) return Any;
    function TA_C (Item : Character) return Any;
    function TA_F (Item : Float) return Any;
-   function TA_I (Item : Integer) return Any;
-   function TA_U (Item : Unsigned) return Any;
-   function TA_LF (Item : Long_Float) return Any;
-   function TA_LI (Item : Long_Integer) return Any;
-   function TA_LU (Item : Long_Unsigned) return Any;
-   function TA_LLF (Item : Long_Long_Float) return Any;
-   function TA_LLI (Item : Long_Long_Integer) return Any;
-   function TA_LLU (Item : Long_Long_Unsigned) return Any;
+
+   function TA_I8  (Item : I8)  return Any;
+   function TA_I16 (Item : I16) return Any;
+   function TA_I32 (Item : I32) return Any;
+   function TA_I64 (Item : I64) return Any;
+
+   function TA_U8  (Item : U8)  return Any;
+   function TA_U16 (Item : U16) return Any;
+   function TA_U32 (Item : U32) return Any;
+   function TA_U64 (Item : U64) return Any;
+
    function TA_SF (Item : Short_Float) return Any;
-   function TA_SI (Item : Short_Integer) return Any;
-   function TA_SU (Item : Short_Unsigned) return Any;
-   function TA_SSI (Item : Short_Short_Integer) return Any;
-   function TA_SSU (Item : Short_Short_Unsigned) return Any;
+   function TA_LF (Item : Long_Float) return Any;
+   function TA_LLF (Item : Long_Long_Float) return Any;
+
    function TA_WC (Item : Wide_Character) return Any;
    function TA_String (S : Ada.Strings.Unbounded.Unbounded_String) return Any;
    function TA_ObjRef (R : PolyORB.References.Ref) return Any
@@ -451,11 +453,6 @@ package System.Partition_Interface is
    function TA_Std_String (S : String) return Any;
    function TA_TC (TC : PATC.Local_Ref) return Any
      renames PolyORB.Any.To_Any;
-
-   --       function TC_AD return PATC.Local_Ref
-   --       renames PolyORB.Any.TC_X;
-   --       function TC_AS return PATC.Local_Ref
-   --       renames PolyORB.Any.TC_X;
 
    --  The typecodes below define the mapping of Ada elementary types to
    --  PolyORB types.
@@ -469,38 +466,33 @@ package System.Partition_Interface is
    function TC_F return PATC.Local_Ref
      renames PolyORB.Any.TC_Float;
 
-   --  Warning! Ada numeric types have platform dependant sizes, PolyORB types
-   --  are fixed size: this mapping may need to be changed for other platforms
-   --  (or the biggest PolyORB type for each Ada type should be selected, if
-   --  cross-platform interoperability is desired.
+   --  Note: no signed 8 bit integer type in the PolyORB data model
 
-   function TC_I return PATC.Local_Ref
+   function TC_I8 return PATC.Local_Ref
+     renames PolyORB.Any.TC_Short;
+   function TC_I16 return PATC.Local_Ref
+     renames PolyORB.Any.TC_Short;
+   function TC_I32 return PATC.Local_Ref
      renames PolyORB.Any.TC_Long;
-   function TC_LF return PATC.Local_Ref
-     renames PolyORB.Any.TC_Double;
-   function TC_LI return PATC.Local_Ref
-     renames PolyORB.Any.TC_Long;
-   function TC_LLF return PATC.Local_Ref
-     renames PolyORB.Any.TC_Long_Double;
-   function TC_LLI return PATC.Local_Ref
+   function TC_I64 return PATC.Local_Ref
      renames PolyORB.Any.TC_Long_Long;
-   function TC_LLU return PATC.Local_Ref
-     renames PolyORB.Any.TC_Unsigned_Long_Long;
-   function TC_LU return PATC.Local_Ref
+
+   function TC_U8 return PATC.Local_Ref
+     renames PolyORB.Any.TC_Octet;
+   function TC_U16 return PATC.Local_Ref
+     renames PolyORB.Any.TC_Unsigned_Short;
+   function TC_U32 return PATC.Local_Ref
      renames PolyORB.Any.TC_Unsigned_Long;
+   function TC_U64 return PATC.Local_Ref
+     renames PolyORB.Any.TC_Unsigned_Long_Long;
+
    function TC_SF return PATC.Local_Ref
      renames PolyORB.Any.TC_Float;
+   function TC_LF return PATC.Local_Ref
+     renames PolyORB.Any.TC_Double;
+   function TC_LLF return PATC.Local_Ref
+     renames PolyORB.Any.TC_Long_Double;
 
-   function TC_SI return PATC.Local_Ref
-     renames PolyORB.Any.TC_Short;
-   function TC_SSI return PATC.Local_Ref
-     renames PolyORB.Any.TC_Short;
-   function TC_SSU return PATC.Local_Ref
-     renames PolyORB.Any.TC_Octet;
-   function TC_SU return PATC.Local_Ref
-     renames PolyORB.Any.TC_Unsigned_Short;
-   function TC_U return PATC.Local_Ref
-     renames PolyORB.Any.TC_Unsigned_Long;
    function TC_WC return PATC.Local_Ref
      renames PolyORB.Any.TC_Wchar;
 
@@ -550,14 +542,14 @@ package System.Partition_Interface is
    function Get_Aggregate_Element
      (Value : Any;
       TC    : PATC.Local_Ref;
-      Index : System.Unsigned_Types.Long_Unsigned) return Any;
+      Index : U32) return Any;
 
    function Get_Any_Type (A : Any) return PATC.Local_Ref
      renames PolyORB.Any.Get_Type;
 
    function Get_Nested_Sequence_Length
      (Value : Any;
-      Depth : Positive) return Unsigned;
+      Depth : Positive) return U32;
    --  Return the length of the sequence at nesting level Depth within Value,
    --  a Tk_Struct any representing an unconstrained array.
 
@@ -670,13 +662,17 @@ package System.Partition_Interface is
 private
 
    pragma Inline
-     (FA_B, FA_C, FA_F, FA_I, FA_U, FA_LF, FA_LI, FA_LU,
-      FA_LLF, FA_LLI, FA_LLU, FA_SF, FA_SI, FA_SU,
-      FA_SSI, FA_SSU, FA_WC, FA_String,
+     (FA_B, FA_C, FA_F,
+      FA_I8, FA_I16, FA_I32, FA_I64,
+      FA_U8, FA_U16, FA_U32, FA_U64,
+      FA_SF, FA_LF, FA_LLF,
+      FA_WC, FA_String,
 
-      TA_B, TA_C, TA_F, TA_I, TA_U, TA_LF, TA_LI, TA_LU,
-      TA_LLF, TA_LLI, TA_LLU, TA_SF, TA_SI, TA_SU,
-      TA_SSI, TA_SSU, TA_WC, TA_String);
+      TA_B, TA_C, TA_F,
+      TA_I8, TA_I16, TA_I32, TA_I64,
+      TA_U8, TA_U16, TA_U32, TA_U64,
+      TA_SF, TA_LF, TA_LLF,
+      TA_WC, TA_String);
 
    pragma Inline (Caseless_String_Eq, Get_Aggregate_Element);
 
