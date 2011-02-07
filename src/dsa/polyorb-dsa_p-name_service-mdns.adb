@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,38 +31,44 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
+with System.RPC;
+
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Log;
-with PolyORB.Errors;
-with PolyORB.POA;
-with PolyORB.Setup;
-with PolyORB.ORB;
+with PolyORB.Binding_Data.Local;
 with PolyORB.DSA_P.Exceptions;
+with PolyORB.DSA_P.Name_Service.mDNS.Client;
+with PolyORB.DSA_P.Name_Service.mDNS.Servant;
+with PolyORB.Errors;
+with PolyORB.Log;
+with PolyORB.Minimal_Servant;
+with PolyORB.Obj_Adapters;
+with PolyORB.Objects;
+with PolyORB.ORB;
+with PolyORB.POA;
+with PolyORB.POA_Manager;
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 with PolyORB.POA_Policies.Id_Assignment_Policy.System;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
 with PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;
 with PolyORB.POA_Policies.Lifespan_Policy.Persistent;
-with PolyORB.POA_Manager;
-with PolyORB.Obj_Adapters;
-with PolyORB.Minimal_Servant;
-with PolyORB.Types;
-with PolyORB.DSA_P.Name_Service.mDNS.Client;
-with PolyORB.DSA_P.Name_Service.mDNS.Servant;
-with Ada.Exceptions;
-with System.RPC;
+with PolyORB.POA_Types;
+with PolyORB.Setup;
 with PolyORB.Tasking.Threads;
+with PolyORB.Types;
 
 package body PolyORB.DSA_P.Name_Service.mDNS is
 
-   use PolyORB.POA_Policies;
    use PolyORB.Any;
-   use PolyORB.Log;
    use PolyORB.Any.NVList;
    use PolyORB.Any.NVList.Internals;
    use PolyORB.Any.NVList.Internals.NV_Lists;
+   use PolyORB.Log;
+   use PolyORB.POA_Policies;
+   use PolyORB.POA_Types;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log
@@ -72,8 +78,8 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
-   Root_DNS     : aliased PolyORB.DSA_P.Name_Service.mDNS.Servant.
-     Object_Ptr;
+   Root_DNS : aliased PolyORB.DSA_P.Name_Service.mDNS.Servant.Object_Ptr;
+   Root_DNS_Ref : PolyORB.References.Ref;
 
    ------------------------------
    -- Initialize_MDNS_Policies --
@@ -106,7 +112,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
    -------------------------
 
    procedure Nameserver_Register
-     (Name_Ctx : access MDNS_Name_Context;
+     (Name_Ctx : access MDNS_Name_Server;
       Name : String;
       Kind : String;
       Obj  : PolyORB.References.Ref)
@@ -145,7 +151,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
    end Nameserver_Register;
 
    function Nameserver_Lookup
-     (Context : access MDNS_Name_Context;
+     (Context : access MDNS_Name_Server;
       Name    : String;
       Kind    : String;
       Initial : Boolean := True) return PolyORB.References.Ref
@@ -165,16 +171,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
          begin
             --  Unit not known yet, we therefore know that it is remote, and we
             --  need to look it up with the mDNS naming service.
-
-            --  We create the remote reference from the stringified Ref
-
-            PolyORB.References.String_To_Object
-              (Types.To_Standard_String (Context.Stringified_Ref),
-               Context.Base_Ref);
-
-            if References.Is_Nil (Context.Base_Ref) then
-               raise Constraint_Error;
-            end if;
 
             Result :=
               PolyORB.DSA_P.Name_Service.mDNS.Client.Resolve
@@ -214,8 +210,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
 
    procedure Initiate_MDNS_Context
      (MDNS_Reference : String;
-      Context : out PolyORB.DSA_P.Name_Service.Name_Context_Access;
-      Oid : out PolyORB.Objects.Object_Id_Access)
+      Context        : out PolyORB.DSA_P.Name_Service.Name_Server_Access)
    is
       use PolyORB.Errors;
       use PolyORB.POA;
@@ -227,9 +222,11 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
 
       Root_POA : constant POA.Obj_Adapter_Access := POA.Obj_Adapter_Access
                                       (Object_Adapter (PolyORB.Setup.The_ORB));
-      DNS_POA : POA.Obj_Adapter_Access;
+      DNS_POA  : POA.Obj_Adapter_Access;
       Policies : PolyORB.POA_Policies.PolicyList;
-      Error : Error_Container;
+      Error    : Error_Container;
+      Oid      : Object_Id_Access;
+      Stringified_Ref : PolyORB.Types.String;
 
    begin
       pragma Assert (Context /= null);
@@ -243,11 +240,38 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
          Policies     => Policies,
          POA          => DNS_POA,
          Error        => Error);
-      Set_Servant (DNS_POA, Minimal_Servant.To_PolyORB_Servant
-                   (PolyORB.Minimal_Servant.Servant_Acc (Root_DNS)), Error);
+      Set_Servant
+        (DNS_POA,
+         Minimal_Servant.To_PolyORB_Servant
+           (PolyORB.Minimal_Servant.Servant_Acc (Root_DNS)),
+         Error);
       Servant_To_Id (DNS_POA, DNS_POA.Default_Servant, Oid, Error);
-      Context.Stringified_Ref := Types.To_PolyORB_String (MDNS_Reference &
+
+      --  Create a local reference designating only our own mDNS servant
+
+      declare
+         use PolyORB.Binding_Data.Local;
+         LP : constant PolyORB.Binding_Data.Profile_Access :=
+                new Local_Profile_Type;
+      begin
+         Create_Local_Profile (Oid.all, Local_Profile_Type (LP.all));
+         PolyORB.References.Create_Reference
+           (Profiles => (1 => LP), Type_Id => "", R => Root_DNS_Ref);
+      end;
+
+      Stringified_Ref := Types.To_PolyORB_String (MDNS_Reference &
                                   PolyORB.Objects.Oid_To_Hex_String (Oid.all));
+
+      Free (Oid);
+
+      PolyORB.References.String_To_Object
+        (Types.To_Standard_String (Stringified_Ref),
+         Context.Base_Ref);
+
+      if References.Is_Nil (Context.Base_Ref) then
+         raise System.RPC.Communication_Error;
+      end if;
+
       Activate (POAManager_Access
                 (PolyORB.POA_Manager.Entity_Of (DNS_POA.POA_Manager)), Error);
       if Found (Error) then
@@ -256,10 +280,13 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       pragma Debug (C, O ("Leaving"));
    end Initiate_MDNS_Context;
 
-   function Get_MDNS_Servant return PolyORB.References.Ref
-   is
+   ----------------------
+   -- Get_MDNS_Servant --
+   ----------------------
+
+   function Get_MDNS_Servant return PolyORB.References.Ref is
    begin
-      return PolyORB.DSA_P.Name_Service.Get_Name_Context.Base_Ref;
+      return Root_DNS_Ref;
    end Get_MDNS_Servant;
 
 end PolyORB.DSA_P.Name_Service.mDNS;

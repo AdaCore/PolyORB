@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,16 +30,18 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Ada.Characters.Handling;
-with PolyORB.Any.NVList;
-with PolyORB.Any;
-with PolyORB.Types;
-with PolyORB.Requests;
-with PolyORB.Log;
-with PolyORB.Utils;
+
 with System.RPC;
 
+with PolyORB.Any.NVList;
+with PolyORB.Log;
+with PolyORB.Requests;
+with PolyORB.Utils;
+
 package body PolyORB.DSA_P.Name_Service.mDNS.Client is
+
    use PolyORB.DSA_P.Name_Service.mDNS.Helper;
    use PolyORB.Log;
 

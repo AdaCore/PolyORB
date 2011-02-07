@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . B I N D I N G _ D A T A . D N S              --
+--             P O L Y O R B . B I N D I N G _ D A T A . D N S              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags;
+
+with PolyORB.Utils.Sockets;
+
 package body PolyORB.Binding_Data.DNS is
 
    use PolyORB.Errors;
@@ -49,23 +53,21 @@ package body PolyORB.Binding_Data.DNS is
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Errors.Error_Container)
    is
-      use Transport_Mechanism_Lists;
-      Iter : Transport_Mechanism_Lists.Iterator := First (Profile.Mechanisms);
-
    begin
-      Throw (Error, No_Resources_E,
-             System_Exception_Members'
-             (Minor => 0, Completed => Completed_Maybe));
-
-      while not Last (Iter) loop
-
-         Catch (Error);
-         Bind_Mechanism
-              (Value (Iter).all.all, Profile, The_ORB, QoS, BO_Ref, Error);
-         exit when not Found (Error);
-         Next (Iter);
-      end loop;
+      Bind_Mechanism
+        (Profile.Mechanism.all, Profile, The_ORB, QoS, BO_Ref, Error);
    end Bind_Profile;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Prof : DNS_Profile_Type) return String is
+   begin
+      return Ada.Tags.External_Tag (DNS_Profile_Type'Class (Prof)'Tag)
+        & " Address : " & Utils.Sockets.Image (Address_Of (Prof.Mechanism.all))
+        & ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
+   end Image;
 
    ------------------
    -- Is_Colocated --
@@ -76,19 +78,11 @@ package body PolyORB.Binding_Data.DNS is
       Right : Profile_Type'Class) return Boolean
    is
    begin
-      if Right not in DNS_Profile_Type'Class then
-         return False;
-      end if;
-
-      --  Compare transport mechanisms
-
-      declare
-         L_Mechanisms, R_Mechanisms : Transport_Mechanism_List;
-      begin
-         L_Mechanisms := Left.Mechanisms;
-         R_Mechanisms := DNS_Profile_Type (Right).Mechanisms;
-         return Is_Colocated (L_Mechanisms, R_Mechanisms);
-      end;
+      return
+        Right in DNS_Profile_Type'Class
+        and then Is_Colocated
+                   (Left.Mechanism.all,
+                    DNS_Profile_Type (Right).Mechanism.all);
    end Is_Colocated;
 
    ----------------------
@@ -100,42 +94,17 @@ package body PolyORB.Binding_Data.DNS is
       P  : access Profile_Type'Class)
       return Boolean
    is
-      use Transport_Mechanism_Lists;
-      use Transport_Mechanism_Factory_Lists;
-
-      F_Iter : Transport_Mechanism_Factory_Lists.Iterator
-        := First (PF.Mechanisms);
-
    begin
-      if P.all not in DNS_Profile_Type'Class then
+      if P.all in DNS_Profile_Type'Class
+        and then Is_Local_Mechanism
+                   (PF.Mechanism, DNS_Profile_Type (P.all).Mechanism)
+      then
+         P.Known_Local := True;
+         return True;
+
+      else
          return False;
       end if;
-
-      --  Profile designates a local object if at least one of its
-      --  transport mechanism is local.
-
-      while not Last (F_Iter) loop
-         declare
-            M_Iter : Transport_Mechanism_Lists.Iterator
-              := First (DNS_Profile_Type (P.all).Mechanisms);
-
-         begin
-            while not Last (M_Iter) loop
-               if Is_Local_Mechanism
-                    (Value (F_Iter).all, Value (M_Iter).all)
-               then
-                  P.Known_Local := True;
-                  return True;
-               end if;
-
-               Next (M_Iter);
-            end loop;
-         end;
-
-         Next (F_Iter);
-      end loop;
-
-      return False;
    end Is_Local_Profile;
 
    -------------------------------------
@@ -147,7 +116,7 @@ package body PolyORB.Binding_Data.DNS is
       return PolyORB.DNS.Transport_Mechanisms.Transport_Mechanism_Access
    is
    begin
-      return Element (P.Mechanisms, 0).all;
+      return P.Mechanism;
    end Get_Primary_Transport_Mechanism;
 
    ---------------------------------------------
@@ -160,7 +129,7 @@ package body PolyORB.Binding_Data.DNS is
         PolyORB.DNS.Transport_Mechanisms.Transport_Mechanism_Factory_Access
    is
    begin
-      return Element (P.Mechanisms, 0).all;
+      return P.Mechanism;
    end Get_Primary_Transport_Mechanism_Factory;
 
    -------------

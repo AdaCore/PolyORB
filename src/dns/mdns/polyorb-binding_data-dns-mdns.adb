@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D N S . M D N S           --
+--        P O L Y O R B . B I N D I N G _ D A T A . D N S . M D N S         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,9 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Streams;
+
 with PolyORB.DNS.Transport_Mechanisms;
 with PolyORB.DNS.Transport_Mechanisms.MDNS;
 with PolyORB.Initialization;
@@ -40,10 +43,10 @@ with PolyORB.Sockets;
 with PolyORB.Utils;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Sockets;
-with PolyORB.Setup.MDNS;
-with Ada.Streams;
 
 package body PolyORB.Binding_Data.DNS.MDNS is
+
+   use Ada.Streams;
    use PolyORB.DNS.Transport_Mechanisms;
    use PolyORB.DNS.Transport_Mechanisms.MDNS;
    use PolyORB.Log;
@@ -51,7 +54,6 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    use PolyORB.References.Corbaloc;
    use PolyORB.Utils;
    use PolyORB.Utils.Sockets;
-   use Ada.Streams;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.binding_data.dns.mdns");
@@ -111,7 +113,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
 
    begin
       Create_Factory (MF.all, TAP);
-      Append (PF.Mechanisms, MF);
+      PF.Mechanism := MF;
    end Create_Factory;
 
    --------------------
@@ -129,12 +131,13 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    begin
       TResult.Object_Id     := new Object_Id'(Oid);
       pragma Debug (C, O ("enter:Oid = " & Image (TResult.Object_Id.all)));
+
       --  Create transport mechanism
-      Append
-        (TResult.Mechanisms,
-         Create_Transport_Mechanism
-         (MDNS_Transport_Mechanism_Factory
-              (Element (PF.Mechanisms, 0).all.all)));
+
+      TResult.Mechanism :=
+        Create_Transport_Mechanism
+          (MDNS_Transport_Mechanism_Factory (PF.Mechanism.all));
+
       pragma Debug (C, O ("leave"));
       return Result;
    end Create_Profile;
@@ -149,8 +152,11 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       TResult : MDNS_Profile_Type renames MDNS_Profile_Type (Result.all);
 
    begin
-      TResult.Object_Id     := new Object_Id'(P.Object_Id.all);
-      TResult.Mechanisms    := P.Mechanisms;
+      TResult.Object_Id := new Object_Id'(P.Object_Id.all);
+
+      TResult.Mechanism := P.Mechanism;
+      --  Incorrect aliasing of Mechanism???
+
       return Result;
    end Duplicate_Profile;
 
@@ -171,10 +177,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    begin
       pragma Debug (C, O ("MDNS_Profile_To_Corbaloc"));
       return Prefix & ":@" & Utils.Sockets.Image
-          (Address_Of
-           (MDNS_Transport_Mechanism (Element
-            (MDNS_Profile.Mechanisms, 0).all.all)))
-        & "/";
+          (Address_Of (MDNS_Profile.Mechanism.all))  & "/";
    end Profile_To_Corbaloc;
 
    -------------------------
@@ -182,7 +185,6 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -------------------------
 
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
-
       Profile  : Profile_Access := new MDNS_Profile_Type;
       TResult : MDNS_Profile_Type
         renames MDNS_Profile_Type (Profile.all);
@@ -243,7 +245,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       end if;
 
       declare
-         Slash : constant Integer := Find (S, Index, '/');
+         Slash   : constant Integer := Find (S, Index, '/');
          Oid_Str : constant String := URI_Decode (S (Slash + 1 .. S'Last));
          Oid     : Object_Id (Stream_Element_Offset (Oid_Str'First)
                         .. Stream_Element_Offset (Oid_Str'Last));
@@ -261,45 +263,25 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       pragma Debug (C, O ("Oid = " & Image (TResult.Object_Id.all)));
 
       declare
-         Address : constant Utils.Sockets.Socket_Name
-           := S (Host_First .. Host_Last) + Port;
+         Address : constant Utils.Sockets.Socket_Name :=
+                     S (Host_First .. Host_Last) + Port;
       begin
-         Append
-         (MDNS_Profile_Type (Profile.all).Mechanisms,
-         Create_Transport_Mechanism (Address));
+         DNS_Profile_Type (Profile.all).Mechanism :=
+           Create_Transport_Mechanism (Address);
          pragma Debug (C, O ("MDNS corbaloc to profile: leave"));
          return Profile;
       end;
    end Corbaloc_To_Profile;
 
-   -----------
-   -- Image --
-   -----------
+   --------------------------
+   -- Is_Multicast_Profile --
+   --------------------------
 
-   function Image (Prof : MDNS_Profile_Type) return String is
+   function Is_Multicast_Profile (P : MDNS_Profile_Type) return Boolean is
+      pragma Unreferenced (P);
    begin
-      return "Address : "
-          & Utils.Sockets.Image
-          (Address_Of
-          (MDNS_Transport_Mechanism (Element (Prof.Mechanisms, 0).all.all)))
-          & ", Object_Id : "
-          & PolyORB.Objects.Image (Prof.Object_Id.all);
-   end Image;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : MDNS_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-   is
-      pragma Unreferenced (Profile);
-
-   begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.Setup.MDNS.MDNS_GOA);
-   end Get_OA;
+      return True;
+   end Is_Multicast_Profile;
 
    ----------------
    -- Initialize --
@@ -334,7 +316,7 @@ begin
      (Module_Info'
       (Name      => +"binding_data.mdns",
        Conflicts => Empty,
-       Depends   =>  +"protocols.dns.mdns" & "sockets",
+       Depends   => +"sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
        Init      => Initialize'Access,

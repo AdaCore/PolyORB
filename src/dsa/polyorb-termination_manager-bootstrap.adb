@@ -117,15 +117,13 @@ package body PolyORB.Termination_Manager.Bootstrap is
       use QoS.Term_Manager_Info;
       use References;
 
+      BO_Prof : constant Binding_Data.Profile_Access := Get_Profile (BO);
       BO_Ref  : Smart_Pointers.Ref;
       P       : Neighbour_Profile_Type;
       Note    : BO_Note;
 
    begin
-
-      pragma Assert (BO /= null);
-
-      if Get_Profile (BO) = null then
+      if BO_Prof = null then
          pragma Debug (C, O ("Extracting TM ref from Server BO"));
 
          --  BO is a server side BO
@@ -151,7 +149,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
          NK := DSA_Node;
          Ref := Note.TM_Ref;
 
-      else
+      elsif not Is_Multicast_Profile (BO_Prof.all) then
          pragma Debug (C, O ("Extracting TM ref from Client BO"));
 
          --  BO is a client side BO
@@ -180,6 +178,11 @@ package body PolyORB.Termination_Manager.Bootstrap is
          --  In the client BO case, we cannot determine the kind of the target
          --  node.
 
+      else
+         --  Client multicast binding object: do not attempt to contact a
+         --  termination manager.
+
+         NK := Non_DSA_Node;
       end if;
 
       pragma Debug (C, O ("-> " & NK'Img & " TM: " & Image (Ref)));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,19 +33,18 @@
 
 --  This package implements the multicast DNS unit discovery for DSA
 
+with PolyORB.DSA_P.Name_Service;
 with PolyORB.POA_Policies;
 with PolyORB.References;
-with PolyORB.Objects;
-with PolyORB.DSA_P.Name_Service;
 
 package PolyORB.DSA_P.Name_Service.mDNS is
 
-   type MDNS_Name_Context is new
-     PolyORB.DSA_P.Name_Service.Name_Context with null record;
-   --  Concrete mDNS implementation of the abstract Name_Context type
+   type MDNS_Name_Server is new
+     PolyORB.DSA_P.Name_Service.Name_Server with null record;
+   --  Concrete mDNS implementation of the abstract Name_Server type
 
    procedure Nameserver_Register
-     (Name_Ctx : access MDNS_Name_Context;
+     (Name_Ctx : access MDNS_Name_Server;
       Name : String;
       Kind : String;
       Obj  : PolyORB.References.Ref);
@@ -54,7 +53,7 @@ package PolyORB.DSA_P.Name_Service.mDNS is
    --  to populate the mDNS servant's list of local RCI/SP package infos.
 
    function Nameserver_Lookup
-     (Context : access MDNS_Name_Context;
+     (Context : access MDNS_Name_Server;
       Name    : String;
       Kind    : String;
       Initial : Boolean := True) return PolyORB.References.Ref;
@@ -68,8 +67,7 @@ package PolyORB.DSA_P.Name_Service.mDNS is
 
    procedure Initiate_MDNS_Context
      (MDNS_Reference : String;
-      Context : out PolyORB.DSA_P.Name_Service.Name_Context_Access;
-      Oid : out PolyORB.Objects.Object_Id_Access);
+      Context        : out Name_Server_Access);
    --  Initiates the mDNS Name Context by initizalizing the servant object,
    --  and setting is as a default servant for a newly created child_POA.
    --  A stringified reference is assigned to Context.Stringified_Reference

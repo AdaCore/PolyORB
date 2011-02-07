@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D N S . U D N S           --
+--        P O L Y O R B . B I N D I N G _ D A T A . D N S . U D N S         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,14 +61,8 @@ package PolyORB.Binding_Data.DNS.UDNS is
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access);
 
-   function Image (Prof : UDNS_Profile_Type) return String;
-
-   function Get_OA
-     (Profile : UDNS_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
-
 private
+
    type UDNS_Profile_Type is new DNS_Profile_Type with null record;
    type UDNS_Profile_Factory is new DNS_Profile_Factory with null record;
 

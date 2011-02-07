@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D N S . M D N S           --
+--        P O L Y O R B . B I N D I N G _ D A T A . D N S . M D N S         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,21 +54,16 @@ package PolyORB.Binding_Data.DNS.MDNS is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
+   function Is_Multicast_Profile (P : MDNS_Profile_Type) return Boolean;
+
    procedure Create_Factory
      (PF  : out MDNS_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access);
 
-   function Image (Prof : MDNS_Profile_Type) return String;
-
-   function Get_OA
-     (Profile : MDNS_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
-
 private
-   type MDNS_Profile_Type is new DNS_Profile_Type with null record;
 
+   type MDNS_Profile_Type is new DNS_Profile_Type with null record;
    type MDNS_Profile_Factory is new DNS_Profile_Factory with null record;
 
 end PolyORB.Binding_Data.DNS.MDNS;

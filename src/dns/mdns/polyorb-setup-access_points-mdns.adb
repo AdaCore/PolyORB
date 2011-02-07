@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,8 +39,7 @@ with PolyORB.Filters;
 with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Protocols;
-with PolyORB.Protocols.DNS.MDNS;
+with PolyORB.Protocols.DNS;
 with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Utils.Strings;
@@ -61,7 +60,7 @@ package body PolyORB.Setup.Access_Points.MDNS is
          PF            =>
            new PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Factory);
 
-   Pro : aliased Protocols.DNS.MDNS.MDNS_Protocol;
+   Pro : aliased Protocols.DNS.DNS_Protocol;
    MDNS_Factories : aliased Filters.Factory_Array := (0 => Pro'Access);
 
    ------------------------------
@@ -81,8 +80,8 @@ package body PolyORB.Setup.Access_Points.MDNS is
    begin
       if Get_Conf ("access_points", "mdns", True) then
 
-         --  If multicast group address or port number is not set, access
-         --  point is deactivated.
+         --  If multicast group address or port number is not set, access point
+         --  is deactivated.
 
          if Addr = "" or else Port = 0 then
             return;
@@ -95,7 +94,13 @@ package body PolyORB.Setup.Access_Points.MDNS is
            (ORB   => The_ORB,
             TAP   => MDNS_Access_Point.SAP,
             Chain => MDNS_Factories'Access,
-            PF    => MDNS_Access_Point.PF);
+            PF    => null);
+
+         --  Note: the mDNS access point has a null profile factory chain,
+         --  so no profile designating it is ever assigned automatically to
+         --  objects. References designating the mDNS multicast group must be
+         --  created manually.
+
       end if;
    end Initialize_Access_Points;
 

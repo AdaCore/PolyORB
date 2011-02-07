@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -58,6 +58,13 @@ package body PolyORB.Minimal_Servant is
       Invoke (Servant'Class (Self.all)'Access, Req);
       Set_Out_Args (Req, Error);
       return True;
+   exception
+      when Discard_Request =>
+         --  Request is dropped entirely, clear flags to prevent emission of
+         --  a reply, and omit Set_Out_Args.
+
+         Req.Req_Flags := Sync_None;
+         return True;
    end Execute_Servant;
 
    ------------------------

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B . D N S . T R A N S P O R T _ M E C H A N I S M S   --
+--     P O L Y O R B . D N S . T R A N S P O R T _ M E C H A N I S M S      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,61 +31,39 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package body PolyORB.DNS.Transport_Mechanisms is
-   ---------------------------------
-   -- Create_Transport_Mechanisms --
-   ---------------------------------
-   ------------------
-   -- Is_Colocated --
-   ------------------
 
-   function Is_Colocated (Left, Right : Transport_Mechanism_List)
-     return Boolean
+   ----------------
+   -- Address_Of --
+   ----------------
+
+   function Address_Of
+     (M : Transport_Mechanism) return Utils.Sockets.Socket_Name
    is
-      use Transport_Mechanism_Lists;
-      L_Iter : Iterator := First (Right);
-      R_Iter : Iterator;
    begin
-      Left_Iteration :
-      while not Last (L_Iter) loop
+      return M.Address.all;
+   end Address_Of;
 
-         R_Iter := First (Left);
+   ---------------
+   -- Duplicate --
+   ---------------
 
-         Right_Iteration :
-         while not Last (R_Iter) loop
-            if Is_Colocated
-                 (Value (L_Iter).all.all, Value (R_Iter).all.all) then
-               return True;
-            end if;
-            Next (R_Iter);
-         end loop Right_Iteration;
-
-         Next (L_Iter);
-      end loop Left_Iteration;
-
-      return False;
-   end Is_Colocated;
+   function Duplicate
+     (TMA : Transport_Mechanism) return Transport_Mechanism'Class
+   is
+   begin
+      return Res : Transport_Mechanism'Class := TMA do
+         Res.Address := new Utils.Sockets.Socket_Name'(Res.Address.all);
+      end return;
+   end Duplicate;
 
    ----------------------
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (List : in out Transport_Mechanism_List) is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Transport_Mechanism'Class, Transport_Mechanism_Access);
-
-      Component : Transport_Mechanism_Access;
-
+   procedure Release_Contents (M : access Transport_Mechanism) is
    begin
-      while List
-              /= Transport_Mechanism_List (Transport_Mechanism_Lists.Empty)
-      loop
-         Extract_First (List, Component);
-         Release_Contents (Component);
-         Free (Component);
-      end loop;
+      Utils.Sockets.Free (M.Address);
    end Release_Contents;
 
 end PolyORB.DNS.Transport_Mechanisms;

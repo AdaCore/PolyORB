@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                POLYORB.DNS.TRANSPORT_MECHANISMS.MDNS                     --
+--                  POLYORB.DNS.TRANSPORT_MECHANISMS.MDNS                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,15 +45,6 @@ package PolyORB.DNS.Transport_Mechanisms.MDNS is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container);
 
-   procedure Release_Contents (M : access MDNS_Transport_Mechanism);
-
-   --  MDNS Transport Mechanism specific subprograms
-
-   function Address_Of
-     (M : MDNS_Transport_Mechanism)
-      return Utils.Sockets.Socket_Name;
-   --  Return address of transport mechanism's transport access point.
-
    type MDNS_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with private;
 
@@ -65,9 +56,7 @@ package PolyORB.DNS.Transport_Mechanisms.MDNS is
      (MF : access MDNS_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class) return Boolean;
 
-   --  MDNS Transport Mechanism Factory specific subprograms
-
-   function Create_Transport_Mechanism
+   overriding function Create_Transport_Mechanism
      (MF : MDNS_Transport_Mechanism_Factory)
       return Transport_Mechanism_Access;
    --  Create transport mechanism
@@ -77,24 +66,15 @@ package PolyORB.DNS.Transport_Mechanisms.MDNS is
       return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
-   function Duplicate
-     (TMA : MDNS_Transport_Mechanism)
-     return MDNS_Transport_Mechanism;
-
    function Is_Colocated
      (Left  : MDNS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean;
 
 private
    Default_TTL : constant Natural := 15;
-   type MDNS_Transport_Mechanism is new Transport_Mechanism with record
-      Address : Utils.Sockets.Socket_Name_Ptr;
-   end record;
 
+   type MDNS_Transport_Mechanism is new Transport_Mechanism with null record;
    type MDNS_Transport_Mechanism_Factory is
-     new Transport_Mechanism_Factory with
-   record
-      Address : Utils.Sockets.Socket_Name_Ptr;
-   end record;
+     new Transport_Mechanism_Factory with null record;
 
 end PolyORB.DNS.Transport_Mechanisms.MDNS;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -147,9 +147,13 @@ package body PolyORB.References.Binding is
          return;
       end if;
 
+      --  Determine whether profile designates a local object
+
       Best_Profile_Is_Local :=
         Selected_Profile.all in Local_Profile_Type
-          or else Is_Profile_Local (Local_ORB, Selected_Profile);
+          or else (Is_Profile_Local (Local_ORB, Selected_Profile)
+                      and then
+                   not Is_Multicast_Profile (Selected_Profile.all));
 
       --  Check if there is a binding object which we can reuse (remote case)
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -525,20 +525,6 @@ package body PolyORB.Binding_Data.SOAP is
       return "http://" & Image (Prof.Address.all)
         & To_Standard_String (Prof.URI_Path);
    end To_URI;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : SOAP_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-   is
-      pragma Unreferenced (Profile);
-   begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
-   end Get_OA;
 
    ----------------
    -- Initialize --

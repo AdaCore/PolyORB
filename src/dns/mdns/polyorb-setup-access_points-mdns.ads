@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . M D N S       --
+--     P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . M D N S      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.               --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --

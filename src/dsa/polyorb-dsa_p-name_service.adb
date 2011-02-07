@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,11 +35,8 @@ with PolyORB.DSA_P.Name_Service.mDNS;
 with PolyORB.DSA_P.Name_Service.COS_Naming;
 with PolyORB.Parameters;
 with PolyORB.Binding_Data;
-with PolyORB.Binding_Data.Local;
 with System.RPC;
-with PolyORB.Objects;
 with PolyORB.Log;
-with PolyORB.POA_Types;
 with PolyORB.Utils;
 with PolyORB.Errors;
 with PolyORB.Components;
@@ -57,45 +54,32 @@ package body PolyORB.DSA_P.Name_Service is
    function C (Level : Log_Level := Debug) return Boolean
                renames L.Enabled;
 
-   procedure Initialize_Name_Context
-   is
+   procedure Initialize_Name_Server is
       use PolyORB.Binding_Data;
-      use PolyORB.Binding_Data.Local;
       use PolyORB.References;
 
-      Name_Context_String : constant String :=
+      Name_Server_String : constant String :=
         PolyORB.Parameters.Get_Conf ("dsa", "name_context", "COS");
    begin
-      pragma Debug (C, O ("Initialize_Name_Context : Enter"));
+      pragma Debug (C, O ("Initialize_Name_Server : Enter"));
 
       --  If mDNS is configured by user
 
-      if Name_Context_String = "MDNS" then
-         Name_Ctx := new PolyORB.DSA_P.Name_Service.mDNS.MDNS_Name_Context;
+      if Name_Server_String = "MDNS" then
+         Name_Ctx := new PolyORB.DSA_P.Name_Service.mDNS.MDNS_Name_Server;
 
          declare
             Nameservice_Location : constant String :=
               PolyORB.Parameters.Get_Conf ("dsa", "name_service");
-            Target_Profile : constant Binding_Data.Profile_Access :=
-              new Local_Profile_Type;
-            Object_Key : PolyORB.Objects.Object_Id_Access;
          begin
             PolyORB.DSA_P.Name_Service.mDNS.Initiate_MDNS_Context
-              (Nameservice_Location, Name_Ctx, Object_Key);
-
-            --  Creating the local mDNS servant Reference from its Oid
-
-            Create_Local_Profile
-              (Object_Key.all, Local_Profile_Type (Target_Profile.all));
-            Create_Reference ((1 => Target_Profile), "", Name_Ctx.Base_Ref);
-
-            PolyORB.POA_Types.Free (Object_Key);
+              (Nameservice_Location, Name_Ctx);
          end;
 
       --  COS Naming case
+
       else
-         Name_Ctx
-           := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Context;
+         Name_Ctx := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Server;
          declare
             Nameserver_Location : constant String :=
               PolyORB.Parameters.Get_Conf ("dsa", "name_service");
@@ -116,14 +100,17 @@ package body PolyORB.DSA_P.Name_Service is
            Key     => "max_failed_requests",
            Default => 10);
 
-      pragma Debug (C, O ("Initialize_Name_Context : Leave"));
-   end Initialize_Name_Context;
+      pragma Debug (C, O ("Initialize_Name_Server : Leave"));
+   end Initialize_Name_Server;
 
-   function Get_Name_Context return Name_Context_Access
-   is
+   ---------------------
+   -- Get_Name_Server --
+   ---------------------
+
+   function Get_Name_Server return Name_Server_Access is
    begin
       return Name_Ctx;
-   end Get_Name_Context;
+   end Get_Name_Server;
 
    -----------------------------
    -- Get_Reconnection_Policy --

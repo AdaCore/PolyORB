@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B . D N S . T R A N S P O R T _ M E C H A N I S M S   --
+--     P O L Y O R B . D N S . T R A N S P O R T _ M E C H A N I S M S      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstraction for DNS Transport Mechanisms.
+--  Abstraction for DNS Transport Mechanisms
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
@@ -39,15 +39,18 @@ with PolyORB.Errors;
 with PolyORB.QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Transport;
-with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Sockets;
 
 package PolyORB.DNS.Transport_Mechanisms is
 
    --  Transport mechanism
 
-   type Transport_Mechanism is abstract tagged null record;
-
+   type Transport_Mechanism is abstract tagged private;
    type Transport_Mechanism_Access is access all Transport_Mechanism'Class;
+
+   function Address_Of
+     (M : Transport_Mechanism) return Utils.Sockets.Socket_Name;
+   --  Return address of transport mechanism's transport access point
 
    procedure Bind_Mechanism
      (Mechanism : Transport_Mechanism;
@@ -57,11 +60,11 @@ package PolyORB.DNS.Transport_Mechanisms is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container) is abstract;
 
-   procedure Release_Contents (M : access Transport_Mechanism) is abstract;
+   procedure Release_Contents (M : access Transport_Mechanism);
 
    --  Transport mechanism factory
 
-   type Transport_Mechanism_Factory is abstract tagged null record;
+   type Transport_Mechanism_Factory is abstract tagged limited private;
 
    type Transport_Mechanism_Factory_Access is
      access all Transport_Mechanism_Factory'Class;
@@ -72,45 +75,33 @@ package PolyORB.DNS.Transport_Mechanisms is
    --  Initialize MF to act as transport mechanism factory for
    --  transport access point TAP
 
+   function Create_Transport_Mechanism
+     (MF : Transport_Mechanism_Factory)
+      return Transport_Mechanism_Access is abstract;
+
    function Is_Local_Mechanism
      (MF : access Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
       return Boolean is abstract;
-   --  True iff M designates an mechanism that can be contacted
-   --  at the access point associated with MF
-
-   --  List of Transport Mechanisms
-
-   package Transport_Mechanism_Lists is
-     new PolyORB.Utils.Chained_Lists (Transport_Mechanism_Access);
-
-   type Transport_Mechanism_List is new Transport_Mechanism_Lists.List;
-
-   procedure Release_Contents (List : in out Transport_Mechanism_List);
-   --  Free memory for all tags in List
+   --  True iff M designates an mechanism that can be contacted at the access
+   --  point associated with MF
 
    function Duplicate
-     (TMA : Transport_Mechanism)
-     return Transport_Mechanism is abstract;
+     (TMA : Transport_Mechanism) return Transport_Mechanism'Class;
 
    function Is_Colocated
      (Left  : Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean is abstract;
    --  True iff Left and Right mechanisms point to the same node.
 
-   function Is_Colocated (Left, Right : Transport_Mechanism_List)
-     return Boolean;
-   --  True iff Left and Right mechanisms lists have both a transport mechanism
-   --  pointing to the same node.
+private
 
-   --  List of Transport Mechanism Factories
+   type Transport_Mechanism_Factory is abstract tagged limited record
+      Address : Utils.Sockets.Socket_Name_Ptr;
+   end record;
 
-   package Transport_Mechanism_Factory_Lists is
-     new PolyORB.Utils.Chained_Lists (Transport_Mechanism_Factory_Access);
-
-   type Transport_Mechanism_Factory_List is
-     new Transport_Mechanism_Factory_Lists.List;
-
-   --  Creation of Transport Mechanisms from list of Tagged Component
+   type Transport_Mechanism is abstract tagged record
+      Address : Utils.Sockets.Socket_Name_Ptr;
+   end record;
 
 end PolyORB.DNS.Transport_Mechanisms;

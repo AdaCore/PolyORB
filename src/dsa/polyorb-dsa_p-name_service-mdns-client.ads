@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,8 +34,9 @@
 --  This package implements the mDNS request invocation procedure, when a
 --  partition is looking up a remote package's informations
 
-with PolyORB.References;
 with PolyORB.DSA_P.Name_Service.mDNS.Helper;
+with PolyORB.References;
+with PolyORB.Types;
 
 package PolyORB.DSA_P.Name_Service.mDNS.Client is
 

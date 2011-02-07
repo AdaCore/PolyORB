@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               P O L Y O R B . P R O T O C O L S . D N S                --
+--                P O L Y O R B . P R O T O C O L S . D N S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,17 +30,21 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
+
 with PolyORB.Buffers;
+with PolyORB.DNS.Helper;
 with PolyORB.ORB;
+with PolyORB.References;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Simple_Flags;
-with PolyORB.DNS.Helper;
-with PolyORB.References;
+
 package PolyORB.Protocols.DNS is
+
    use Ada.Streams;
    use PolyORB.Buffers;
    use PolyORB.DNS.Helper;
@@ -51,13 +55,14 @@ package PolyORB.Protocols.DNS is
    DNS_Error : exception;
 
    type DNS_Protocol is new Protocol with private;
-   type DNS_Session is new Session with private;
+   type DNS_Session  is new Session with private;
 
    procedure Create
      (Proto   : access DNS_Protocol;
       Session : out Filter_Access);
 
---  INTERFACE TO UPPER LAYERS
+   --  INTERFACE TO UPPER LAYERS
+
    procedure Invoke_Request
        (Sess   : access DNS_Session;
        R   : Requests.Request_Access;
@@ -72,12 +77,13 @@ package PolyORB.Protocols.DNS is
       Request : Requests.Request_Access);
 
    --  INTERFACE TO LOWER LAYERS
+
    procedure Handle_Connect_Indication (S : access DNS_Session);
 
    procedure Handle_Connect_Confirmation (S : access DNS_Session);
 
    procedure Handle_Data_Indication
-     (Sess           : access DNS_Session;
+     (Sess        : access DNS_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container);
 
@@ -97,9 +103,9 @@ package PolyORB.Protocols.DNS is
    type DNS_Message_Context is abstract tagged private;
    type DNS_Message_Context_Access is access all DNS_Message_Context'Class;
 
-   -----------------------
+   ----------------------
    -- DNS message type --
-   -----------------------
+   ----------------------
 
    type Msg_Type is
      (Request,
@@ -115,7 +121,6 @@ package PolyORB.Protocols.DNS is
      (Sess             : access DNS_Session;
       Request_Id       : Types.Unsigned_Long;
       RC     : Rcode);
-   procedure Initialize;
 
    procedure Set_Default_Servant
      (The_Ref : PolyORB.References.Ref);

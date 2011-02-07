@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . B I N D I N G _ D A T A . D N S             --
+--             P O L Y O R B . B I N D I N G _ D A T A . D N S              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.DNS.Transport_Mechanisms;
 
 package PolyORB.Binding_Data.DNS is
@@ -39,6 +41,8 @@ package PolyORB.Binding_Data.DNS is
 
    type DNS_Profile_Type is abstract new Profile_Type with private;
    type DNS_Profile_Factory is abstract new Profile_Factory with private;
+
+   overriding function Image (Prof : DNS_Profile_Type) return String;
 
    procedure Bind_Profile
      (Profile : access DNS_Profile_Type;
@@ -68,12 +72,11 @@ package PolyORB.Binding_Data.DNS is
 private
 
    type DNS_Profile_Type is abstract new Profile_Type with record
-      --  Transport mechanisms list
-      Mechanisms : PDTM.Transport_Mechanism_List;
+      Mechanism : PDTM.Transport_Mechanism_Access;
    end record;
 
    type DNS_Profile_Factory is abstract new Profile_Factory with record
-      Mechanisms : PDTM.Transport_Mechanism_Factory_List;
+      Mechanism : PDTM.Transport_Mechanism_Factory_Access;
    end record;
 
 end PolyORB.Binding_Data.DNS;

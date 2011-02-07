@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D N S . U D N S           --
+--        P O L Y O R B . B I N D I N G _ D A T A . D N S . U D N S         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,10 +37,8 @@ with PolyORB.DNS.Transport_Mechanisms;
 with PolyORB.DNS.Transport_Mechanisms.UDNS;
 with PolyORB.Initialization;
 with PolyORB.Log;
-with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.References.Corbaloc;
-with PolyORB.Setup.UDNS;
 with PolyORB.Sockets;
 with PolyORB.Utils;
 with PolyORB.Utils.Sockets;
@@ -110,7 +108,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
              new UDNS_Transport_Mechanism_Factory;
    begin
       Create_Factory (MF.all, TAP);
-      Append (PF.Mechanisms, MF);
+      PF.Mechanism := MF;
    end Create_Factory;
 
    --------------------
@@ -129,11 +127,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
 
       --  Create transport mechanism
 
-      Append
-        (TResult.Mechanisms,
-         Create_Transport_Mechanism
-         (UDNS_Transport_Mechanism_Factory
-              (Element (PF.Mechanisms, 0).all.all)));
+      TResult.Mechanism := Create_Transport_Mechanism (PF.Mechanism.all);
       pragma Debug (C, O ("leave"));
       return Result;
    end Create_Profile;
@@ -147,8 +141,9 @@ package body PolyORB.Binding_Data.DNS.UDNS is
       TResult : UDNS_Profile_Type renames UDNS_Profile_Type (Result.all);
 
    begin
-      TResult.Object_Id  := new Object_Id'(P.Object_Id.all);
-      TResult.Mechanisms := P.Mechanisms;
+      TResult.Object_Id := new Object_Id'(P.Object_Id.all);
+      TResult.Mechanism := P.Mechanism;
+      --  Incorrect aliasing of Mechanism, should copy???
       return Result;
    end Duplicate_Profile;
 
@@ -159,18 +154,16 @@ package body PolyORB.Binding_Data.DNS.UDNS is
    function Profile_To_Corbaloc (P : Profile_Access) return String is
       use PolyORB.Sockets;
 
-      UDNS_Profile : UDNS_Profile_Type renames UDNS_Profile_Type (P.all);
       Prefix       : constant String := UDNS_Corbaloc_Prefix;
       Oid_Str      : String (1 .. P.Object_Id'Length);
       pragma Import (Ada, Oid_Str);
       for Oid_Str'Address use P.Object_Id'Address;
    begin
       pragma Debug (C, O ("UDNS_Profile_To_Corbaloc"));
-      return Prefix & ":@" & Utils.Sockets.Image
-          (Address_Of
-           (UDNS_Transport_Mechanism (Element
-            (UDNS_Profile.Mechanisms, 0).all.all)))
-          & "/" & URI_Encode (Oid_Str, Also_Escape => No_Escape);
+      return Prefix & ":@"
+        & Utils.Sockets.Image
+            (Address_Of (DNS_Profile_Type (P.all).Mechanism.all))
+        & "/" & URI_Encode (Oid_Str, Also_Escape => No_Escape);
    end Profile_To_Corbaloc;
 
    -------------------------
@@ -256,41 +249,11 @@ package body PolyORB.Binding_Data.DNS.UDNS is
          Address : constant Utils.Sockets.Socket_Name :=
                      S (Host_First .. Host_Last) + Port;
       begin
-         Append
-           (UDNS_Profile_Type (Profile.all).Mechanisms,
-            Create_Transport_Mechanism (Address));
+         UDNS_Profile_Type (Profile.all).Mechanism :=
+           Create_Transport_Mechanism (Address);
          return Profile;
       end;
    end Corbaloc_To_Profile;
-
-   -----------
-   -- Image --
-   -----------
-
-   function Image (Prof : UDNS_Profile_Type) return String is
-   begin
-      return "Address : "
-          & Utils.Sockets.Image
-          (Address_Of
-          (UDNS_Transport_Mechanism (Element (Prof.Mechanisms, 0).all.all)))
-          & ", Object_Id : "
-          & PolyORB.Objects.Image (Prof.Object_Id.all);
-   end Image;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : UDNS_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-   is
-      pragma Unreferenced (Profile);
-
-   begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
-   end Get_OA;
 
    ----------------
    -- Initialize --
@@ -326,7 +289,7 @@ begin
      (Module_Info'
       (Name      => +"binding_data.udns",
        Conflicts => Empty,
-       Depends   =>  +"protocols.dns.udns" & "sockets",
+       Depends   => +"sockets",
        Provides  => +"binding_factories",
        Implicit  => False,
        Init      => Initialize'Access,

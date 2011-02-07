@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,6 +54,8 @@ package PolyORB.Minimal_Servant is
 
    pragma Elaborate_Body;
 
+   Discard_Request : exception;
+
    type Servant is abstract new Smart_Pointers.Controlled_Entities.Entity
      with private;
 
@@ -69,6 +71,8 @@ package PolyORB.Minimal_Servant is
    procedure Invoke
      (Self    : access Servant;
       Request : PolyORB.Requests.Request_Access) is abstract;
+   --  Run Request. If Discard_Request is raised, no further processing is
+   --  done (no reply sent to caller).
 
 private
 

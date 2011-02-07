@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,7 +35,7 @@ with PolyORB.Binding_Data.DNS.MDNS;
 with PolyORB.Binding_Objects;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Protocols.DNS.MDNS;
+with PolyORB.Protocols.DNS;
 with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Filters;
@@ -49,26 +49,15 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.Sockets;
 
-   ----------------
-   -- Address_Of --
-   ----------------
+   --  Factories
 
-   function Address_Of
-     (M : MDNS_Transport_Mechanism) return Utils.Sockets.Socket_Name
-   is
-   begin
-      return M.Address.all;
-   end Address_Of;
+   Pro : aliased PolyORB.Protocols.DNS.DNS_Protocol;
+   MDNS_Factories : constant PolyORB.Filters.Factory_Array :=
+                      (0 => Pro'Access);
 
    --------------------
    -- Bind_Mechanism --
    --------------------
-
-   --  Factories
-
-   Pro : aliased PolyORB.Protocols.DNS.MDNS.MDNS_Protocol;
-   MDNS_Factories : constant PolyORB.Filters.Factory_Array
-     := (0 => Pro'Access);
 
    procedure Bind_Mechanism
      (Mechanism : MDNS_Transport_Mechanism;
@@ -84,11 +73,10 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
       use PolyORB.Binding_Objects;
 
       Sock        : Socket_Type;
+      TE          : Transport.Transport_Endpoint_Access;
       TTL         : constant Natural :=
                       Natural (Get_Conf ("dns", "polyorb.dns.ttl",
                                          Default_TTL));
-
-      TE          : Transport.Transport_Endpoint_Access;
 
    begin
       if Profile.all
@@ -193,28 +181,6 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
                and then
              MDNS_Transport_Mechanism (M.all).Address.all = MF.Address.all;
    end Is_Local_Mechanism;
-
-   ----------------------
-   -- Release_Contents --
-   ----------------------
-
-   procedure Release_Contents (M : access MDNS_Transport_Mechanism) is
-   begin
-      Free (M.Address);
-   end Release_Contents;
-
-   ---------------
-   -- Duplicate --
-   ---------------
-
-   function Duplicate
-     (TMA : MDNS_Transport_Mechanism)
-     return MDNS_Transport_Mechanism
-   is
-   begin
-      return MDNS_Transport_Mechanism'
-               (Address => new Socket_Name'(TMA.Address.all));
-   end Duplicate;
 
    ------------------
    -- Is_Colocated --

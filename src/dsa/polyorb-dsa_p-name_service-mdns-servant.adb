@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -168,12 +168,23 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
                    Additional,
                    Result);
 
+            if Length (Answer)
+                 + Length (Authority)
+                 + Length (Additional) = 0
+            then
+               --  No local answer: bail out without further ado
+
+               raise PolyORB.Minimal_Servant.Discard_Request;
+            end if;
+
             --  Converting the out rr sequences to the Any type
+
             Argument_Answer := To_Any (Answer);
             Argument_Authority := To_Any (Authority);
             Argument_Additional := To_Any (Additional);
 
             --  Setting out args
+
             declare
                It  : Iterator := First (List_Of (Request.Out_Args).all);
                Arg : Element_Access;
@@ -253,11 +264,8 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
             PTM.Leave (Critical_Section);
 
             if Current_Entry = null then
+               --  No entry found locally
 
-               --  If the record is not found locally, we return a
-               --  Name_Error DNS Rcode to client.
-
-               Response := Name_Error;
                return;
             end if;
 
@@ -283,52 +291,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
             end;
             Replace_Element (Answer_Seq, 1, Answer);
             Response := No_Error;
-
-         --  XXX:The following RRs are used for testing purposes currently
-         when A =>
-            Answer.rr_name := Question.rr_name;
-            Answer.TTL := TTL;
-            Answer.rr_type := A;
-            declare
-               rd : RR_Data (Answer.rr_type);
-               addr : IDL_AT_Sequence_4_octet;
-            begin
-               addr :=
-                 IDL_AT_Sequence_4_octet (IDL_SEQUENCE_4_octet.To_Sequence
-                 (IDL_SEQUENCE_4_octet.Element_Array'(192, 168, 1, 11)));
-               rd.a_address := addr;
-               Answer.data_length := PolyORB.Types.Unsigned_Short (4);
-               Answer.rr_data := rd;
-            end;
-         when PTR =>
-            Answer_Seq := To_Sequence (1);
-            Answer.rr_name := Question.rr_name;
-            Answer.rr_type := PTR;
-            Answer.TTL := TTL;
-            declare
-               rd : RR_Data (Answer.rr_type);
-            begin
-               rd.rr_answer := PolyORB.Types.To_PolyORB_String ("TEST_PTR");
-               Answer.data_length := PolyORB.Types.Unsigned_Short
-                 (2 + PolyORB.Types.To_Standard_String (rd.rr_answer)'Length);
-               Answer.rr_data := rd;
-               Replace_Element (Answer_Seq, 1, Answer);
-            end;
-         when TXT =>
-            Answer_Seq := To_Sequence (1);
-            Answer.rr_name := Question.rr_name;
-            Answer.TTL := TTL;
-            Answer.rr_type := TXT;
-            declare
-               rd : RR_Data (Answer.rr_type);
-            begin
-               rd.rr_answer := PolyORB.Types.To_PolyORB_String
-                           ("TEST FOR TXT RECORD");
-               Answer.data_length := PolyORB.Types.Unsigned_Short
-               (2 + PolyORB.Types.To_Standard_String (rd.rr_answer)'Length);
-               Answer.rr_data := rd;
-            end;
-            Replace_Element (Answer_Seq, 1, Answer);
 
             --  Other RR types are not currently supported
          when others =>
@@ -373,7 +335,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
       Index2 := S'Last;
       Name := Types.To_PolyORB_String (S (S'First .. Index - 2));
       Kind := Types.To_PolyORB_String (S (Index + 1 .. Index2));
-      if Kind /= "rci" and Kind /= "sp" then
+      if Kind /= "rci" and then Kind /= "sp" then
          raise Constraint_Error;
       end if;
    end Parse_Question_Name;

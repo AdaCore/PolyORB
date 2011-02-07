@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,25 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with  PolyORB.Log;
-with PolyORB.Servants.Iface;
 with PolyORB.Annotations;
-with PolyORB.References.Binding;
+with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
+with PolyORB.Binding_Objects;
 with PolyORB.Errors;
-with PolyORB.Initialization;
-with PolyORB.Utils.Strings;
-with PolyORB.Representations.DNS;
-with PolyORB.Utils;
+with PolyORB.Filters.Iface;
+with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.Smart_Pointers;
 with PolyORB.ORB.Iface;
 with PolyORB.POA;
-with PolyORB.Binding_Objects;
-with PolyORB.Any;
-with PolyORB.Filters.Iface;
+with PolyORB.References.Binding;
+with PolyORB.Representations.DNS;
+with PolyORB.Servants.Iface;
 with PolyORB.Setup;
+with PolyORB.Smart_Pointers;
+with PolyORB.Utils;
 
 package body PolyORB.Protocols.DNS is
 
@@ -121,8 +119,8 @@ package body PolyORB.Protocols.DNS is
       New_Pending_Req_Id : Types.Unsigned_Long;
       Error              : Errors.Error_Container;
       Success            : Boolean;
-   begin
 
+   begin
       New_Pending_Req := new Pending_Request;
       New_Pending_Req.Req := R;
       New_Pending_Req.Target_Profile := Profile_Access (Pro);
@@ -148,13 +146,14 @@ package body PolyORB.Protocols.DNS is
          return;
       end if;
 
-         --  Two-way call: a reply is expected, we store the pending request
-         Add_Pending_Request (Sess, New_Pending_Req);
-         New_Pending_Req_Id := New_Pending_Req.Request_Id;
-         Leave (Sess.Mutex);
+      --  Two-way call: a reply is expected, we store the pending request
 
-         pragma Debug (C, O ("Two way call : a reply is expected"));
-         Send_Request (Sess, New_Pending_Req, Error);
+      Add_Pending_Request (Sess, New_Pending_Req);
+      New_Pending_Req_Id := New_Pending_Req.Request_Id;
+      Leave (Sess.Mutex);
+
+      pragma Debug (C, O ("Two way call : a reply is expected"));
+      Send_Request (Sess, New_Pending_Req, Error);
 
       if Found (Error) then
          pragma Debug (C, O ("An error is found after Send_Request"));
@@ -195,7 +194,7 @@ package body PolyORB.Protocols.DNS is
 
    procedure Send_Reply
      (S       : access DNS_Session;
-      Request :        Requests.Request_Access)
+      Request : Requests.Request_Access)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
@@ -217,11 +216,13 @@ package body PolyORB.Protocols.DNS is
          raise DNS_Error;
       end if;
 
-      --  XXX: TODO : Manage eventual Exceptions
+      --  Servant raised an exception: do not send any reply
 
-      if PolyORB.Any.Is_Empty (Request.Exception_Info) then
-         Sess.MCtx.Rcode_Flag  := From_Any (Request.Result.Argument);
+      if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
+         return;
       end if;
+
+      Sess.MCtx.Rcode_Flag := From_Any (Request.Result.Argument);
 
       Set_Endianness (Buffer_Out, Big_Endian);
       Set_Endianness (Header_Buffer, Big_Endian);
@@ -579,6 +580,10 @@ package body PolyORB.Protocols.DNS is
       Release (Buffer);
    end Send_Request;
 
+   ---------------------
+   -- Process_Message --
+   ---------------------
+
    procedure Process_Message
      (S          : access Session'Class)
    is
@@ -607,9 +612,11 @@ package body PolyORB.Protocols.DNS is
       end case;
       pragma Debug (C, O ("Processed message : leaving"));
    end Process_Message;
+
    ---------------------
    -- Process_Request --
    ---------------------
+
    procedure Process_Request
      (S : access DNS_Session)
    is
@@ -626,14 +633,14 @@ package body PolyORB.Protocols.DNS is
       use PolyORB.Any;
       use PolyORB.Servants;
 
-      Req_Flags        : Requests.Flags := 0;
-      Object_Key       : PolyORB.Objects.Object_Id_Access;
+      Req_Flags      : Requests.Flags := 0;
+      Object_Key     : PolyORB.Objects.Object_Id_Access;
       Target_Profile : Binding_Data.Profile_Access;
-      Target           : References.Ref;
-      Result           : Any.NamedValue;
-      Req              : Request_Access;
-      Args             : Any.NVList.Ref;
-      Def_Args         : Component_Access;
+      Target         : References.Ref;
+      Result         : Any.NamedValue;
+      Req            : Request_Access;
+      Args           : Any.NVList.Ref;
+      Def_Args       : Component_Access;
       New_RR : RR;
       Q_sequence : rrSequence;
       A_sequence : rrSequence;
@@ -712,8 +719,7 @@ package body PolyORB.Protocols.DNS is
           Req       => Req,
           Req_Flags => Sync_With_Target,
           Dependent_Binding_Object =>
-          Smart_Pointers.Entity_Ptr
-              (S.Dependent_Binding_Object));
+            Smart_Pointers.Entity_Ptr (S.Dependent_Binding_Object));
 
       Queue_Request_To_Handler (ORB_Access (S.Server),
                 Queue_Request'
@@ -723,8 +729,12 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Process_Request: leaving"));
    end Process_Request;
 
+   ------------------------
+   -- Initialize_Session --
+   ------------------------
+
    procedure Initialize_Session
-     (S      : access Session'Class)
+     (S : access Session'Class)
    is
 
       Sess : DNS_Session renames DNS_Session (S.all);
@@ -736,6 +746,7 @@ package body PolyORB.Protocols.DNS is
    ----------------------
    -- Finalize_Session --
    ----------------------
+
    procedure Finalize_Session
      (S      : access Session'Class)
    is
@@ -746,11 +757,9 @@ package body PolyORB.Protocols.DNS is
       pragma Debug (C, O ("Finalize context for DNS session"));
    end Finalize_Session;
 
-   procedure Initialize is
-   begin
-      pragma Debug (C, O ("Initializing DNS Protocol..."));
-      null;
-   end Initialize;
+   -------------------------
+   -- Marshall_DNS_Header --
+   -------------------------
 
    procedure Marshall_DNS_Header
      (Header_Buffer  : access Buffers.Buffer_Type;
@@ -790,6 +799,11 @@ package body PolyORB.Protocols.DNS is
          pragma Debug (C, O ("request is a Status Query"));
          MCtx.Opcode_Flag := Status;
          Unsigned_Short_Flags.Set (Header_Flags, Opcode_Flag_Pos + 2, True);
+
+      else
+         --  Invalid operation name, bail out
+
+         raise Program_Error;
       end if;
 
       --  Marshalling the authoritative flag
@@ -1176,6 +1190,10 @@ package body PolyORB.Protocols.DNS is
       end case;
    end Reply_Received;
 
+   -------------------------
+   -- Set_Default_Servant --
+   -------------------------
+
    procedure Set_Default_Servant
      (The_Ref : PolyORB.References.Ref)
    is
@@ -1183,25 +1201,14 @@ package body PolyORB.Protocols.DNS is
       Object_Reference := The_Ref;
    end Set_Default_Servant;
 
+   -------------------------
+   -- Get_Default_Servant --
+   -------------------------
+
    function Get_Default_Servant return PolyORB.References.Ref
    is
    begin
       return Object_Reference;
    end Get_Default_Servant;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   pragma Debug (C, O ("Registering Module PROTOCOLS.DNS"));
-   Register_Module
-     (Module_Info'
-      (Name      => +"protocols.dns",
-       Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
-       Implicit  => False,
-       Init      => Initialize'Access,
-       Shutdown  => null));
 end PolyORB.Protocols.DNS;

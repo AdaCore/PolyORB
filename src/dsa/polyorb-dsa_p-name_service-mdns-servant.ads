@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,16 +36,17 @@
 --  of a request, looks up the requested package's informations and send them
 --  back to the client partition.
 
-with PolyORB.Minimal_Servant;
-with PolyORB.Requests;
 with PolyORB.DSA_P.Name_Service.mDNS.Helper;
 with PolyORB.Dynamic_Dict;
+with PolyORB.Minimal_Servant;
+with PolyORB.Requests;
+with PolyORB.Types;
 
 package PolyORB.DSA_P.Name_Service.mDNS.Servant is
+
    use PolyORB.DSA_P.Name_Service.mDNS.Helper;
 
-   type Object is
-     new PolyORB.Minimal_Servant.Servant with null record;
+   type Object is new PolyORB.Minimal_Servant.Servant with null record;
    type Object_Ptr is access all Object'Class;
    --  The actual servant object
 

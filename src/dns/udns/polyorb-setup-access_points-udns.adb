@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,8 +40,7 @@ with PolyORB.Initialization;
 with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Protocols;
-with PolyORB.Protocols.DNS.UDNS;
+with PolyORB.Protocols.DNS;
 with PolyORB.Sockets;
 with PolyORB.Transport.Datagram.Sockets;
 with PolyORB.Utils.Strings;
@@ -62,9 +61,8 @@ package body PolyORB.Setup.Access_Points.UDNS is
          PF            =>
            new PolyORB.Binding_Data.DNS.UDNS.UDNS_Profile_Factory);
 
-   Pro : aliased Protocols.DNS.UDNS.UDNS_Protocol;
-   UDNS_Factories : aliased Filters.Factory_Array
-     := (0 => Pro'Access);
+   Pro : aliased Protocols.DNS.DNS_Protocol;
+   UDNS_Factories : aliased Filters.Factory_Array := (0 => Pro'Access);
 
    ------------------------------
    -- Initialize_Access_Points --

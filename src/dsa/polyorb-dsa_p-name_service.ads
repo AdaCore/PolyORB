@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,44 +35,42 @@
 --  permit the dispatching between different concrete contexts.
 
 with PolyORB.References;
-with PolyORB.Types;
 
 package PolyORB.DSA_P.Name_Service is
 
-   type Name_Context is abstract tagged record
+   type Name_Server is abstract tagged record
       Base_Ref : PolyORB.References.Ref;
-      Stringified_Ref : PolyORB.Types.String;
    end record;
    --  The abstract type used to disptach Nameserver_Lookup/
    --  Nameserver_Register. The Stringified_Ref is used only on client's side,
    --  it is assigned by Initialize_MDNS_Context and is used in
    --  Nameserver_Lookup in order to initialize the remote Base_Ref field.
 
-   type Name_Context_Access is access all Name_Context'Class;
+   type Name_Server_Access is access all Name_Server'Class;
 
-   Name_Ctx : PolyORB.DSA_P.Name_Service.Name_Context_Access;
+   Name_Ctx : PolyORB.DSA_P.Name_Service.Name_Server_Access;
 
    function Nameserver_Lookup
-     (Name_Ctx : access Name_Context;
+     (Name_Ctx : access Name_Server;
       Name     : String;
       Kind     : String;
       Initial  : Boolean := True) return PolyORB.References.Ref is abstract;
    --  abstract declaration of Nameserver_Lookup
 
    procedure Nameserver_Register
-     (Name_Ctx : access Name_Context;
+     (Name_Ctx : access Name_Server;
       Name : String;
       Kind : String;
       Obj  : PolyORB.References.Ref) is abstract;
    --  abstract declaration of Nameserver_Register
 
-   procedure Initialize_Name_Context;
+   procedure Initialize_Name_Server;
    --  Called by the System.Partition_Interface.Initialize procedure, during
    --  partition's elaboration. Depending on the current configuration,
    --  sets the Name Context to mDNS or COS_Naming and the Base_Ref to
    --  the corresponding remote reference.
 
-   function Get_Name_Context return Name_Context_Access;
+   function Get_Name_Server return Name_Server_Access;
    --  Retrieves the name context, used by System.Partition_Interface
 
    --------------------------------------------

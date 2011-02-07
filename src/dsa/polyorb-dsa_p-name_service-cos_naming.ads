@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--         Copyright (C) 2010-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,10 +39,10 @@ with PolyORB.DSA_P.Name_Service;
 with PolyORB.Services.Naming;
 package PolyORB.DSA_P.Name_Service.COS_Naming is
 
-   type COS_Name_Context is new Name_Context with null record;
+   type COS_Name_Server is new Name_Server with null record;
 
    procedure Nameserver_Register
-     (Name_Ctx : access COS_Name_Context;
+     (Name_Ctx : access COS_Name_Server;
       Name : String;
       Kind : String;
       Obj  : PolyORB.References.Ref);
@@ -50,7 +50,7 @@ package PolyORB.DSA_P.Name_Service.COS_Naming is
    --  DSA naming context.
 
    function Nameserver_Lookup
-     (Name_Ctx : access COS_Name_Context;
+     (Name_Ctx : access COS_Name_Server;
       Name     : String;
       Kind     : String;
       Initial  : Boolean := True) return PolyORB.References.Ref;
