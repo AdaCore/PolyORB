@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
+
 with PolyORB.DSA_P.Name_Service.mDNS;
 with PolyORB.DSA_P.Name_Service.COS_Naming;
 with PolyORB.Parameters;
@@ -44,54 +46,53 @@ with PolyORB.Setup;
 with PolyORB.References.Binding;
 
 package body PolyORB.DSA_P.Name_Service is
+
    use PolyORB.Log;
    use PolyORB.DSA_P.Name_Service.mDNS;
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.dsa_p.name_service");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.dsa_p.name_service");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
-               renames L.Enabled;
+     renames L.Enabled;
+
+   ----------------------------
+   -- Initialize_Name_Server --
+   ----------------------------
 
    procedure Initialize_Name_Server is
+      use Ada.Characters.Handling;
       use PolyORB.Binding_Data;
       use PolyORB.References;
 
-      Name_Server_String : constant String :=
-        PolyORB.Parameters.Get_Conf ("dsa", "name_context", "COS");
+      Nameservice_Kind : constant String :=
+                           Parameters.Get_Conf
+                             (Section => "dsa",
+                              Key     => "name_context",
+                              Default => "COS");
+
+      Nameservice_Location : constant String :=
+                               Parameters.Get_Conf
+                                 (Section => "dsa",
+                                  Key     => "name_service");
    begin
-      pragma Debug (C, O ("Initialize_Name_Server : Enter"));
+      pragma Debug (C, O ("Initialize_Name_Server: enter"));
 
-      --  If mDNS is configured by user
+      if To_Upper (Nameservice_Kind) = "MDNS" then
 
-      if Name_Server_String = "MDNS" then
+         --  mDNS
+
          Name_Ctx := new PolyORB.DSA_P.Name_Service.mDNS.MDNS_Name_Server;
-
-         declare
-            Nameservice_Location : constant String :=
-              PolyORB.Parameters.Get_Conf ("dsa", "name_service");
-         begin
-            PolyORB.DSA_P.Name_Service.mDNS.Initiate_MDNS_Context
-              (Nameservice_Location, Name_Ctx);
-         end;
-
-      --  COS Naming case
+         PolyORB.DSA_P.Name_Service.mDNS.Initiate_MDNS_Context
+           (Nameservice_Location, Name_Ctx);
 
       else
-         Name_Ctx := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Server;
-         declare
-            Nameserver_Location : constant String :=
-              PolyORB.Parameters.Get_Conf ("dsa", "name_service");
-         begin
-            PolyORB.References.String_To_Object
-              (Nameserver_Location, Name_Ctx.Base_Ref);
 
-         exception
-            when others =>
-               raise System.RPC.Communication_Error
-             with "unable to locate name server " & Nameserver_Location;
-         end;
+         --  CORBA COS Naming
+
+         Name_Ctx := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Server;
+         PolyORB.References.String_To_Object
+            (Nameservice_Location, Name_Ctx.Base_Ref);
       end if;
 
       Max_Requests :=
@@ -100,7 +101,13 @@ package body PolyORB.DSA_P.Name_Service is
            Key     => "max_failed_requests",
            Default => 10);
 
-      pragma Debug (C, O ("Initialize_Name_Server : Leave"));
+      pragma Debug (C, O ("Initialize_Name_Server: leave"));
+   exception
+      when others =>
+         raise System.RPC.Communication_Error with
+           "unable to locate name service "
+           & Nameservice_Location
+           & " (" & Nameservice_Kind & ")";
    end Initialize_Name_Server;
 
    ---------------------

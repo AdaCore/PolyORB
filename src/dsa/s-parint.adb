@@ -2430,4 +2430,10 @@ begin
    then
       Detach;
    end if;
+
+exception
+   when others =>
+      O ("PCS initialization failed");
+      PolyORB.Initialization.Shutdown_World (Wait_For_Completion => False);
+      raise;
 end System.Partition_Interface;
