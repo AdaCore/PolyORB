@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1785,8 +1785,7 @@ package body PolyORB.Any is
    -- Image (Any_Container'Class) --
    ---------------------------------
 
-   function Image (C : Any_Container'Class) return Standard.String
-   is
+   function Image (C : Any_Container'Class) return Standard.String is
       TC   : constant TypeCode.Local_Ref := Unwind_Typedefs (Get_Type (C));
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
@@ -1874,9 +1873,7 @@ package body PolyORB.Any is
    -- Initialize --
    ----------------
 
-   procedure Initialize
-     (Self : in out Any)
-   is
+   procedure Initialize (Self : in out Any) is
       use type PolyORB.Smart_Pointers.Entity_Ptr;
 
       Container : constant Any_Container_Ptr := new Any_Container;
