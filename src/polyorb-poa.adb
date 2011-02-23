@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1518,14 +1518,16 @@ package body PolyORB.POA is
 
       Obj_OA : Obj_Adapter_Access;
    begin
-      pragma Debug (C, O ("Find_Servant: Enter."));
+      pragma Debug (C, O ("Find_Servant: enter"));
 
       Find_POA (OA,
                 Get_Creator (Id.all),
                 True,
                 Obj_OA,
                 Error);
+
       if Found (Error) then
+         pragma Debug (C, O ("Find_Servant: leave (error)"));
          return;
       end if;
 
@@ -1534,6 +1536,7 @@ package body PolyORB.POA is
                 Object_Not_Exist_E,
                 System_Exception_Members'(Minor => 0,
                                           Completed => Completed_No));
+         pragma Debug (C, O ("Find_Servant: leave (no OA)"));
          return;
       end if;
 
@@ -1552,6 +1555,7 @@ package body PolyORB.POA is
                       System_Exception_Members'(Minor => 0,
                                                 Completed => Completed_No));
                Leave (Obj_OA.POA_Lock);
+               pragma Debug (C, O ("Find_Servant: leave (OA not active)"));
                return;
 
             when HOLDING =>
@@ -1562,6 +1566,7 @@ package body PolyORB.POA is
                  (Servant,
                   Executor (Obj_OA.Thread_Policy));
                Leave (Obj_OA.POA_Lock);
+               pragma Debug (C, O ("Find_Servant: leave (OA holding)"));
                return;
 
             when others =>
@@ -1572,8 +1577,8 @@ package body PolyORB.POA is
       --  Find servant
 
       pragma Debug
-        (C, O ("OA : " & Obj_OA.Name.all
-            & " looks for servant associated with Id "
+        (C, O ("Find_Servant: querying " & Obj_OA.Name.all
+            & " for servant with id "
             & Objects.Oid_To_Hex_String (Id.all)));
 
       Id_To_Servant (Obj_OA,
@@ -1584,6 +1589,7 @@ package body PolyORB.POA is
       Leave (Obj_OA.POA_Lock);
 
       if Found (Error) then
+         pragma Debug (C, O ("Find_Servant: leave (error)"));
          return;
       end if;
 
@@ -1593,7 +1599,7 @@ package body PolyORB.POA is
         and then Obj_OA.Servant_Manager /= null
         and then Obj_OA.Servant_Manager.all in ServantActivator'Class
       then
-         pragma Debug (C, O ("Try to activate one servant !"));
+         pragma Debug (C, O ("Find_Servant: activating servant"));
 
          declare
             Activator : aliased ServantActivator'Class :=
@@ -1606,7 +1612,9 @@ package body PolyORB.POA is
                Objects.Object_Id_Access (Id),
                Oid,
                Error);
+
             if Found (Error) then
+               pragma Debug (C, O ("Find_Servant: leave (error)"));
                return;
             end if;
 
@@ -1620,6 +1628,7 @@ package body PolyORB.POA is
 
             if Found (Error) then
                pragma Assert (Error.Kind = ForwardRequest_E);
+               pragma Debug (C, O ("Find_Servant: leave"));
                return;
             end if;
 
@@ -1631,10 +1640,11 @@ package body PolyORB.POA is
                 Object_Not_Exist_E,
                 System_Exception_Members'(Minor => 0,
                                           Completed => Completed_No));
+         pragma Debug (C, O ("Find_Servant: leave (null servant)"));
          return;
       end if;
       Servants.Set_Executor (Servant, Executor (OA.Thread_Policy));
-      pragma Debug (C, O ("Find_Servant: Leave."));
+      pragma Debug (C, O ("Find_Servant: leave"));
    end Find_Servant;
 
    ---------------------

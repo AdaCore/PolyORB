@@ -210,14 +210,6 @@ package body PolyORB.References.Binding is
                Pro := Selected_Profile;
                Servant := Components.Component_Access (S);
                return;
-
-               --  ==> When binding a local reference, an OA
-               --      is needed. Where do we obtain it from?
-               --      PolyORB.References cannot depend on Obj_Adapters!
-               --      ... but P.R.Binding can depend on anything.
-               --      We also need to know what profiles are local,
-               --      presumably by sending the ORB an Is_Local_Profile
-               --      query for each profile (for the condition below).
             end if;
 
             if Local_Only then
@@ -289,6 +281,7 @@ package body PolyORB.References.Binding is
                QoS,
                BO,
                Error);
+
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
 
