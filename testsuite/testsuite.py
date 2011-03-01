@@ -14,8 +14,9 @@ See %prog -h for more help.
 """
 
 from gnatpython.env import Env
-from gnatpython.fileutils import mkdir, rm
+from gnatpython.fileutils import mkdir, rm, which
 from gnatpython.main import Main
+from gnatpython.ex import Run
 from gnatpython.mainloop import (MainLoop, add_mainloop_options,
                                  generate_collect_result,
                                  generate_run_testcase)
@@ -26,6 +27,7 @@ from glob import glob
 
 import logging
 import os
+import re
 
 DEFAULT_TIMEOUT = 60
 
@@ -65,6 +67,31 @@ def main():
     # Generate the discs list for test.opt parsing
     # Always add 'ALL'
     common_discs = Env().discriminants
+
+    # Retrieve also the polyorb specific discriminants
+    p = Run([which('bash'),
+             which('polyorb-config').replace('\\', '/'),
+             '--config'])
+
+    # First find the support application perso.
+    match = re.search('Application *personalities *: (.+)', p.out)
+    if match is not None:
+        common_discs += ['app_%s' % k for k in match.group(1).split()]
+
+    # Then the supported protocols
+    match = re.search('Protocol *personalities *: (.+)', p.out)
+    if match is not None:
+        common_discs += ['proto_%s' % k for k in match.group(1).split()]
+
+    # Then the supported services
+    match = re.search('Services *: (.+)', p.out)
+    if match is not None:
+        common_discs += ['serv_%s' % k for k in match.group(1).split()]
+
+    # Do we have ssl support ?
+    if re.search('SSL *support *: *yes', p.out):
+        common_discs.append('ssl_support')
+
     with open(m.options.output_dir + '/discs', 'w') as f_disk:
         f_disk.write(", ".join(common_discs))
 
