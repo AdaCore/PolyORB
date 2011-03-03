@@ -64,7 +64,13 @@ def terminate(handle):
             # terminate a process that is already dead. In that case we check
             # if the process is still alive. If yes we reraise the exception.
             # Otherwise we ignore it.
-            if handle.poll() is None:
+            is_alive = True
+            for index in (1, 2, 3):
+                is_alive = handle.poll() is None
+                if not is_alive:
+                    break
+                sleep(0.1)
+            if is_alive:
                 # Process is still not terminated so reraise the exception
                 raise
     else:
