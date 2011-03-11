@@ -67,3 +67,12 @@ And to run a specific test CORBA_ALL_EXCEPTIONS_0
 A report is created in out/report.
 
 See ./testsuite.py -h for more help
+
+4/ Discriminants
+
+The following discriminants are available:
+
+  1- for each app perso there is corresponding app_<name>
+  2- for each protocol perso there is a corresponding proto_<name>
+  3- for each services available there is a corresponding serv_<name>
+  4- if SSL is supported, the discriminant 'ssl_support' is set
