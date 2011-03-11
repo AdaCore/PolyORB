@@ -1,1 +1,2 @@
-ALL XFAIL
+ALL DEAD
+proto_soap XFAIL
