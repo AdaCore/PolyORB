@@ -172,17 +172,8 @@ AC_SUBST(WINDOWS_ON_TARGET)
 #  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
 #    present some problems for VxWorks 6.
 
-# Compilers are always built using the native Ada compiler. Therefore,
-# their executable suffix depends on the host operating system.
-
-COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
-AC_SUBST(COMPILER_EXE_SUFFIX)
-
-# Tools are using the cross Ada compiler. Therefore, their executable
-# suffix depends on the target operating system.
-
-TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
-AC_SUBST(TOOL_EXE_SUFFIX)
+AC_SUBST(HOST_EXE_SUFFIX)
+AC_SUBST(TARGET_EXE_SUFFIX)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".

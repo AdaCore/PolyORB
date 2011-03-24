@@ -5,6 +5,14 @@
 
 # @configure_input@
 
+host=@host@
+target=@target@
+if [ "$host" = "$target" ]; then
+  is_cross=false
+else
+  is_cross=true
+fi
+
 # Determine installation prefix
 
 case "$0" in
@@ -29,12 +37,17 @@ case "$OS" in
       exec_prefix=`cygpath -w $exec_prefix`
 esac
 
-if [ -f "${exec_prefix}"/include/polyorb/polyorb.ads ]; then
-  prefix="${exec_prefix}"
-else
-  # Fall back to configure-time prefix
-  prefix="@prefix@"
+unset tgt_subdir
+if $is_cross; then
+  tgt_subdir=/$target
 fi
+
+for candidate_prefix in "${exec_prefix}${tgt_subdir}" "@prefix@${tgt_subdir}"; do
+  prefix="${candidate_prefix}"
+  if [ -f "${candidate_prefix}"/include/polyorb/polyorb.ads ]; then
+    break
+  fi
+done
 
 have_gnatmake_aPdir=@HAVE_GNATMAKE_APDIR@
 default_appli="@APPLI_LIST@"
@@ -144,7 +157,10 @@ while test $# -gt 0; do
       echo_exec_prefix=true
       ;;
     --version|-v)
-      echo "PolyORB @POLYORB_VERSION@" 1>&2
+      echo "PolyORB @POLYORB_VERSION@ for ${target}" 1>&2
+      if $is_cross; then
+        echo " hosted on ${host}" 1>&2
+      fi
       exit 0
       ;;
     --config)
@@ -183,7 +199,6 @@ EOF
   shift
 done
 
-exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
 polyorb_dir="${includedir}/polyorb"
