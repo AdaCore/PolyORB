@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -825,7 +825,7 @@ package body XE_Back.GARLIC is
       --  Use GARLIC sources, but remove files that need to be overridden
       --  per-partition.
 
-      Prj_Fname := Dir (Id (Root), PCS_Project_File);
+      Prj_Fname := Dir (Root_Id, PCS_Project_File);
       Create_File (File, Prj_Fname);
       Set_Output (File);
       Write_Str  ("project ");

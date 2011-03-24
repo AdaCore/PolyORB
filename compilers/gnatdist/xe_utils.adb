@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,8 @@ with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Command_Line;        use Ada.Command_Line;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+
+with Platform;
 
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
@@ -551,6 +553,7 @@ package body XE_Utils is
       end if;
       Name_Buffer (1 .. S'Length) := S;
       Name_Len := S'Length;
+
       return Name_Find;
    end Id;
 
@@ -569,12 +572,15 @@ package body XE_Utils is
       ALI_Suffix_Id  := Id (ALI_Suffix);
       ADB_Suffix_Id  := Id (ADB_Suffix);
       ADS_Suffix_Id  := Id (ADS_Suffix);
-      Part_Dir_Name  := Dir (Id (Root), Id ("partitions"));
-      Stub_Dir_Name  := Dir (Id (Root), Id ("stubs"));
+      Root_Id        := Dir (Id (Root), Id (Platform.Target));
+      Part_Dir_Name  := Dir (Root_Id, Id ("partitions"));
+      Stub_Dir_Name  := Dir (Root_Id, Id ("stubs"));
       Stub_Dir       := new String'(Name_Buffer (1 .. Name_Len));
       PWD_Id         := Dir (Id ("`pwd`"), No_File_Name);
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
+
+      Monolithic_Obj_Dir  := Dir (Root_Id, Id ("obj"));
 
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
@@ -615,10 +621,15 @@ package body XE_Utils is
 
       Install_Int_Handler (Sigint_Intercepted'Access);
 
+      Create_Dir (Monolithic_Obj_Dir);
       Create_Dir (Stub_Dir_Name);
       Create_Dir (Part_Dir_Name);
 
-      GNAT_Driver := Locate ("gnat");
+      if Platform.Is_Cross then
+         GNAT_Driver := Locate (Platform.Target & "-gnat");
+      else
+         GNAT_Driver := Locate ("gnat");
+      end if;
 
       --  Note: we initialize variable GPRBuild in Scan_Dist_Arg rather than
       --  unconditionally in Initialize so that the absence of gprbuild does
@@ -1156,12 +1167,9 @@ package body XE_Utils is
       Add_Str_To_Name_Buffer (ADB_Suffix);
       Monolithic_Src_Base_Name := Name_Find;
 
-      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
+      Monolithic_Src_Name := Dir (Root_Id, Monolithic_Src_Base_Name);
       Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
       Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
-      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
-
-      Create_Dir (Monolithic_Obj_Dir);
 
       Get_Name_String (Configuration_Name);
       To_Lower (Name_Buffer (1 .. Name_Len));

@@ -948,10 +948,6 @@ package body XE_Back.PolyORB is
       Secondary_PCS_Project      : Name_Id;
       Secondary_PCS_Project_File : File_Name_Type;
    begin
-      --  In the two project files below, we use ".." as the object directory,
-      --  relative to the project directory, so that all objects are stored in
-      --  the user's build directory.
-
       --  Create intermediate PCS project, extending the main PolyORB project,
       --  but removing source files that need to be rebuilt as client or server
       --  stubs, and those that are overridden by each partition.
@@ -961,7 +957,7 @@ package body XE_Back.PolyORB is
       Secondary_PCS_Project := Name_Find;
       Set_Corresponding_Project_File_Name (Secondary_PCS_Project_File);
 
-      Prj_Fname := Dir (Id (Root), Secondary_PCS_Project_File);
+      Prj_Fname := Dir (Root_Id, Secondary_PCS_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
       Write_Str  ("project ");
@@ -1002,7 +998,7 @@ package body XE_Back.PolyORB is
 
       --  Create project for PCS units that need to be rebuilt per-partition
 
-      Prj_Fname := Dir (Id (Root), PCS_Project_File);
+      Prj_Fname := Dir (Root_Id, PCS_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
       Write_Str  ("with """);

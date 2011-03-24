@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -230,7 +230,7 @@ package body XE_Back is
       --  Create application-wide project, extending user project file if
       --  provided.
 
-      Prj_Fname := Dir (Id (Root), Dist_App_Project_File);
+      Prj_Fname := Dir (Root_Id, Dist_App_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
 
@@ -261,7 +261,7 @@ package body XE_Back is
       Write_Str  ("   for Source_Dirs use ("".""");
       if Project_File_Name = null then
          Write_Line (",");
-         Write_Line ("     ""..""");
+         Write_Line ("     ""../..""");
          for J in Source_Directories.First .. Source_Directories.Last loop
             declare
                Normalized_Dir : constant String :=
@@ -342,8 +342,10 @@ package body XE_Back is
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
             then
-               --  Reach up to main dir from  dsa/partitions/<cfg>/<partition>
-               Write_Str ("../../../../");
+               --  Reach up to main dir from
+               --  dsa/<target>/partitions/<cfg>/<partition>
+
+               Write_Str ("../../../../../");
             end if;
             Write_Str (Exec_Dir);
          end;

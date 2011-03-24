@@ -216,6 +216,10 @@ build-iac: ${IAC_NODES_SOURCES}
 .PHONY: build-po_gnatdist
 
 build-po_gnatdist: \
+  PRJ_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files \
+                        -I${top_builddir}/compilers/common_files
+
+build-po_gnatdist: \
   compiler_dir := gnatdist
 
 ################################################
