@@ -2,7 +2,7 @@
 PolyORB 2.8 NEW FEATURES LIST
 =============================
 
-Copyright (C) 2009-2010, AdaCore
+Copyright (C) 2009-2011, AdaCore
 
 This file contains a complete list of new features in version 2.8 of PolyORB.
 See also file NEWS for various information about this release.
@@ -23,3 +23,8 @@ NF-28-JA25-023 Support for additional configuration pragmas (2010-10-26)
    allows the user to specify then name of an additional configuration pragmas
    file to be used when compiling the PolyORB runtime library, for example
    containing some application-mandated Restrictions pragmas.
+
+NF-28-J121-026 IDLAC is obsoleted (2011-03-28)
+
+   The legacy IDL to Ada compiler, idlac, is obsoleted. Users should switch
+   to iac, which has been the default since 2008.
