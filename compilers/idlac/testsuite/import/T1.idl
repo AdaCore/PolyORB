@@ -1,5 +1,0 @@
-
-import ::T2;
-import ::T3;
-
-interface T1 {};

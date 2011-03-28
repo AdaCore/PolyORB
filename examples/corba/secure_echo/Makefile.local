@@ -1,2 +1,0 @@
-${current_dir}echo.idl-stamp: idlac_flags := -d
-${test_target}: ${current_dir}echo.idl-stamp

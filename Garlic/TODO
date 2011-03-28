@@ -1,0 +1,10 @@
+* Provide a generic package to distributly manage data caching.
+
+* Handle priority inversion issues when dealing with TCP sockets. Split
+  messages into parts ?
+
+* Add SysV messages protocol and UDP protocol
+
+* No linktest unless on developper's mode.
+
+* Garlic.TCP for none tasking mode.

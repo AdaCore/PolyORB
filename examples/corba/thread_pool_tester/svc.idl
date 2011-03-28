@@ -1,4 +1,0 @@
-interface Svc {
-  void Wait (in short Cond_Id);
-  //  Wait on the indicated condition variable
-};

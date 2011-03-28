@@ -1,6 +1,0 @@
-interface test_array {
-   union u switch (short) {
-      case 1: long e1;
-      case 2: short e2[15][16];
-   };
-};

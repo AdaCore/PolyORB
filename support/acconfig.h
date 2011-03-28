@@ -1,0 +1,2 @@
+#define PACKAGE GLADE
+#define VERSION VERSION

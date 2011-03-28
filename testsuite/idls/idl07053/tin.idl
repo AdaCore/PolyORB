@@ -1,6 +1,0 @@
-interface A {
-  void make_it_so();
-};
-interface B: A {
-  short make_it_so(in long times); // Error: redefinition of make_it_so
-};

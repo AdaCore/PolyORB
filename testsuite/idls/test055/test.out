@@ -1,7 +1,0 @@
-orb.idl:66:05: warning: semicolon expected
-CORBA_InterfaceRepository.idl:10:05: warning: semicolon expected
-iac: 2 warning(s)
-import ::CORBA::ORB;
-module p {
- typedef long plop;
-};

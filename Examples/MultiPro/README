@@ -1,0 +1,95 @@
+This example describes how to use the multiprotocols feature.
+
+Start each partition in a separate session. You will get the following
+information. This shows which protocol and which specific data is used
+by a given partition to communicate with another partition. When a
+partition receives the self locations of another partition, to
+communicate with this partition, the first partition will select one
+of the protocols available locally.
+
+On partition part1:
+
+Partition Info Table
+--------------------
+* Partition 1
+  Partition_Name part1
+  Net_Locations  xyz://localhost:12342
+                 tcp://localhost:12343
+                 tcp://localhost:12340
+                 xyz://localhost:12341
+  Net_Loc_In_Use xyz://localhost:12342
+* Partition 2
+  Partition_Name part2
+  Net_Locations  xyz://localhost:12344
+  Net_Loc_In_Use xyz://localhost:12344
+* Partition 3
+  Partition_Name part3
+  Net_Locations  xyz://localhost:12345
+                 tcp://localhost:12346
+  Net_Loc_In_Use xyz://localhost:12345
+* Partition 4
+  Partition_Name part4
+  Net_Locations  tcp://localhost:12347
+  Net_Loc_In_Use tcp://localhost:12347
+
+On partition part2:
+
+Partition Info Table
+--------------------
+* Partition 1
+  Partition_Name part1
+  Net_Locations  xyz://localhost:12341
+  Net_Loc_In_Use xyz://localhost:12341
+* Partition 2
+  Partition_Name part2
+  Net_Locations  xyz://localhost:12344
+  Net_Loc_In_Use xyz://localhost:12344
+* Partition 3
+  Partition_Name part3
+  Net_Locations  xyz://localhost:12345
+                 tcp://localhost:12346
+  Net_Loc_In_Use xyz://localhost:12345
+
+On partition part3:
+
+Partition Info Table
+--------------------
+* Partition 1
+  Partition_Name part1
+  Net_Locations  tcp://localhost:12340
+  Net_Loc_In_Use tcp://localhost:12340
+* Partition 2
+  Partition_Name part2
+  Net_Locations  xyz://localhost:12344
+  Net_Loc_In_Use xyz://localhost:12344
+* Partition 3
+  Partition_Name part3
+  Net_Locations  xyz://localhost:12345
+                 tcp://localhost:12346
+  Net_Loc_In_Use xyz://localhost:12345
+* Partition 4
+  Partition_Name part4
+  Net_Locations  tcp://localhost:12347
+  Net_Loc_In_Use tcp://localhost:12347
+
+On partition part4:
+
+Partition Info Table
+--------------------
+* Partition 1
+  Partition_Name part1
+  Net_Locations  tcp://localhost:12340
+  Net_Loc_In_Use tcp://localhost:12340
+* Partition 2
+  Partition_Name part2
+  Net_Locations  xyz://localhost:12344
+  Net_Loc_In_Use <not available>
+* Partition 3
+  Partition_Name part3
+  Net_Locations  xyz://localhost:12345
+                 tcp://localhost:12346
+  Net_Loc_In_Use tcp://localhost:12346
+* Partition 4
+  Partition_Name part4
+  Net_Locations  tcp://localhost:12347
+  Net_Loc_In_Use tcp://localhost:12347

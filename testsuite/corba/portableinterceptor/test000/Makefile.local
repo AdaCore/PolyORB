@@ -1,2 +1,0 @@
-${current_dir}test000_idl.idl-stamp: idlac_flags :=
-${test_target}: ${current_dir}test000_idl.idl-stamp

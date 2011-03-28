@@ -1,7 +1,0 @@
-interface Itf {
- short op1();
- long op2();
-};
-valuetype Val supports Itf {
- public short shtMber;
-};

@@ -1,0 +1,3 @@
+System.RPC.Stream_IO is an additional interface that provides
+explicit message passing facilities as described in RM E.5 (26).
+This example implements a ping pong application between two partitions.

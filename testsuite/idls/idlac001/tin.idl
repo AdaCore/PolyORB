@@ -1,8 +1,0 @@
-interface Echo {
-
-  typedef sequence<Echo> echoSeq;
-
-  string echoString (in string Mesg);
-
-  echoSeq echoers();
-};

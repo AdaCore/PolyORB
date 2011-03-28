@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# $Id$
+#
+# This script does the necessary automake stuff to build from a checkout
+#
+
+echo Running aclocal
+aclocal -I support
+echo Running automake
+automake
+echo Running autoconf
+autoconf
+echo Doing the necessary date modifications
+find . -name configure.in -exec touch {} \;
+sleep 1
+find . -name aclocal.m4 -exec touch {} \;
+sleep 1
+find . -name Makefile.in -exec touch {} \;
+sleep 1
+find . -name configure -exec touch {} \;
+sleep 1
+find . -name stamp-h.in -exec touch {} \;
+sleep 1
+find . -name config.h.in -exec touch {} \;

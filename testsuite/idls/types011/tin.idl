@@ -1,3 +1,0 @@
-interface tin {
-  typedef long My_Long;
-};

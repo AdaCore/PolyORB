@@ -1,0 +1,54 @@
+1999-02-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade event files: Adopt the same kind of notation on RACW
+	(*_Ref) we have for glade naming files.
+
+1999-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade files: Split GLADE.Naming into GLADE.Naming.Interface
+ 	which includes the IDL classes, GLADE.Naming.Implementation which
+ 	includes the host language classes and GLADE.Naming the IDL types.
+
+1999-01-28  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade-naming files: Implementation of Naming Service.
+
+1998-03-14  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade-semaphores.adb: Fix two major race conditions. First,
+	don't update Semaphore.probable_owner outside the critical section 
+	(in P). Second, define three states for a semaphore: Locked,
+	Unlocked and Waiting. Waiting is useful to avoid releasing
+	a sempahore when the partition is waiting for it.
+
+	* glade-semaphore-tracing.ads: Remove some useless debugging
+ 	information.
+
+	* glade-semaphore.ads: Define Status_Type. Remove Is_Used field
+	and add Status field.
+
+	* tracing_test.adb: Tracing_Callback is atomic to have consistent
+ 	reports.
+
+	* main_sema.adb: Generate random delays.
+
+	* tcl_tracing.ads, tcl_tracing.adb, tcl_main_sema.adb,
+ 	tcl_test.cfg, display.adb, display.ads, display.tcl: Graphical
+ 	version of the distributed semaphore example.
+
+1998-03-02  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade-semaphores.adb: Fix race condition in Send_Request_To.
+
+	* tracing_test.ads, tracing_test.ads: New procedure
+ 	Tracing_Report.
+
+	* main_sema.adb: Add tracing info.
+
+	* test.cfg: None -> Ada, Host set to automatic.
+	
+1998-02-27  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* glade-semaphores.adb: Remove all not strictly needed conversions 
+	to work around a GNAT bug.
+	

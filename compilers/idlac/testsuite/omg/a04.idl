@@ -1,5 +1,0 @@
-
-struct Example {
-    long member1, member2;
-    boolean member3[4][8];
-};

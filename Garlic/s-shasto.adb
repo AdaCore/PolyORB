@@ -1,0 +1,166 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                            GLADE COMPONENTS                              --
+--                                                                          --
+--                S Y S T E M . S H A R E D _ S T O R A G E                 --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 1996-2008, Free Software Foundation, Inc.          --
+--                                                                          --
+-- GARLIC is free software;  you can redistribute it and/or modify it under --
+-- terms of the  GNU General Public License  as published by the Free Soft- --
+-- ware Foundation;  either version 2,  or (at your option)  any later ver- --
+-- sion.  GARLIC is distributed  in the hope that  it will be  useful,  but --
+-- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
+-- LITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the  GNU General Public  --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License  distributed with GARLIC;  see file COPYING.  If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--               GLADE  is maintained by ACT Europe.                        --
+--                   (email: report@adacore.com)                            --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
+with System.Garlic.Storages;   use System.Garlic.Storages;
+
+package body System.Shared_Storage is
+
+   ----------------------
+   -- Shared_Var_Close --
+   ----------------------
+
+   procedure Shared_Var_Close (Var : SIO.Stream_Access)
+   is
+      VS : Shared_Data_Access;
+
+   begin
+      VS := Shared_Data_Access (Var);
+      Complete_Request (VS);
+   end Shared_Var_Close;
+
+   ---------------------
+   -- Shared_Var_Lock --
+   ---------------------
+
+   procedure Shared_Var_Lock (Var : String)
+   is
+      VS : Shared_Data_Access;
+      Ok : Boolean;
+      E  : aliased Error_Type;
+
+   begin
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
+      Initiate_Request (VS, Lock, Ok);
+   end Shared_Var_Lock;
+
+   ----------------------
+   -- Shared_Var_Procs --
+   ----------------------
+
+   package body Shared_Var_Procs is
+
+      use type SIO.Stream_Access;
+
+      ----------
+      -- Read --
+      ----------
+
+      procedure Read is
+         S : SIO.Stream_Access := null;
+      begin
+         S := Shared_Var_ROpen (Full_Name);
+         if S /= null then
+            Typ'Read (S, V);
+            Shared_Var_Close (S);
+         end if;
+      end Read;
+
+      ------------
+      -- Write --
+      ------------
+
+      procedure Write is
+         S : SIO.Stream_Access := null;
+      begin
+         S := Shared_Var_WOpen (Full_Name);
+         Typ'Write (S, V);
+         Shared_Var_Close (S);
+         return;
+      end Write;
+
+   end Shared_Var_Procs;
+
+   ----------------------
+   -- Shared_Var_ROpen --
+   ----------------------
+
+   function Shared_Var_ROpen (Var : String) return SIO.Stream_Access
+   is
+      VS : Shared_Data_Access;
+      Ok : Boolean;
+      E  : aliased Error_Type;
+
+   begin
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
+      Initiate_Request (VS, Read, Ok);
+      if Ok then
+         return SIO.Stream_Access (VS);
+      else
+         return null;
+      end if;
+   end Shared_Var_ROpen;
+
+   -----------------------
+   -- Shared_Var_Unlock --
+   -----------------------
+
+   procedure Shared_Var_Unlock (Var : String)
+   is
+      VS : Shared_Data_Access;
+      E  : aliased Error_Type;
+
+   begin
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
+      Complete_Request (VS);
+   end Shared_Var_Unlock;
+
+   ----------------------
+   -- Shared_Var_WOpen --
+   ----------------------
+
+   function Shared_Var_WOpen (Var : String) return SIO.Stream_Access
+   is
+      VS : Shared_Data_Access;
+      Ok : Boolean;
+      E  : aliased Error_Type;
+
+   begin
+      Lookup_Variable (Var, VS, E);
+      if Found (E) then
+         Raise_Communication_Error (Content (E'Access));
+      end if;
+      Initiate_Request (VS, Write, Ok);
+      return SIO.Stream_Access (VS);
+   end Shared_Var_WOpen;
+
+end System.Shared_Storage;

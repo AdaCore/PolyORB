@@ -1,8 +1,0 @@
-typedef float New_Float;
-module m1 {
-  interface int1 {
-    attribute New_Float attr1; 
-    readonly attribute boolean bool1; 
-  };
-};
-typedef boolean New_Boolean;  

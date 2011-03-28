@@ -1,847 +1,423 @@
-------------------------------------------------------------------------------
---                                                                          --
---                           POLYORB COMPONENTS                             --
---                                                                          --
---         Copyright (C) 1999-2010, Free Software Foundation, Inc.          --
---                                                                          --
--- PolyORB is free software; you  can  redistribute  it and/or modify it    --
--- under terms of the  GNU General Public License as published by the  Free --
--- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. PolyORB is distributed  in the hope that it will be  useful,    --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
---                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
---                                                                          --
---                  PolyORB is maintained by AdaCore.                       --
---                     (email: sales@adacore.com)                           --
---                                                                          --
-------------------------------------------------------------------------------
+Changes since GLADE 5.03a
+=========================
 
-* PolyORB 2.8
-=============
-
-This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.7 release, it includes:
-
-New features
-------------
-
-See the features-28 file.
-
-Bug fixes
----------
-
-Implementation template package specs for empty interfaces lacked a pragma
-Elaborate_Body to make their body legal (the body is necessary to drag the
-Skel into the closure). (JA27-008)
-
-* PolyORB 2.7 (branched on 2010-10-01)
-======================================
-
-This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.6 release, it includes:
-
-New features
-------------
-
-See the features-27 file.
-
-Bug fixes
----------
-
-Boolean values in composite user data might in some rare cases be incorrectly
-handled, causing the wrong value to be transmitted, or an application crash.
-(JB04-017)
-
-A range check would fail in PolyORB.CORBA_P.Naming_Tools.Locate for names
-less than four characters in length. (JA26-018)
-
-The iac compiler failed to check the rule that requires IDL keywords to have
-the correct case (for example, "any" is correct, but "ANY" is wrong).
-(J921-012)
-
-The iac compiler generated illegal Ada for helpers in the case of an
-enum type called 'Result'. (J701-270)
-
-The iac compiler did not handle modules that come in multiple parts
-correcly. The parts should all be considered part of the same
-module. (IA01-028)
-
-The global termination management circuitry would erroneously terminate
-the initiator partition when all partitions have deferred termination
-policy. (J602-015)
-
-In some cases, po_gnatdist failed to identify that a partition required
-re-linking after a source change. (J607-021)
-
-The global termination policy in a DSA application might fail to detect
-application termination if a partition with local termination had been
-executed and completed. (J524-001)
-
-PolyORB failed to execute a shell command specified as a partition's Host
-attribute. (J521-020)
-
-IAC would incorrectly generate redundant perfect hash function packages
-for interfaces declared in a scope nested within an imported module. (J504-010)
-
-A remote call occurring after the target partition of another previous call
-had been disconnected could cause a hang on the calling side. (J511-002)
-
-The -p option of iac is supposed to send the output to standard output, but it
-was sending part of the output (the perfect hash function) to files. (J503-020)
-
-Various minor memory leaks were fixed. (J420-020)
-
-An IDL enumeration literal "SYSTEM" would cause a name clash in generated
-code. (J412-032)
-
-A call with a formal parameter of a composite type could cause an erroneous
-memory access if the caller and callee were on the same partition. (J409-001)
-
-The "install" Makefile target would fail to copy po_gnatdist to its proper
-location on hosts where the system does not provide the install(1) command,
-and the internal support/install-sh script is used instead. (J309-020)
-
-Incoming multicast datagrams received on a MIOP access point were not
-correctly identified as referring to a local object on Windows. (J312-020)
-
-When referring to an enumeration literal in another package, IAC was generating
-just the literal, whereas an expanded name like Package_Name.Literal is
-needed. (J210-035)
-
-Incorrect casing was used in IAC for the generated stubs and skeletons
-for attribute access subprograms (_get_ and _set_). This could lead to
-interoperability issues with conformant 3rd party ORBs. (J126-028)
-
-Source units imported from AWS for the SOAP protocol personality have been
-renamed to avoid clashes in applications mixing PolyORB and AWS. (J105-013)
-
-Support for partition attribute Reconnection was missing. (IB12-005)
-
-po_gnatdist does not create files anymore outside of the private dsa/
-subdirectory. (IC14-034)
-
-* PolyORB 2.6 (branched on 2009-10-07)
-======================================
-
-This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.5 release, it includes:
-
-New features
-------------
-
-See the features-26 file.
-
-Bug fixes
----------
-
-A socket leak occurring when an attempt to establish a TCP connection fails
-has been fixed. (J106-008)
-
-A segmentation fault could occur while unmarshalling a record with a component
-of a private type. (IC16-046)
-
-PROGRAM_ERROR was raised when performing a local call involving IDL union
-with a switch that do not have an associated member label. (IB25-010)
-
-A resource leak was fixed in the idle tasks manager. (IB19-027)
-
-A race condition has been fixed in the Half_Sync_Half_Async ORB controller
-that could cause a segmentation fault during ORB shutdown in some rare
-cases. (IB19-024)
-
-Several unrelated race conditions could cause crashes in the DSA termination
-process in some timing-dependent scenarios. (IB13-026)
-
-po_gnatdist would fail to build a slave partition alone. (IA29-009)
-
-IAC would fail to find the output from the C++ preprocessor when running
-under some recent versions of Cygwin. (IA08-013)
-
-Constrained types derived from unconstrained array types were not correctly
-handled in the DSA applicative personality, causing runtime exceptions
-when such types were passed in remote calls. (IA06-020)
-
-IAC was failing to properly detect an error in case a name that should refer
-to a type referred to something else. (I629-006)
-
-DSA partitions used to start processing remote calls before the local
-partition ID was set, potentially causing exception messages to not be
-tagged with the partition ID (if raised before that point). (I529-013)
-
-The Ada DSA starter would fail if the complete path of some slave partition
-contained white space. (I519-025)
-
-When building a DSA application, a global configuration pragmas file
-provided through a user project wasn't taken into account. (I513-015)
-
-Building a DSA application in a directory whose complete path include
-white space was not correctly handled. (I508-017)
-
-* PolyORB 2.5 (branched on 2008-11-03)
-======================================
-
-This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.4 release, it includes:
-
-New features
-------------
-
-See the features-25 file.
-
-Bug fixes
----------
-
-When building a single partition with non-local termination, po_gnatdist
-would systematically mark the partition as termination initiator, possibly
-causing a deadlock when terminating the application. (Building all partitions
-at the same time, which is the default, worked fine.) (HA30-008)
-
-Calling a method that has IN or INOUT arguments following an OUT argument
-locally on a partition (i.e. without involving any actual network
-communication) would cause an incorrect matching of formal and actual
-parameters, causing incorrect values to be passed to the servant, or
-a crash if parameters were of incompatible types. (HB25-017)
-
-po_gnatdist crashed when building only the main partition in an application
-with an Ada starter. (HB10-009)
-
-Constraint_Error could be raised when calculating the number of tasks in a
-thread pool; this has been corrected. (HA02-018)
-
-IAC was generating incorrect Ada code for "default:" in a union. (H930-022)
-
-Several issues have been fixed in the circuitry handling TypeCodes and Anys
-for bounded string types. (H904-029)
-
-IAC was failing to correctly parse arrays and strings whose length was given by
-a named constant. (H813-030, H813-031)
-
-The tasks management circuitry has undergone a major overhaul to make
-it more robust and remove some irregularities in the assignment of
-particular ORB jobs to application tasks. This extensive change fixes
-dead locks (G510-007, H813-026) and invariant violations (H813-027,
-H828-032) which could happen under some specific scheduling situations.
-
-CORBA.Object.Hash might under some circumstances return different values
-for the same object. This has been fixed. (H806-014)
-
-IAC did not generate all code in user-specified output directory when
-using hash optimizations, this is now corrected. (H730-014)
-
-IAC incorrectly rejected negative real literals. They are now accpted.
-Workaround: add a pair of parentheses around the absolute value. (H728-026)
-
-IAC and IDLAC required array sizes to be literals or constants. Arbitrary
-integer expressions are now allowed. Workaround: introduce a named
-constant. (H723-024)
-
-IAC would generate garbled error messages when referring to declarations in
-#include files, such as "X" conflicts with declaration at included.idl:12:03.
-Workaround: fix the underlying error.
-(H723-022)
-
-IDL real literals starting with "0." were erroneously rejected by IAC.
-Workaround: use an expression yielding the same value but avoiding such
-literals.
-(H721-014)
-
-IDL constants of a bounded string type were not handled correctly by the
-IDL to Ada compilers. Both have been fixed. (H707-023)
-
-If the tasking policy is Thread_Pool, the ORB could borrow user tasks to handle
-Request_Jobs, which could cause long waiting times, or even deadlock in some
-cases. (G510-007)
-
-IAC would generate garbled error messages when referring to declarations in
-#include files, such as "X" conflicts with declaration at included.idl:12:03.
-(H723-022).
-
-IAC and IDLAC required array sizes to be literals or constants. Arbitrary
-integer expressions are now allowed. (H723-024).
-
-Leading separator characters were not ignored by PolyORB.CORBA_P.Naming_Tools.
-Parse_Name as documented. (H513-025)
-
-* PolyORB 2.4 (branched on 2008-05-06)
-======================================
-
-This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.3 release, it includes:
-
-New features
-------------
-
-See the features-24 file.
-
-Bug fixes
----------
-
-In PolyORB/DSA, references to RACW or RAS stream attributes in user code
-were not handled correctly. (H407-010)
-
-There was a bug in the function that determined wether a MIOP profile
-is local to a partition, this has been corrected. (H303-005)
-
-A PolyORB partition configured to use MIOP 1.0 did not default to GIOP
-1.2, this has been corrected. (H303-004)
-
-Two issues were fixed in the decoding of MIOP headers (H228-015).
-
-The GIOP implementation rejected messages where reserved bytes had
-non-zero value, causing interoperability issues with TAO (H124-010).
-
-A PolyORB partition configured to use GIOP version 1.0 only was unable
-to connect to a server providing an IIOP 1.2 profile. The GIOP stack
-now gracefully degrades the connection to GIOP 1.0. (H110-024)
-
-Host names are now kept unresolved in profiles. This allows a partition
-to unmarshall, process and marshall back an object reference even when
-the host name contained in the reference cannot be resolved to an IP
-address (this is useful for example on a name server which serves references
-provided by clients, but does not need to connect directly to the
-referenced objects). (H107-031)
-
-* PolyORB 2.3 (branched on 2008-01-07)
-======================================
-
-This release contains the PolyORB generic middleware, and its CORBA
-and DSA instantiations. In addition to the 2.2 release, it includes:
-
-New features
-------------
-
-See the features-23 file.
-
-Bug fixes
----------
-
-Receiving an out-of-range value for an enumerated type (which can occur
-when the sending side passes an uninitialized object with invalid
-representation) would cause a segmentation fault in some contexts instead
-of propagating an exception. (G328-007)
-
-The CDR unmarshalling routines did not support indirect typecode references.
-(G328-027)
-
-Parsing of PolyORB's specific command line parameters in po_cos_naming
-was not working. This has been corrected. (G326-002)
-
-The client side GIOP version selection mechanism was incorrect. Version
-1.2 was always assumed, even when the server reference specified a
-different version. (G323-025)
-
-The CDR unmarshalling for TypeCode objects of kind Union was incorrect.
-(G326-004)
-
-IDLAC would generate incorrect code when an IDL file declared a constant
-called "Standard". (G322-037)
-
-IDLAC would generate incorrect code when an IDL file declared a type
-called "Empty". (G322-036)
-
-* PolyORB 2.2 (branched on 2007-01-10)
-======================================
-
-This release contains a CORBA-compatible instantiation of the PolyORB
-generic middleware. In addition to the 2.1 release, it includes:
-
-New features
-------------
-
-See the features-22 file.
-
-New applicative personality: dsa (Ada Distributed Systems Annex).
-
-The code footprint and compile time for instances of PolyORB.Sequences.Bounded
-and PolyORB.Sequences.Unbounded has been significantly reduced thanks to a
-complete redesign that allowed significant code sharing across instances.
-(10469)
-
-Added the possibility to define a default listen address for the DIOP
-protocol personality. (10377)
-
-po_cos_naming has a new flag '-file', that outputs the server IOR in a
-file. (10283)
-
-Client binding objects are reused when possible, reducing the
-number of open channels between nodes. (10072)
-
-Added new service context to GIOP to pass server-side exception
-information to the reply. (10051)
-
-Major run-time performance improvements for the CORBA applicative
-personality.
-
-Completed the support for GIOP addressing modes. (10046)
-
-Bug fixes
----------
-
-A number of issues have been fixed with the subprograms in
-PolyORB.Sequences.Bounded and PolyORB.Sequences.Unbounded. Their behaviour
-is now closely aligned on Ada.Strings.Bounded and Ada.Strings.Unbounded,
-as per the CORBA specification. (10469)
-
-Marshalling and unmarshalling errors for aggregates are now correctly
-reported (previously a marshalling error in a reply would not correctly
-be notified as an exception to the client). (10432)
-
-Unwanted validity checks were generated in helpers for enumeration types,
-causing CONSTRAINT_ERROR to be erroneously raised when using pragma
-Initialize_Scalars. (10396)
-
-An incorrect type name was used for the POAManager reference type. It has been
-fixed to be conformant with the standard Ada mapping. This may require an
-update of user code; see "Incompatible changes" below. (10361)
-
-PortableServer package incorrectly defined helper functions. These have been
-moved in the PortableServer.Helper package to ensure code generated by idlac
-compiles correctly; see "Incompatible changes" below. (10357)
-
-idlac generated helper functions for types with local components, resulting in
-code that does not compile. This has been corrected. (10354)
-
-An incorrect type name was used for the list of POAs type. It has been fixed
-to be conformant with the standard Ada mapping. This may require an update of
-user code; see "Incompatible changes" below. (10345)
-
-An incorrect type name was used for the POA reference type. It has been fixed
-to be conformant with the standard Ada mapping. This may require an update of
-user code; see "Incompatible changes" below. (10337)
-
-A permissions issue with the polyorb-config script has been fixed. (10214)
-
-A long-standing bug in the CDR library would cause an incorrect representation
-to be used for fixed point values (leading zeroes were incorrectly omitted),
-causing failures to interoperate with third-party CORBA implementations.
-(10178)
-
-PortableServer.POA.Reference_To_Id would raise the WrongAdapter exception if
-it fails. (10159)
-
-CORBA.Is_Equivalent has been fixed to correctly determine when two references
-designate the same remote object (same remote node and same object key).
-(10124)
-
-The From_Any function generated for sequences of discriminated unions would
-raise CONSTRAINT_ERROR on sequence elements with a discriminant value other
-than the default one. (10087)
-
-PortableServer.POA.Reference_To_Id would raise an exception in the case of
-a POA with the USE_DEFAULT_SERVANT request processing policy. (10070)
-
-Incompatible changes
+New Functionnalities
 --------------------
 
-The reference type for the PortableServer::POA object is a local one,
-PortableServer.POA.Local_Ref. The conversion subprograms To_Ref and
-Unchecked_To_Ref have been accordingly renamed To_Local_Ref and
-Unchecked_To_Local_Ref, for consistency with the standard mapping.
-(41599)
+*   GNATDIST is now fully project-aware that is -P and -X flags are
+    properly handled.
 
-In CORBA.Sequences, subprogram Element_Of has been removed. It was a
-non-standard renaming of the Get_Element function specified by the
-Ada language mapping. Get_Element should be used instead. (10443)
+Integration
+===========
 
-In the CORBA personality, the PortableServer.POAManager.Ref type has been
-renamed to PortableServer.POAManager.Local_Ref to be conformant with the
-IDL-to-Ada mapping. This fixes a conformance defect of PolyORB with respect to
-the CORBA standards; user code that references this type must be fixed
-accordingly. (10361)
+*   GNATDIST can be configured for either GLADE or PolyORB (use
+    --with-pcs configure flag).
 
-In the CORBA personality, the PortableServer package incorrectly defined
-helper functions. These have been moved in the PortableServer.Helper package.
-User code that references these functions must be fixed accordingly. (10357)
 
-In the CORBA personality, the PortableServer.IDL_SEQUENCE_POA_Forward
-package has been renamed to
-PortableServer.IDL_SEQUENCE_PortableServer_POA_Forward to be conformant with
-the IDL-to-Ada mapping. This fixes a conformance defect of PolyORB with
-respect to the CORBA standards; user code that references this type must be
-fixed accordingly. (10345)
-
-In the CORBA personality, the PortableServer.POA.Ref type has been renamed to
-PortableServer.POA.Local_Ref to be conformant with the IDL-to-Ada mapping.
-This fixes a conformance defect of PolyORB with respect to the CORBA standards;
-user code that references this type must be fixed accordingly. (10337)
-
-In PolyORB.Initialization, the type Module_Info has a new component
-Shutdown to specify a shutdown hook. Calls to
-PolyORB.Initialization.Register_Module must therefore provide a value for the
-new component.
-A null value should be used for modules that do not make use of this new
-feature. (10315)
-
-Building idlac now requires an Ada 2005 compiler supporting Ada.Containers.
-
-* PolyORB 2.1 (branched on 2006-05-11)
-======================================
-
-This release contains a CORBA-compatible instantiation of the PolyORB
-generic middleware. In addition to the 2.0 release, it includes:
-
-New features
-------------
-
-Exceptions raised during modules initialization are now caught and reported.
-(9795)
-
-EXTRA_GNATMAKE_FLAGS are now honored throughout the PolyORB build process,
-not just for examples and the test suite. (9846)
-
-ORB Controllers now support multiple event source monitors. This allows one
-partition to simultaneously support plain TCP/IP and SSL sockets, e.g. CORBA
-node using both IIOP and SSLIOP. (9850)
-
-Idlac does not generate with or use clauses in package bodies anymore if the
-same clause already appears in the corresponding package spec. (9853)
-
-Idlac can now generate only client-side or server-side code on
-demand. (9899)
-
-The blocking variant of ORB.Shutdown is now implemented: when ORB shutdown
-with wait for request completion is requested, the ORB blocks until the ORB
-controller signals completion of all remaining tasks. (9912)
-
-GIOP now supports Unicode UTF-8 and UTF-16 code sets; a new configuration
-parameter has been added to force the inclusion of fallback GIOP code sets
-converters in the object reference. (9954)
-
-Documention PolyORB's framework to support new GIOP code sets has been
-added. (9955)
-
-An implementation object type is provided for CORBA::Current, allowing
-users to implement derived interfaces of CORBA::Current using the default
-implementation template. (9960)
-
-Support for the CosNaming::CosNamingContextExt interface. (10300)
+Changes since GLADE 5.02a
+=========================
 
 Bug fixes
 ---------
 
-A missing initialization dependency of helpers upon "any" has been fixed.
-(9811)
+*   GLADE is fully ported on GNAT-5.02a (abortion of synchronous
+    remote subprogram invocation is still not working because of GNAT5
+    limitations).
 
-A race condition in the client-side processing of oneway requests could
-cause a oneway call executed from a partition using tasks to hang. (9837)
 
-Transport errors occurring on a session that has pending requests are now
-correctly reported to the caller. When such an error occurs, each pending
-request is now marked as completed with an error condition, and its target
-reference is marked as unbound, allowing further calls to rebind them. (9882)
+Changes since GLADE 3.16a
+=========================
 
-The CORBA::Object::non_existent implementation was incorrect on the server
-side and has been fixed. (9888, 9892)
-
-For a locality-constrained interface, generation of the Is_A primitive must
-be under control of the Implement flag, not the Generate_Client_Code flag.
-(9947)
-
-Corrected several inconsistencies in PolyORB local shutdown facility
-that prevent the correct shutdown of the ORB. (9937, 9938) 
-
-Reordered error condition testing in
-PortableServer.POA.Activate_Object_With_Id to prevent introducing
-consistencies in the CORBA's personality POA. (9942)
-
-Actually store user-defined POA policies in the POA. (9967)
-
-Incompatible changes
---------------------
-
-By default, the SOAP personality will now bind on an available port number.
-To force it to bind to the previous default of 8080, use the
-  polyorb.protocols.soap.default_addr
-in the [soap] section of the configuration. (9793)
-
-A typo has been fixed in the name of formal parameter ORB_Identifier of
-procedure CORBA.ORB.Init (it was previously misspelt "ORB_Indentifier").
-User code that uses a named parameter association for this parameter will
-need to be fixed accordingly. (9919)
-
-CORBA.Current.Ref was changed to Local_Ref to adjust to a change in the
-CORBA specifications (between CORBA 2.3 and CORBA 3.0). (9951)
-
-* PolyORB 2.0 (released 2006-03-07)
-===================================
-
-This new major release of PolyORB comes as the conclusion of a series of
-extensive reviews and reorganisations of the middleware components,
-improving the architecture's performances and flexibility. Development
-has taken place in both the generic core and the various application
-and protocol personalities.
-
-This release contains the PolyORB generic middleware and its CORBA and MOMA
-instances. In addition to the 1.3 release, it includes:
-
-New features
+Restrictions
 ------------
 
-The stubs and skeletons generated by idlac now evaluate operation and argument
-names only once at elaboration time, for improved efficiency. (9753)
+*   Abortion of synchronous remote subprogram invocation is not
+    supported in zero-cost exception context because of current GNAT5
+    limitations.
 
-The low-level mutex facility used under full tasking has been reimplemented
-to take advantage of internal facilities provided by the GNAT runtime library,
-providing a significant performance improvement. (9744)
-
-The memory footprint of simply chained lists used internally has been reduced
-by not storing a 'Prev' pointer in each list node for that case. (9719)
-
-The output function used by the internal traces logging system is now set to
-its default value (output to the standard error file descriptor) only if it is
-unset. This makes it easier for users to override this value. (9717)
-
-Added support for CORBA bounded strings and bounded wide strings.
-(9696, 9697, 9701)
-
-Support for SSLIOP, an instance of the GIOP generic protocol on top of the
-SSL transport layer. (9520)
-
-The Thread_Pool ORB tasking policy can now dynamically allocates new tasks
-to handle higher workload. It uses three different parameters to control
-minimum number of threads, maximum number of spare threads, maximum total
-number of threads. See the PolyORB's User Guide for more details. (9515)
-
-Support for 'file://' URL scheme. This allows stringified references (e.g.
-IOR, corbaloc) to be read from a file. (9485)
-
-Support for the Tag_Alternate_IIOP_Address GIOP tagged component. This allows
-a node to listen on multiple sockets when using the GIOP/IIOP protocol
-personality. (9473)
-
-Idlac now annotates client stubs with comments indicating in which interface
-each inherited operation has been declared (whether it is implicitly inherited
-from the primary parent or redeclared from a secondary parent).
-(9458, 9459, 9460)
-
-Added support for the G++ 4.1.0 preprocessor. (9438)
-
-New contrib/ directory to store contributed code. (9376)
-
-Added idlac_wrapper, a script contributed by Vadim Godunko to avoid
-unnecessary recompilation of idlac generated files. (9376)
-
-Incompatible changes
+New Functionnalities
 --------------------
 
-For a bounded sequence, the associated instance of CORBA.Sequences.Bounded is
-now named IDL_Sequence_<size>_<type> in conformance with the example par. 3.8
-of the IDL-to-Ada mapping. (9690)
+*   These are user-transparent functionalities. They have been
+    introduced to use PolyORB as PCS instead of GARLIC.
 
-Idlac now builds the names of accessor for attributes with the same casing as
-in the specification for the IDL-to-Ada mapping: the accessors names are built
-by prepending "Get_" and "Set_" to the the attribute name. (9636)
+Bug fixes
+---------
 
-The casing of sequences packages is now "IDL_SEQUENCE", instead of
-"IDL_Sequence" in conformance with section 3.8 of the IDL-to-Ada
-mapping. (9632)
+*   When a pure client partition was dying during a RPC, the server
+    was unable to terminate because it was trying forever to send the
+    result of the RPC.
 
-./configure now searches '--with-corba-services' instead of
-'--with-services' for CORBA Services to build. (9597)
 
-polyorb-config now returns list of CORBA services using
-'--with-corba-services' instead of '--with-services'. (9597)
+Changes since GLADE 3.15a
+=========================
 
-The "polyorb.tasking.threads.storage_size" parameter in section
-[tasking] has been renamed to just "storage_size". Accordingly,
-the environment variable to be used to override this value is now
-POLYORB_TASKING_STORAGE_SIZE instead of
-POLYORB_TASKING_POLYORB_TASKING_THREADS_STORAGE_SIZE. (9504)
-
-The "polyorb.orb.thread_pool.threads" parameter in section [tasking] is
-deprecated. The Thread_Pool ORB tasking policy is now configured using a set
-of three parameters: min_spare_threads, max_spare_threads, and max_threads.
-(9504)
-
-CORBA specifications mandate that all standard minor exception codes should be
-or'ed with the OMGVMCID constant (CORBA3 A.5). The CORBA and GIOP personalities
-now handle this correctly. (9415)
-
-The implementation of the PortableServer::ObjectId has been corrected to match
-the IDL-to-Ada specifications, resulting in changes in the API. (9352)
-
-Fixed bugs
-----------
-
-CORBA.ORB.String_To_Object used to raise non-CORBA exceptions for some cases
-of malformed corbaloc URIs. This has been fixed. (9750)
-
-The helpers for union types occasionally contained lines whose length
-exceeded the default maximum length for GNAT (255 characters). The layout
-of the generated code has been adapted to avoid exceeding this implementation
-limit. (9710)
-
-When a GIOP reply has been received, call Expect_GIOP_Header prior to
-notifying the caller. Otherwise, the underlying binding object may disappear
-too early, causing SOCKET_ERROR to be raised due to calling select(2) on a
-closed socket fd. (9507)
-
-When closing a socket, remove it from the monitored set prior to closing it.
-Otherwise, a race condition occurs that can cause SOCKET_ERROR to be raised
-due to calling select(2) on a closed socket fd. (9496)
-
-Correct helper generation for typedefs. (9435)
-
-In some cases, integer constants greater than 2**31 would not be processed
-correctly and cause idlac to crash or generate incorrect code. (9377)
-
-Correct handling of nested (anonymous) arrays. (9412)
-
-Correct skeleton generation for functions returning references. (9411, 9424)
-
-* PolyORB 1.3 (released 2005-06-20)
-===================================
-
-This release contains a CORBA-compatible instantiation of the PolyORB
-generic middleware. In addition to the 1.2r release, it includes:
-
-New features
-------------
-
-Base support for the DynamicAny interface. (9282)
-
-The modularity of the Neutral Core Layer has been increased, leading
-to better configurability of log output (8968), and parameter sources
-(9258).
-
-Support for CORBA Policy management, including Domain policy management.
-A domain policy manager can be specified using configuration variable
-policy_domain_manager in section [corba].
-
-idlac now returns an exit status of 2 in the case of an illegal
-IDL specification. (9213)
-
-idlac now supports typeid declarations. (9212)
-
-Some inefficiencies in the buffer management subsystem have been fixed,
-giving a major improvement in performances when large data is passed
-in request parameters.
-
-Update of the implementation of the CORBA Interface Repository,
-PortableInterceptors API.
-
-Update of idlac to support IDL as defined by CORBA 3.0 standards.
-
-Update all CORBA IDL specification to match latest release by the
-OMG.
-
-Implementation of the CORBA COS Notification Service (beta stage)
-(9121), the RTCosScheduling service (RT-CORBA 1.1) (9016),
-
-Several additions to the User's Guide.
-
-Incompatible changes
+New Functionnalities
 --------------------
 
-The implementation of CORBA POA's servant managers has been corrected
-to match the IDL-to-Ada specifications, resulting in changes in the
-API. (9322)
+*   GLADE used to propagate the client priority to the server during a
+    RPC. The server was executing the RPC at this priority level. It
+    provides now two priority policies like RT-CORBA :
+    Client_Propagated which corresponds to the previous policy and
+    Server_Propagated which executes the RPC request to a given
+    priority. This priority is set by the partition attribute
+    Priority. Implement the proposals from "Towards a Real-Time
+    Distributed Systems Annex in Ada", J. Gutierrez, M. Gonzales
+    Harbour, IRTAW'2000.
 
-PolyORB.ORB_Controller.Basic has been renamed and is now
-PolyORB.ORB_Controller.Workers. (9243)
+Bug fixes
+---------
 
-idlac does not generate Interface Repository code by default anymore.
-The '-ir' command line switch can be used to specifically request IR
-code generation. The '-noir' command line switch is now a no-op and
-will be removed in a future release. (9211)
+*   Fix several bugs in the DSM storage implementation
 
-idlac is now quiet by default. The '-v' command line switch can be used
-to make it verbose. The '-q' command line switch is now a no-op and will
-be removed in a future release. (9210)
 
-The runtime configuration parameters that control the references
-to well-known services (naming and interface repository) now support
-corbaloc URIs as a possible notation (in addition to IORs). Consequently,
-they have been renamed as follows:
-  * In section [corba]:
-    naming_ior -> name_service
-    ir_ior     -> ir_service
-  * In section [dsa]:
-    naming_ior -> name_service
-(9160)
+Changes since GLADE 3.14a
+=========================
 
-Fixed bugs
-----------
+New Functionnalities
+--------------------
 
-Fixes for several code generation issues in idlac, the IDL-to-Ada
-compiler.
+*   The pragma Remote_Shell allows to decide which remote shell to use
+    when the main partition launches the other partitions.
 
-Fixes for memory leaks in GIOP code sets negotiation. (9228)
+Bug fixes
+---------
 
-* PolyORB 1.2r (released 2004-12-17)
-====================================
+*   The lightweight PCS was incorrectly activated when RACW were
+    configured on a partition.
 
-This release contains a CORBA-compatible instantiation of the PolyORB
-generic middleware. In addition to the 1.1r release, it includes:
-- extended support for CORBA and GIOP specifications,
-- support for PortableInterceptors,
-- support for RT-CORBA 1.1,
-- fixes for several bugs and memory leaks,
-- several additions to the User's Guide.
+*   Some problems were raised by the first implementation of the
+    passive partitions. There are fixed now. One of them was to
+    incorrectly allow a DSM data storage to be configured for a
+    passive partition when it is supposed to executed Li and Hudak's
+    algorithm. This release provides few new examples on shared
+    passive packages use and storage data configuration.
 
-PolyORB now includes the Message Oriented Middleware for Ada (MOMA)
-personality. It proposes an API comparable to Sun's Java Message
-Service (JMS). It supports Publish/Subscribe and Point-to-Point.
 
-PolyORB neutral core middleware now supports more concurrency
-policies. It implements the No Tasking, Basic, Leader/Followers and
-Half Sync/Half Async design patterns.
+Changes since GLADE 3.13a
+=========================
 
-Release branched on 2004-12-17. (8922)
+New Functionnalities
+--------------------
 
-* PolyORB 1.1r (released 2004-06-07)
-====================================
+*   GLADE run-time is now implemented on the top of GNAT.Sockets.
 
-This release contains a CORBA-compatible instantiation of the PolyORB
-generic middleware. In addition to the 1.0 release, it includes:
-- a significant increase in performance (30%-40%),
-- fixes for several bugs and memory leaks,
-- extended support for CORBA and GIOP specifications,
-- the PolyORB User's Guide,
-- the MIOP/UIPMC protocol stack, Unreliable Multicast Inter-ORB Protocol,
-  following the OMG standard,
-- the DIOP protocol stack, Datagram-based Inter-ORB Protocol, a
-  specialization of GIOP for oneway requests.
+*   GLADE run-time does not drag tasking when not necessary. If a
+    partition does not include any RCI or RT unit, then the partition
+    is said to be a pure client partition. If a pure client partition
+    does not drag tasking because of its user code, then the tasking
+    will not be drag by the PCS.
 
-* PolyORB 1.0 (released 2003-06-16)
-===================================
+*   The multi data storages feature is now available. It is now
+    possible to define several data storage supports for shared
+    passive units. Therefore, in the future, the file storage support
+    will not be the only support available. Note that to do so, some
+    configuration parameters have been changed. Boot_Server is now
+    obsolete and replaced with Boot_Location. Storage_Dir is now
+    obsolete and replaced with Directory in order not to be confused
+    with the directory used by a file storage support. 
 
-This release contains a CORBA-compliant instantiation of the PolyORB
-generic middleware. It includes:
-- an IDL to Ada 95 compiler,
-- Portable Object Adapter (POA),
-Dynamic Skeleton Interface (DSI),
-Dynamic Invocation Interface (DII), and
-Interface Repository (IR) implementations,
-- COS Naming, COS Event and COS Time services implementations,
-- GIOP 1.0, 1.1, and 1.2 implementations.
+*   Passive partitions are now supported. It is now possible to define
+    partitions on storage node and not only on processing nodes.
 
-This CORBA implementation can be configured for full tasking,
-Ravenscar tasking or no tasking runtime, depending on the level
-of desired functionality for the application, and on the resource
-constraints for the target.
+*   It is now possible to specify the default optimization level used
+    by GNATDIST when no -O or -g flag is used on its command line at
+    configure time. By default, no optimization at all is being done,
+    as with GNAT.
 
-This release should be considered as a stable implementation of
-CORBA middleware over PolyORB.
+Bug Fixes
+---------
 
-Release branched on 2003-05-16. (6783)
+*   A race condition in the stream storage pool has been fixed.
 
-* PolyORB 0.1 (released 2001-12-04)
-===================================
+Changes since GLADE 3.12a
+=========================
 
-This is the first public release of PolyORB code. This release
-contains the personality-neutral middleware core, the CORBA
-application personality (including our IDL -> Ada 95 compiler idlac),
-and CORBA and SOAP protocol personalities.  This should be considered
-as test-phase software.
+New Functionnalities
+--------------------
+
+*   The multi-protocols feature is now fully supported. It is now
+    possible for a partition to communicate with other partitions
+    using different protocol names or different protocol data.
+
+*   Partition_ID is now unlimited (it was bounded to 64 in the previous
+    versions). Partition ids of pure client partitions are now recycled.
+
+*   Now gnatdist under NT requires only standard Windows tool. It does not 
+    requires anymore to have around some UNIX like tools (cp, mkdir...).
+
+Bug Fixes
+---------
+
+*   Boot mirror group communication has been improved (less messages and
+    better performance).
+
+*   Fix several memory leaks. All terminated tasks are now recycled
+    for later use instead of being deallocated.
+
+*   Remove potential deadlocks.
+
+*   Fix incorrect deletions in gnatdist (remove obj and ali files of rci
+    unit in partition directory when it is no longer configured on the
+    partition).
+
+Changes since GLADE 3.11b
+=========================
+
+New Functionnalities
+--------------------
+
+*   Shared_Passive packages can now be used.
+
+*   General performance improvements.
+
+*   The Windows NT version now uses the registry.
+
+*   GLADE can be used from non-standard location by setting the
+    GLADE_LIBRARY_DIR appropriately.
+
+*   Tracing Facilities of what is going on inside GLADE during a
+    distributed execution.
+
+*   Add fault-tolerance features. The main partition is no longer a
+    single point of failure. See Examples/Reconnection.
+
+*   It is now possible to configure the number of tasks executing
+    incoming remote procedure calls on a partition.
+
+Bug Fixes
+---------
+
+*   Fix a bug in partition death/revival that caused other partitions
+    to fail in some cases.
+
+*   E.4 (18) is now correctly implemented.
+
+Changes since GLADE 1.03
+========================
+
+New Ports
+---------
+
+*   GLADE has been ported on SGI and Windows NT. It is now also working
+    when the GNAT run-time is using FSU threads.
+
+New Functionnalities
+--------------------
+
+  * Full heterogeneous support
+    In GLADE 1.03, heterogeneous support was only available for 32
+    bits machines or for 64 bits machines only. Now, it is possible to 
+    mix 32 and 64-bits machines in the same GLADE application.
+
+  * RACW in Remote_Types
+    It is now possible to declare remote access to class-wide types in 
+    Remote_Types packages (this was already possible in
+    Remote_Call_Interface packages). This makes it possible to have a
+    reference to a remote object stored in another remote object and
+    to create complex data structures involving several partitions at
+    the same time.
+
+  * Generic RCI packages
+    GLADE now supports generic RCI packages. The pragma
+    Remote_Call_Interface must be applied on both the generic package
+    and the instantiation.
+
+  * Pragma All_Calls_Remote
+    GLADE now supports pragma All_Calls_Remote.
+
+  * New stubs compilation model
+    GNAT does not generate plain Ada stubs anymore but generates
+    object file directly instead. GNATDIST takes advantages from this
+    and compilation times are reduced by an important factor for
+    distributed programs that contain a lot of RCI packages.
+
+  * Building some partitions only
+    GNATDIST now allows to build partitions with an incomplete set of
+    sources. It is now no longer required to provide the body of a RCI 
+    unit when we would only need the RCI spec.
+
+  * Parallel compilation
+    GNATDIST now partially supports the -jN flag, where N is the
+    maximum number of processes to launch at the same time (the
+    default being one). This support is not yet complete and is used
+    only by the build of the non-distributed application.
+
+  * Streams pool
+    The internal mechanism to allocate streams has been enhanced to
+    prevent stack blowups for large data. Dynamic allocation of small
+    streams is avoided using pre-allocated chunks of memory through
+    Ada95 storage pools.
+
+  * Reconnection policy
+    It is now possible to restart a partition once it has crashed.  To
+    do this use partition reconnection attribute. Three policies are
+    available. The defaut is Rejected_On_Restart which prevents any
+    restart of a partition. When a client reconnection policy is set
+    to Failed_Until_Restart, the client will raise Communication_Error 
+    on any attempt to connect to the server partition until this
+    partition has been restarted. Any attempt to connect to the server 
+    partition will block the client until the partition has been
+    restarted when reconnection policy is set to Blocked_Until_Restart.
+
+  * Filters interface change
+    The filtering interface uses access types rather than arrays to
+    avoid blowing-up the stack when using large data. 
+
+  * New default flags
+    When no optimization level (-O flag) and no debugging information (-g)
+    are selected, gnatdist defaults to -O2 to get smaller and more
+    efficient executables.
+
+Bug Fixes
+---------
+
+  * Filtering facilities have been re-written to fix problems
+    with filter key exchange.
+
+  * Some problems with the launching facilities have been fixed. It is 
+    now possible to use a remote shell command different from rsh.
+    No more "-n" will be added on the command line if --with-remsh has 
+    been chosen at configuration time.
+
+  * Remote access to subprogram now work correctly
+
+  * Remote access to class-wide types holding a null value can now be
+    compared to null successfully.
+
+  * Comparisons between remote access to class-wide types values now work
+
+  * GLADE now supports RACW whose designated type has primitive
+    operations with controlling arguments that are not of access mode.
+
+  * No more Storage_Size pragmas are needed on user tasks, unless they 
+    would be needed in the non-distributed application.
+
+  * GNATDIST now checks that RCI children of a RCI package are configured
+    on the same partition.
+
+Misc
+----
+
+  * Less tasks are created by the partition communication subsystem
+
+  * Adapted for use with the GNU libc under Linux
+
+  * The version has been bumped to 3.11 to match the GNAT release
+
+Changes since GLADE 1.02
+========================
+
+New Functionnalities
+--------------------
+
+  * Local launching
+    If the host on which a partition must be launched is detected as
+    being the same as localhost (same official name or name
+    "localhost"), then rsh is not used any more and partitions are
+    launched using system().
+
+  * Light PCS
+    If a partition does not contain any RCI body and does not have the 
+    possibility of defining local RACW entities, then no anonymous
+    task is ever started, in order to avoid creating tasks which will
+    never be used.
+
+  * Task pools
+    Up to GLADE 1.02, a new task was created for each incoming
+    request. Now, tasks are reused and are pre-created using a
+    low-priority background allocator to allow requests to be served
+    sooner. The number of awaiting tasks is configurable through
+    GNATDIST configuration files on a per-partition basis or system-wide.
+
+  * Informative exception messages
+    When the TCP module fails, the errno return code is stored in the
+    exception message to allow easier debugging.
+
+  * gnat.adc
+    GNATDIST handles gnat.adc.
+
+  * Version checks
+    If a RCI version id is a blank string, then the version check is
+    always considered as true.
+
+New Ports
+---------
+
+  * Digital Unix
+    GLADE now works correctly on Digital Unix. Heterogeneous
+    distribution involving Digital Unix platforms is not yet
+    supported. Compilation must use -O0 instead of -O2 to prevent a
+    bug at runtime. The zlib library seems to be broken on Digital
+    Unix. Therefore, the zip filter is not available.
+
+Misc
+----
+
+  * Various code cleanups.
+
+Changes since GLADE 1.01
+========================
+
+New Functionnalities
+--------------------
+
+  * Filters. 
+    A filter is a set of subprograms which will be called
+    automatically before sending bytes on the communication channel
+    and after receiving them. An example (the ZIP filter) is bundled
+    and installed along with GLADE, which uses the zlib library.
+    There are new pragmas and attributes in GNATDIST to use this
+    feature.
+
+  * Trace and Replay
+    It is possible to pass two new predefined arguments --trace and
+    --replay to a partition. In tracing mode, network inputs and
+    outputs are logged in such a way that when the partition
+    executable is invoked with arguments --replay, inputs and outputs
+    are read from the log files. Therefore, you can easily debug your
+    distributed application without any non-deterministic side
+    effects.
+
+Examples
+---------
+
+   * LightBank 
+     It is a simple example of client/server application written in
+     Ada 95 and Annex E. Shows in particular how a simple partition
+     (the client) can be duplicated at will. 
+
+   * Bank 
+     A more sophisticated example on the same theme. It demonstrates 
+     distributed objects and filtering.
+
+Bug Fixes
+---------
+
+   * Float transmissions between different architectures with
+     different word sizes now work.
+
+   * Pathological cases in GNATDIST.
+
+Misc
+----
+
+   * Copies of buffers have been suppressed wherever possible, thus
+     decreasing execution time.
+
+   * The 'rsh' command can now be changed at installation time using the
+      --with-remsh parameter of configure (in preparation for HP support)
+
+   * Upgraded to automake 1.1n. If the user does modifies sensitive files 
+     (such as Makefile.am) and does not have automake, then print a
+     message instead of crashing with an unclear error.
+
+   * Reorganisation of GNATDIST directory hierarchy.
+
+   * Clearer error messages for GNATDIST.
+
+   * New file NEWS (this file).
+
+# Local Variables:
+# mode: text
+# End:

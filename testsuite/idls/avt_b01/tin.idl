@@ -1,6 +1,0 @@
-//testsubgroup basic
-//tsgdescr "Testing basic features of the abstract valuetype construct"
-
-abstract valuetype AbsVal {
-  short op();
-};

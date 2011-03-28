@@ -1,2 +1,0 @@
-${current_dir}svc.idl-stamp: idlac_flags := -ir
-${test_target}: ${current_dir}svc.idl-stamp

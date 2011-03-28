@@ -1,0 +1,80 @@
+#!/bin/sh
+#
+# This script tries to ensure that the user has set up a correct
+# environnement to run the example.
+#
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+EXEEXT=@EXEEXT@
+RSH=@RSH@
+
+#
+# Utilities
+#
+
+error_make_install() {
+  echo 'Are you sure you have typed "make install" ?' >&2
+  echo 'If not, cd into ../.. and type "make install"' >&2
+  exit 1
+}
+
+#
+# Check that gnatdist is installed at the right place
+#
+
+if test ! -f $exec_prefix/bin/gnatdist${EXEEXT}; then
+  echo "Error: I cannot find gnatdist in $exec_prefix/bin" >&2
+  error_make_install
+fi
+
+#
+# Check that GARLIC is installed at the right place
+#
+
+if test ! -f $prefix/lib/garlic/s-garlic.ali; then
+  echo "Error: I cannot find GARLIC files in $prefix/lib/garlic" >&2
+  error_make_install
+fi
+
+#
+# Check that gnatdist is in the user's path
+#
+
+OIFS="$IFS"
+IFS=":"
+set $PATH
+IFS="$OIFS"
+where="NOTFOUND"
+for i in "$@"; do
+  if [ -x $i/gnatdist${EXEEXT} ]; then
+    where="$i/gnatdist"
+    break
+  fi
+done
+
+case $where in
+  *gnatdist)
+     if [ "$where" != "$exec_prefix/bin/gnatdist" ]; then
+       echo 'Warning: the first gnatdist in your PATH' >&2
+       echo "         ($where)" >&2
+       echo '         is not the expected one' >&2
+       echo "         ($exec_prefix/bin/gnatdist)" >&2
+       echo "         Fix this if you run into trouble." >&2
+     fi;;
+  *)
+     echo 'Error: the program gnatdist seems not to be in your path' >&2
+     echo 'Maybe you should type:' >&2
+     case $IN_MAKE in
+       yes) echo '   *csh users: set path=('$exec_prefix'/bin $path)' >&2
+            echo '   *sh  users: PATH='$exec_prefix'/bin:$PATH' >&2;;
+       *)
+	  case $SHELL in
+	    *csh) echo '   set path=('$exec_prefix'/bin $path)' >&2;;
+	    *sh)  echo '   PATH='$exec_prefix'/bin:$PATH' >&2;;
+	  esac
+     esac
+     echo 'and try again' >&2
+     exit 1
+     ;;
+esac

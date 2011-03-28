@@ -1,0 +1,11 @@
+*.ali
+b_*.cfg
+bin
+caller
+dsa
+part1
+part2
+receiver
+ta.cfg
+test_abort
+test_abort.cfg

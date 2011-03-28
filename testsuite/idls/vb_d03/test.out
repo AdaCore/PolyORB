@@ -1,2 +1,0 @@
-typedef long LongArray[2][3];
-valuetype ArrayValue LongArray;

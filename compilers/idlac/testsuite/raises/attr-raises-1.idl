@@ -1,4 +1,0 @@
-interface Attr_Raises_1 {
-    exception Exc {};
-    readonly attribute long a raises (Exc);
-};

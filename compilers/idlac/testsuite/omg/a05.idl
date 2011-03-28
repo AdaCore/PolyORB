@@ -1,6 +1,0 @@
-
-union Example switch (long) {
-    case 1: case 3: long Counter;
-    case 2: boolean Flags [4] [8];
-    default: long Unknown;
-};

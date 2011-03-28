@@ -1,0 +1,182 @@
+2005-02-24  Laurent Pautet  <pautet@noos.fr>
+
+	* glade_ug.texi, gfdl.texi: fix inconsistencies in texinfo nodes.
+
+2003-12-11  Samuel Tardieu  <sam@rfc1149.net>
+
+	* glade_ug.texi: Change two instances of Wait_Until_Restart into
+	Block_Until_Restart.
+
+2003-12-07  Laurent Pautet  <pautet@enst.fr>
+
+	* glade_ug.texi: Update documentation about priority policies and
+	remote shell use.
+
+2003-11-12  Samuel Tardieu  <sam@rfc1149.net>
+
+	* glade_ug.texi: Add proper reference to the GFDL.
+
+2003-01-31  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* glade_ug.texi: Fix spelling mistakes
+
+2002-02-13  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* glade_ug.texi: Include gfdl.texi and fix some spacing
+	problems. Fix copyright as well.
+
+2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* user_guide.html: Remove RCS keyword.
+
+2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* glade_ug.texi: Add info on new features (passive partitions,
+	multi protocols, multi storages).
+
+	* Makefile: Add glade_ug.texi to release.
+
+	* myconfig.cfg: Update configuration because of syntax changes.
+
+2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi, install_guide.txt: Replace @gnat_version@ and
+ 	@glade_version@ with __gnat_version__ and __glade_version__.
+
+1999-08-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: Include Ed's suggestions (second wave of comments).
+
+1999-08-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi, all-srcs.ada: Include Ed's suggestions.
+
+1999-07-01  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile: Do not assume that the current directory is in the
+	user's PATH.
+
+1999-01-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: Add sections for gnatdist features.
+
+1999-01-06  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: Add several empty subsections on configuration
+	language features.
+
+1999-01-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile: Cleanup to avoid useless operations.
+
+	* texinfo.tex: Add support for pictures in PDF files. Sent to the
+	maintainer of texinfo.tex/texi2dvi/texi2pdf for integration.
+
+	* glade_ug.texi: Make some changes.
+
+	* all-srcs.ada: Likewise.
+
+1999-01-06  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: Add part of gnatdist documentation.
+
+1999-01-05  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: Include user guide.
+
+1999-01-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: More on tutorial and DSA/CORBA comparison.
+
+	* full-ex.fig, xe-arch.fig, corba-arch.fig : Figures
+	for full example, DSA architecture and CORBA architecture.
+
+	* full-ex.fig.txt, xe-arch.fig.txt, corba-arch.fig.txt :
+	ASCII versions of the previous figures.
+	
+ 	* adjustbb, corba.ssh, Makefile : Script to adjust wrong
+	bounding box, a format for a2ps and Makefile.
+        
+   	* naming.idl, all-srcs.ada : IDL example and all Ada sources in a
+	chopable format.
+
+1998-12-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* user_guide.txt: A section on how to trace what is going on
+	inside GLADE. How to set S_RPC and S_PARINT.
+
+1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* user_guide.txt (Note): Add short documentation on reconnection
+ 	policy. Update Restrictions section.
+
+1997-12-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* glade_ug.texi (Top): Remove stubs-related nodes.
+
+	* user_guide.txt: Remote note on stubs now that they are not
+	generated anymore.
+
+1997-04-13  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * glade_ug.texi: Starting GLADE User Guide (texinfo). user_guide.html
+        should be removed.
+        
+1997-04-10  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * user_guide.txt: Add documentation on the default installed
+        filter and the default used filter.
+        
+1997-02-12  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * user_guide.txt: Building a shell script is not the
+        default. Directory hierarchy has been changed (everything is under
+        directory dsa). Remove obsolete warnings on exceptions.
+        
+1997-02-11  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * user_guide.txt, install_guide.txt: Change references to mailing
+        lists.
+        
+1996-11-29  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * user_guide.txt: Documented the Ada starter.
+        
+1996-11-27  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * install_guide.txt: New file.
+        
+1996-11-23  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * user_guide.txt: Description of :
+        Partition'<Attribute>    ... (apply to all partitions)
+        procedure <Main>         ... (declare a main subprorgam; see below)
+        <Partition>'Main         ... (use specific partition main subprogr.)
+        <Partition>'Command_Line ... (add arg. on command line)
+        pragma Version           ... (don't check consistency version)
+        pragma Boot_Server       ... (use specific invocation key)
+        
+        Mention possible execution in heterogeneous sys.
+        Remove shell restrictions when Ada starter was requested.
+        
+1996-11-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * user_guide.txt: Description of --nolaunch and addition of
+        --slave.
+        
+1996-07-05  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * user_guide.txt: Franco's changes.
+        
+1996-05-08  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * gnatdist.txt: Added Garlic and Gnatdist version.
+        
+1996-05-05  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * gnatdist.txt: Boot_Server -> Boot_Server.
+        
+1996-04-22  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * gnatdist.txt: Updated.
+        

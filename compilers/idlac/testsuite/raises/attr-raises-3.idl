@@ -1,8 +1,0 @@
-interface Attr_Raises_3 {
-    exception Exc {};
-    // All attribute declarations are incorrect.
-    readonly attribute long a setraises (Exc);
-    readonly attribute long b getraises (Exc);
-    readonly attribute long c getraises (Exc) setraises (Exc);
-    readonly attribute long d setraises (Exc) getraises (Exc);
-};

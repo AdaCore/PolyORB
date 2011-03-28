@@ -1,4 +1,0 @@
-interface all_types {
-  Object echo12(in Object arg);
-};
-

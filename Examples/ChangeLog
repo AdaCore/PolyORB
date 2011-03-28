@@ -1,0 +1,118 @@
+2006-06-15  Pablo Oliveira  <oliveira@adacore.com>
+
+	* Messages/pingpong.cfg: Fix typo.
+
+2004-01-08  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* Filters/s-gafido.adb, MultiPro/s-gaprxy.adb,
+	MultiPro/s-gaprxy.ads:
+	Continue with CC02-016.
+
+2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* MultiPro: Update protocol XYZ (copy of System.Garlic.XYZ) to
+	test multiprotocol feature.
+
+2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* check-config, check-config.in, all Makefile.am: Remove RCS
+ 	keyword.
+
+1999-02-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Add reconnection policy example.
+
+1998-02-12  Laurent Guerby  <guerby@gnat.com>
+
+	* Bank/message.ads: Categorize the package as
+	Remote_Types to respect E.4 (18).
+
+	* Bank/terminal.ads: New package.
+
+	* Bank/client.adb: Now with Terminal.
+
+	* Bank/simcity.cfg: Disable the zip filter for now.
+
+	* Bank/bank.adb: Drop a warning when Notify didn't work.
+	
+1998-02-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Eratho/absolute/prime.ads: Categorize the package as
+	Remote_Types to respect E.4 (18)
+
+	* Eratho/dynamic/prime.ads: Ditto
+
+	* Messages/pingpong.cfg: Use "localhost" instead of shell-script
+	localhost.
+
+	* Messages/localhost: Removed
+
+	* Messages/rci.ads: Change Partition_ID into Natural to avoid
+	categorization dependencies violation.
+
+	* Messages/rci.adb: Ditto
+
+1997-11-19  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * Filters: Rescue Filters example due to new stream storage pool
+        features.
+        
+1997-09-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * check-config.in: Do not check for rsh to localhost anymore since
+        it will not be used.
+        
+1997-05-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * Messages/Makefile.am: Changed bogus pathes.
+        
+1997-04-29  Laurent Pautet <pautet@dorine.enst.fr>
+        
+        * check-config.in: Use $RSH instead of rsh (HP).
+        
+1997-04-25  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * Makefile.am, Makefile.in: get rid of RACW in distrib. Use Eratho
+        examples instead of RACW.
+        
+1997-04-24  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * Makefile.am, Makefile.in: Fix several problems in Examples/*
+        Makefiles. First, gnatdist was invoked several times for the
+        example due to an incorrect target specification. Second, a target
+        was missing for one of the examples.
+        
+1997-04-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * check-config.in: Take cygwin32 extension (.exe) into account.
+        
+        * Bank/Makefile.am: Remove gnatdist's full path. Code check-config
+        path as relative to ${top_srcdir}.
+        
+        * LightBank/Makefile.am: Ditto.
+        
+1997-03-13  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * Makefile.am: Add LightBank.
+        
+        * Makefile.in: Modified (Makefile.am).
+        
+1997-02-12  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * Eratho/README: Add several comments on client/server
+        applications. And give a full description of the example
+        behaviour.
+        
+1997-01-07  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * check-config.in (exec_prefix): Quote variables in the last test
+        in case of blank characters (?!)
+        
+1996-09-30  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * Prime/Makefile.am (all-local): Use ../check-stamp instead of
+        calling check-config each time.
+        
+        * check-config.in: don't use type anymore and make sure that the
+        gnatdist which is first in PATH is the right one.
+        

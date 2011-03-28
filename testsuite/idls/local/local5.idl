@@ -1,3 +1,0 @@
-local interface A {};
-
-interface B : A {};

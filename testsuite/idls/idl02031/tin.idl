@@ -1,7 +1,0 @@
-module M {
-  interface thing {
-    attribute boolean abstract; // error: abstract collides with
-                                // keyword abstract
-    attribute boolean _abstract; // ok: abstract is an identifier
-  };
-};

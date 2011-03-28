@@ -1,5 +1,0 @@
-interface Attr_Raises_5 {
-    exception Exc {};
-    // Incorrect order of getraises/setraises.
-    attribute long d setraises (Exc) getraises (Exc);
-};

@@ -1,0 +1,14 @@
+configuration TA is
+
+   pragma Starter (Ada);
+
+   part1 : partition := ();
+   for part1'Storage_Dir use "XXXXX/bin";
+
+   part2 : partition := (Remote_Abort);
+   for part2'Host use "YYYYY";
+   for part2'Storage_Dir use "XXXXX/bin";
+
+   procedure Main_Abort is in part1;
+
+end TA;

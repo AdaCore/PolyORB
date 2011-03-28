@@ -1,6 +1,0 @@
-interface Test_Interface {
-   void trigger_server_shutdown (in boolean wait);
-   //  Have a dedicated server task call Shutdown with the given value
-   //  for Wait_For_Completion. This method does not return immediately,
-   //  so if the Shutdown call is waits for completion, it will be blocked.
-};

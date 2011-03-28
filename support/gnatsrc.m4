@@ -1,6 +1,4 @@
-dnl Find GNAT sources
-dnl $Id$
-
+## Find GNAT source
 AC_DEFUN([AC_GNAT_SOURCE],
 [
   AC_MSG_CHECKING([for GNAT sources])

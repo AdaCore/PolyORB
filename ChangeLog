@@ -1,0 +1,1042 @@
+2006-06-13  Thomas Quinot  <quinot@adacore.com>
+
+	* Examples/MultiPro/s-gparxy.adb: Fix various warnings: remove
+	unnecessary use clause, add missing 'constant' keyword, remove
+	test for condition that is always true.
+
+	* Examples/MultiPro/s-gparxy.adb: Remove debugging code that relies
+	on obsolete timestamp i/o routines.
+	
+2006-06-02  Pablo Oliveira <oliveira@adacore.com>
+	
+	* Dist/xe_back-polyorb.adb: Reset conf table after generating
+	each elaboration file. (Fix for F601-017)
+	Updated copyright notice.
+	
+2005-12-02  Thomas Quinot  <quinot@adacore.com>
+
+	* Dist/xe_sem.adb: Do not include generic RCI or SP units in the
+	list of stubs.
+
+2005-12-01  Thomas Quinot  <quinot@adacore.com>
+
+	* Dist/config.sdefault, Garlic/Makefile.am: Take GNAT_RTS_FLAG
+	into account when computing the path to libgnat.a.
+
+2005-06-28  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_back.ads, xe_back.adb, xe_back-garlic.adb, xe_back-polyorb.adb:
+	Factor duplicated code.
+
+2005-06-28  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_back.adb: Refine algorithm for setting the partition Exec_Dir:
+	if it has been explicitly specified as an absolute path, use the
+	given path; if it has been specified as a relative path, or left
+	unspecified, prepend it with ../../.. so it is processed relative
+	to the mail build directory.
+
+2005-06-22  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_back-garlic.adb, xe_back-polyorb.adb: Remove common subprogram
+	Generate_Partition_Project_File.
+
+	* xe_back.ads, xe_back.adb: Add Generate_Partition_Project_File,
+	factored from PCS-specific backends. Prepend ../../../ to partition
+	executable name, in order for it to be generated in the base object
+	directory rather than the dsa/<config>/<partition> subdirectory.
+
+2005-06-17  Thomas Quinot  <quinot@adacore.com>
+
+	* xe_defs.ads, xe_defs.adb: New subprogram Get_Dist_Prefix returning
+	the prefix of the bin directory where gnatdist is installed. Used
+	to allow dynamic computation of the location of the GARLIC runtime
+	library.
+	New subprogram Set_PCS_Name allowing the value returned by
+	Get_PCS_Name to be changed.
+
+	* xe_back.ads: Isolate PCS-specific implicit command line flags
+	setting in a new primitive operation Set_PCS_Dist_Flags.
+
+	* xe_back-garlic.adb: Implement Set_PCS_Dist_Flags for the GARLIC
+	case using a dynamic prefix computation based on gnatdist location,
+	then falling back to the builtin (compile-time) prefix.
+
+	* xe_back-polyorb.adb: Implement Set_PCS_Dist_Flags for the PolyORB
+	case using a call to polyorb-config.
+
+	* xe_defs-defaults.ads.in: New constant Default_Prefix.
+	Remove PCS-specific flags from Default_Dist_Flags.
+
+	* xe_utils.ads, xe_utils.adb: New subprogram Scan_Dist_Args to scan
+	a string of multiple command line switches.
+
+	* xe_main.adb, xe_utils.adb: Provision for setting some implicit
+	command line flags dependant on PCS selection using
+	--PCS=(garlic|polyorb).
+
+	* xe_usage.adb: Document --PCS=... switch.
+
+2005-05-09  Pascal Obry  <obry@adacore.com>
+
+	* INSTALL:
+	Update build procedure on Windows.
+	Work for E426-001.
+
+2004-10-11  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* configure.in, configure: Add flag --with-pcs=X where X
+	designates the Partition Communication Subsystem (either garlic or
+	polyorb). Substitute to new variables: PCSFLAGS which provides
+	the flags required to compile, bind and link the PCS in the
+	application and GLADEDIRS which designates the subdirectories to
+	build depending on the PCS: polyorb does not require garlic to be
+	installed.
+	For CA22-003.
+
+	* Makefile.am, Makefile.in: parameterize subdirs with GLADEDIRS.
+	For CA22-003.
+	
+2004-09-28  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* aclocal.m4, configure, configure.in, support/ada.m4: Adapt to
+	new GNAT version format.
+	For D928-001.
+
+2004-08-13  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* aclocal.m4, configure, all Makefile.in: Make less assumptions on
+	dir separator for NT.
+
+	* MANIFEST: Add xe_reg.ads and xe_reg.adb for NT.
+
+2004-08-12  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* MANIFEST: Change xe_load into xe_list.
+
+2004-08-11  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* configure.in, configure: do not take care of the presence of
+	gnat sources anymore.
+	Part of the work for CA22-003.
+
+	* MANIFEST: remove gnat sources from distribution and add new Dist
+	sources.
+	Part of the work for CA22-003.
+
+2004-02-14  Pascal Obry  <obry@gnat.com>
+
+	* aclocal.m4, configure:
+	Fix sed rule on Windows.
+	Part of work for D211-003.
+
+2004-01-08  Samuel Tardieu  <sam@rfc1149.net>
+
+	* NEWS: Fix typo.
+
+2003-12-16  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* configure, aclocal.m4, support/ada.m4: Take into account "PRO"
+	and "ACADEMIC" in the output of GNATLS in order to compute
+	revision major number.
+	Fix probably CC15-007.
+
+2003-12-07  Laurent Pautet  <pautet@enst.fr>
+
+	* NEWS: Update NEWS as it has not been done for a very long time.
+
+2003-11-22  Samuel Tardieu  <sam@rfc1149.net>
+
+	* support/ada.m4: Quote name of macros as recommended by autoconf
+	and automake maintainers. Future versions of autoconf/automake will
+	issue a warning when this is not the case.
+
+2003-11-03  Laurent Pautet  <pautet@enst.fr>
+
+	* MANIFEST: Add Dist/b_xe_defs.adb which builds a specific version
+	of Dist/xe_defs.adb.
+	Continued work for CA22-003.
+
+	* configure.in, configure: Replace space with slash in "Windows	NT".
+	Continued work for CA22-003.
+
+2003-03-15  Pascal Obry  <obry@gnat.com>
+
+	* MANIFEST: Add tempdir.ad[sb].
+	Continued work for C311-010.
+
+2002-11-26  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* aclocal.m4, configure: Fix BB23-001 (test concerning gnatgcc).
+
+2002-11-23  Pascal Obry  <obry@gnat.com>
+
+	* MANIFEST: Remove ctrl_c.c it was a wrong entry after all.
+
+2002-11-23  Pascal Obry  <obry@gnat.com>
+
+	* MANIFEST: Change a-ctrl_c.c to ctrl_c.c.
+	
+2002-05-09  Pascal Obry  <obry@gnat.com>
+
+	* configure.in: Fix AM_INIT_AUTOMAKE to be compatible with
+	recent autoconf version.
+
+	* configure: Update using new configure.in
+	
+2002-04-22  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* MANIFEST: Add inffixed.h in zlib directory because of an update
+	from 1.0.8 to 1.1.4.
+
+2002-02-08  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* MANIFEST: Add ada/targparm.ad[bs] to fix 8812-004.
+
+2002-01-16  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* configure, configure.in: Check unreferenced entities in a
+	standard installation for regression tests.
+
+2001-05-31  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* MANIFEST: Add s-garpri.adb, s-gaprma.ads s-gaprma.adb.
+
+2001-05-05  Vincent Celier <celier@gnat.com>
+
+	* MANIFEST: update the prj.* packages, following modifications
+	to the Prj stuff.
+
+2001-03-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add sinfo-cn.ad[bs] since they are now required.
+
+2001-01-31  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* configure.in: Apply previous change to another message.
+
+2001-01-30  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Cosmetic change: rephrase check message for
+	thread-blocking I/O.
+
+2001-01-26  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* configure.in, configure: Fix the rsh command and options for
+	AIX.
+
+	* README: Add SGI and AIX to the successful ports (but not
+	supported).
+
+2001-01-25  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* configure.in, configure: Add flag to force simulating thread
+	blocking io. Configure s-gaplsp.ads with this flag.
+
+2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* configure.in: Remove configuration of remaining GARLIC sockets
+	stuff. Update GNAT prerequisite.
+ 
+	* MANIFEST, Makefile.am, Makefile.in, configure.in, configure:
+	Remove socket packages configuration and use GNAT.Sockets instead.
+
+2001-01-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Look for sys/param.h in addition to sys/conf.h.
+	Needed on some systems.
+
+2000-12-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: Remove useless -Wall compilation for gnat. Update
+	makefiles.
+
+2000-11-14  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Add prj hierarchy needed to build gnatdist.
+
+2000-10-20  Pascal Obry  <obry@gnat.com>
+
+	* configure, configure.in: add support for platform specific
+	Garlic.Thin unit.
+	
+2000-09-21  Laurent Pautet  <pautet@arlequin>
+
+	* MANIFEST: Add the missing gnat files needed to deal with source
+	file names. Add new garlic DSM storage files.
+
+2000-09-08  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Move storage supports like DFS into the Storages
+ 	hierarchy in order to have a model similar to the Protocoles one.
+
+2000-09-07  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Replace s-shamem with s-shasto.
+
+2000-09-06  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Add fname-uf.ads and fname-uf.adb.
+	
+2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Add types.adb.
+
+	* Makefile.am, Makefile.in: Remove RCS keyword.
+
+2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST, configure.in: Add examples MultiSto and MultiPro.
+
+	* NEWS: Add info on new features (passive partitions, multi
+	protocols, multi storage).
+
+	* Makefile.in: Regenerate incorrect file.
+
+2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Let the user choose the default optimization he wants
+	for gnatdist, the default being no optimization at all.
+	Fix bogus help strings.
+	Check for adagcc as well (in addition to gnatgcc and gcc) as this
+	is a common name for the GNAT compiler.
+	Add support for FreeBSD instead of barfing with an error.
+
+2000-05-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* README (Introduction): Add a special note to indicate that the
+	machine name should never be associated to address 127.0.0.1;
+	this is unfortunately the case on some Linux distributions
+	(see 7703-007).
+
+2000-04-21  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* MANIFEST: Add new files from Garlic concerning data storages for 
+	shared passive units and passive partitions.
+
+	* configure.in, configure, Makefile.in: Define flag
+ 	--with-data-location=x to change default data storage and use
+	DEFSTORAGENAME and DEFSTORAGEDATA in this purpose.
+
+2000-03-28  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add 5hlgarcon.ads.
+
+2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* README, INSTALL: Replace @gnat_version@ and @glade_version@ with
+ 	__gnat_version__ and __glade_version__.
+
+2000-02-02  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* README: Update supported platforms (remove SGI and add HPUX with 
+	restrictions).
+
+2000-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Define AR and RM for non-GNU make
+ 	(HPUX).
+
+2000-01-28  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Remove macros specific to GNU make in
+ 	order to avoid bug reports of users using other make tools.
+
+
+2000-01-24  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* NEWS: Add a paragraph on multi-protocols feature.
+	
+	* configure.in: Allow to configure rshcmd and rshopt. Needed for
+	HPUX. Update Makefile.in accordingly.
+
+1999-11-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Split BOOT_SERVER default value into
+ 	two default values, DEFPROTOCOLNAME and DEFPROTOCOLDATA because
+ 	the default protocol name can be used independantly from the
+ 	default protocol data. Fix a bug in the computation of the default
+ 	protocol - a list of protocol was assigned and not the first
+ 	element of the list. 
+
+	* MANIFEST: Add Garlic/s-garthi.adb.
+
+1999-09-17  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Add a flag to force zlib installation.
+  	First, we want to test this installation when the zip library is
+ 	already present on the system (skip this optimization). Second,
+ 	the system zip lib may be inconsistent with the glade one.
+
+1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove s-garloc.adb, s-garloc.ads, s-gartyp.adb and
+	add s-gaprob.adb, s-gaprob.ads.
+
+1999-08-22  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Add usage.ad[bs] needed for makeusg.adb.
+
+1999-06-30  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* NEWS: Update with the new features and the bug fixes since
+ 	glade-3.11.
+
+1999-06-02  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: Sanity directory is now an env. variable instead
+ 	of a configuration option (in order to test with a binary
+ 	release).
+
+1999-04-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add Garlic/stamp-h.in to the distribution to avoid the 
+	need for autoheader.
+
+1999-04-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add 5lgarcon.ads and 5sgarcon.ads.
+
+	* configure.in: If the ZIP filter has been selected, check for the 
+	presence of the zlib to determine whether it needs to be built or
+	not.
+	Updated for autoconf 1.3.
+
+1999-02-16  Samuel Tardieu <sam@inf.enst.fr>
+
+	* configure.in: Add a test for the string.h header file.
+
+1999-02-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in, MANIFEST: Add Examples/Reconnection.
+
+1999-01-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: print a warning if the user is not using GNU make
+	(consequence of bug 6108-G02).
+
+1998-12-01  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Add support for i?86-*-mingw32* targets.
+
+1998-10-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add Garlic/5bgtplsp.ads to the distribution.
+
+	* configure.in: Add support for AIX.
+
+1998-10-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: If we know for sure that we do have
+	thread-blocking I/O, then there is no need to include
+	s-ganobl.ad[bs] in the compilation.
+
+1998-10-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: Generate at configuration time a default boot
+	server address in order to avoid multi-user conflicts.
+
+1998-10-21  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Fix bug reported by Pascal Obry.
+
+1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: No need to clean isthrbio and friends anymore since 
+	this program is no more built here.
+
+	* configure.in: Do not create any file in the ${srcdir}. Fixes
+	several VPATH-related bugs.
+	Do not call isthrbio at build time (causes dependency problems).
+
+1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add ada/stylesw.ad[bs] to the distribution.
+
+1998-10-14  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* MANIFEST: Add s-garpar.adb in source set.
+
+1998-10-14  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Add s-gargro.ads and s-gargro.adb in source set.
+
+1998-10-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* support/ada.m4: Use AC_CHECK_PROGS when choosing between
+	alternatives. Correct bug reported by Pascal Obry.
+
+1998-10-10  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Remove old reference to 2.01 that is no longer justified.
+
+1998-10-07  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Remove mention of Windows NT launch.
+
+1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Mention Windows NT visible changes and bug fixes.
+
+1998-10-05  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Substitute PSNAME so that it can be used by the
+ 	runtime.
+
+1998-09-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* support/ada.m4: Detect gnatgcc as a suitable Ada driver since
+	that is what the Debian distribution use.
+
+1998-09-12  Laurent Pautet  <pautet@scapin.enst.fr>
+
+        * configure.in, configure: Fix 5712-G01. Specific naming
+	of a decalpha platform.
+	
+1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add missing Examples/Filters/Makefile.am.
+
+1998-09-02  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: To build isthriob, don't compile s-stratt.adb
+ 	anymore and bind with flag -t to ignore stamp inconsistency.
+        Don't care about inlining and stamp inconsistency since this
+        executable is supposed to check whether IO are thread blocking or
+        not. This should be fast because it is done during configuration.
+
+1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add missing Examples/Filters/Makefile.am.
+	Add Garlic/s-ganase.ad[bs] to the distribution.
+	Add Garlic/s-gapise.ad[bs] to the distribution.
+
+	* configure.in (ISTHRBIO): Use a reliable method that works with
+	GNAT-inlined/GLADE-not-inlined, GNAT-not-inlined/GLADE-inlined,
+	both-inlined or both-non-inlined.
+
+1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Remove Examples/Filters/localhost as it will not work
+	under Windows.
+
+	* configure.in: isthrbio may need s-stratt.{o,ali} in some
+	configurations (GNAT compiled without inlining and GLADE compiled
+	with inlining).
+
+1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* NEWS: Update "New ports", "New functionnalities" and "Bug fixes" 
+	sections. Remove redundant subsections.
+
+1998-08-06  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Adopt a solution based on platform
+	letters for NT.
+
+1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Document the default optimization for gnatdist, as well as 
+	the fact that -n is no longer added onto the command line if
+	--with-remsh is used.
+
+	* configure.in: Use $(ADA) and $(GNATMAKE) instead of "gcc" and
+	"gnatmake" since the user can have selected different programs.
+	Use -O when compiling isthrbio.
+	Build s-gatcop.ads in the current Garlic subdirectory instead of
+	$(srcdir)/Garlic to make it work when using VPATH and multiple
+	architectures sharing the same source directory.
+	Use "rsh -n" and "remsh -n" as default choices, instead of "rsh"
+	and "remsh" (the "-n" is no longer added by System.Garlic.Remote
+	to allow use of other launchers).
+
+1998-08-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Compile each garlic unit separatly to
+ 	avoid using gnatmake -a which compiles too many files. It is less
+ 	efficient during distribution cleanup but far more efficient
+ 	during user distribution installation.
+
+1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Updated for heterogeneous support.
+
+	* MANIFEST: Add Garlic/s-garloc.ad[bs] to the distribution.
+
+	* Makefile.am: Remove isthrbio and associated files when doing a
+	"make clean".
+
+	* configure.in: Use -m to recompile isthrbio to avoid useless
+	recompilations.
+	Use ./isthrbio in the case where the user does not have "." in her
+	PATH.
+	Do not remove ./isthrbio to allow subsequent runs of configure
+	without extra compilation.
+	Reformat the comment for --enable-thread-blocking-io to make
+	respect the GNU coding standards.
+	Remove -gnatx from default flags since its meaning has been
+	reversed.
+	Use -gnatawe since -gnatwu is included with -gnatg.
+	
+1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Create a new configuration option:
+ 	--with-sanity=dir. This allows to save partition pids in a given
+ 	directory. This option helps to control non-terminating partitions
+ 	when regression tests are running. It affects s-gaplsp.ads.in.
+
+1998-07-27  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in: Typo in configure.in (TCP.Non_Blocking
+	-> Non_Blocking).
+
+1998-07-26  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove some 5*files because the thread-blocking-io
+	mode does not depend on the system but on the gnat rts. Add
+	isthrbio.adb which tests the thread-blocking-io mode.
+
+	* configure.in, configure: Check whether gnat rts is thread block
+ 	io or not. This has to be done during configuration because
+	Makefile will be modified accordingly (NOBLTCP*). The system
+	dependent files will be updated during installation.
+
+1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Include Garlic/linktest.adb into the distribution.
+
+	* configure.in: Set linktest depending on the presence of
+	--enable-debug.
+
+1998-06-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove s-rpcini.ad[bs].
+
+1998-05-31  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* support/config.guess, support/config.sub: Updated from GCC
+	sources to detect the right libc under Linux.
+
+	* configure.in: Use local launching for Linux when not using
+	libc1. It looks like Linux does not crash anymore when local
+	launching is used with newer LinuxThreads.
+
+1998-05-21  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Add ada/rident.ads.
+
+1998-05-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Updated.
+
+1998-05-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove s-painst.ad?.
+
+1998-05-06  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in: Fix typo which caused incorrect update
+ 	of PROTOCOLSSOURCES.
+
+1998-05-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: New variable CP_PRESERVE which gives cp flag to
+ 	preserve the original files' owner, group, permissions, and
+ 	timestamps.
+
+	* Makefile.am, Makefile.in: See above.
+	
+1998-04-21  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: AC_GNAT_SOURCE is now in support/gnatsrc.m4.
+
+	* MANIFEST: Add Garlic/5pgtplsp.adb to distribution.
+
+1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in, Makefile.in: Add platform Open NT.
+
+1998-04-20  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Reinstated Garlic/s-garthi.ads, and remove
+	Garlic/5lgarthi.ads and Garlic/5wgarthi.ads. Add
+	Garlic/5wgtplsp.adb.
+
+	* configure.in: New variable TCP_PLATFORM_SOURCE which uses either 
+	the source or the body of System.Garlic.Platform_Specific. Needed
+	for the Windows NT port.
+
+1998-04-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Add flag -gnatx2 when using the maintainer mode to 
+	help cross-referencing.
+
+1998-04-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* INSTALL: Fix typo.
+
+1998-04-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Remove Garlic/s-garthi.ads, and add
+	Garlic/5lgarthi.ads and Garlic/5wgarthi.ads.
+
+1998-04-05  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Check for specific header files.
+
+	* INSTALL: Add a note on LinuxThreads/FSU threads issue.
+
+1998-03-31  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add Garlic/s-gamuin.ad[bs] and Garlic/s-ganeut.ad[bs]
+	to the distribution, as well as Garlic/constants.c,
+	Garlic/config.h.in and support/acconfig.h.
+
+1998-03-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Change 2<letter>* into 5<letter>*.
+
+	* MANIFEST: Likewise.
+
+1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Add some platform configurations.
+
+1998-02-27  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* TODO: Remove obsolete entry concerning stubs compilation using
+	-gnatn (this is not a concern with the new stubs model).
+	Add a new entry to remember RACW extra conversions bug.
+
+	* MANIFEST: Add Garlic/zlib/trees.h.
+
+1998-02-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Change aux into support to avoid a name clash on NT.
+
+	* Makefile.am (ACLOCAL_AMFLAGS): Likewise.
+
+	* configure.in: Likewise.
+
+1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in: Remove substitution in
+	gnatdist.in. gnatdist.in script is not used anymore.
+
+	* MANIFEST: Remove gnatdist.in.
+
+1998-02-18  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Remove s-gafino.ad[bs]. No longer needed.
+
+1998-02-18  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Do not test for Errno anymore since it is
+	available in GNAT.OS_Lib.
+
+1998-02-17  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Update list of files for new zlib.
+
+1998-02-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Correct typo.
+
+	* README: Add missing 's' to Ada Core Technologies.
+
+1998-02-12  Laurent Guerby  <guerby@gnat.com>
+
+	* configure.in: Remove -O0 for Digital Unix, no longer needed.
+
+	* configure: Ditto.
+
+	* MANIFEST: Add Garlic/DALL and Garlic/UNDALL to the distribution.
+
+1998-02-11  Laurent Guerby  <guerby@gnat.com>
+
+	* README: Fix typos.
+
+1998-02-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Use new Ada macros
+
+	* prereq: Not needed anymore
+	
+1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Updated NEWS file
+
+	* prereq: Bumped to 980126
+
+1998-01-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add s-gartyp.adb to distribution
+
+1998-01-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* README: Remove references to glade_version.txt
+
+	* MANIFEST: Add s-gartyp.ads to distribution
+	Remove references to glade_version.txt
+
+1997-12-30  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* README: Updated
+
+1997-12-18  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* prereq: New file containing the oldest required version of GNAT.
+
+	* configure.in: Use prereq file to check that a recent enough
+	version of GNAT is used.
+
+1997-12-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* README: Add a note on "gnatdist -V".
+	Mention that unified diff (-u) are accepted as well when
+	submitting patches.
+
+1997-12-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add glade_version.txt in distribution.
+
+1997-12-10  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Add -gnatwe flag when --enable-debug is selected
+	to treat warnings as errors.
+
+1997-12-09  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * MANIFEST: Remove s-garpoi.ad[bs] from distribution.
+        
+1997-12-08  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * MANIFEST: Remove s-garcac.ad[bs] from distribution.
+        
+1997-10-31  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * NEWS: Notes about the new filtering interface and the streams
+        pool.
+        
+        * MANIFEST: Add System.Garlic.Streams and
+        System.Garlic.Storage_Handling.
+        
+1997-10-30  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * NEWS: Notes about the new compilation model, the bug fixes and
+        the partial support of parallel compilation.
+        
+1997-10-29  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * MANIFEST: Remove xe-gcc.in.
+        
+1997-10-09  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Deactivate local launching on Linux.
+        
+1997-09-30  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * NEWS: Add a note on zlib which is broken on alpha.
+        
+        * configure.in, configure: Add alpha-dec-osf and fix confusion
+        between a/l codes.
+        
+1997-09-30  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * NEWS: Added note about Digital Unix port.
+        
+1997-09-23  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * README: Changed glade-report@act-europe.fr into report@gnat.com.
+        
+1997-09-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * NEWS: Note about light PCS.
+        
+1997-09-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * NEWS: Note about local launching of partitions.
+        
+1997-08-12  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Added support for libtool. Removed detection of
+        minimal recompilation capabilities in gnatmake since they are
+        always present.
+        
+        * ltconfig: Added libtool specific files.
+        
+        * ltmain.sh: ditto.
+        
+1997-05-29  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Set -O2 even when debugging, since it can detect
+        initialized variables.
+        
+1997-05-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Added Examples/Messages/Makefile in target list.
+        
+1997-05-04  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Do not check for ssh anymore since it is never
+        used automatically.
+        
+1997-04-25  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * configure.in : get rid of RACW.
+        
+1997-04-24  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * INSTALL: .rhost --> .rhosts.
+        
+        * README: Various modifications motivated by LG comments
+        before 1.02 release.
+        
+1997-04-22  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * README: Tell the user to include GNATDIST -v output when
+        reporting a GNATDIST bug.
+        
+1997-04-22  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * README: Reference NEWS. Acknowledge zlib usage.
+        
+        * NEWS: Reformat and fix typos.
+        
+1997-04-22  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Fixed bug reported by Cyrille Comar.
+        
+1997-04-10  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * NEWS: New file.
+        
+1997-04-09  Samuel Tardieu <sam@zaphod.enst.fr>
+        
+        * configure.in: Use zip filter by default.
+        
+1997-04-07  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Modified for automake 1.1n. Removed references to
+        xe-gcc*.
+        
+1997-04-02  Laurent Pautet <pautet@scapin.enst.fr>
+        
+        * README: Move a paragraph (concerning T.Wolf) from user_guide.txt
+        to README.
+        
+1997-04-01  Samuel Tardieu <sam@zaphod.enst.fr>
+        
+        * README: Fixed a bogus WWW address and add the address of ACT
+        Europe GLADE page.
+        
+1997-03-13  Laurent Pautet <pautet@esmeralda.enst.fr>
+        
+        * configure.in: Add Examples/LightBank.
+        
+        * configure: Modified (configure.in).
+        
+1997-03-21  Samuel Tardieu <sam@zaphod.enst.fr>
+        
+        * aclocal.m4: Automatically generated by automake 1.1m.
+        
+        * missing: New file.
+        
+1997-03-08  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * configure.in: Add Bank to the list of Makefiles to configure.
+        
+1997-03-07  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * configure.in, configure: Add --with-remsh to set the rsh command
+        we use.
+        
+1997-02-28  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Standard help strings for --with-filters and
+        --with-protocols.
+        
+1997-02-26  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * configure.in: Reduce the effort of a third party to
+        add a new filter. The third party just have to provide a
+        Makefile.<filter>.
+        
+1997-02-21  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * configure.in: Add zip filtering. Z library is now included in
+        the release. By default, it is not installed but with
+        --with-filters="zip", the Z library is included in garlic library
+        and Z binding and filter are also included.
+        
+1997-02-14  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Use ${top_srcdir}/dir when building with VPATH
+        and relative $top_srcdir.
+        
+1997-02-13  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Test for non-blocking I/Os when compiling the TCP
+        module to avoid sometimes trying to compile a non-compilable file.
+        
+1997-02-12  Laurent Pautet <pautet@lglsun11.epfl.ch>
+        
+        * README (Introduction): Typo.
+        
+1997-02-11  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * README (Introduction): Change references to mailing lists.
+        Suppress last 2 paragraphs.
+        
+1997-02-11  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Changed Linux target. Damn new config.guess!
+        
+1997-02-10  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Added cygwin32 and SNI target, even if it is not
+        used yet. Added support for gnatmake -s.
+        
+        * config.guess, config.sub: Update to the latest version.
+        
+1997-02-06  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: In get_errno is not found in GNAT lib, then use
+        __get_errno instead.
+        
+1996-12-19  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Changed detection of get_errno. Should raise an
+        error on Linux instead of producing bad assembly code.
+        
+1996-11-28  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * INSTALL: Fix minor typos.
+        
+1996-11-27  Laurent Pautet <pautet@inf.enst.fr>
+        
+        * INSTALL: Rewrite completely and move all non obvious stuff
+        in Doc/install_guide.txt.
+        
+1996-10-29  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Check for get_errno or __get_errno.
+        
+        * configure: Bug in Linux configuration.
+        
+1996-10-28  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * COPYING: Added to the distribution.
+        
+1996-10-22  Samuel Tardieu <sam@inf.enst.fr>
+        
+        * configure.in: Minor reformating.
+        Changed help message "--with-launching" into "--without-launching".
+        
+1996-10-21  Laurent Pautet <pautet@quasimodo.enst.fr>
+        
+        * configure.in, Garlic/Makefile.am: Several new variables :
+        [PROTOCOLS|NON_EMBEDDED]_[SOURCES|OBJECTS]
+        PROTOCOLS    :  list of protocols
+        NON_EMBEDDED :  do we launch partition
+        

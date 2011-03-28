@@ -1,7 +1,0 @@
-// File: CORBA_ValueBase.idl
-// CORBA 3.0, Chapter 5
-
-//PolyORB:NI:    valuetype ValueBase{ //PIDL
-//PolyORB:NI:        ValueDef get_value_def();
-//PolyORB:NI:    };
-

@@ -1,2 +1,0 @@
-${current_dir}harness.idl-stamp: idlac_flags :=
-${test_target}: ${current_dir}harness.idl-stamp

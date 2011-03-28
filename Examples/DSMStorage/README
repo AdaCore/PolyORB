@@ -1,0 +1,25 @@
+This example describes how to use the DSM storage support. This
+storage support runs one of the Li and Hudak's algorithms. Therefore,
+a shared passive package using this storage support cannot be
+configured on a passive partition but on an active
+partition. Moreover, the user has to prevent GLADE to use a light PCS
+in order to run this algorithm. This cannot be automatically detected
+as it is specific to this storage support.
+
+Shared passive package Vector and RCI package Scheduler are configured
+on part1. We use dsm:// as a data storage support for Vector. Client
+and Server make concurrent computations of a shared vector. We are
+going to run one instance of part1 and three instances of part2. Each
+of these four partitions increments a different block of vector with
+its partition id. Then, each partition does the same computation on
+the next block. Before moving to the next block, the partitions
+synchronize using Scheduler. At the end, each block has been modified
+the same way and vector has been massively and concurrently modified.
+
+part1 and part2 are active partitions.
+
+Run in four separate sessions, one with part1 and three with part2.
+As a result, all the vector item values are set to 10.
+
+
+

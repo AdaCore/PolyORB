@@ -1,4 +1,0 @@
-module Example {
-  interface base; // Forward declaration
-  interface derived : base {}; // Error
-};

@@ -1,3 +1,0 @@
-interface tan {
-  typedef wstring word;
-};

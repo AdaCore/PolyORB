@@ -1,5 +1,0 @@
-interface i1{
-  typedef float New_Float, Tab_Float [10]; 
-  attribute float val1, val2, tab_val;
-  attribute Tab_Float tab;
-};

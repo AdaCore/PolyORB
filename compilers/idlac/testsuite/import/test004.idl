@@ -1,5 +1,0 @@
-
-import ::test0041;
-import ::test0042;
-
-interface Test004 : Test0042 { };

@@ -1,3 +1,0 @@
-interface tin {
-  string echostring (in string arg);
-};

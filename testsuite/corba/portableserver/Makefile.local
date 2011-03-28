@@ -1,4 +1,0 @@
-${current_dir}echo.idl-stamp: idlac_flags :=
-${test_target}: ${current_dir}echo.idl-stamp
-${current_dir}test.idl-stamp: idlac_flags :=
-${test_target}: ${current_dir}test.idl-stamp

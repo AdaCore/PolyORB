@@ -1,9 +1,0 @@
-module M {
-  typedef short M; // Error: M is the name of the module in the scope
-		   // of which the typedef is.
-  
-  interface I { 
-    void i (in short j); // Error: i clashes with the interface name I
-    void a (in short a); // No clash since a is an operation
-  }; 
-};

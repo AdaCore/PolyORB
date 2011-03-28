@@ -1,8 +1,0 @@
---  Set policies
-
-pragma Assertion_Policy (@ASSERTION_POLICY@);
-pragma Debug_Policy (@DEBUG_POLICY@);
-
---  Set Initialize_Scalars for debug builds
-
-@DEBUG_ONLY@pragma Initialize_Scalars;
