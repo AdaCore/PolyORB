@@ -833,13 +833,15 @@ prefix=@prefix@
 
 ifeq (${target}, ${host})
   target_prefix=${prefix}
-  host_cmd_prefix=${prefix}/bin/
-  target_cmd_prefix=${prefix}/bin/
+  host_exe_dir=${prefix}/bin
+  host_cmdprefix=
+  target_exe_dir=${prefix}/bin
 
 else
   target_prefix=${prefix}/${target}
-  host_cmd_prefix=${prefix}/bin/${target}-
-  target_cmd_prefix=${target_prefix}/bin/
+  host_exe_dir=${prefix}/bin
+  host_cmdprefix=${target}-
+  target_exe_dir=${target_prefix}/bin
 endif
 
 .PHONY: install
@@ -857,11 +859,11 @@ install: all
 	${RM} -fr "${target_prefix}/include/polyorb"
 	${INSTALL} -d ${target_prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
-	  ${INSTALL_BIN} ${top_builddir}/compilers/$${comp}${HOST_EXE_SUFFIX} ${host_cmd_prefix}`basename $${comp}`${HOST_EXE_SUFFIX}; \
+	  ${INSTALL_BIN} ${top_builddir}/compilers/$${comp}${HOST_EXE_SUFFIX} ${host_exe_dir}/${host_cmdprefix}`basename $${comp}`${HOST_EXE_SUFFIX}; \
 	done
-	${INSTALL_SCRIPT} ${top_builddir}/polyorb-config ${host_cmd_prefix}polyorb-config
+	${INSTALL_SCRIPT} ${top_builddir}/polyorb-config ${host_exe_dir}/${host_cmdprefix}polyorb-config
 	for tool in po_cos_naming/po_cos_naming po_cos_naming/po_cos_naming_shell po_cos_naming/ir_ab_names po_ir/po_ir po_catref/po_catref po_createref/po_createref po_names/po_names po_dumpir/po_dumpir; do \
-	  ${INSTALL_BIN} ${top_builddir}/tools/$$tool${TARGET_EXE_SUFFIX} ${target_cmd_prefix}`basename $$tool`${TARGET_EXE_SUFFIX}; \
+	  ${INSTALL_BIN} ${top_builddir}/tools/$$tool${TARGET_EXE_SUFFIX} ${target_exe_dir}/`basename $$tool`${TARGET_EXE_SUFFIX}; \
 	done
 	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/polyorb/static
 	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat
