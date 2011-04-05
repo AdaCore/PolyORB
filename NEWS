@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 1999-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,6 +40,10 @@ See the features-28 file.
 
 Bug fixes
 ---------
+
+In some cases, incorrect integer representations were selected on 64 bit
+architectures, causing interoperability issues in DSA applications mixing
+32-bit and 64-bit partitions. (K201-041)
 
 A rare race condition might cause PolyORB partitions to perform an incorrect
 memory access, causing the partition to crash. (K121-014)
