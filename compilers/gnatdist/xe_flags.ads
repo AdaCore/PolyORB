@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@
 with GNAT.Table;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with XE_Defs.Defaults;
+with Platform;
 
 package XE_Flags is
 
@@ -54,7 +54,7 @@ package XE_Flags is
    --  User provided his own version of s-rpc.adb, overriding the one from the
    --  PCS.
 
-   Use_PolyORB_Project  : Boolean := XE_Defs.Defaults.Windows_On_Host;
+   Use_PolyORB_Project  : Boolean := Platform.Windows_On_Host;
    --  True when the installed project file must be used to reference the
    --  PolyORB PCS (otherwise the external script polyorb-config is used,
    --  exception on Windows where the MinGW environment does not support

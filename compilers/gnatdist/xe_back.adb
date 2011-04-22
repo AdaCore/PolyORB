@@ -37,8 +37,8 @@ with GNAT.HTable;
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
 
+with Platform;
 with XE;       use XE;
-with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 with XE_Front; use XE_Front;
 with XE_IO;    use XE_IO;
@@ -926,7 +926,7 @@ package body XE_Back is
       if Is_Readable_File (Exec_Prefix & Check_For) then
          return Exec_Prefix;
       else
-         return XE_Defs.Defaults.Default_Prefix & Dir_Separator;
+         return Platform.Prefix & Dir_Separator;
       end if;
    end Prefix;
 
