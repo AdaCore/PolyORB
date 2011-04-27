@@ -678,7 +678,10 @@ package body XE_Back.PolyORB is
       --  Set reconnection policies for all RCIs (note: we also set this for
       --  local RCIs so that we can abort partition elaboration when a stale
       --  reference is present in the name server and the partition's policy
-      --  is Reject_On_Restart.
+      --  is Reject_On_Restart. Further note, actually we set the reconnection
+      --  parameter for all conf units (both SP and RCI), because at this point
+      --  the ALI for some RCIs might be unavailable (if we are not building
+      --  all partitions).
 
       for Rem_P in Partitions.First .. Partitions.Last loop
          declare
@@ -689,13 +692,11 @@ package body XE_Back.PolyORB is
             if Remote.Reconnection /= No_Reconnection then
                U := Remote.First_Unit;
                while U /= No_Conf_Unit_Id loop
-                  if Units.Table (Conf_Units.Table (U).My_Unit).RCI then
-                     Key := Attribute_Name (U, Reconnection);
-                     Set_Conf
-                       (Section, Key,
-                        Reconnection_Img (Remote.Reconnection),
-                        Quote => True);
-                  end if;
+                  Key := Attribute_Name (U, Reconnection);
+                  Set_Conf
+                    (Section, Key,
+                     Reconnection_Img (Remote.Reconnection),
+                     Quote => True);
                   U := Conf_Units.Table (U).Next_Unit;
                end loop;
             end if;
