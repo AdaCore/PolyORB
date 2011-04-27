@@ -41,6 +41,10 @@ See the features-28 file.
 Bug fixes
 ---------
 
+po_gnatdist would crash when building a single partition out of a configuration
+and reconnection policy settings are specified in the configuration file.
+(K426-016)
+
 In some cases, incorrect integer representations were selected on 64 bit
 architectures, causing interoperability issues in DSA applications mixing
 32-bit and 64-bit partitions. (K201-041)
