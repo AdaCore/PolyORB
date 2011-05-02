@@ -491,8 +491,8 @@ package body XE_Back.PolyORB is
       Comp_Args (3) := A_Stub_Dir;
       Comp_Args (4) := I_Current_Dir;
 
-      --  If there is no project file, then save ali and object files
-      --  in partition directory.
+      --  If there is no project file, then save ALI and object files in the
+      --  partition directory.
 
       if Project_File_Name = null then
          Comp_Args (5) := Object_Dir_Flag;
