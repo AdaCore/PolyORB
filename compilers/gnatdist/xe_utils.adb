@@ -113,6 +113,9 @@ package body XE_Utils is
    --  Check whether the given directory contains a user-provided version of
    --  s-rpc.adb, and if so set the global flag User_Provided_S_RPC to True.
 
+   function Is_Project_Switch (S : String) return Boolean;
+   --  True if S is a builder command line switch specifying a project file
+
    ---------
    -- "&" --
    ---------
@@ -213,8 +216,8 @@ package body XE_Utils is
    is
       Length            : constant Positive :=
                             Arguments'Length + 5
-                            + Make_Switches.Last
-                            - Make_Switches.First;
+                              + Make_Switches.Last
+                              - Make_Switches.First;
       Flags             : Argument_List (1 .. Length);
       N_Flags           : Natural := 0;
       Library_Name_Flag : Natural;
@@ -270,7 +273,7 @@ package body XE_Utils is
 
          --  Detect any project file
 
-         if Arguments (I).all = Project_File_Flag.all then
+         if Is_Project_Switch (Arguments (I).all) then
             Has_Prj := True;
          end if;
       end loop;
@@ -282,9 +285,15 @@ package body XE_Utils is
          --  project file from the Make switches is ignored.
 
          if Has_Prj
-           and then Make_Switches.Table (Index).all = Project_File_Flag.all
+           and then Is_Project_Switch (Make_Switches.Table (Index).all)
          then
-            Index := Index + 1;
+            if Make_Switches.Table (Index).all = Project_File_Flag.all then
+
+               --  Case of "-P" followed by project file name in a separate
+               --  argument.
+
+               Index := Index + 1;
+            end if;
 
          else
             N_Flags := N_Flags + 1;
@@ -380,9 +389,9 @@ package body XE_Utils is
       Fatal     : Boolean := True)
    is
       Length  : constant Natural :=
-        Arguments'Length + 5
-        + Make_Switches.Last
-        - Make_Switches.First;
+                  Arguments'Length + 5
+                    + Make_Switches.Last
+                    - Make_Switches.First;
       Flags   : Argument_List (1 .. Length);
       N_Flags : Natural := 0;
       Success : Boolean;
@@ -436,7 +445,7 @@ package body XE_Utils is
 
          --  Detect any project file
 
-         if Arguments (I).all = Project_File_Flag.all then
+         if Is_Project_Switch (Arguments (I).all) then
             Has_Prj := True;
          end if;
       end loop;
@@ -448,9 +457,15 @@ package body XE_Utils is
          --  project file from the Make switches is ignored.
 
          if Has_Prj
-           and then Make_Switches.Table (Index).all = Project_File_Flag.all
+           and then Is_Project_Switch (Make_Switches.Table (Index).all)
          then
-            Index := Index + 1;
+            if Make_Switches.Table (Index).all = Project_File_Flag.all then
+
+               --  Case of "-P" followed by project file name in a separate
+               --  argument.
+
+               Index := Index + 1;
+            end if;
 
          else
             N_Flags := N_Flags + 1;
@@ -639,6 +654,17 @@ package body XE_Utils is
       Check_User_Provided_S_RPC (".");
    end Initialize;
 
+   -----------------------
+   -- Is_Project_Switch --
+   -----------------------
+
+   function Is_Project_Switch (S : String) return Boolean is
+      Fl : String renames Project_File_Flag.all;
+   begin
+      return S'Length >= Fl'Length
+               and then S (S'First .. S'First + Fl'Length - 1) = Fl;
+   end Is_Project_Switch;
+
    ----------
    -- List --
    ----------
@@ -698,7 +724,7 @@ package body XE_Utils is
 
          --  Detect any project file
 
-         if Arguments (I).all = Project_File_Flag.all then
+         if Is_Project_Switch (Arguments (I).all) then
             Has_Prj := True;
          end if;
       end loop;
@@ -710,9 +736,15 @@ package body XE_Utils is
          --  project file from the List switches is ignored.
 
          if Has_Prj
-           and then List_Switches.Table (Index).all = Project_File_Flag.all
+           and then Is_Project_Switch (List_Switches.Table (Index).all)
          then
-            Index := Index + 1;
+            if List_Switches.Table (Index).all = Project_File_Flag.all then
+
+               --  Case of "-P" followed by project file name in a separate
+               --  argument.
+
+               Index := Index + 1;
+            end if;
 
          else
             N_Flags := N_Flags + 1;
@@ -896,6 +928,8 @@ package body XE_Utils is
 
       if Project_File_Name_Expected then
          Project_File_Name          := new String'(Normalize_Pathname (Argv));
+         Add_List_Switch (Project_File_Name.all);
+         Add_Make_Switch (Project_File_Name.all);
          Project_File_Name_Expected := False;
 
       elsif Argv (Argv'First) = '-' then

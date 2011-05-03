@@ -41,6 +41,9 @@ See the features-28 file.
 Bug fixes
 ---------
 
+po_gnatdist would not correctly handle "-P" (project file) command line
+switches when building a single partition. (K427-033)
+
 po_gnatdist would crash when building a single partition out of a configuration
 and reconnection policy settings are specified in the configuration file.
 (K426-016)
