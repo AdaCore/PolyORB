@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1000,8 +1000,8 @@ package body XE_List is
                      List ((1 => Afile), List_Flags, Output);
                      Load_ALIs (Output);
 
-                     --  If the ALI file is still missing, then we have a
-                     --  real problem.
+                     --  If the ALI file is still missing, then we have a real
+                     --  problem.
 
                      ALI := Get_ALI_Id (Afile);
                      if ALI = No_ALI_Id then
