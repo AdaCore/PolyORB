@@ -585,21 +585,29 @@ package body PolyORB.Any is
             declare
                List_Type : constant TypeCode.Object_Ptr :=
                              Unwind_Typedefs (L_Type);
+               Count     : constant Types.Unsigned_Long :=
+                             TypeCode.Member_Count (List_Type);
                M_Type    : TypeCode.Object_Ptr;
+
                L_ACC : Aggregate_Content'Class
                          renames Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class
                          renames Aggregate_Content'Class (Right.The_Value.all);
             begin
-               for J in 0 .. TypeCode.Member_Count (List_Type) - 1 loop
-                  M_Type := TypeCode.Member_Type (List_Type, J);
-                  if not Agg_Elements_Equal
-                           (M_Type, L_ACC'Access, R_ACC'Access, J)
-                  then
-                     pragma Debug (C, O ("Equal (Any, struct/except): end"));
-                     return False;
-                  end if;
-               end loop;
+               --  Note: Count is unsigned, guard against Count - 1 overflow
+
+               if Count > 0 then
+                  for J in 0 .. Count - 1 loop
+                     M_Type := TypeCode.Member_Type (List_Type, J);
+                     if not Agg_Elements_Equal
+                              (M_Type, L_ACC'Access, R_ACC'Access, J)
+                     then
+                        pragma Debug
+                          (C, O ("Equal (Any, struct/except): end"));
+                        return False;
+                     end if;
+                  end loop;
+               end if;
                pragma Debug (C, O ("Equal (Any, struct/except): end"));
                return True;
             end;
@@ -1662,7 +1670,8 @@ package body PolyORB.Any is
    function Image (TC : TypeCode.Object_Ptr) return Standard.String is
       use TypeCode;
 
-      Kind : constant TCKind := TypeCode.Kind (TC);
+      Kind   : constant TCKind := TypeCode.Kind (TC);
+      Count  : Unsigned_Long;
       Result : Types.String;
    begin
       case Kind is
@@ -1699,14 +1708,21 @@ package body PolyORB.Any is
                  Tk_Except             =>
 
                   Result := Result & " {";
-                  for J in 0 .. Member_Count (TC) - 1 loop
-                     Result := Result
-                       & " "
-                       & Image (Member_Type (TC, J))
-                       & " "
-                       & Types.String (Member_Name (TC, J))
-                       & ";";
-                  end loop;
+
+                  --  Note: Count is unsigned, guard against overflow
+                  --  of Count - 1.
+
+                  Count := Member_Count (TC);
+                  if Count > 0 then
+                     for J in 0 .. Count - 1 loop
+                        Result := Result
+                          & " "
+                          & Image (Member_Type (TC, J))
+                          & " "
+                          & Types.String (Member_Name (TC, J))
+                          & ";";
+                     end loop;
+                  end if;
                   Result := Result & " }";
 
                   return To_Standard_String (Result);
@@ -1719,16 +1735,19 @@ package body PolyORB.Any is
                     & Types.Long'Image (Default_Index (TC))
                     & ") {";
 
-                  for J in 0 .. Member_Count (TC) - 1 loop
-                     Result := Result &
-                       " case " & Ada.Strings.Fixed.Trim
-                                    (Image (Member_Label (TC, J)),
-                                     Ada.Strings.Left)
-                       & ": "
-                       & Image (Member_Type (TC, J))
-                       & " "
-                       & Types.String (Member_Name (TC, J)) & ";";
-                  end loop;
+                  Count := Member_Count (TC);
+                  if Count > 0 then
+                     for J in 0 .. Count - 1 loop
+                        Result := Result &
+                          " case " & Ada.Strings.Fixed.Trim
+                                       (Image (Member_Label (TC, J)),
+                                        Ada.Strings.Left)
+                          & ": "
+                          & Image (Member_Type (TC, J))
+                          & " "
+                          & Types.String (Member_Name (TC, J)) & ";";
+                     end loop;
+                  end if;
                   Result := Result & " }";
 
                   return To_Standard_String (Result);
@@ -2758,6 +2777,7 @@ package body PolyORB.Any is
 
       function Equivalent (Left, Right : Object_Ptr) return Boolean is
          Nb_Param : constant Unsigned_Long := Member_Count (Left);
+         pragma Assert (Nb_Param > 0);
 
          U_Left  : Object_Ptr := Left;
          U_Right : Object_Ptr := Right;
