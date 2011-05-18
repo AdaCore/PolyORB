@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -3127,7 +3127,8 @@ package body Ada_Be.Idl2Ada is
            K_Union             |
            K_Struct            |
            K_Exception         |
-           K_Declarator        =>
+           K_Declarator        |
+           K_Boxed_ValueType   =>
             return Prefix & Ada_Name (Node);
 
          when K_Scoped_Name =>

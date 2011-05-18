@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -237,6 +237,16 @@ package body Ada_Be.Idl2Ada.Helper is
       Decl_Node         : Node_Id);
    --  generate lines to fill in an array typecode
    --  only used in the type_declarator part of gen_node_body
+
+   procedure Gen_Boxed_ValueType_Spec
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the spec of the helper package for a valuebox declaration
+
+   procedure Gen_Boxed_ValueType_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the body of the helper package for a valuebox declaration
 
    function Raise_From_Any_Name (Node : Node_Id) return String;
    --  Return the name of a procedure that raises that exception
@@ -1072,6 +1082,9 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Aggregate_Content_Wrapper_Spec (CU, Node);
             Gen_ValueType_Spec (CU, Node);
 
+         when K_Boxed_ValueType =>
+            Gen_Boxed_ValueType_Spec (CU, Node);
+
          when K_Exception =>
             Gen_Struct_Exception_Spec (CU, Node);
             Gen_Raise_Profile (CU, Node);
@@ -1140,6 +1153,9 @@ package body Ada_Be.Idl2Ada.Helper is
          when K_ValueType =>
             Gen_Aggregate_Content_Wrapper_Body (CU, Node);
             Gen_ValueType_Body (CU, Node);
+
+         when K_Boxed_ValueType =>
+            Gen_Boxed_ValueType_Body (CU, Node);
 
          when K_Exception =>
             Gen_Struct_Exception_Body (CU, Node);
@@ -3886,6 +3902,160 @@ package body Ada_Be.Idl2Ada.Helper is
               & Ada_TC_Name (Decl_Node) & ");");
       Divert (CU, Visible_Declarations);
    end Gen_Fixed_Body;
+
+   ------------------------------
+   -- Gen_Boxed_ValueType_Spec --
+   ------------------------------
+
+   procedure Gen_Boxed_ValueType_Spec
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+   begin
+      --  TypeCode
+
+      NL (CU);
+      Add_With (CU, "CORBA");
+      Add_With (CU, "PolyORB.Any");
+
+      PL (CU, Ada_TC_Name (Node) & " : CORBA.TypeCode.Object");
+      PL (CU, "  := CORBA.TypeCode.Internals.To_CORBA_Object "
+          & "(PolyORB.Any.TypeCode.TC_ValueBox);");
+
+      if not Has_Local_Component (Node) then
+         --  From_Any
+
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
+         PL (CU, ";");
+
+         --  To_Any
+
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         PL (CU, ";");
+
+         --  Wrap
+
+         NL (CU);
+         Gen_Wrap_Profile (CU, Node);
+         PL (CU, ";");
+      end if;
+   end Gen_Boxed_ValueType_Spec;
+
+   ------------------------------
+   -- Gen_Boxed_ValueType_Body --
+   ------------------------------
+
+   procedure Gen_Boxed_ValueType_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+      Box_Helper_Name : constant String  := Ada_Name (Node) & "_Helper";
+      Box_TC_Name     : constant String  := Ada_TC_Name (Node);
+
+      Elt_Type        : constant Node_Id := Boxed_Type (Node);
+      Elt_Helper_Name : constant String  := Helper_Unit (Elt_Type);
+      Elt_TCU_Name    : constant String  := TC_Unit (Elt_Type);
+      Elt_TC_Name     : constant String  := Ada_Full_TC_Name (Elt_Type);
+      Elt_Wrap_Name   : constant String  := Ada_Name (Node) & "_Element_Wrap";
+
+   begin
+      if not Has_Local_Component (Node) then
+         Add_With (CU,
+           "CORBA.Value.Box.Helper",
+           Elab_Control => Elaborate_All);
+
+         Add_Helper_Dependency (CU, Elt_Helper_Name);
+         --  For element To_Any/From_Any
+
+         Add_Helper_Dependency (CU, Elt_TCU_Name);
+         --  For element TypeCode
+
+         --  Generate Element_Wrap
+
+         NL (CU);
+         PL (CU, "function " & Elt_Wrap_Name & " (X : access "
+             & Ada_Type_Name (Elt_Type)
+             & ") return PolyORB.Any.Content'Class is");
+         PL (CU, "begin");
+         II (CU);
+         Put (CU, "return ");
+         Gen_Wrap_Call (CU, Elt_Type, "X.all");
+         PL (CU, ";");
+         DI (CU);
+         PL (CU, "end " & Elt_Wrap_Name & ";");
+
+         --  Instantiate generic valuebox helper
+
+         NL (CU);
+         PL (CU, "package " & Box_Helper_Name
+             & " is new " & Ada_Name (Node) & "_Value_Box.Helper");
+         Put (CU, "  (");
+         II (CU);
+         PL (CU, "Element_To_Any   => " & Elt_Helper_Name & ".To_Any,");
+         PL (CU, "Element_From_Any => " & Elt_Helper_Name & ".From_Any,");
+         PL (CU, "Element_Wrap     => " & Elt_Wrap_Name & ");");
+         DI (CU);
+
+         --  Generate renamings-as-body from instance
+
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node, From_Container => False);
+         NL (CU);
+         PL (CU, "  renames " & Box_Helper_Name & ".From_Any;");
+
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         NL (CU);
+         PL (CU, "  renames " & Box_Helper_Name & ".To_Any;");
+
+         NL (CU);
+         Gen_Wrap_Profile (CU, Node);
+         NL (CU);
+         PL (CU, "  renames " & Box_Helper_Name & ".Wrap;");
+      end if;
+
+      --  Fill in the typecode TC_<name of the type>
+
+      Divert (CU, Deferred_Initialization);
+      NL (CU);
+      PL (CU, "declare");
+      II (CU);
+      PL (CU, "Name : CORBA.String :=");
+      PL (CU, "   CORBA.To_CORBA_String ("""
+          & Ada_Name (Node)
+          & """);");
+      PL (CU, "Id : CORBA.String :=");
+      PL (CU, "   CORBA.To_CORBA_String ("""
+          & Idl_Repository_Id (Node)
+          & """);");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+
+      --  Put the name and repository Id for the value
+
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+      PL (CU, "  (" & Box_TC_Name & ", CORBA.To_Any (Name));");
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+      PL (CU, "  (" & Box_TC_Name & ", CORBA.To_Any (Id));");
+      PL (CU, "CORBA.TypeCode.Internals.Add_Parameter");
+      PL (CU, "  (" & Box_TC_Name & ", CORBA.To_Any (" & Elt_TC_Name & "));");
+
+      DI (CU);
+      PL (CU, "end;");
+
+      if not Has_Local_Component (Node) then
+         NL (CU);
+         Put (CU, Box_Helper_Name & ".Initialize" & ASCII.LF & "  (");
+         II (CU);
+         PL (CU, "Element_TC => " & Elt_TC_Name & ",");
+         PL (CU, "Box_Ref_TC => " & Box_TC_Name & ");");
+         DI (CU);
+         Divert (CU, Visible_Declarations);
+      end if;
+   end Gen_Boxed_ValueType_Body;
 
    ------------------
    -- Gen_Array_TC --
