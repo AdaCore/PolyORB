@@ -1249,10 +1249,6 @@ package body PolyORB.Representations.CDR is
             end;
 
          when Tk_Valuebox =>
---            Marshall_Aggregate_Element
---              (TypeCode.Member_Type (Data_Type, 0),
---               Aggregate_Content'Class (Get_Value (CData).all)'Access,
---               0);
             declare
                ACC : Aggregate_Content'Class renames
                  Aggregate_Content'Class (Get_Value (CData).all);
@@ -2600,25 +2596,6 @@ package body PolyORB.Representations.CDR is
             raise Program_Error;
 
          when Tk_Valuebox =>
-            --  declare
-            --     Arg: Corba.Any;
-            --  begin
-            --     Set_Any_Aggregate_Value(Result);
-            --     if Is_Empty then
-            --       Arg:= Get_Empty_Any(TypeCode.Member_Type
-            --              (TC,PolyORB.Types.Unsigned_Long(0)));
-            --     else
-            --       Arg:= PolyORB.Any.Get_Aggregate_Element
-            --                 (Result,
-            --                  TypeCode.Member_Type(TC,
-            --                  PolyORB.Types.Unsigned_Long(0)));
-            --     end if;
-            --     Unmarshall_To_Any(Buffer,Arg);
-            --     if Is_Empty then
-            --       Add_Aggregate_Element(Result, Arg);
-            --     end if;
-            --  end;
---            raise Program_Error;
             declare
                Tag : constant PolyORB.Types.Unsigned_Long :=
                  Unmarshall (Buffer);
