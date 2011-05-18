@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -138,6 +138,8 @@ package PolyORB.Any is
        Tk_Array,
        Tk_Except,
        Tk_Fixed,
+       Tk_Value,
+       Tk_Valuebox,
       --  End aggregates
 
        Tk_String,
@@ -147,15 +149,13 @@ package PolyORB.Any is
        Tk_Longdouble,
        Tk_Widechar,
        Tk_Wstring,
-       Tk_Value,
-       Tk_Valuebox,
        Tk_Native,
        Tk_Abstract_Interface,
        Tk_Local_Interface,
        Tk_Component,
        Tk_Home,
        Tk_Event);
-   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Fixed;
+   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Valuebox;
 
    type ValueModifier is new Types.Short;
 

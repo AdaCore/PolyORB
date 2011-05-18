@@ -146,6 +146,11 @@ package body PolyORB.Representations.CDR is
    TC_Indirect              : constant PolyORB.Types.Unsigned_Long :=
                                 16#ffffffff#;
 
+   --  Tags for ValueTypes marshalling
+
+   Null_Tag  : constant PolyORB.Types.Unsigned_Long := 0;
+   Value_Tag : constant PolyORB.Types.Unsigned_Long := 16#7fffff00#;
+
    -----------------------------
    -- Typecode map management --
    -----------------------------
@@ -1244,10 +1249,27 @@ package body PolyORB.Representations.CDR is
             end;
 
          when Tk_Valuebox =>
-            Marshall_Aggregate_Element
-              (TypeCode.Member_Type (Data_Type, 0),
-               Aggregate_Content'Class (Get_Value (CData).all)'Access,
-               0);
+--            Marshall_Aggregate_Element
+--              (TypeCode.Member_Type (Data_Type, 0),
+--               Aggregate_Content'Class (Get_Value (CData).all)'Access,
+--               0);
+            declare
+               ACC : Aggregate_Content'Class renames
+                 Aggregate_Content'Class (Get_Value (CData).all);
+
+            begin
+               if Get_Aggregate_Count (ACC) = 0 then
+                  Marshall (Buffer, Null_Tag);
+
+               else
+                  Marshall (Buffer, Value_Tag);
+
+                  Marshall_Aggregate_Element
+                    (TypeCode.Content_Type (Data_Type),
+                     ACC'Access,
+                     0);
+               end if;
+            end;
 
          when Tk_Native =>
             --  FIXME: TBD
@@ -2596,7 +2618,62 @@ package body PolyORB.Representations.CDR is
             --       Add_Aggregate_Element(Result, Arg);
             --     end if;
             --  end;
-            raise Program_Error;
+--            raise Program_Error;
+            declare
+               Tag : constant PolyORB.Types.Unsigned_Long :=
+                 Unmarshall (Buffer);
+
+            begin
+               if Is_Empty (CData) then
+                  Set_Any_Aggregate_Value (CData);
+               end if;
+
+               declare
+                  ACC : Aggregate_Content'Class renames
+                    Aggregate_Content'Class (Get_Value (CData).all);
+
+               begin
+                  if Tag = Null_Tag then
+                     Set_Aggregate_Count (ACC, 0);
+
+                  else
+                     Set_Aggregate_Count (ACC, 1);
+
+                     declare
+                        El_C  : Any_Container;
+                        El_M  : aliased Mechanism := By_Reference;
+                        El_CC : aliased Content'Class :=
+                          Get_Aggregate_Element
+                          (ACC'Access,
+                           TypeCode.Content_Type (TC),
+                           0,
+                           El_M'Access);
+
+                     begin
+                        Set_Type (El_C, TypeCode.Content_Type (TC));
+
+                        if El_CC not in No_Content then
+                           Set_Value (El_C, El_CC'Unchecked_Access);
+                        end if;
+
+                        Unmarshall_To_Any
+                          (CDR_Representation'Class (R.all)'Access,
+                           Buffer,
+                           El_C,
+                           Error);
+
+                        if El_M = By_Value then
+                           Set_Aggregate_Element
+                             (ACC,
+                              TypeCode.Content_Type (TC),
+                              0,
+                              From_C => El_C);
+                           Finalize_Value (El_C);
+                        end if;
+                     end;
+                  end if;
+               end;
+            end;
 
          when Tk_Native =>
             --  FIXME : to be done
