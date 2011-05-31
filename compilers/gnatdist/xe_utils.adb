@@ -410,7 +410,9 @@ package body XE_Utils is
       N_Flags := N_Flags + 1;
       Get_Name_String (Source);
       Flags (N_Flags) :=
-        new String'(Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+        new String'(Normalize_Pathname
+                      (Name_Buffer (1 .. Name_Len),
+                       Resolve_Links => Resolve_Links));
 
       --  Check whether we have a predefined unit
 
@@ -927,7 +929,9 @@ package body XE_Utils is
       end case;
 
       if Project_File_Name_Expected then
-         Project_File_Name          := new String'(Normalize_Pathname (Argv));
+         Project_File_Name :=
+           new String'(Normalize_Pathname (Argv,
+                                           Resolve_Links => Resolve_Links));
          Add_List_Switch (Project_File_Name.all);
          Add_Make_Switch (Project_File_Name.all);
          Project_File_Name_Expected := False;
@@ -971,6 +975,7 @@ package body XE_Utils is
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
+
             if Argv (Argv'First + 2) = 'I' and then not Implicit then
                Add_Source_Directory (Argv (Argv'First + 3 .. Argv'Last));
             end if;
@@ -986,7 +991,8 @@ package body XE_Utils is
             if Argv'Length > 2 then
                Project_File_Name :=
                  new String'(Normalize_Pathname
-                              (Argv (Argv'First + 2 .. Argv'Last)));
+                              (Argv (Argv'First + 2 .. Argv'Last),
+                               Resolve_Links => Resolve_Links));
                Add_List_Switch (Project_File_Flag.all);
                Add_List_Switch (Project_File_Name.all);
                Add_Make_Switch (Project_File_Flag.all);
@@ -998,9 +1004,13 @@ package body XE_Utils is
                Add_Make_Switch (Project_File_Flag.all);
             end if;
 
-         elsif Argv (Argv'First + 1) = 'X' then
+         elsif Argv (Argv'First + 1) = 'e' then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
+
+            if Argv'Length = 3 and then Argv (Argv'Last) = 'L' then
+               Resolve_Links := True;
+            end if;
 
          --  Debugging switches
 
@@ -1042,7 +1052,6 @@ package body XE_Utils is
                      --  Pass other debugging flags to the builder untouched
 
                      Add_Make_Switch (Argv);
-
                end case;
             end if;
 
@@ -1072,8 +1081,9 @@ package body XE_Utils is
                   --  Switch is passed to gnatmake later on
 
                when others =>
-                  --  Pass unrecognized switches to gnatmake
+                  --  Pass unrecognized switches to gnat make and gnat ls
 
+                  Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
             end case;
 
@@ -1089,10 +1099,13 @@ package body XE_Utils is
          elsif Argv'Length > 6
            and then Argv (Argv'First + 1 .. Argv'First + 5) = "-RTS="
          then
-            Add_Make_Switch (Argv);
             Add_List_Switch (Argv);
+            Add_Make_Switch (Argv);
+
+         --  Pass all unrecognized switches on to gnat make and gnat ls
 
          else
+            Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
          end if;
 

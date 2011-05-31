@@ -266,7 +266,8 @@ package body XE_Back is
             declare
                Normalized_Dir : constant String :=
                                   Normalize_Pathname
-                                    (Source_Directories.Table (J).all);
+                                    (Source_Directories.Table (J).all,
+                                     Resolve_Links => Resolve_Links);
             begin
                if Is_Directory (Normalized_Dir) then
                   Write_Line (",");
@@ -299,7 +300,8 @@ package body XE_Back is
       --  includes the PCS as well.
 
       Project_File_Name := new String'(
-                             Normalize_Pathname (Get_Name_String (Prj_Fname)));
+                             Normalize_Pathname (Get_Name_String (Prj_Fname),
+                             Resolve_Links => Resolve_Links));
    end Generate_Application_Project_Files;
 
    -------------------------------------
@@ -797,7 +799,7 @@ package body XE_Back is
    begin
       for J in Cmd'Range loop
          if Cmd (J) = Dir_Separator then
-            return Normalize_Pathname (Cmd);
+            return Normalize_Pathname (Cmd, Resolve_Links => Resolve_Links);
          end if;
       end loop;
 
@@ -957,7 +959,9 @@ package body XE_Back is
             if Present (Current.Executable_Dir) then
                Get_Name_String (Current.Executable_Dir);
                Set_Str_To_Name_Buffer
-                 (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+                 (Normalize_Pathname
+                    (Name_Buffer (1 .. Name_Len),
+                     Resolve_Links => Resolve_Links));
                Current.Executable_Dir := Name_Find;
                Create_Dir (Current.Executable_Dir);
             end if;
