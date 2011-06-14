@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -385,8 +385,7 @@ package body Parser is
 
    --  (27) <const_dcl> ::= "const" <const_type> <identifier> "=" <const_exp>
 
-   function P_Constant_Declaration return Node_Id
-   is
+   function P_Constant_Declaration return Node_Id is
       Constant_Decl   : Node_Id;
       Const_Type_Spec : Node_Id;
       Const_Expr      : Node_Id;
@@ -459,7 +458,6 @@ package body Parser is
    --                        | "(" <const_exp> ")"
 
    function P_Constant_Expression return Node_Id is
-
       use Expressions;
 
       --  There are two kinds of expressions. A binary operator has
