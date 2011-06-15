@@ -107,9 +107,11 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         # Run the server command and retrieve the IOR string
         p_cmd_server = ['rlimit', str(RLIMIT), server]
         server_handle = Popen(p_cmd_server, stdout=PIPE, env=server_env)
-        if VERBOSE:
-            print 'RUN: POLYORB_CONF=%s %s' % \
-                (server_conf, " ".join(p_cmd_server))
+        if server_conf:
+            print 'RUN server: POLYORB_CONF=%s %s' % \
+                (server_env[POLYORB_CONF], " ".join(p_cmd_server))
+        else:
+            print 'RUN server: %s' % " ".join(p_cmd_server)
         while True:
             line = server_handle.stdout.readline()
             if "IOR:" in line:
@@ -126,11 +128,11 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         if client_conf:
             client_env = os.environ.copy()
             client_env[POLYORB_CONF] = os.path.join(CONF_DIR, client_conf)
-            print 'RUN: POLYORB_CONF=%s %s' % \
-                (client_conf, " ".join(p_cmd_client))
+            print 'RUN client: POLYORB_CONF=%s %s' % \
+                (client_env[POLYORB_CONF], " ".join(p_cmd_client))
         else:
             client_env = None
-            print "RUN: %s" % " ".join(p_cmd_client)
+            print "RUN client: %s" % " ".join(p_cmd_client)
 
         Run(make_run_cmd([client, IOR_str], Env().options.coverage),
             output=OUTPUT_FILENAME + 'server', error=STDOUT,
