@@ -2785,6 +2785,7 @@ testsuite/tests/corba/code_sets/CODE_SETS_1/test.py
 testsuite/tests/corba/domainmanager/DOMAINMANAGER_0/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_0/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_1/test.py
+testsuite/tests/corba/harness/CORBA_HARNESS_2/test.opt
 testsuite/tests/corba/harness/CORBA_HARNESS_2/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_3/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_5/test.py
@@ -2838,6 +2839,7 @@ testsuite/tests/core/poa/POA_0/test.py
 testsuite/tests/core/random/RANDOM_0/test.py
 testsuite/tests/core/sync_policies/CORE_SYNC_POLICIES_0/test.py
 testsuite/tests/core/tasking/TASK_0/test.py
+testsuite/tests/core/tasking/TASK_1/test.opt
 testsuite/tests/core/tasking/TASK_1/test.py
 testsuite/tests/core/tasking/TASK_2/test.py
 testsuite/tests/core/tasking/TASK_3/test.py
@@ -2868,14 +2870,17 @@ testsuite/tests/examples/corba-all_types/ALL_TYPES_5/test.py
 testsuite/tests/examples/corba-all_types/ALL_TYPES_6/test.py
 testsuite/tests/examples/corba-all_types/ALL_TYPES_7/test.py
 testsuite/tests/examples/corba-echo/ECHO_0/test.py
+testsuite/tests/examples/corba-echo/ECHO_1/test.opt
 testsuite/tests/examples/corba-echo/ECHO_1/test.py
 testsuite/tests/examples/corba-echo/ECHO_2/test.py
+testsuite/tests/examples/corba-echo/ECHO_3/test.opt
 testsuite/tests/examples/corba-echo/ECHO_3/test.py
 testsuite/tests/examples/corba-echo/ECHO_4/test.py
 testsuite/tests/examples/corba-echo/ECHO_5/test.py
 testsuite/tests/examples/corba-echo/ECHO_6/test.py
 testsuite/tests/examples/corba-echo/ECHO_7/test.py
 testsuite/tests/examples/corba-random/CORBA_RANDOM_0/test.py
+testsuite/tests/examples/corba-random/CORBA_RANDOM_1/test.opt
 testsuite/tests/examples/corba-random/CORBA_RANDOM_1/test.py
 testsuite/tests/examples/corba-rtcorba-client_propagated/RTCORBA_CLIENT_PROPAGATED_0/test.py
 testsuite/tests/examples/corba-rtcorba-dhb/RTCORBA_DHB_0/test.opt
