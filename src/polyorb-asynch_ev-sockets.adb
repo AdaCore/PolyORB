@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -141,6 +141,7 @@ package body PolyORB.Asynch_Ev.Sockets is
                      Socket_Event_Source (AES.all).Socket)
       then
          Success := False;
+
       else
          Clear (AEM.Monitored_Set, S_AES.Socket);
          Source_Lists.Remove_Element (AEM.Sources, S_AES'Access);
