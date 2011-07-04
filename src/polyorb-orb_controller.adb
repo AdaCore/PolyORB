@@ -316,6 +316,8 @@ package body PolyORB.ORB_Controller is
            and then O.AEM_Infos (Index).TI = null;
       end Needs_Polling;
 
+   --  Start of processing for Need_Polling_Task
+
    begin
       --  To promote fairness among AEM, we retain the value of the last
       --  last monitored AEM, and test it iff no other AEM need polling.
