@@ -320,7 +320,7 @@ package body PolyORB.ORB_Controller is
 
    begin
       --  To promote fairness among AEM, we retain the value of the last
-      --  last monitored AEM, and test it iff no other AEM need polling.
+      --  monitored AEM, and test it iff no other AEM need polling.
 
       --  Check whether any AEM but the last monitored needs a polling task
 
@@ -460,10 +460,14 @@ package body PolyORB.ORB_Controller is
             return Count (2 .. Count'Last) & Kind_Name (1);
          end Counter_For_Kind;
 
+      --  Start of processing for Counters_For_State
+
       begin
          return State_Name (1) & ": "
            & Counter_For_Kind (Permanent) & "/" & Counter_For_Kind (Transient);
       end Counters_For_State;
+
+   --  Start of processing for Status
 
    begin
       return Counters_For_State (Any)
