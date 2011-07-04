@@ -242,7 +242,7 @@ package body PolyORB.Asynch_Ev.Sockets is
          pragma Assert (Last >= Result'First);
       end if;
 
-      --  Free the storage space associated with our socket sets.
+      --  Free the storage space associated with our socket sets
 
       PolyORB.Sockets.Empty (R_Set);
       PolyORB.Sockets.Empty (W_Set);
