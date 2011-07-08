@@ -656,9 +656,7 @@ package body PolyORB.POA is
 
       --  Destroy all children
 
-      if Self.Children /= null
-        and then not Is_Empty (Self.Children.all)
-      then
+      if Self.Children /= null then
          pragma Debug (C, O ("Removing child POAs"));
 
          Enter (Self.Children_Lock);
@@ -682,12 +680,10 @@ package body PolyORB.POA is
 
                Next (It);
             end loop;
-
-            Finalize (Self.Children.all);
-            Free (Self.Children);
-
-            Leave (Self.Children_Lock);
          end;
+         Finalize (Self.Children.all);
+         Free (Self.Children);
+         Leave (Self.Children_Lock);
       end if;
 
       --  Tell father to remove current POA from its list of children
