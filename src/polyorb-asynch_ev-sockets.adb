@@ -113,6 +113,10 @@ package body PolyORB.Asynch_Ev.Sockets is
          S_AES : Socket_Event_Source'Class
                    renames Socket_Event_Source'Class (AES.all);
       begin
+         pragma Debug
+           (C, O ("Register_Source: socket =" & Image (S_AES.Socket)));
+         pragma Assert (not Is_Set (AEM.Monitored_Set, S_AES.Socket));
+
          Set (AEM.Monitored_Set, S_AES.Socket);
          Source_Lists.Append (AEM.Sources, S_AES'Access);
       end;
@@ -136,10 +140,10 @@ package body PolyORB.Asynch_Ev.Sockets is
       S_AES : Socket_Event_Source'Class
                 renames Socket_Event_Source'Class (AES.all);
    begin
-      pragma Debug (C, O ("Unregister_Source: enter"));
-      if not Is_Set (AEM.Monitored_Set,
-                     Socket_Event_Source (AES.all).Socket)
-      then
+      pragma Debug
+        (C, O ("Unregister_Source: enter, socket =" & Image (S_AES.Socket)));
+      pragma Assert (S_AES.Socket /= No_Socket);
+      if not Is_Set (AEM.Monitored_Set, S_AES.Socket) then
          Success := False;
 
       else
@@ -219,7 +223,6 @@ package body PolyORB.Asynch_Ev.Sockets is
             It : Source_Lists.Iterator := First (AEM.Sources);
          begin
             while not Source_Lists.Last (It) loop
-
                declare
                   S_AES : Socket_Event_Source'Class renames Value (It).all;
                   Sock  : Socket_Type renames S_AES.Socket;
