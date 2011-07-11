@@ -582,10 +582,8 @@ package body PolyORB.Protocols.GIOP is
    -- Expect_GIOP_Header --
    ------------------------
 
-   --  called to wait another GIOP message
    procedure Expect_GIOP_Header (Sess : access GIOP_Session) is
    begin
-
       --  Check if buffer has been totally read
 
       if Remaining (Sess.Buffer_In) /= 0 then
@@ -604,9 +602,9 @@ package body PolyORB.Protocols.GIOP is
       Emit_No_Reply
         (Port => Lower (Sess),
          Msg  => GIOP_Data_Expected'
-         (In_Buf => Sess.Buffer_In,
-          Max    => GIOP_Header_Size,
-          State  => Sess.State));
+                   (In_Buf => Sess.Buffer_In,
+                    Max    => GIOP_Header_Size,
+                    State  => Sess.State));
    end Expect_GIOP_Header;
 
    -----------------------------------
