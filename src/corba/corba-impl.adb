@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,6 +53,15 @@ package body CORBA.Impl is
       raise Program_Error;
       return False;
    end Execute_Servant;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   overriding procedure Finalize (O : in out Object) is
+   begin
+      Destroy (O.Neutral_View);
+   end Finalize;
 
    ------------------------
    -- To_PolyORB_Servant --
