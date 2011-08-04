@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,6 +76,9 @@ package PolyORB.Servants is
      (S : Servant_Access) return PolyORB.Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
    --  Return Notepad associated to a servant
+
+   overriding procedure Destroy (S : in out Servant);
+   --  Deallocate any storage resource associated with S
 
    --------------
    -- Executor --

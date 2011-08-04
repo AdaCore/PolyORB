@@ -99,6 +99,15 @@ package body PolyORB.Servants is
       return R.Completed or R.Aborted;
    end Abortable_Execute_Servant;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (S : in out Servant) is
+   begin
+      Annotations.Destroy (S.Notepad);
+   end Destroy;
+
    ------------------------
    -- Execute_In_Context --
    ------------------------
