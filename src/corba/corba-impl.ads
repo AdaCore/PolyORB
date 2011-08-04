@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -90,5 +90,7 @@ private
       --  The PolyORB (personality-neutral) view of this servant.
       --  See also PolyORB.Minimal_Servant.
    end record;
+
+   overriding procedure Finalize (O : in out Object);
 
 end CORBA.Impl;
