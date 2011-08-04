@@ -996,6 +996,11 @@ package body XE_List is
                   --  to build.
 
                   if ALI = No_ALI_Id then
+                     if Debug_Mode then
+                        Write_Str ("No ALI yet for ");
+                        Write_Name (Sfile);
+                     end if;
+
                      Compile (Sfile, Comp_Flags, Fatal => False);
                      List ((1 => Afile), List_Flags, Output);
                      Load_ALIs (Output);
