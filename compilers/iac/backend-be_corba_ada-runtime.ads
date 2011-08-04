@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1026,7 +1026,7 @@ package Backend.BE_CORBA_Ada.Runtime is
            RU_CORBA_Repository_Root_InterfaceDef_Convert_Forward,
          RE_To_Ref_15                 =>
            RU_CORBA_Repository_Root_IDLType_Helper,
-         Re_To_Forward                =>
+         RE_To_Forward                =>
            RU_CORBA_Repository_Root_IDLType_Convert_Forward,
          RE_Create_Array              => RU_CORBA_Repository_Root_Repository,
          RE_Create_Fixed              => RU_CORBA_Repository_Root_Repository,
