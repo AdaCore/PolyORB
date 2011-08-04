@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -79,6 +79,11 @@ package body PolyORB.Binding_Objects is
 
       Emit_No_Reply (Component_Access (X.Transport_Endpoint),
                      Filters.Iface.Disconnect_Indication'(Error => Error));
+
+      --  Make sure Error is cleared, in case it has not already been freed
+      --  by upper layers.
+
+      Catch (Error);
 
       --  Destroy the transport endpoint at the bottom of the protocol stack
       --  (and all other components connected up).
