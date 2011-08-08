@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Servants.Iface;
 with PolyORB.Tasking.Abortables;
 with PolyORB.Tasking.Threads;
