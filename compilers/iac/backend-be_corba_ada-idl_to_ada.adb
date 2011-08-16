@@ -762,18 +762,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_IDL_Unit (Z, P);
       Set_Parent (Z, D);
 
-      --  Internals is a subunit of Helper
+      --  Internals is a nested within Helper
 
-      Set_Is_Subunit_Package (Package_Specification (Z), True);
+      Set_Is_Nested_Package (Package_Specification (Z), True);
 
-      Append_To (Subunits (Package_Specification (D)),
+      Append_To (Nested_Packages (Package_Specification (D)),
         Package_Specification (Z));
 
       Append_To (Statements (Package_Body (D)),
         Package_Body (Z));
 
-      --  As a subunit of Helper, Interals shares its list of withed
-      --  packages with Helper.
+      --  As a package nested within Helper, Interals shares its list of
+      --  with-ed packages with Helper.
 
       Set_Context_Clause (Package_Specification (Z),
                            Context_Clause (Package_Specification (D)));

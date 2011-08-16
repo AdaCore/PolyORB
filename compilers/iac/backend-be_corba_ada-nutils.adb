@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -215,13 +215,13 @@ package body Backend.BE_CORBA_Ada.Nutils is
          pragma Assert (Kind (U) = K_Package_Specification
                         or else Kind (U) = K_Package_Instantiation);
 
-         --  This is a subunit and we do not need to add a with for
-         --  this unit but for one of its parents. If the kind of the
-         --  parent unit name is a K_Package_Instantiation, we
-         --  consider it as a subunit.
+         --  This is a nested package and we do not need to add a with for this
+         --  unit but for one of its parents. If the kind of the parent unit
+         --  name is a K_Package_Instantiation, we consider it as a nested
+         --  package.
 
          if Kind (U) = K_Package_Instantiation
-           or else Is_Subunit_Package (U)
+           or else Is_Nested_Package (U)
          then
             U := Get_Parent_Unit_Name (E);
 
@@ -319,11 +319,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       N := Fully_Qualified_Name (P);
 
-      if Is_Subunit_Package
+      if Is_Nested_Package
         (Package_Specification (Package_Declaration (Current_Package)))
       then
-         --  The package is a subunit of another package, uses its
-         --  parent's name.
+         --  The package is a nested within another package, uses its parent's
+         --  name.
 
          I := Get_Parent_Unit_Name
            (Defining_Identifier
@@ -1811,7 +1811,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Make_Comment_Header (Context_Clause (Pkg), Identifier);
 
       Set_Visible_Part (Pkg, New_List);
-      Set_Subunits (Pkg, New_List);
+      Set_Nested_Packages (Pkg, New_List);
       Set_Private_Part (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
