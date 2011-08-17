@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_common", "polyorb_src";
-limited with "polyorb_src_corba", "polyorb_cos_naming";
+with "polyorb_common", "polyorb_src", "polyorb_src_corba";
 
 project PolyORB_idls_cos_naming is
 
