@@ -2035,12 +2035,6 @@ idlac_output_files := \
     idls/cos/time/timebase.ads \
     idls/cos/time/timebase-helper.adb \
     idls/cos/time/timebase-helper.ads \
-    cos/naming/file.adb \
-    cos/naming/file.ads \
-    cos/naming/file-helper.adb \
-    cos/naming/file-helper.ads \
-    cos/naming/file-skel.adb \
-    cos/naming/file-skel.ads \
     cos/ir/corba-repository_root-abstractinterfacedef.adb \
     cos/ir/corba-repository_root-abstractinterfacedef.ads \
     cos/ir/corba-repository_root-abstractinterfacedef-helper.adb \
@@ -2242,6 +2236,72 @@ idlac_output_files := \
     cos/ir/corba-repository_root-wstringdef-helper.ads \
     cos/ir/corba-repository_root-wstringdef-skel.adb \
     cos/ir/corba-repository_root-wstringdef-skel.ads \
+    cos/ir/corba_repository_root_abstractinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_abstractinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_aliasdef_hash.adb \
+    cos/ir/corba_repository_root_aliasdef_hash.ads \
+    cos/ir/corba_repository_root_arraydef_hash.adb \
+    cos/ir/corba_repository_root_arraydef_hash.ads \
+    cos/ir/corba_repository_root_attributedef_hash.adb \
+    cos/ir/corba_repository_root_attributedef_hash.ads \
+    cos/ir/corba_repository_root_constantdef_hash.adb \
+    cos/ir/corba_repository_root_constantdef_hash.ads \
+    cos/ir/corba_repository_root_contained_hash.adb \
+    cos/ir/corba_repository_root_contained_hash.ads \
+    cos/ir/corba_repository_root_container_hash.adb \
+    cos/ir/corba_repository_root_container_hash.ads \
+    cos/ir/corba_repository_root_enumdef_hash.adb \
+    cos/ir/corba_repository_root_enumdef_hash.ads \
+    cos/ir/corba_repository_root_exceptiondef_hash.adb \
+    cos/ir/corba_repository_root_exceptiondef_hash.ads \
+    cos/ir/corba_repository_root_extabstractinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_extabstractinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_extattributedef_hash.adb \
+    cos/ir/corba_repository_root_extattributedef_hash.ads \
+    cos/ir/corba_repository_root_extinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_extinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_extlocalinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_extlocalinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_fixeddef_hash.adb \
+    cos/ir/corba_repository_root_fixeddef_hash.ads \
+    cos/ir/corba_repository_root_idltype_hash.adb \
+    cos/ir/corba_repository_root_idltype_hash.ads \
+    cos/ir/corba_repository_root_interfaceattrextension_hash.adb \
+    cos/ir/corba_repository_root_interfaceattrextension_hash.ads \
+    cos/ir/corba_repository_root_interfacedef_hash.adb \
+    cos/ir/corba_repository_root_interfacedef_hash.ads \
+    cos/ir/corba_repository_root_irobject_hash.adb \
+    cos/ir/corba_repository_root_irobject_hash.ads \
+    cos/ir/corba_repository_root_localinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_localinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_moduledef_hash.adb \
+    cos/ir/corba_repository_root_moduledef_hash.ads \
+    cos/ir/corba_repository_root_nativedef_hash.adb \
+    cos/ir/corba_repository_root_nativedef_hash.ads \
+    cos/ir/corba_repository_root_operationdef_hash.adb \
+    cos/ir/corba_repository_root_operationdef_hash.ads \
+    cos/ir/corba_repository_root_primitivedef_hash.adb \
+    cos/ir/corba_repository_root_primitivedef_hash.ads \
+    cos/ir/corba_repository_root_repository_hash.adb \
+    cos/ir/corba_repository_root_repository_hash.ads \
+    cos/ir/corba_repository_root_sequencedef_hash.adb \
+    cos/ir/corba_repository_root_sequencedef_hash.ads \
+    cos/ir/corba_repository_root_stringdef_hash.adb \
+    cos/ir/corba_repository_root_stringdef_hash.ads \
+    cos/ir/corba_repository_root_structdef_hash.adb \
+    cos/ir/corba_repository_root_structdef_hash.ads \
+    cos/ir/corba_repository_root_typedefdef_hash.adb \
+    cos/ir/corba_repository_root_typedefdef_hash.ads \
+    cos/ir/corba_repository_root_uniondef_hash.adb \
+    cos/ir/corba_repository_root_uniondef_hash.ads \
+    cos/ir/corba_repository_root_valueboxdef_hash.adb \
+    cos/ir/corba_repository_root_valueboxdef_hash.ads \
+    cos/ir/corba_repository_root_valuedef_hash.adb \
+    cos/ir/corba_repository_root_valuedef_hash.ads \
+    cos/ir/corba_repository_root_valuememberdef_hash.adb \
+    cos/ir/corba_repository_root_valuememberdef_hash.ads \
+    cos/ir/corba_repository_root_wstringdef_hash.adb \
+    cos/ir/corba_repository_root_wstringdef_hash.ads \
     cos/event/coseventchanneladmin-consumeradmin-skel.adb \
     cos/event/coseventchanneladmin-consumeradmin-skel.ads \
     cos/event/coseventchanneladmin-eventchannel-skel.adb \
@@ -2278,6 +2338,42 @@ idlac_output_files := \
     cos/event/costypedeventcomm-typedpullsupplier-skel.ads \
     cos/event/costypedeventcomm-typedpushconsumer-skel.adb \
     cos/event/costypedeventcomm-typedpushconsumer-skel.ads \
+    cos/event/coseventchanneladmin_consumeradmin_hash.adb \
+    cos/event/coseventchanneladmin_consumeradmin_hash.ads \
+    cos/event/coseventchanneladmin_eventchannel_hash.adb \
+    cos/event/coseventchanneladmin_eventchannel_hash.ads \
+    cos/event/coseventchanneladmin_proxypullconsumer_hash.adb \
+    cos/event/coseventchanneladmin_proxypullconsumer_hash.ads \
+    cos/event/coseventchanneladmin_proxypullsupplier_hash.adb \
+    cos/event/coseventchanneladmin_proxypullsupplier_hash.ads \
+    cos/event/coseventchanneladmin_proxypushconsumer_hash.adb \
+    cos/event/coseventchanneladmin_proxypushconsumer_hash.ads \
+    cos/event/coseventchanneladmin_proxypushsupplier_hash.adb \
+    cos/event/coseventchanneladmin_proxypushsupplier_hash.ads \
+    cos/event/coseventchanneladmin_supplieradmin_hash.adb \
+    cos/event/coseventchanneladmin_supplieradmin_hash.ads \
+    cos/event/coseventcomm_pullconsumer_hash.adb \
+    cos/event/coseventcomm_pullconsumer_hash.ads \
+    cos/event/coseventcomm_pullsupplier_hash.adb \
+    cos/event/coseventcomm_pullsupplier_hash.ads \
+    cos/event/coseventcomm_pushconsumer_hash.adb \
+    cos/event/coseventcomm_pushconsumer_hash.ads \
+    cos/event/coseventcomm_pushsupplier_hash.adb \
+    cos/event/coseventcomm_pushsupplier_hash.ads \
+    cos/event/costypedeventchanneladmin_typedconsumeradmin_hash.adb \
+    cos/event/costypedeventchanneladmin_typedconsumeradmin_hash.ads \
+    cos/event/costypedeventchanneladmin_typedeventchannel_hash.adb \
+    cos/event/costypedeventchanneladmin_typedeventchannel_hash.ads \
+    cos/event/costypedeventchanneladmin_typedproxypullsupplier_hash.adb \
+    cos/event/costypedeventchanneladmin_typedproxypullsupplier_hash.ads \
+    cos/event/costypedeventchanneladmin_typedproxypushconsumer_hash.adb \
+    cos/event/costypedeventchanneladmin_typedproxypushconsumer_hash.ads \
+    cos/event/costypedeventchanneladmin_typedsupplieradmin_hash.adb \
+    cos/event/costypedeventchanneladmin_typedsupplieradmin_hash.ads \
+    cos/event/costypedeventcomm_typedpullsupplier_hash.adb \
+    cos/event/costypedeventcomm_typedpullsupplier_hash.ads \
+    cos/event/costypedeventcomm_typedpushconsumer_hash.adb \
+    cos/event/costypedeventcomm_typedpushconsumer_hash.ads \
     cos/notification/cosnotification-adminpropertiesadmin-skel.adb \
     cos/notification/cosnotification-adminpropertiesadmin-skel.ads \
     cos/notification/cosnotification-qosadmin-skel.adb \
@@ -2354,12 +2450,108 @@ idlac_output_files := \
     cos/notification/cosnotifyfilter-filter-skel.ads \
     cos/notification/cosnotifyfilter-mappingfilter-skel.adb \
     cos/notification/cosnotifyfilter-mappingfilter-skel.ads \
+    cos/notification/cosnotification_adminpropertiesadmin_hash.adb \
+    cos/notification/cosnotification_adminpropertiesadmin_hash.ads \
+    cos/notification/cosnotification_qosadmin_hash.adb \
+    cos/notification/cosnotification_qosadmin_hash.ads \
+    cos/notification/cosnotifychanneladmin_consumeradmin_hash.adb \
+    cos/notification/cosnotifychanneladmin_consumeradmin_hash.ads \
+    cos/notification/cosnotifychanneladmin_eventchannelfactory_hash.adb \
+    cos/notification/cosnotifychanneladmin_eventchannelfactory_hash.ads \
+    cos/notification/cosnotifychanneladmin_eventchannel_hash.adb \
+    cos/notification/cosnotifychanneladmin_eventchannel_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxyconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxyconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypullconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypullconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypullsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypullsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypushconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypushconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypushsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypushsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxysupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxysupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypullconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypullconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypullsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypullsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypushconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypushconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypushsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypushsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_supplieradmin_hash.adb \
+    cos/notification/cosnotifychanneladmin_supplieradmin_hash.ads \
+    cos/notification/cosnotifycomm_notifypublish_hash.adb \
+    cos/notification/cosnotifycomm_notifypublish_hash.ads \
+    cos/notification/cosnotifycomm_notifysubscribe_hash.adb \
+    cos/notification/cosnotifycomm_notifysubscribe_hash.ads \
+    cos/notification/cosnotifycomm_pullconsumer_hash.adb \
+    cos/notification/cosnotifycomm_pullconsumer_hash.ads \
+    cos/notification/cosnotifycomm_pullsupplier_hash.adb \
+    cos/notification/cosnotifycomm_pullsupplier_hash.ads \
+    cos/notification/cosnotifycomm_pushconsumer_hash.adb \
+    cos/notification/cosnotifycomm_pushconsumer_hash.ads \
+    cos/notification/cosnotifycomm_pushsupplier_hash.adb \
+    cos/notification/cosnotifycomm_pushsupplier_hash.ads \
+    cos/notification/cosnotifycomm_sequencepullconsumer_hash.adb \
+    cos/notification/cosnotifycomm_sequencepullconsumer_hash.ads \
+    cos/notification/cosnotifycomm_sequencepullsupplier_hash.adb \
+    cos/notification/cosnotifycomm_sequencepullsupplier_hash.ads \
+    cos/notification/cosnotifycomm_sequencepushconsumer_hash.adb \
+    cos/notification/cosnotifycomm_sequencepushconsumer_hash.ads \
+    cos/notification/cosnotifycomm_sequencepushsupplier_hash.adb \
+    cos/notification/cosnotifycomm_sequencepushsupplier_hash.ads \
+    cos/notification/cosnotifycomm_structuredpullconsumer_hash.adb \
+    cos/notification/cosnotifycomm_structuredpullconsumer_hash.ads \
+    cos/notification/cosnotifycomm_structuredpullsupplier_hash.adb \
+    cos/notification/cosnotifycomm_structuredpullsupplier_hash.ads \
+    cos/notification/cosnotifycomm_structuredpushconsumer_hash.adb \
+    cos/notification/cosnotifycomm_structuredpushconsumer_hash.ads \
+    cos/notification/cosnotifycomm_structuredpushsupplier_hash.adb \
+    cos/notification/cosnotifycomm_structuredpushsupplier_hash.ads \
+    cos/notification/cosnotifyfilter_filteradmin_hash.adb \
+    cos/notification/cosnotifyfilter_filteradmin_hash.ads \
+    cos/notification/cosnotifyfilter_filterfactory_hash.adb \
+    cos/notification/cosnotifyfilter_filterfactory_hash.ads \
+    cos/notification/cosnotifyfilter_filter_hash.adb \
+    cos/notification/cosnotifyfilter_filter_hash.ads \
+    cos/notification/cosnotifyfilter_mappingfilter_hash.adb \
+    cos/notification/cosnotifyfilter_mappingfilter_hash.ads \
+    cos/naming/file.adb \
+    cos/naming/file.ads \
+    cos/naming/file-helper.adb \
+    cos/naming/file-helper.ads \
+    cos/naming/file-skel.adb \
+    cos/naming/file-skel.ads \
+    cos/naming/cosnaming_bindingiterator_hash.adb \
+    cos/naming/cosnaming_bindingiterator_hash.ads \
+    cos/naming/cosnaming_namingcontextext_hash.adb \
+    cos/naming/cosnaming_namingcontextext_hash.ads \
+    cos/naming/cosnaming_namingcontext_hash.adb \
+    cos/naming/cosnaming_namingcontext_hash.ads \
+    cos/naming/file_hash.adb \
+    cos/naming/file_hash.ads \
     cos/time/costime-timeservice-skel.adb \
     cos/time/costime-timeservice-skel.ads \
     cos/time/costime-tio-skel.adb \
     cos/time/costime-tio-skel.ads \
     cos/time/costime-uto-skel.adb \
-    cos/time/costime-uto-skel.ads
+    cos/time/costime-uto-skel.ads \
+    cos/time/costime_timeservice_hash.adb \
+    cos/time/costime_timeservice_hash.ads \
+    cos/time/costime_tio_hash.adb \
+    cos/time/costime_tio_hash.ads \
+    cos/time/costime_uto_hash.adb \
+    cos/time/costime_uto_hash.ads
 
 ################
 
