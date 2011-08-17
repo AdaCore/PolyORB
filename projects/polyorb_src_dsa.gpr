@@ -59,6 +59,7 @@ project PolyORB_src_dsa is
       for Switches ("s-parint.adb") use Ada_RTL_Switches;
       for Switches ("s-dsaser.adb") use Ada_RTL_Switches;
       for Switches ("s-dsatyp.adb") use Ada_RTL_Switches;
+      for Switches ("s-shasto.adb") use Ada_RTL_Switches;
 
    end Compiler;
 
