@@ -1725,6 +1725,8 @@ src/polyorb-transport.adb
 src/polyorb-transport.ads
 src/polyorb-types.adb
 src/polyorb-types.ads
+src/polyorb-utils-backtrace.adb
+src/polyorb-utils-backtrace.ads
 src/polyorb-utils-buffers.adb
 src/polyorb-utils-buffers.ads
 src/polyorb-utils-chained_lists.adb

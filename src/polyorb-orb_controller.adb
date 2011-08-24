@@ -34,6 +34,7 @@
 with PolyORB.Constants;
 with PolyORB.ORB;
 with PolyORB.Parameters;
+with PolyORB.Utils.Backtrace;
 
 package body PolyORB.ORB_Controller is
 
@@ -72,7 +73,8 @@ package body PolyORB.ORB_Controller is
                             & ", current owner " & Image (M.Owner)));
 
       if M.Owner = Self then
-         O1 ("attempt to re-enter critical section", Warning);
+         O1 ("attempt to re-enter critical section at "
+             & Utils.Backtrace.Backtrace, Warning);
 
       else
          M.Mutex.Enter;
