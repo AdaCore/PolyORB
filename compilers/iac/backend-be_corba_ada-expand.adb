@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1283,6 +1283,9 @@ package body Backend.BE_CORBA_Ada.Expand is
       Definition : Node_Id;
    begin
       Backend.BE_CORBA_Ada.Nutils.Initialize;
+      --  Nutils.Initialize was already called in BE_CORBA_Ada.Initialize,
+      --  why do we call it again here???
+
       Definition := First_Entity (Definitions (Entity));
       while Present (Definition) loop
          Expand (Definition);
