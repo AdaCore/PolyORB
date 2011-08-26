@@ -95,18 +95,16 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Register_Source --
    ---------------------
 
-   procedure Register_Source
+   function Register_Source
      (AEM     : access Socket_Event_Monitor;
-      AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean)
+      AES     : Asynch_Ev_Source_Access) return Register_Source_Result
    is
    begin
       pragma Debug (C, O ("Register_Source: enter"));
 
-      Success := False;
       if AES.all not in Socket_Event_Source then
-         pragma Debug (C, O ("Register_Source: leave"));
-         return;
+         pragma Debug (C, O ("Register_Source: leave (Unknown_Source_Type)"));
+         return Unknown_Source_Type;
       end if;
 
       declare
@@ -119,13 +117,20 @@ package body PolyORB.Asynch_Ev.Sockets is
 
          Set (AEM.Monitored_Set, S_AES.Socket);
          Source_Lists.Append (AEM.Sources, S_AES'Access);
+
+      exception
+         when E : others =>
+            O ("Register_Source: " & Ada.Exceptions.Exception_Information (E),
+               Error);
+            pragma Debug (C, O ("Register_Source: leave (Failure)"));
+            return Failure;
       end;
       pragma Debug (C, O ("Register_Source: Sources'Length ="
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
 
-      Success := True;
-      pragma Debug (C, O ("Register_Source: leave"));
+      pragma Debug (C, O ("Register_Source: leave (Success)"));
+      return Success;
    end Register_Source;
 
    -----------------------

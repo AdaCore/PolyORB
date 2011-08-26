@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,19 +94,23 @@ package PolyORB.Asynch_Ev is
 
    function AEM_Of (AES : Asynch_Ev_Source) return Asynch_Ev_Monitor_Access;
 
-   procedure Register_Source
+   type Register_Source_Result is
+     (Unknown_Source_Type, --  AES type not suitable for this AEM type
+      Failure,             --  AES type is correct but registration failed
+      Success);            --  AES type is correct and registration succeeded
+
+   function Register_Source
      (AEM     : access Asynch_Ev_Monitor;
-      AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean) is abstract;
-   --  Try to register AES for monitoring by AEM.
-   --  On exit, Success is True iff AEM accepts AES for monitoring.
+      AES     : Asynch_Ev_Source_Access) return Register_Source_Result
+     is abstract;
+   --  Try to register AES for monitoring by AEM
 
    procedure Unregister_Source
      (AEM     : in out Asynch_Ev_Monitor;
       AES     : Asynch_Ev_Source_Access;
       Success : out Boolean) is abstract;
-   --  Remove AES from the set of sources monitored by AEM. On exit,
-   --  Success is True iff AES was previously registered with this AEM.
+   --  Remove AES from the set of sources monitored by AEM. On exit, Success is
+   --  True iff AES was previously registered with this AEM.
 
    function Unregister_Source (AES : Asynch_Ev_Source_Access) return Boolean;
    --  Remove AES from any AEM that it is currently in. Returns True if

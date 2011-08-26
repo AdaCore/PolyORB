@@ -834,53 +834,56 @@ package body PolyORB.ORB is
       declare
          Monitors : constant Monitor_Array :=
                       Get_Monitors (ORB.ORB_Controller);
-         Success : Boolean := False;
+         AEM      : Asynch_Ev_Monitor_Access;
+         RSR      : Register_Source_Result;
       begin
          for J in Monitors'Range loop
 
             --  Try to register the source to an existing monitor
 
-            Disable_Polling (ORB.ORB_Controller, Monitors (J));
-            Register_Source (Monitors (J), AES, Success);
-            Enable_Polling (ORB.ORB_Controller, Monitors (J));
+            AEM := Monitors (J);
 
-            if Success then
-               Notify_Event (ORB.ORB_Controller,
-                             Event'(Kind           => Event_Sources_Added,
-                                    Add_In_Monitor => Monitors (J)));
+            Disable_Polling (ORB.ORB_Controller, AEM);
+            RSR := Register_Source (Monitors (J), AES);
+
+            if RSR = Unknown_Source_Type then
+               Enable_Polling (ORB.ORB_Controller, AEM);
+            else
                exit;
             end if;
          end loop;
 
-         if not Success then
+         if RSR = Unknown_Source_Type then
 
             --  Create a new monitor and register the source
 
             pragma Debug (C, O ("Creating new monitor"));
 
-            declare
-               New_AEM : constant Asynch_Ev_Monitor_Access :=
-                           AEM_Factory_Of (AES.all).all;
-            begin
-               pragma Debug (C, O ("AEM: "
-                                & Ada.Tags.External_Tag (New_AEM.all'Tag)));
-               Create (New_AEM.all);
+            AEM := AEM_Factory_Of (AES.all).all;
 
-               --  In this situation, no task can be polling this monitor yet,
-               --  so no need to disable polling.
+            pragma Debug (C, O ("AEM: "
+                          & Ada.Tags.External_Tag (AEM.all'Tag)));
+            Create (AEM.all);
 
-               Register_Source (New_AEM, AES, Success);
-               pragma Assert (Success);
+            --  In this situation, no task can be polling this monitor yet,
+            --  so no need to disable polling.
 
-               Notify_Event (ORB.ORB_Controller,
-                             Event'(Kind           => Event_Sources_Added,
-                                    Add_In_Monitor => New_AEM));
-
-               --  Enable polling on this new monitor
-
-               Enable_Polling (ORB.ORB_Controller, New_AEM);
-            end;
+            RSR := Register_Source (AEM, AES);
          end if;
+
+         pragma Assert (RSR /= Unknown_Source_Type);
+
+         if RSR = Success then
+            Notify_Event (ORB.ORB_Controller,
+                          Event'(Kind           => Event_Sources_Added,
+                                 Add_In_Monitor => AEM));
+
+         else
+            pragma Debug (C, O ("Insert_Source: failed to register source"));
+            null;
+         end if;
+
+         Enable_Polling (ORB.ORB_Controller, AEM);
       end;
 
       pragma Debug (C, O ("Insert_Source: leave"));

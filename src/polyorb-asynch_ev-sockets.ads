@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,10 +50,9 @@ package PolyORB.Asynch_Ev.Sockets is
 
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
-   procedure Register_Source
+   function Register_Source
      (AEM     : access Socket_Event_Monitor;
-      AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean);
+      AES     : Asynch_Ev_Source_Access) return Register_Source_Result;
 
    procedure Unregister_Source
      (AEM     : in out Socket_Event_Monitor;
