@@ -12,6 +12,13 @@ This date shows the implementation date of the feature. Any 2.8 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-28-K806-001 Improve behaviour in tasking intensive context (2011-08-29)
+
+   Taking advantage of a new feature in the GNAT runtime library, a
+   performance bottleneck has been removed in the PolyORB full tasking
+   profile. This significantly improves performance in situations where a
+   large number of tasks need to be created and destroyed.
+
 NF-28-JC17-036 Support for partition-wide RPC timeout setting (2010-12-23)
 
    A new runtime parameter rpc_timeout in section [dsa] specifies a global
