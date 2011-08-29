@@ -113,6 +113,11 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Run (SR : not null access Simple_Runnable);
 
+   --  WAG:642
+   --  For older compilers, we need a separate Reaper task to purge terminated
+   --  generic tasks. (In newer versions, we can just mark them to be freed
+   --  automatically upon termination, see NF-65-H911-007).
+
    task type Reaper is
       entry Free (GT : Generic_Task_Access);
       --  Busy-wait for the designated task to terminate, then free it
@@ -303,6 +308,12 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       --  reaper task for this purpose.
 
       if Platform.Free_On_Termination then
+
+         --  Note: It is a bounded error to call Unchecked_Deallocation on
+         --  Self because the task has discriminants (13.11.2(11)). However
+         --  no problem in practice as we are not going to reference them
+         --  beyond this point.
+
          Free_Generic_Task (Self);
       else
          The_Reaper.Free (Self);
