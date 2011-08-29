@@ -230,6 +230,7 @@ AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
 AM_HAS_INTRINSIC_SYNC_COUNTERS
 AM_HAS_ADA_DYNAMIC_PRIORITIES
+AM_HAS_FREE_ON_TERMINATION
 
 ##########################################
 # Check C environment features (for target)

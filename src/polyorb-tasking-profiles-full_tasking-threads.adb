@@ -52,6 +52,7 @@ with Ada.Unchecked_Conversion;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.Platform;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
@@ -112,7 +113,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    procedure Run (SR : not null access Simple_Runnable);
 
-   task Reaper is
+   task type Reaper is
       entry Free (GT : Generic_Task_Access);
       --  Busy-wait for the designated task to terminate, then free it
    end Reaper;
@@ -151,6 +152,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          end select;
       end loop;
    end Reaper;
+
+   The_Reaper : access Reaper;
 
    --------------------
    -- P_To_A_Task_Id --
@@ -262,6 +265,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       The_Thread     : Full_Tasking_Thread_Access;
       The_Runnable   : PTT.Runnable_Access;
       Self           : Generic_Task_Access;
+
    begin
       accept Initialize (T : PTT.Thread_Access) do
          The_Thread := Full_Tasking_Thread_Access (T);
@@ -293,11 +297,16 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
       Free (The_Thread);
 
-      --  Here we should really signal the GNAT runtime that it can forget
-      --  this task altogether, but GNAT.Threads.Unregister_Thread can't be
-      --  called by an Ada task??? So, we use a specific reaper task instead.
+      --  Here we signal the GNAT runtime that it can forget this task
+      --  altogether (and deallocate its ATCB when it terminates). For older
+      --  runtime versions that do not support this feature, we use a separate
+      --  reaper task for this purpose.
 
-      Reaper.Free (Self);
+      if Platform.Free_On_Termination then
+         Free_Generic_Task (Self);
+      else
+         The_Reaper.Free (Self);
+      end if;
 
    end Generic_Task;
 
@@ -442,6 +451,14 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          S_TID := S_TID.Common.Parent;
       end loop;
       The_Thread_Factory.Environment_Task := S_TID;
+
+      if not Platform.Free_On_Termination then
+         The_Reaper := new Reaper;
+         pragma Debug
+           (C, O ("Reaper task started: "
+                  & Ada.Task_Identification.Image (The_Reaper'Identity)));
+      end if;
+
       pragma Debug (C, O ("Environment task: "
                             & Ada.Task_Identification.Image (A_TID)));
    end Initialize;

@@ -114,22 +114,34 @@ end Check;
 [AC_MSG_RESULT(no)
 AC_MSG_ERROR([Ada compiler is not working])])])
 
-dnl Usage: AM_ADA_PREREQ(date, version)
-dnl Check that GNAT is at least as recent as date (YYMMDD)
+dnl Usage: AM_ADA_DATE(gnatls, date, earlier, not-earlier)
+dnl Call the provided GNATLS tool to retrieve its date (YYYYMMDD).
+dnl If earlier than the given date, execute earlier, else execute
+dnl not-earlier.
+
+AC_DEFUN([AM_ADA_DATE],
+[am_gnatls_datever=`$1 -v | grep "^GNATLS"`
+am_gnatls_version=`echo $am_gnatls_datever | $SED -ne ['s/^GNATLS \(.*\) ([0-9]*[-)].*$/\1/p']`
+am_gnatls_date=`echo $am_gnatls_datever | $SED -ne ['s/^GNATLS .* (\([0-9]*\)[-)].*$/\1/p']`
+if test "$am_gnatls_date" -lt $2; then
+  : Earlier
+  $3
+else
+  : Same date or later
+  $4
+fi])
+
+dnl Usage: AM__ADA_PREREQ(date, version)
+dnl Check that GNAT is at least as recent as date (YYYYMMDD)
 
 AC_DEFUN([AM_ADA_PREREQ],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
-AC_CHECK_PROG(SED, sed, sed)
 AC_MSG_CHECKING([if the Ada compiler is recent enough])
-am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(.*\)).*$/\1/p'`
-if test "$1" -le "$am_gnatls_date"; then
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_RESULT(no)
-  am_gnatls_version=`$GNATLS -v | $SED -ne 's/^GNATLS \(.*\) (.*.*$/\1/p'`
-  AC_MSG_ERROR([Please get a version of GNAT no older than [$2 ($1)]
-(it looks like you only have GNAT [$am_gnatls_version ($am_gnatls_date)])])
-fi])
+AM_ADA_DATE($GNATLS,$1,
+[AC_MSG_RESULT(no)
+ AC_MSG_ERROR([Please get a compiler version no older than GNAT [$2 ($1)]
+(it looks like you only have GNAT [$am_gnatls_version ($am_gnatls_date)])])],
+[AC_MSG_RESULT(yes)])])
 
 dnl Usage: AM_CROSS_PROG_ADA
 dnl Look for an Ada compiler for the target (same as the host one if host and
@@ -401,6 +413,27 @@ HAVE_ADA_DYNAMIC_PRIORITIES=true],
 HAVE_ADA_DYNAMIC_PRIORITIES=false])
 AC_SUBST(ADA_DYNAMIC_PRIORITIES)
 AC_SUBST(HAVE_ADA_DYNAMIC_PRIORITIES)])
+
+dnl Syntax: AM_HAS_FREE_ON_TERMINATION
+dnl Determines whether the target environment supports TCB deallocation upon
+dnl task termination.
+
+AC_DEFUN([AM_HAS_FREE_ON_TERMINATION],
+[AC_REQUIRE([AM_CROSS_PROG_GNATLS])
+AC_MSG_CHECKING([whether environment supports free-on-termination])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+[with System.Tasking;
+procedure Check is
+   ATCB : System.Tasking.Ada_Task_Control_Block (0);
+begin
+   ATCB.Free_On_Termination := True;
+end Check;
+], [],
+[AC_MSG_RESULT(yes)
+HAVE_FREE_ON_TERMINATION=True],
+[AC_MSG_RESULT(no)
+HAVE_FREE_ON_TERMINATION=False])
+AC_SUBST(HAVE_FREE_ON_TERMINATION)])
 
 dnl Usage: AM_SUPPORT_RPC_ABORTION
 dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this
