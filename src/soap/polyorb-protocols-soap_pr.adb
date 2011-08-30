@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -447,7 +447,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                Argument  => Res.Argument,
                Arg_Modes => ARG_OUT);
          else
-            Move_Any_Value (R.Result.Argument, Res.Argument);
+            Copy_Any_Value (R.Result.Argument, Res.Argument);
          end if;
       end;
       --  Some applicative personnalities, like AWS, do not specify
@@ -455,6 +455,10 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  CORBA. So we either copy the any data if the type of the
       --  namedvalue is specified, or simply set the namedvalue if its
       --  type is not specified.
+
+      --  Also note that R.Result.Argument may be a wrapper any, in which case
+      --  we must copy the value in place (instead of changing the Any's
+      --  contents pointer to designate the contents provided by Res.Argument).
 
       --  XXX We should consider changing this, by moving this kind of
       --  mechanism into the neutral layer. Thus, protocol
