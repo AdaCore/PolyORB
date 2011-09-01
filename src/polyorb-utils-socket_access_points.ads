@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2007, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,12 +33,10 @@
 
 --  Common definitions for all socket-based access points
 
-with PolyORB.Parameters;
 with PolyORB.Sockets;
 
 package PolyORB.Utils.Socket_Access_Points is
 
-   use PolyORB.Parameters;
    use PolyORB.Sockets;
 
    type Port_Interval is record

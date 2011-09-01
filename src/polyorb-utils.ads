@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Miscellaneous utility subprograms
+
+pragma Ada_2005;
 
 with Ada.Streams;
 
@@ -123,6 +125,21 @@ package PolyORB.Utils is
 
    function To_Lower (S : String) return String;
    --  Folds all characters of string S to lower case
+
+   ---------------
+   -- Intervals --
+   ---------------
+
+   type Interval is record
+      Lo, Hi : Natural;
+   end record;
+
+   function To_Interval (S : String) return Interval;
+   --  Convert a string representation of an interval as two hyphen-separated
+   --  decimal strings to an Interval value.
+   --  S can be a single number, in which case Lo and Hi are both set to that
+   --  value. Constraint_Error is raised for malformed input (starting or
+   --  ending with an hyphen, or other invalid numeric representation).
 
 private
    type Direction_Type is new Integer range -1 .. +1;

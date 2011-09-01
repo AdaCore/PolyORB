@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 package body PolyORB.Utils is
 
@@ -212,6 +214,40 @@ package body PolyORB.Utils is
       return S'Length >= Prefix'Length
         and then S (S'First .. S'First + Prefix'Length - 1) = Prefix;
    end Has_Prefix;
+
+   -----------------
+   -- To_Interval --
+   -----------------
+
+   function To_Interval (S : String) return Interval is
+      Hyphen : constant Natural := Find (S, S'First, '-');
+      --  Index of hyphen in S, or S'Last + 1 if none
+
+      Result : Interval;
+
+   begin
+      if Hyphen = S'First or else Hyphen = S'Last then
+         --  Malformed interval: if hyphen is present, it must be
+         --  preceded and followed by bounds.
+
+         raise Constraint_Error with "malformed interval: " & S;
+      end if;
+
+      --  Set result
+
+      Result.Lo := Integer'Value (S (S'First .. Hyphen - 1));
+
+      --  If Hyphen is present, high bound is given explicitly, else we have
+      --  a plain integer literal, and treat it as a single-value interval.
+
+      if Hyphen < S'Last then
+         Result.Hi := Integer'Value (S (Hyphen + 1 .. S'Last));
+      else
+         Result.Hi := Result.Lo;
+      end if;
+
+      return Result;
+   end To_Interval;
 
    --------------
    -- To_Lower --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -166,46 +166,8 @@ package body PolyORB.Parameters is
       Default      : Interval := (0, 0)) return Interval
    is
       Default_Str : constant String := Default.Lo'Img & "-" & Default.Hi'Img;
-      --  Default value as a string
-
-      Str_Value : String renames Get_Conf (Section, Key, Default_Str);
-      --  Effective value as a string
-
-      Hyphen : Integer := Str_Value'Last + 1;
-      --  Index of hyphen in Str_Value, or Str_Value'Last + 1 if none
-
-      Result : Interval;
-
    begin
-      --  Find hyphen in Str_Value
-
-      for J in Str_Value'Range loop
-         if Str_Value (J) = '-' then
-            if J = Str_Value'First or else J = Str_Value'Last then
-               --  Malformed interval: if hyphen is present, it must be
-               --  preceded and followed by bounds.
-
-               raise Constraint_Error;
-            end if;
-            Hyphen := J;
-            exit;
-         end if;
-      end loop;
-
-      --  Set result
-
-      Result.Lo := Integer'Value (Str_Value (Str_Value'First .. Hyphen - 1));
-
-      --  If Hyphen is present, high bound is given explicitly, else we have
-      --  a plain integer literal, and treat it as a single-value interval.
-
-      if Hyphen < Str_Value'Last then
-         Result.Hi := Integer'Value (Str_Value (Hyphen + 1 .. Str_Value'Last));
-      else
-         Result.Hi := Result.Lo;
-      end if;
-
-      return Result;
+      return Utils.To_Interval (Get_Conf (Section, Key, Default_Str));
    end Get_Conf;
 
    ----------------
