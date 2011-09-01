@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -215,10 +215,10 @@ package body PolyORB.Setup.Access_Points.IIOP is
                               Alternate_IIOP_Access_Point.SAP);
 
                            Register_Access_Point
-                             (ORB    => The_ORB,
-                              TAP    => Alternate_IIOP_Access_Point.SAP,
-                              Chain  => IIOP_Factories'Access,
-                              PF     => null);
+                             (ORB   => The_ORB,
+                              TAP   => Alternate_IIOP_Access_Point.SAP,
+                              Chain => IIOP_Factories'Access,
+                              PF    => null);
                         end if;
                      end;
 
