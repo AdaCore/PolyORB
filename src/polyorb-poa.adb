@@ -33,7 +33,7 @@
 
 --  Abstract interface for the POA
 
-with Ada.Strings.Fixed;
+with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
@@ -47,6 +47,8 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Utils;
 
 package body PolyORB.POA is
+
+   use Ada.Streams;
 
    use PolyORB.Errors;
    use PolyORB.Log;
@@ -62,6 +64,13 @@ package body PolyORB.POA is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
+   subtype Lifespan_Cookie_SEA is
+     Stream_Element_Array (1 .. (Lifespan_Cookie'Size + 7) / 8);
+
+   function To_Hex (C : Lifespan_Cookie) return String;
+   function To_Lifespan_Cookie (H : String) return Lifespan_Cookie;
+   --  Conversion between lifespan cookie and hex string representation
+
    --------------------
    -- Oid_To_Rel_URI --
    --------------------
@@ -72,9 +81,6 @@ package body PolyORB.POA is
       URI   : out Types.String;
       Error : in out PolyORB.Errors.Error_Container)
    is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
@@ -91,8 +97,7 @@ package body PolyORB.POA is
                          & ", Id: " & To_Standard_String (U_Oid.Id)
                          & ", sys = " & Boolean'Image
                          (U_Oid.System_Generated)
-                         & ", pf = " & Lifespan_Cookie'Image
-                         (U_Oid.Persistency_Flag)));
+                         & ", pf = " & To_Hex (U_Oid.Persistency_Flag)));
 
       if Length (U_Oid.Creator) /= 0 then
          URI := URI & U_Oid.Creator & To_PolyORB_String ("/");
@@ -109,7 +114,7 @@ package body PolyORB.POA is
       end if;
 
       if U_Oid.Persistency_Flag /= Null_Time_Stamp then
-         URI := URI & ";pf=" & Trim (U_Oid.Persistency_Flag'Img, Left);
+         URI := URI & ";pf=" & To_Hex (U_Oid.Persistency_Flag);
       end if;
 
       pragma Debug (C, O ("-> URI: " & To_Standard_String (URI)));
@@ -162,8 +167,7 @@ package body PolyORB.POA is
       if Colon + 3 <= URI'Last
         and then URI (Colon + 1 .. Colon + 3) = "pf="
       then
-         Persistency_Flag :=
-           Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
+         Persistency_Flag := To_Lifespan_Cookie (URI (Colon + 4 .. URI'Last));
 
       else
          Persistency_Flag := Null_Time_Stamp;
@@ -176,7 +180,7 @@ package body PolyORB.POA is
                        & ", sys = "
                        & Boolean'Image (System_Generated)
                        & ", pf = "
-                       & Lifespan_Cookie'Image (Persistency_Flag)));
+                       & To_Hex (Persistency_Flag)));
 
       return Create_Id (Name => URI_Decode (URI (Id_First .. Id_Last)),
                         System_Generated => System_Generated,
@@ -321,6 +325,32 @@ package body PolyORB.POA is
 
       Leave (OA.POA_Lock);
    end Set_Policies;
+
+   ------------
+   -- To_Hex --
+   ------------
+
+   function To_Hex (C : Lifespan_Cookie) return String is
+      C_SEA : Lifespan_Cookie_SEA;
+      for C_SEA'Address use C'Address;
+      pragma Import (Ada, C_SEA);
+   begin
+      return SEA_To_Hex_String (C_SEA);
+   end To_Hex;
+
+   ------------------------
+   -- To_Lifespan_Cookie --
+   ------------------------
+
+   function To_Lifespan_Cookie (H : String) return Lifespan_Cookie is
+      C     : aliased Lifespan_Cookie;
+      C_SEA : Lifespan_Cookie_SEA;
+      for C_SEA'Address use C'Address;
+      pragma Import (Ada, C_SEA);
+   begin
+      C_SEA := Hex_String_To_SEA (H);
+      return C;
+   end To_Lifespan_Cookie;
 
    -----------------------------
    -- Init_With_User_Policies --
