@@ -62,7 +62,7 @@ define(NODEBUG_OPTIONS, [dnl
   debug=false])
 
 AC_ARG_ENABLE(debug,
-AS_HELP_STRING([--enable-debug[=yes/all/no]], [Turn on debugging options]),
+AS_HELP_STRING([--enable-debug], [Turn on debugging options (yes/all/no)]),
 [
 if [[ "$enableval" = "all" ]]; then
   VALIDITY_FLAG="-gnatVa"
