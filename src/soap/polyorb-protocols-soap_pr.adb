@@ -86,7 +86,9 @@ package body PolyORB.Protocols.SOAP_Pr is
       R : Requests.Request_Access)
    is
    begin
-      raise Program_Error;
+      --  Can't abort a pending request with SOAP
+
+      null;
    end Abort_Request;
 
    ------------
