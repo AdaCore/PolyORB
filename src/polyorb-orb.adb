@@ -835,7 +835,7 @@ package body PolyORB.ORB is
          Monitors : constant Monitor_Array :=
                       Get_Monitors (ORB.ORB_Controller);
          AEM      : Asynch_Ev_Monitor_Access;
-         RSR      : Register_Source_Result;
+         RSR      : Register_Source_Result := Unknown_Source_Type;
       begin
          for J in Monitors'Range loop
 
