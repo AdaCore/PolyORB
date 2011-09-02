@@ -41,6 +41,8 @@ See the features-28 file.
 Bug fixes
 ---------
 
+Several minor memory leaks have been identified and corrected.
+
 po_gnatdist would not correctly handle "-P" (project file) command line
 switches when building a single partition. (K427-033)
 
