@@ -43,7 +43,7 @@ AC_SUBST(LIBVERSIONINFO)
 
 define(DEBUG_OPTIONS, [dnl
   if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O0"; fi
-  BASE_ADAFLAGS="-XBuild=DEBUG"
+  BASE_ADAFLAGS="-XBuild=DEBUG $VALIDITY_FLAG"
   BARGS=-E
   ASSERTION_POLICY_DEFAULT=Check
   DEBUG_POLICY_DEFAULT=Check
@@ -62,8 +62,13 @@ define(NODEBUG_OPTIONS, [dnl
   debug=false])
 
 AC_ARG_ENABLE(debug,
-AS_HELP_STRING([--enable-debug], [Turn on debugging options]),
-[if [[ "$enableval" = "yes" ]]; then
+AS_HELP_STRING([--enable-debug[=yes/all/no]], [Turn on debugging options]),
+[
+if [[ "$enableval" = "all" ]]; then
+  VALIDITY_FLAG="-gnatVa"
+  enableval=yes
+fi
+if [[ "$enableval" = "yes" ]]; then
   DEBUG_OPTIONS
 else
   NODEBUG_OPTIONS

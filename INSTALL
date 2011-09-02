@@ -81,10 +81,12 @@ Available options for the 'configure' script include:
 By default, only the CORBA and GIOP personalities are built, no CORBA
 Services are built.
 
-  --enable-shared: build shared libraries.
+  --enable-shared:    build shared libraries.
 
-  --enable-debug:  enable debugging information generation and supplementary
-                   runtime checks.
+  --enable-debug:     enable debugging information generation and supplementary
+                      runtime checks.
+
+  --enable-debug=all: like the above, and also enable full validity checks
 
 The following environment variables can be used to override configure's
 guess at what compilers to use:
