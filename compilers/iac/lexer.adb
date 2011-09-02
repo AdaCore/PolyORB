@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -776,7 +776,9 @@ package body Lexer is
 
       --  Reset at the beginning
 
-      Token_Location.Scan := 1;
+      Token                := T_Error;
+      Token_Name           := No_Name;
+      Token_Location.Scan  := 1;
       Token_Location.First := 1;
       Token_Location.Last  := 1;
       Set_New_Location (Token_Location, Source_Name, 1);
