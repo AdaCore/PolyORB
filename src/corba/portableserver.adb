@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -218,7 +218,7 @@ package body PortableServer is
    begin
       pragma Debug (C, O ("Invoke on a static skeleton: enter"));
 
-      --  Information about servant's skeleton is cached in its notepad.
+      --  Information about the servant's skeleton is cached in its Notepad
 
       PolyORB.Annotations.Get_Note
         (Notepad.all, Dispatcher, Null_Dispatcher_Note);
