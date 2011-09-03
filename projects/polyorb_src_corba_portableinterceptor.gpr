@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with "polyorb_common", "polyorb_src", "polyorb_src_corba", "polyorb_src_corba_io
 --  Depends on IR for portableinterceptor/dynamic
 --  ??? that should be idls_cos_ir, no need for visibility on IR implementation
 
-project PolyORB_src_corba_portableinterceptor is
+library project PolyORB_src_corba_portableinterceptor is
 
    Dir := "src/corba/portableinterceptor";
    Obj_Dir := PolyORB_Common.Build_Dir & Dir;
@@ -47,7 +47,7 @@ project PolyORB_src_corba_portableinterceptor is
    for Library_Name use "polyorb-corba-portableinterceptor";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_corba_portableinterceptor";
-   for Library_Kind use "static";
+   for Library_Kind use PolyORB_Common.Library_Kind;
 
    package Compiler is
 

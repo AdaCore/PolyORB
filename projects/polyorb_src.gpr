@@ -33,7 +33,7 @@
 
 with "polyorb_common";
 
-project PolyORB_src is
+library project PolyORB_src is
 
    for Languages use ("Ada", "C");
 
@@ -46,7 +46,7 @@ project PolyORB_src is
    for Library_Name use "polyorb";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src";
-   for Library_Kind use "static";
+   for Library_Kind use PolyORB_Common.Library_Kind;
 
    package Compiler is
 
