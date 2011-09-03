@@ -866,6 +866,8 @@ install: all
 	  ${INSTALL_BIN} ${top_builddir}/tools/$$tool${TARGET_EXE_SUFFIX} ${target_exe_dir}/`basename $$tool`${TARGET_EXE_SUFFIX}; \
 	done
 	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/polyorb/static
+	ls ${top_builddir}/lib/*.so | ${XARGS_I} ${INSTALL} -m 555 {} ${target_prefix}/lib
+	ls ${top_builddir}/lib/*.dll | ${XARGS_I} ${INSTALL} -m 555 {} ${target_prefix}/lib
 	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat
 	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat
 	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat/polyorb
