@@ -1,4 +1,2 @@
 ALL DEAD
-AIX XFAIL K124-029
-Solaris XFAIL K214-029
 proto_soap
