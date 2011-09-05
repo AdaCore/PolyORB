@@ -13,6 +13,10 @@ else
   is_cross=true
 fi
 
+# Library type (for now always static)
+
+LIBRARY_TYPE=static
+
 # Determine installation prefix
 
 case "$0" in
@@ -276,9 +280,15 @@ polyorb_lib="$polyorb_lib -lpolyorb-setup"
 # (specifically, System.Partition_Interface.*).
 
 if $require_xmlada; then
-  xmlada_dir="`xmlada-config --cflags`"
-  xmlada_lib="`xmlada-config --libs`"
-  xmlada_mflags="`xmlada-config`"
+  case $LIBRARY_TYPE in
+    relocatable) xmlada_libtypeflag=--shared ;;
+    *)           xmlada_libtypeflag=--static ;;
+  esac
+
+  xmlada_config_cmd="xmlada-config ${xmlada_libtypeflag}"
+  xmlada_dir="`${xmlada_config_cmd} --cflags`"
+  xmlada_lib="`${xmlada_config_cmd} --libs`"
+  xmlada_mflags="`${xmlada_config_cmd}`"
 fi
 
 if test x$have_gnatmake_aPdir = xyes; then
