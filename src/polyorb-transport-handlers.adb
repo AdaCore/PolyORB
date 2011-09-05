@@ -56,10 +56,6 @@ package body PolyORB.Transport.Handlers is
    begin
       if Reply in Filters.Iface.Filter_Error then
 
-         --  Clear error
-
-         Errors.Catch (Filters.Iface.Filter_Error (Reply).Error);
-
          --  Notify the tasking policy that an endpoint is being destroyed.
 
          Handle_Close_Connection (H.ORB.Tasking_Policy, H.TE);
@@ -93,6 +89,10 @@ package body PolyORB.Transport.Handlers is
                                 = H.TE.Binding_Object);
                Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
             end if;
+
+            --  Clear error once it has been propagated through the stack
+
+            Errors.Catch (Filters.Iface.Filter_Error (Reply).Error);
 
             --  The complete binding object will be finalised when this block
             --  is exited, provided it is not referenced anymore.
