@@ -664,6 +664,8 @@ examples/polyorb/polyorb-test_object_poa.adb
 examples/polyorb/polyorb-test_object_poa.ads
 examples/polyorb/polyorb-test_object_soa.adb
 examples/polyorb/polyorb-test_object_soa.ads
+examples/static/README
+examples/static/po_static_conf.ads
 features-22
 features-23
 features-24

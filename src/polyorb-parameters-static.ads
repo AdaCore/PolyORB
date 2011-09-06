@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2008, Free Software Foundation, Inc.            --
+--         Copyright (C) 2008-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,14 +43,21 @@ package PolyORB.Parameters.Static is
       Value     : Value_Ptr;
    end record;
 
-   --  Static array of parameters for link-time configuration of PolyORB.
+   --  Static array of parameters for link-time configuration of PolyORB
+
    --  Requirements:
-   --  - The last entry must be (null, null)
+   --  - The last entry must be equal to Last_Entry: (null, null)
    --  - The application must export an array of the following type with
-   --    the External_Name "__polyorbconf_optional".
+   --    Static_Parameters_Link_Name as the external name.
+
    --  See PolyORB's User Manual section 4.2 [Run-time configuration] for
    --  further information.
-   type Static_Parameter_Array is array (Positive range <>)
-     of Parameter_Entry;
+
+   type Static_Parameter_Array is
+     array (Positive range <>) of Parameter_Entry;
+
+   Static_Parameters_Link_Name : constant String :=
+                                   "__PolyORB_static_parameters";
+   Last_Entry : constant Parameter_Entry := (null, null);
 
 end PolyORB.Parameters.Static;
