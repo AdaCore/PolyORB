@@ -2787,7 +2787,6 @@ testsuite/tests/corba/code_sets/CODE_SETS_1/test.py
 testsuite/tests/corba/domainmanager/DOMAINMANAGER_0/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_0/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_1/test.py
-testsuite/tests/corba/harness/CORBA_HARNESS_2/test.opt
 testsuite/tests/corba/harness/CORBA_HARNESS_2/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_3/test.py
 testsuite/tests/corba/harness/CORBA_HARNESS_5/test.py
