@@ -46,6 +46,9 @@ package body PolyORB.Parameters.Static is
    Parameters : Static_Parameter_Array  (1 .. 1);
    pragma Import (Ada, Parameters, Static_Parameters_Link_Name);
 
+   Last_Index : Natural := 0;
+   --  Actual index of last entry
+
    pragma Warnings (Off); -- WAG:GPL2007
    pragma Weak_External (Parameters);
    pragma Warnings (On); -- WAG:GPL2007
@@ -76,7 +79,7 @@ package body PolyORB.Parameters.Static is
 
       S : constant String := Make_Global_Key (Section, Key);
    begin
-      for J in 1 .. Last loop
+      for J in 1 .. Last_Index loop
          if Parameters (J).Parameter.all = S then
             return Parameters (J).Value.all;
          end if;
@@ -92,8 +95,6 @@ package body PolyORB.Parameters.Static is
 
    procedure Initialize is
    begin
-      Last := 0;
-
       --  If a weak symbol isn't resolved by the linker, it is assigned the
       --  null address.
 
@@ -101,11 +102,11 @@ package body PolyORB.Parameters.Static is
          loop
             --  Last entry has null Parameter and Value components
 
-            if Parameters (Last + 1).Parameter = null then
+            if Parameters (Last_Index + 1).Parameter = null then
                exit;
 
             else
-               Last := Last + 1;
+               Last_Index := Last_Index + 1;
             end if;
          end loop;
       end if;
