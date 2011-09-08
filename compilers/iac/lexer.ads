@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,6 +49,11 @@ pragma Elaborate_Body (Lexer);
       T_Pragma_Id,
       T_Pragma_Prefix,
       T_Pragma_Version,
+      T_Pragma_Range,
+      T_Pragma_Range_Idl,
+      T_Pragma_Subtype,
+      T_Pragma_Derived,
+      T_Pragma_Switchname,
       T_Pragma_Unrecognized,
 
       --  About basic keywords
@@ -171,6 +176,7 @@ pragma Elaborate_Body (Lexer);
       T_Less_Less,              --  Last binary operator
 
       T_Colon_Colon,
+      T_Dot_Dot,                --  currently only used in #pragma range
 
       --  Literals
 
@@ -207,6 +213,27 @@ pragma Elaborate_Body (Lexer);
 
    subtype Mode_Type is Token_Type
      range T_In .. T_Out;
+
+   -----------------
+   -- Pragma_Type --
+   -----------------
+
+   --  Note: the constants below must be kept in sync with the list of pragma
+   --  tokens in Token_Type.
+
+   --  Can't we do away with the annoying duplication???
+
+   Pragma_Id           : constant := 0;
+   Pragma_Prefix       : constant := 1;
+   Pragma_Version      : constant := 2;
+   Pragma_Range        : constant := 3;
+   Pragma_Range_Idl    : constant := 4;
+   Pragma_Subtype      : constant := 5;
+   Pragma_Derived      : constant := 6;
+   Pragma_Switchname   : constant := 7;
+   Pragma_Unrecognized : constant := 8;
+
+   type Pragma_Type is new Byte range Pragma_Id .. Pragma_Unrecognized;
 
    Token          : Token_Type;
    Token_Name     : Name_Id;

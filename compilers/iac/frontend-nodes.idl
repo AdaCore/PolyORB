@@ -74,6 +74,17 @@ module Frontend::Nodes {
     Name_Id     Data;
   };
 
+  /********************/
+  /* Pragma_Range_Idl */
+  /********************/
+  
+  interface Pragma_Range_Idl : Node_Id {
+    Pragma_Type Pragma_Kind;
+    Node_Id     Target;
+    Node_Id     Lower_Bound_Expr;
+    Node_Id     Upper_Bound_Expr;
+  };
+
   /*************************/
   /* Typeprefix and Typeid */
   /*************************/
@@ -380,6 +391,11 @@ module Frontend::Nodes {
   /* Typedef nodes */
   /*****************/
 
+  interface Range : Node_Id {
+    Node_Id Low_Bound;
+    Node_Id High_Bound;
+  };
+
   /*
     (43) <type_declarator> ::= <type_spec> <declarators> 
     (44) <type_spec> ::= <simple_type_spec> 
@@ -389,6 +405,8 @@ module Frontend::Nodes {
   interface Type_Declaration : Node_Id {
     Node_Id     Type_Spec;
     List_Id     Declarators;
+    boolean     Marked_As_Subtype;  // #pragma subtype
+    Node_Id     Optional_Range;     // #pragma range: see interface Range
   };
 
 
@@ -462,6 +480,7 @@ module Frontend::Nodes {
   };
 
   interface Union_Type : Scope_Definition {
+    Name_Id     Switch_Name;   // may be set by #pragma switchname
     Node_Id     Switch_Type_Spec;
     List_Id     Switch_Type_Body;
   };

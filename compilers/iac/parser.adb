@@ -69,7 +69,8 @@ package body Parser is
 
    function P_Attribute_Declaration return Node_Id;
    function P_Constant_Declaration return Node_Id;
-   function P_Constant_Expression return Node_Id;
+   function P_Constant_Expression
+     (Optional : Boolean := False) return Node_Id;
    function P_Constant_Type return Node_Id;
    function P_Declarator return Node_Id;
    function P_Declarator_List return List_Id;
@@ -457,52 +458,53 @@ package body Parser is
    --                        | <literal>
    --                        | "(" <const_exp> ")"
 
-   function P_Constant_Expression return Node_Id is
+   function P_Constant_Expression
+     (Optional : Boolean := False) return Node_Id is
       use Expressions;
 
-      --  There are two kinds of expressions. A binary operator has
-      --  two inner expressions (left and right). When the right
-      --  expression is assigned and not the left one, the operator is
-      --  an unary operator and this expression is considered as an
-      --  expression value. When both inner expressions are assigned,
-      --  this is also an expression value. An operator is a binary
-      --  operator when at least the right expression is not
-      --  assigned. An expression value can be an operator with at
-      --  least a right expression assigned or a literal or a scoped
-      --  name.
+      --  There are two kinds of expressions. A binary operator has two inner
+      --  expressions (left and right). When the right expression is assigned
+      --  and not the left one, the operator is an unary operator and this
+      --  expression is considered as an expression value. When both inner
+      --  expressions are assigned, this is also an expression value. An
+      --  operator is a binary operator when at least the right expression is
+      --  not assigned. An expression value can be an operator with at least a
+      --  right expression assigned or a literal or a scoped name.
 
       function Is_Expression_Completed return Boolean;
-      --  Return True when there are no more token to read to complete
-      --  the current expression.
+      --  Return True when there are no more token to read to complete the
+      --  current expression.
 
-      function P_Expression_Part return Node_Id;
-      --  XXX LP: Cannot parse comment
-      --  Return a node describing an expression. It is either a
-      --  binary operator (an operator with no right expression
-      --  assigned) or an expression value (a scoped name, a literal
-      --  or an expression with an unary operator - that is a binary
-      --  operator with a right inner expression and no left inner
-      --  expression - or an expression with both inner expressions
-      --  assigned). Note that whether an operator is a binary or
-      --  unary operator is resolved in this routine. For a unary
-      --  operator, we check that the previous token was a binary
-      --  operator.
+      function P_Expression_Part
+        (Optional : Boolean := False) return Node_Id;
+      --  LP: Cannot parse comment???
+      --  Return a node describing an expression. It is either a binary
+      --  operator (an operator with no right expression assigned) or an
+      --  expression value (a scoped name, a literal or an expression with an
+      --  unary operator - that is a binary operator with a right inner
+      --  expression and no left inner expression - or an expression with both
+      --  inner expressions assigned). Note that whether an operator is a
+      --  binary or unary operator is resolved in this routine. For a unary
+      --  operator, we check that the previous token was a binary operator.
 
       function Is_Binary_Operator (E : Node_Id) return Boolean;
-      --  Return True when N is an operator with the right expression
-      --  still not assigned. Otherwise, an operator with a right
-      --  expression is a value expression.
+      --  Return True when N is an operator with the right expression still not
+      --  assigned. Otherwise, an operator with a right expression is a value
+      --  expression.
 
       function Is_Expression_Value (E : Node_Id) return Boolean;
-      --  Return True when N is not an operator (literal or scoped
-      --  name) or else when its right expression is assigned (unary
-      --  operator).
+      --  Return True when N is not an operator (literal or scoped name) or
+      --  else when its right expression is assigned (unary operator).
 
       function Precede (L, R : Node_Id) return Boolean;
-      --  Does operator L precedes operator R
+      --  True if operator L has precedence over operator R
 
       procedure Exp_Err_Msg;
-      --  Standard error message
+      --  Output a generic error message
+
+      -----------------
+      -- Exp_Err_Msg --
+      -----------------
 
       procedure Exp_Err_Msg is
       begin
@@ -513,8 +515,7 @@ package body Parser is
       -- Is_Expression_Completed --
       -----------------------------
 
-      function Is_Expression_Completed return Boolean
-      is
+      function Is_Expression_Completed return Boolean is
          T : constant Token_Type := Next_Token;
       begin
          return T not in Literal_Type
@@ -533,10 +534,10 @@ package body Parser is
          return Kind (E) in K_Integer_Literal .. K_Boolean_Literal
            or else Kind (E) = K_Scoped_Name
            or else (Operator (E) in Unary_Operator_Type
-                    and then Present (Right_Expr (E)))
+                      and then Present (Right_Expr (E)))
            or else (Operator (E) in Binary_Operator_Type
-                    and then Present (Left_Expr (E))
-                    and then Present (Right_Expr (E)));
+                      and then Present (Left_Expr  (E))
+                      and then Present (Right_Expr (E)));
       end Is_Expression_Value;
 
       ------------------------
@@ -554,14 +555,16 @@ package body Parser is
       -- P_Expression_Part --
       -----------------------
 
-      function P_Expression_Part return Node_Id is
+      function P_Expression_Part
+        (Optional : Boolean := False) return Node_Id
+      is
          Expression     : Node_Id := No_Node;
          Right_Expr     : Node_Id;
          Previous_Token : Token_Type;
       begin
          case Next_Token is
             when T_Identifier
-              | T_Colon_Colon =>
+               | T_Colon_Colon =>
 
                --  Look for a scoped name
 
@@ -584,8 +587,7 @@ package body Parser is
 
             when T_Integer_Literal        =>
                Scan_Token;  --  past literal
-               Expression :=
-                 New_Node (K_Integer_Literal, Token_Location);
+               Expression := New_Node (K_Integer_Literal, Token_Location);
                Set_Value
                  (Expression,
                   New_Integer_Value (Value => Integer_Literal_Value,
@@ -594,20 +596,18 @@ package body Parser is
 
             when T_Fixed_Point_Literal    =>
                Scan_Token;  --  past literal
-               Expression :=
-                 New_Node (K_Fixed_Point_Literal, Token_Location);
+               Expression := New_Node (K_Fixed_Point_Literal, Token_Location);
                Set_Value
                  (Expression,
                   New_Fixed_Point_Value
-                  (Value => Integer_Literal_Value,
-                   Sign  => 1,
-                   Total => Unsigned_Short_Short (Name_Len),
-                   Scale => Decimal_Point_Position));
+                    (Value => Integer_Literal_Value,
+                     Sign  => 1,
+                     Total => Unsigned_Short_Short (Name_Len),
+                     Scale => Decimal_Point_Position));
 
             when T_Boolean_Literal    =>
                Scan_Token;  --  past literal
-               Expression :=
-                 New_Node (K_Boolean_Literal, Token_Location);
+               Expression := New_Node (K_Boolean_Literal, Token_Location);
                Set_Value
                  (Expression,
                   New_Boolean_Value (Value => (Integer_Literal_Value = 1)));
@@ -621,28 +621,27 @@ package body Parser is
                   New_Floating_Point_Value (Float_Literal_Value));
 
             when T_Character_Literal
-              |  T_Wide_Character_Literal =>
+               | T_Wide_Character_Literal =>
                Scan_Token;  --  past literal
                if Character_Literal_Value /= Incorrect_Character then
-                  Expression :=
-                    New_Node (K_Character_Literal, Token_Location);
+                  Expression := New_Node (K_Character_Literal, Token_Location);
                   Set_Value
                     (Expression,
                      New_Character_Value
-                     (Character_Literal_Value,
-                      (Token /= T_Character_Literal)));
+                       (Character_Literal_Value,
+                        Wide => Token /= T_Character_Literal));
                end if;
 
             when T_String_Literal
               |  T_Wide_String_Literal =>
                Scan_Token;  --  past literal
                if String_Literal_Value /= Incorrect_String then
-                  Expression :=
-                    New_Node (K_String_Literal, Token_Location);
+                  Expression := New_Node (K_String_Literal, Token_Location);
                   Set_Value
                     (Expression,
-                     New_String_Value (String_Literal_Value,
-                                       (Token /= T_String_Literal)));
+                     New_String_Value
+                       (String_Literal_Value,
+                        Wide => Token /= T_String_Literal));
                end if;
 
             when T_Tilde .. T_Less_Less =>
@@ -659,19 +658,18 @@ package body Parser is
 
                if Token = T_Tilde
                  or else (Token in T_Minus .. T_Plus
-                          and then not Is_Literal (Previous_Token)
-                          and then not Is_Scoped_Name (Previous_Token)
-                          and then Previous_Token /= T_Right_Paren)
+                            and then not Is_Literal     (Previous_Token)
+                            and then not Is_Scoped_Name (Previous_Token)
+                            and then Previous_Token /= T_Right_Paren)
                then
                   case Next_Token is
                      when T_Identifier
-                       | T_Colon_Colon
-                       | T_Left_Paren
-                       | Literal_Type =>
+                        | T_Colon_Colon
+                        | T_Left_Paren
+                        | Literal_Type =>
 
-                        --  Look for an expression value (a scoped
-                        --  name, a literal or a parenthesized
-                        --  expression).
+                        --  Look for an expression value (a scoped name, a
+                        --  literal or a parenthesized expression).
 
                         Right_Expr := P_Constant_Expression;
                         if No (Right_Expr) then
@@ -686,8 +684,8 @@ package body Parser is
                         return No_Node;
                   end case;
 
-               --  Cannot have two following operators except in the
-               --  special case above.
+               --  Cannot have two operators in sequence except in the special
+               --  case above.
 
                elsif Is_Operator (Previous_Token) then
                   Unexpected_Token (Token, "expression");
@@ -695,8 +693,10 @@ package body Parser is
                end if;
 
             when others =>
-               Error_Loc (1) := Token_Location;
-               Exp_Err_Msg;
+               if not Optional then
+                  Error_Loc (1) := Token_Location;
+                  Exp_Err_Msg;
+               end if;
                return No_Node;
          end case;
 
@@ -717,12 +717,13 @@ package body Parser is
       Expr     : Node_Id;
       First    : Natural;
 
+   --  Start of processing for P_Constant_Expression
+
    begin
+      --  Read enough expressions to push as first expression a binary operator
+      --  with no right expression
 
-      --  Read enough expressions to push as first expression a binary
-      --  operator with no right expression
-
-      Expr := P_Expression_Part;
+      Expr := P_Expression_Part (Optional);
       if No (Expr) then
          return No_Node;
       end if;
@@ -751,7 +752,7 @@ package body Parser is
          return No_Node;
       end if;
 
-      --  We must have a binary operator as the first expression is an
+      --  We must have a binary operator as the first expression in an
       --  expression value.
 
       if not Is_Binary_Operator (Expr) then
@@ -764,9 +765,9 @@ package body Parser is
       Set_Left_Expr (Expr, Table (Last));
       Table (Last) := Expr;
 
-      --  Push expressions in stack and check that the top of the
-      --  stack consists in one or more binary operators with no
-      --  right expr and zero or one expression value.
+      --  Push expressions on stack and check that the top of the stack
+      --  consists of one or more binary operators with no right expr and zero
+      --  or one expression value.
 
       while not Is_Expression_Completed loop
          Expr := P_Expression_Part;
@@ -777,9 +778,8 @@ package body Parser is
          Increment_Last;
          Table (Last) := Expr;
 
-         --  Check that this new expression is not a binary operator
-         --  when the previous one is a binary operator with no right
-         --  expression.
+         --  Check that this new expression is not a binary operator when the
+         --  previous one is a binary operator with no right expression.
 
          if First < Last
            and then Is_Binary_Operator (Expr)
@@ -792,16 +792,15 @@ package body Parser is
             return No_Node;
          end if;
 
-         --  Check whether we have a sequence of a binary operator
-         --  (left operator), an expression value and another binary
-         --  operator (right operator). In this case, if the left
-         --  operator has a better precedence than the right one, we
-         --  can reduce the global expression by assigning the
-         --  expression value to the right expression of the left
-         --  operator. Then as the left operator has already a left
-         --  expression, it becomes an expression value which can be
-         --  assign to the left expression of the right operation.
-         --  Recompute the size of the expression stack.
+         --  Check whether we have a sequence of a binary operator (left
+         --  operator), an expression value and another binary operator (right
+         --  operator). In this case, if the left operator has a better
+         --  precedence than the right one, we can reduce the global expression
+         --  by assigning the expression value to the right expression of the
+         --  left operator. Then as the left operator has already a left
+         --  expression, it becomes an expression value which can be assign to
+         --  the left expression of the right operation. Recompute the size of
+         --  the expression stack.
 
          while First + 1 < Last
            and then Is_Expression_Value (Table (Last - 1))
@@ -819,8 +818,8 @@ package body Parser is
          end loop;
       end loop;
 
-      --  The last expression is not a value. We cannot reduce the
-      --  global expression
+      --  The last expression is not a value. We cannot reduce the global
+      --  expression.
 
       if Is_Binary_Operator (Table (Last)) then
          Error_Loc (1) := Loc (Table (Last));
@@ -866,8 +865,7 @@ package body Parser is
       Const_Type : Node_Id;
       State      : Location;
    begin
-
-      --  Use P_Simple_Type_Spec and reject incorrect type specifiers.
+      --  Use P_Simple_Type_Spec and reject incorrect type specifiers
 
       Save_Lexer (State);
       Const_Type := P_Simple_Type_Spec;
@@ -1081,7 +1079,10 @@ package body Parser is
 
       --  The same situation is encountered when parsing an import statement.
 
-      if Present (Definition) and then Kind (Definition) /= K_Pragma then
+      if Present (Definition)
+           and then Kind (Definition) /= K_Pragma
+           and then Kind (Definition) /= K_Pragma_Range_Idl
+      then
          Save_Lexer (State);
          Scan_Token;
          if Token /= T_Semi_Colon then
@@ -1096,6 +1097,7 @@ package body Parser is
             end if;
             Restore_Lexer (State);
          end if;
+
       elsif No (Definition) then
          Restore_Lexer (State);
          Skip_Declaration (T_Semi_Colon);
@@ -2099,10 +2101,16 @@ package body Parser is
    -- P_Pragma --
    --------------
 
-   --  There three standard IDL pragmas :
+   --  There are three standard IDL pragmas :
    --  #pragma ID <name> "<id>"
    --  #pragma prefix "<string>"
    --  #pragma version <name> <major>.<minor>
+   --
+   --  In the IDL to Ada mapping version 1.3, there are further pragmas:
+   --  #pragma range <name> <optional_lower_bound> .. <optional_upper_bound>
+   --  #pragma range <name> "<ada_range_expr>"
+   --  #pragma subtype <name>
+   --  #pragma derived <name>
 
    --  However an IDL compiler "must not refuse to compile IDL source
    --  containing non-standard pragmas that are not understood by the
@@ -2139,6 +2147,14 @@ package body Parser is
             Token := T_Pragma_Prefix;
          elsif Pragma_Image = Image (T_Pragma_Version) then
             Token := T_Pragma_Version;
+         elsif Pragma_Image = Image (T_Pragma_Range) then
+            Token := T_Pragma_Range;
+         elsif Pragma_Image = Image (T_Pragma_Subtype) then
+            Token := T_Pragma_Subtype;
+         elsif Pragma_Image = Image (T_Pragma_Derived) then
+            Token := T_Pragma_Derived;
+         elsif Pragma_Image = Image (T_Pragma_Switchname) then
+            Token := T_Pragma_Switchname;
          end if;
       end;
 
@@ -2191,6 +2207,104 @@ package body Parser is
             --  value from the Name_Buffer
 
             Scan_Token (T_Floating_Point_Literal);
+            Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_Range =>
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma version syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+
+            --  The are two forms of range expression:
+            --
+            --  - A double-quote delimited string designates an Ada
+            --    range expression.  Example:
+            --      #pragma range myfloat_t "0.0 .. CORBA.Float'Last"
+            --    Here, the double quotes shall be removed and the contents
+            --    shall be copied verbatim to the generated Ada range.
+            --
+            --  - If the expression is not delimited by double quotes then
+            --    it designates IDL expressions for the lower and upper
+            --    bound.  Example:
+            --      #pragma range myfloat_t -100.0 .. mymodule::myconstant
+            --    The upper bound expression is delimited from the lower
+            --    bound expression by two adjacent dots.  Both the lower and
+            --    the upper bound expression is optional; if not given, the
+            --    'First or 'Last value of the target type shall be used.
+            --    In this form, we change Pragma_Range to Pragma_Range_Idl.
+
+            if Next_Token = T_String_Literal then
+               Set_Pragma_Kind (Pragma_Node, Pragma_Range);
+
+               Scan_Token;  --  past literal
+               Set_Data (Pragma_Node, Name_Find);
+            else
+               Set_Kind (Pragma_Node, K_Pragma_Range_Idl);
+               Set_Pragma_Kind (Pragma_Node, Pragma_Range_Idl);
+               declare
+                  Lowerbound_Expr : Node_Id := No_Node;
+                  Upperbound_Expr : Node_Id := No_Node;
+               begin
+                  Lowerbound_Expr := P_Constant_Expression (Optional => True);
+                  Set_Lower_Bound_Expr (Pragma_Node, Lowerbound_Expr);
+                  if Next_Token = T_Dot_Dot then
+                     Scan_Token;  --  past ".."
+                     Upperbound_Expr :=
+                       P_Constant_Expression (Optional => True);
+                     Set_Upper_Bound_Expr (Pragma_Node, Upperbound_Expr);
+                  else
+                     Error_Loc (1) := Token_Location;
+                     DE ("incorrect #pragma range syntax");
+                  end if;
+               end;
+            end if;
+
+         when Pragma_Range_Idl =>
+            --  This is a synthetic value (see handling of Pragma_Range)
+            --  which shall not be accessible from user code
+            Set_Pragma_Kind (Pragma_Node, Pragma_Unrecognized);
+
+         when Pragma_Subtype =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma subtype syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+            Set_Data (Pragma_Node, No_Name);
+
+         when Pragma_Derived =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma derived syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+            Set_Data (Pragma_Node, No_Name);
+
+         when Pragma_Switchname =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+
+            Scoped_Name := P_Scoped_Name;
+            if No (Scoped_Name) then
+               Error_Loc (1) := Token_Location;
+               DE ("incorrect #pragma switchname syntax");
+            end if;
+
+            Set_Target (Pragma_Node, Scoped_Name);
+
+            --  Getting the switch name
+
+            Scan_Token (T_Identifier);
             Set_Data (Pragma_Node, Name_Find);
 
          when Pragma_Unrecognized =>
@@ -2706,6 +2820,7 @@ package body Parser is
             Node := New_Node (K_Type_Declaration, State);
             Set_Type_Spec   (Node, Type_Spec);
             Set_Declarators (Node, Declarators);
+            Set_Marked_As_Subtype (Node, False);
             Bind_Declarators_To_Entity (Declarators, Node);
 
          when T_Native =>

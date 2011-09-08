@@ -541,11 +541,13 @@ package body Backend.BE_CORBA_Ada.Generator is
       Write (Tok_Left_Paren);
       if Present (Index_Definition (N)) then
          Generate (Index_Definition (N));
-         Write_Space;
-         Write (Tok_Range);
-         Write_Space;
-         Write (Tok_Less);
-         Write (Tok_Greater);
+         if not Index_Def_Constrained (N) then
+            Write_Space;
+            Write (Tok_Range);
+            Write_Space;
+            Write (Tok_Less);
+            Write (Tok_Greater);
+         end if;
       else
          R := First_Node (Range_Constraints (N));
          loop
@@ -920,6 +922,25 @@ package body Backend.BE_CORBA_Ada.Generator is
             Write (Tok_With);
             Write_Space;
             Generate (Record_Extension_Part (N));
+         else
+            R := Range_Opt (N);
+            if Present (R) then
+               Write_Space;
+               Write (Tok_Range);
+               Write_Space;
+               if Kind (R) = K_Literal then
+                  declare
+                     V : constant Value_Id :=
+                       Backend.BE_CORBA_Ada.Nodes.Value (R);
+                     Nm : constant Name_Id := Values.Value (V).SVal;
+                  begin
+                     Namet.Get_Name_String (Nm);
+                     Write_Str (Name_Buffer (1 .. Name_Len));
+                  end;
+               else
+                  Generate (R);
+               end if;
+            end if;
          end if;
       end if;
    end Generate_Derived_Type_Definition;

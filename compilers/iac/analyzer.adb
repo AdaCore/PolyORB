@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,6 +69,7 @@ package body Analyzer is
    procedure Analyze_Native_Type (E : Node_Id);
    procedure Analyze_Parameter_Declaration (E : Node_Id);
    procedure Analyze_Pragma (E : Node_Id);
+   procedure Analyze_Pragma_Range_Idl (E : Node_Id);
    procedure Analyze_Scoped_Name (E : Node_Id);
    procedure Analyze_Simple_Declarator (E : Node_Id);
    procedure Analyze_Sequence_Type (E : Node_Id);
@@ -143,6 +144,41 @@ package body Analyzer is
    --  wrong value is always the least value. A node representing
    --  "default" is always the greatest value. Otherwise, compare as
    --  usual.
+
+   -----------------------------------------------------
+   -- #pragma range/subtype/etc. related data/methods --
+   -----------------------------------------------------
+
+   subtype Max_Stack_Range is Natural range 0 .. 10_000;
+
+   package Range_Stack is
+      new GNAT.Table (Node_Id, Max_Stack_Range, 1, 100, 100);
+   --  Comments needed???
+
+   procedure Push_IDL_Range (Pragma_Node : Node_Id);
+   function IDL_Range (Declarator : Node_Id) return Node_Id;
+   --  Comments needed???
+
+   package Subtype_Stack is
+      new GNAT.Table (Node_Id, Max_Stack_Range, 1, 100, 100);
+   --  Comments needed???
+
+   procedure Push_Subtype (Target : Node_Id);
+   function Is_Subtype (Declarator : Node_Id) return Boolean;
+   --  Comments needed???
+
+   type Switch_Info is record
+      Typename   : Name_Id;
+      Switchname : Name_Id;
+   end record;
+
+   package Switchname_Stack is
+      new GNAT.Table (Switch_Info, Max_Stack_Range, 1, 100, 100);
+   --  Comments needed???
+
+   procedure Push_Switchname (Typename, Switchname : Name_Id);
+   function Find_Switchname (Typename : Name_Id) return Name_Id;
+   --  Comments needed???
 
    -------------
    -- Analyze --
@@ -222,6 +258,9 @@ package body Analyzer is
 
          when K_Pragma =>
             Analyze_Pragma (E);
+
+         when K_Pragma_Range_Idl =>
+            Analyze_Pragma_Range_Idl (E);
 
          when K_Scoped_Name =>
             Analyze_Scoped_Name (E);
@@ -958,36 +997,65 @@ package body Analyzer is
 
    procedure Analyze_Pragma (E : Node_Id) is
       R : Node_Id;
-      N : Node_Id;
+      N : Node_Id := No_Node;
    begin
-      if Pragma_Kind (E) /= Pragma_Unrecognized then
-         N := Make_Identifier
-           (Loc (E),
-            Data (E),
-            No_Node,
-            No_Node);
-      end if;
 
       case Pragma_Kind (E) is
          when Pragma_Id =>
+            N := Make_Identifier
+              (Loc (E),
+               Data (E),
+               No_Node,
+               No_Node);
             Analyze (Target (E));
             R := Reference (Target (E));
             Assign_Type_Id (R, N);
 
          when Pragma_Prefix =>
+            N := Make_Identifier
+              (Loc (E),
+               Data (E),
+               No_Node,
+               No_Node);
             Assign_Type_Prefix (Current_Scope, N);
 
          when Pragma_Version =>
+            N := Make_Identifier
+              (Loc (E),
+               Data (E),
+               No_Node,
+               No_Node);
             Analyze (Target (E));
             R := Reference (Target (E));
             Assign_Type_Version (R, N);
 
-         when Pragma_Unrecognized =>
+         when Pragma_Range =>
+            Push_IDL_Range (E);
+
+         when Pragma_Subtype =>
+            Push_Subtype (Target (E));
+
+         when Pragma_Derived =>
+            Analyze (Target (E));
+
+         when Pragma_Switchname =>
+            Push_Switchname (IDL_Name (Identifier (Target (E))), Data (E));
+
+         when others =>
             Error_Loc (1) := Loc (E);
             DE ("?unknown pragma");
             --  ??? error message should include pragma name
       end case;
    end Analyze_Pragma;
+
+   ------------------------------
+   -- Analyze_Pragma_Range_Idl --
+   ------------------------------
+
+   procedure Analyze_Pragma_Range_Idl (E : Node_Id) is
+   begin
+      Push_IDL_Range (E);
+   end Analyze_Pragma_Range_Idl;
 
    -------------------------
    -- Analyze_Scoped_Name --
@@ -1136,10 +1204,45 @@ package body Analyzer is
    procedure Analyze_Type_Declaration (E : Node_Id)
    is
       D : Node_Id := First_Entity (Declarators (E));
+      Pragma_Range_Node : Node_Id;
+      LB, UB, R : Node_Id;
+      TS : constant Node_Id := Type_Spec (E);
    begin
-      Analyze_Type_Spec (Type_Spec (E));
+      Analyze_Type_Spec (TS);
+      Set_Optional_Range (E, No_Node);
+      Set_Marked_As_Subtype (E, False);
       while Present (D) loop
          Analyze (D);
+         Pragma_Range_Node := IDL_Range (D);
+         if Present (Pragma_Range_Node) then
+            --  #pragma range
+            Analyze (Target (Pragma_Range_Node));
+            if Pragma_Kind (Pragma_Range_Node) = Pragma_Range_Idl then
+               LB := Lower_Bound_Expr (Pragma_Range_Node);
+               UB := Upper_Bound_Expr (Pragma_Range_Node);
+               if Present (LB) or Present (UB) then
+                  Analyze_And_Resolve_Expr (LB, TS);
+                  Analyze_And_Resolve_Expr (UB, TS);
+                  R := New_Node (K_Range, Loc (Pragma_Range_Node));
+                  Set_Low_Bound (R, LB);
+                  Set_High_Bound (R, UB);
+               else
+                  R := No_Node;
+               end if;
+            else
+               R := New_Node (K_String_Literal, Loc (Pragma_Range_Node));
+               Set_Value
+                 (R,
+                  Values.New_String_Value
+                    (Value => Data (Pragma_Range_Node),
+                     Wide  => False));
+            end if;
+            Set_Optional_Range (E, R);
+         end if;
+         if Is_Subtype (D) then
+            --  #pragma subtype
+            Set_Marked_As_Subtype (E, True);
+         end if;
          D := Next_Entity (D);
       end loop;
    end Analyze_Type_Declaration;
@@ -1211,6 +1314,7 @@ package body Analyzer is
    procedure Analyze_Union_Type (E : Node_Id) is
       Alternative : Node_Id;
       Label       : Node_Id;
+      Sw_Name     : Name_Id;
       Switch_Type : Node_Id := Switch_Type_Spec (E);
       L           : Natural;
    begin
@@ -1234,6 +1338,10 @@ package body Analyzer is
             DE ("switch must have a discrete type");
             return;
       end case;
+
+      --  Resolve #pragma switchname
+      Sw_Name := Find_Switchname (IDL_Name (Identifier (E)));
+      Set_Switch_Name (E, Sw_Name);
 
       --  Resolve labels and elements
 
@@ -1938,6 +2046,47 @@ package body Analyzer is
       LT.Table (Op2) := N;
    end Exchange;
 
+   ---------------------
+   -- Find_Switchname --
+   ---------------------
+
+   function Find_Switchname (Typename : Name_Id) return Name_Id is
+      use Switchname_Stack;
+   begin
+      for I in 1 .. Last loop
+         declare
+            Cursor : constant Switch_Info := Table (I);
+         begin
+            if Cursor.Typename = Typename then
+               return Cursor.Switchname;
+            end if;
+         end;
+      end loop;
+      Name_Len := 6;
+      Name_Buffer (1 .. Name_Len) := "Switch";
+      return Name_Find;
+   end Find_Switchname;
+
+   ---------------
+   -- IDL_Range --
+   ---------------
+
+   function IDL_Range (Declarator : Node_Id) return Node_Id is
+      Target_Name : constant Name_Id := IDL_Name (Identifier (Declarator));
+      use Range_Stack;
+   begin
+      for I in 1 .. Last loop
+         declare
+            Cursor : constant Node_Id := Table (I);
+         begin
+            if IDL_Name (Identifier (Target (Cursor))) = Target_Name then
+               return Cursor;
+            end if;
+         end;
+      end loop;
+      return No_Node;
+   end IDL_Range;
+
    --------------
    -- In_Range --
    --------------
@@ -2004,6 +2153,26 @@ package body Analyzer is
       end loop;
    end Inherit_From;
 
+   ----------------
+   -- Is_Subtype --
+   ----------------
+
+   function Is_Subtype (Declarator : Node_Id) return Boolean is
+      Target_Name : constant Name_Id := IDL_Name (Identifier (Declarator));
+      use Subtype_Stack;
+   begin
+      for I in 1 .. Last loop
+         declare
+            Cursor : constant Node_Id := Table (I);
+         begin
+            if IDL_Name (Identifier (Cursor)) = Target_Name then
+               return True;
+            end if;
+         end;
+      end loop;
+      return False;
+   end Is_Subtype;
+
    ---------------
    -- Less_Than --
    ---------------
@@ -2039,6 +2208,40 @@ package body Analyzer is
 
       return Value (V1) < Value (V2);
    end Less_Than;
+
+   --------------------
+   -- Push_IDL_Range --
+   --------------------
+
+   procedure Push_IDL_Range (Pragma_Node : Node_Id) is
+      use Range_Stack;
+   begin
+      Increment_Last;
+      Table (Last) := Pragma_Node;
+   end Push_IDL_Range;
+
+   ------------------
+   -- Push_Subtype --
+   ------------------
+
+   procedure Push_Subtype (Target : Node_Id) is
+      use Subtype_Stack;
+   begin
+      Increment_Last;
+      Table (Last) := Target;
+   end Push_Subtype;
+
+   ---------------------
+   -- Push_Switchname --
+   ---------------------
+
+   procedure Push_Switchname (Typename, Switchname : Name_Id) is
+      Info : constant Switch_Info := (Typename, Switchname);
+      use Switchname_Stack;
+   begin
+      Increment_Last;
+      Table (Last) := Info;
+   end Push_Switchname;
 
    ------------------
    -- Resolve_Expr --

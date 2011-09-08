@@ -1161,9 +1161,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
    --------------------------------
 
    function Make_Array_Type_Definition
-     (Range_Constraints    : List_Id;
-      Component_Definition : Node_Id;
-      Index_Definition     : Node_Id := No_Node)
+     (Range_Constraints     : List_Id;
+      Component_Definition  : Node_Id;
+      Index_Definition      : Node_Id := No_Node;
+      Index_Def_Constrained : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -1172,6 +1173,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Range_Constraints (N, Range_Constraints);
       Set_Component_Definition (N, Component_Definition);
       Set_Index_Definition (N, Index_Definition);
+      Set_Index_Def_Constrained (N, Index_Def_Constrained);
       return N;
    end Make_Array_Type_Definition;
 
@@ -1388,7 +1390,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
       Is_Private_Extension  : Boolean := False;
-      Is_Subtype            : Boolean := False)
+      Is_Subtype            : Boolean := False;
+      Opt_Range             : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -1399,6 +1402,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Record_Extension_Part (N, Record_Extension_Part);
       Set_Is_Subtype (N, Is_Subtype);
+      Set_Range_Opt (N, Opt_Range);
       return N;
    end Make_Derived_Type_Definition;
 

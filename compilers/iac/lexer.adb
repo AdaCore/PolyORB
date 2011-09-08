@@ -736,6 +736,7 @@ package body Lexer is
          New_Token (T_Colon, ":");
          New_Token (T_Comma, ",");
          New_Token (T_Colon_Colon, "::");
+         New_Token (T_Dot_Dot, "..");
          New_Token (T_Left_Paren, "(");
          New_Token (T_Right_Paren, ")");
          New_Token (T_Equal, "=");
@@ -766,6 +767,11 @@ package body Lexer is
          New_Token (T_Pragma_Id, "ID");
          New_Token (T_Pragma_Prefix, "prefix");
          New_Token (T_Pragma_Version, "version");
+         New_Token (T_Pragma_Range, "range");
+         New_Token (T_Pragma_Range_Idl, "range_idl");  --  is not used
+         New_Token (T_Pragma_Subtype, "subtype");
+         New_Token (T_Pragma_Derived, "derived");
+         New_Token (T_Pragma_Switchname, "switchname");
          New_Token (T_Pragma_Unrecognized, "<unrecognized>");
          New_Token (T_EOF, "<end of file>");
       end if;
@@ -1741,7 +1747,12 @@ package body Lexer is
                Scan_Numeric_Literal_Value (Fatal);
 
             when '.' =>
-               Scan_Numeric_Literal_Value (Fatal);
+               if Buffer (Token_Location.Scan + 1) = '.' then
+                  Token_Location.Scan := Token_Location.Scan + 2;
+                  Token := T_Dot_Dot;
+               else
+                  Scan_Numeric_Literal_Value (Fatal);
+               end if;
 
             when ''' =>
                Token_Location.Scan := Token_Location.Scan + 1;

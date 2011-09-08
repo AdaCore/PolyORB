@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -882,6 +882,35 @@ package body Backend.BE_IDL is
             Write_Char ('"');
 
          when Pragma_Version =>
+            Generate (Target (E));
+            Write_Space;
+            Write_Name (Data (E));
+
+         when Pragma_Range =>
+            Generate (Target (E));
+            Write_Space;
+            Write_Char ('"');
+            Write_Name (Data (E));
+            Write_Char ('"');
+
+         when Pragma_Range_Idl =>
+            Generate (Target (E));
+            Write_Space;
+            if Present (Lower_Bound_Expr (E)) then
+               Generate (Lower_Bound_Expr (E));
+            end if;
+            Write_Str (" .. ");
+            if Present (Upper_Bound_Expr (E)) then
+               Generate (Upper_Bound_Expr (E));
+            end if;
+
+         when Pragma_Subtype =>
+            Generate (Target (E));
+
+         when Pragma_Derived =>
+            Generate (Target (E));
+
+         when Pragma_Switchname =>
             Generate (Target (E));
             Write_Space;
             Write_Name (Data (E));

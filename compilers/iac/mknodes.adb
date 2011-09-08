@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -495,20 +495,19 @@ procedure Mknodes is
             end if;
 
             while Intf /= No_Node loop
-               --  Mark adjacent attributes as incompatible. Attribute
-               --  A2 is adjacent to attribute A1 when A2 and A1
-               --  belong to a common interface. To do this we must:
+               --  Mark adjacent attributes as incompatible. Attribute A2 is
+               --  adjacent to attribute A1 when A2 and A1 belong to a common
+               --  interface. To do this we must:
 
-               --  1 - Traverse the list of the parent interfaces and
-               --  get all the attributes of these parents.
+               --  1 - Traverse the list of the parent interfaces and get all
+               --  the attributes of these parents.
 
-               --  2 - Traverse the list of all the child interfaces
-               --  and get all the attributes of these children.
-               --  However this kind of traversal is very complex to
-               --  perform because the child interfaces do not form a
-               --  list but a tree. We use the following workaround
-               --  that has the same effect: each time we find a
-               --  couple of incompatible attributes, we mark this
+               --  2 - Traverse the list of all the child interfaces and get
+               --  all the attributes of these children. However this kind of
+               --  traversal is very complex to perform because the child
+               --  interfaces do not form a list but a tree. We use the
+               --  following workaround that has the same effect: each time we
+               --  find a couple of incompatible attributes, we mark this
                --  couple.
 
                if Has_Attribute (Intf) then
@@ -1386,12 +1385,12 @@ procedure Mknodes is
 
       Write_Line ("with GNAT.Table;");
 
-      --  The packages Locations and Types may have been included by a
-      --  parent package of the generated package (or may not). We
-      --  disable a warning generated when enabling the GNAT style
-      --  checks.
+      --  The packages Locations and Types may have been included by a parent
+      --  package of the generated package (or may not). We disable a warning
+      --  generated when enabling the GNAT style checks.
 
       Write_Line ("pragma Warnings (Off);");
+      Write_Line ("with Lexer;     use Lexer;");
       Write_Line ("with Locations; use Locations;");
       Write_Line ("with Types;     use Types;");
       Write_Line ("pragma Warnings (On);");

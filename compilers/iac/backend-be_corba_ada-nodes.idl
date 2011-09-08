@@ -296,6 +296,18 @@ module Backend::BE_CORBA_Ada::Nodes {
      Node_Id Selector_Name;
   };
 
+  // RANGE ::=
+  //   RANGE_ATTRIBUTE_REFERENCE
+  //   | SIMPLE_EXPRESSION .. SIMPLE_EXPRESSION
+
+  // Note: the case of a range given as a range attribute reference
+  // appears directly in the tree as an attribute reference.
+
+  interface Range : Node_Id {
+    Node_Id Low_Bound;
+    Node_Id High_Bound;
+  };
+
   /*********************/
   /* Type declarations */
   /*********************/
@@ -310,12 +322,13 @@ module Backend::BE_CORBA_Ada::Nodes {
     // an Access_Type_Definition
     // a  Derived_Type_Definition
     // a  Record_Type_Definition
+    // an Array_Type_Definition
 
     List_Id Discriminant_Spec;
     // Specifies the discriminant of the type
 
     boolean Is_Subtype;
-    // Precise whether the type is a new type or a subtype
+    // Define whether the type is a new type or a subtype
   };
 
   /* Example : type T is (E1, E2, E3); */
@@ -369,6 +382,10 @@ module Backend::BE_CORBA_Ada::Nodes {
     boolean Is_Subtype;
     // If True then a subtype definition, instead of a derived type definition,
     // is generated.
+
+    Node_Id Range_Opt;
+    // Optional range defined by #pragma range.
+    // Cannot use name "Range" here due to conflict with Ada.
   };
 
   /* Example : Type T is record F : Integer; end record; */
@@ -418,6 +435,12 @@ module Backend::BE_CORBA_Ada::Nodes {
 
     Node_Id Index_Definition;
     // The array index type    
+
+    boolean Index_Def_Constrained;
+    // If Index_Definition is in use:
+    // - If this flag is False then it is an unconstrained def.
+    //   (i.e. "range <>")
+    // - If this flag is True then it is a constrained def.
   };
 
   interface String_Type_Definition : Definition {
@@ -663,18 +686,6 @@ module Backend::BE_CORBA_Ada::Nodes {
   interface Slice : Node_Id {
     Node_Id Prefix;
     Node_Id Discrete_Range;
-  };
-
-  // RANGE ::=
-  //   RANGE_ATTRIBUTE_REFERENCE
-  //   | SIMPLE_EXPRESSION .. SIMPLE_EXPRESSION
-
-  // Note: the case of a range given as a range attribute reference
-  // appears directly in the tree as an attribute reference.
-
-  interface Range : Node_Id {
-    Node_Id Low_Bound;
-    Node_Id High_Bound;
   };
 
   interface Exception_Declaration : Definition {

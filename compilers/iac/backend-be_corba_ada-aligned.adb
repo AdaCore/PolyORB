@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -363,7 +363,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
          T                : Node_Id;
          N                : Node_Id;
          Type_Spec_Node   : Node_Id;
-         Is_Subtype       : Boolean := False;
+         Is_Subtype       : Boolean := FEN.Marked_As_Subtype (E);
       begin
          Set_Aligned_Spec;
          Type_Spec_Node := Type_Spec (E);
@@ -390,7 +390,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
                Fixed_Type_Node := Make_Full_Type_Declaration
                  (Defining_Identifier => T,
                   Type_Definition     => Make_Decimal_Type_Definition
-                  (Type_Spec_Node));
+                                           (Type_Spec_Node),
+                  Is_Subtype          => Is_Subtype);
 
                Append_To (Visible_Part (Current_Package), Fixed_Type_Node);
             end;
@@ -447,7 +448,7 @@ package body Backend.BE_CORBA_Ada.Aligned is
             T := Make_Type_Designator (Type_Spec_Node);
          end if;
 
-         Is_Subtype := Is_Object_Type (Type_Spec (E));
+         Is_Subtype := Is_Subtype or Is_Object_Type (Type_Spec (E));
 
          D := First_Entity (Declarators (E));
 
@@ -536,7 +537,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
                   Type_Definition     => Make_Derived_Type_Definition
                   (Subtype_Indication    => T,
                    Record_Extension_Part => No_Node,
-                   Is_Subtype => Is_Subtype),
+                   Is_Subtype => Is_Subtype,
+                   Opt_Range => Optional_Range (E)),
                   Is_Subtype => Is_Subtype);
             end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,6 +64,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
    package body Package_Spec is
 
       procedure Visit_Attribute_Declaration (E : Node_Id);
+      function Convert_Scalar_Expr_To_Ada
+        (E : Node_Id; T : Node_Id) return Node_Id;
       procedure Visit_Constant_Declaration (E : Node_Id);
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Exception_Declaration (E : Node_Id);
@@ -76,6 +78,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
          Binding : Boolean := True);
       procedure Visit_Specification (E : Node_Id);
       procedure Visit_Structure_Type (E : Node_Id);
+      function Convert_IDL_Range_To_Ada
+        (E : Node_Id; T : Node_Id) return Node_Id;
       procedure Visit_Type_Declaration (E : Node_Id);
       procedure Visit_Union_Type (E : Node_Id);
 
@@ -165,20 +169,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
       end Visit_Attribute_Declaration;
 
       --------------------------------
-      -- Visit_Constant_Declaration --
+      -- Convert_Scalar_Expr_To_Ada --
       --------------------------------
 
-      procedure Visit_Constant_Declaration (E : Node_Id) is
-         N             : Node_Id;
-         Expression    : Node_Id;
-         Constant_Type : constant Node_Id := Map_Expanded_Name (Type_Spec (E));
-         K             : FEN.Node_Kind;
-         Otyp          : constant Node_Id :=
-                           FEU.Get_Original_Type_Specifier (Type_Spec (E));
+      function Convert_Scalar_Expr_To_Ada
+        (E : Node_Id;
+         T : Node_Id) return Node_Id is
+         Val    : constant Values.Value_Type := FEU.Expr_Value (E);
+         Val_Id : constant Value_Id := FEU.Expr_Value (E);
+         Expr   : Node_Id;
       begin
-         Set_Main_Spec;
-
-         case FEU.Expr_Value (E).K is
+         case Val.K is
             when K_Short .. K_Unsigned_Long_Long
               | K_Octet
               | K_Fixed_Point_Type
@@ -191,18 +192,18 @@ package body Backend.BE_CORBA_Ada.Stubs is
                declare
                   Minus : Node_Id;
                begin
-                  if Negative (Value_Id'(FEU.Expr_Value (E))) then
+                  if Negative (Val_Id) then
                      Minus := Make_Selected_Component
-                       (Get_Parent_Unit_Name (Constant_Type),
+                       (Get_Parent_Unit_Name (T),
                         Make_Defining_Identifier (SN (S_Minus)));
 
-                     Expression := Make_Subprogram_Call
+                     Expr := Make_Subprogram_Call
                        (Minus,
                         New_List
-                          (Make_Literal (New_Value (-FEU.Expr_Value (E)))));
+                          (Make_Literal (New_Value (-Val))));
 
                   else
-                     Expression := Make_Literal (FEU.Expr_Value (E));
+                     Expr := Make_Literal (Val_Id);
                   end if;
                end;
 
@@ -211,13 +212,32 @@ package body Backend.BE_CORBA_Ada.Stubs is
                --  If it's an enumeration literal, we need to use an expanded
                --  name.
 
-               Expression := Make_Literal_With_Parent
-                 (FEU.Expr_Value (E),
-                  Parent => Get_Parent_Unit_Name (Constant_Type));
+               Expr := Make_Literal_With_Parent
+                 (Val_Id,
+                  Parent => Get_Parent_Unit_Name (T));
 
             when others =>
-               Expression := Make_Literal (FEU.Expr_Value (E));
+               Expr := Make_Literal (Val_Id);
          end case;
+
+         return Expr;
+      end Convert_Scalar_Expr_To_Ada;
+
+      --------------------------------
+      -- Visit_Constant_Declaration --
+      --------------------------------
+
+      procedure Visit_Constant_Declaration (E : Node_Id) is
+         N             : Node_Id;
+         Expr          : Node_Id;
+         Constant_Type : constant Node_Id := Map_Expanded_Name (Type_Spec (E));
+         K             : FEN.Node_Kind;
+         Otyp          : constant Node_Id :=
+                           FEU.Get_Original_Type_Specifier (Type_Spec (E));
+      begin
+         Set_Main_Spec;
+
+         Expr := Convert_Scalar_Expr_To_Ada (E, Constant_Type);
 
          --  If the constant type is of a string type, it needs to be
          --  converted using To_CORBA_[Wide_]String (for the unbounded case),
@@ -272,8 +292,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                   end case;
 
                   if Otyp = Type_Spec (E) then
-                     Expression := Make_Subprogram_Call
-                                     (Converter, New_List (Expression));
+                     Expr := Make_Subprogram_Call
+                                     (Converter, New_List (Expr));
                   else
                      S := Make_Selected_Component
                             (Get_Parent_Unit_Name
@@ -283,8 +303,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      --  The call to Copy_Node ensures the addition of
                      --  necessary WITH clauses.
 
-                     Expression := Make_Subprogram_Call
-                       (Copy_Node (S), New_List (Expression));
+                     Expr := Make_Subprogram_Call
+                       (Copy_Node (S), New_List (Expr));
                   end if;
                end;
 
@@ -296,7 +316,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
            (Defining_Identifier => Map_Defining_Identifier (E),
             Constant_Present    => True,
             Object_Definition   => Constant_Type,
-            Expression          => Expression);
+            Expression          => Expr);
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Append_To (Visible_Part (Current_Package), N);
       end Visit_Constant_Declaration;
@@ -797,6 +817,35 @@ package body Backend.BE_CORBA_Ada.Stubs is
            Map_Repository_Id_Declaration (E));
       end Visit_Structure_Type;
 
+      ------------------------------
+      -- Convert_IDL_Range_To_Ada --
+      ------------------------------
+
+      function Convert_IDL_Range_To_Ada
+        (E : Node_Id; T : Node_Id) return Node_Id is
+         LB, UB : Node_Id := No_Node;
+      begin
+         if No (E) then
+            return No_Node;
+         end if;
+         if Kind (E) = K_String_Literal then
+            return Make_Literal (FEN.Value (E));
+         end if;
+         LB := FEN.Low_Bound (E);
+         if Present (LB) then
+            LB := Convert_Scalar_Expr_To_Ada (LB, T);
+         else
+            LB := Make_Attribute_Reference (T, A_First);
+         end if;
+         UB := FEN.High_Bound (E);
+         if Present (UB) then
+            UB := Convert_Scalar_Expr_To_Ada (UB, T);
+         else
+            UB := Make_Attribute_Reference (T, A_Last);
+         end if;
+         return Make_Range (LB, UB);
+      end Convert_IDL_Range_To_Ada;
+
       ----------------------------
       -- Visit_Type_Declaration --
       ----------------------------
@@ -805,7 +854,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          D                : Node_Id;
          T                : Node_Id;
          N                : Node_Id;
-         Is_Subtype       : Boolean := False;
+         Is_Subtype       : Boolean := FEN.Marked_As_Subtype (E);
          Type_Spec_Node   : Node_Id;
       begin
          Set_Main_Spec;
@@ -827,7 +876,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
                Fixed_Type_Node := Make_Full_Type_Declaration
                  (Defining_Identifier => T,
                   Type_Definition     => Make_Decimal_Type_Definition
-                    (Type_Spec_Node));
+                    (Type_Spec_Node),
+                  Is_Subtype          => Is_Subtype);
                Append_To (Visible_Part (Current_Package), Fixed_Type_Node);
 
                T := Make_Selected_Component
@@ -992,7 +1042,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          --  Determining whether we map the type definition to a "type
          --  ... is new ...;" or a "subtype ... is ...;" statement.
 
-         Is_Subtype := Is_Object_Type (Type_Spec (E));
+         Is_Subtype := Is_Object_Type (Type_Spec (E)) or Is_Subtype;
 
          D := First_Entity (Declarators (E));
          while Present (D) loop
@@ -1004,12 +1054,17 @@ package body Backend.BE_CORBA_Ada.Stubs is
                    (FEN.Array_Sizes (D)), T));
             else
                N := Make_Full_Type_Declaration
-                 (Defining_Identifier => Map_Defining_Identifier (D),
-                  Type_Definition     => Make_Derived_Type_Definition
-                  (Subtype_Indication    => T,
-                   Record_Extension_Part => No_Node,
-                   Is_Subtype => Is_Subtype),
-                  Is_Subtype => Is_Subtype);
+                      (Defining_Identifier   =>
+                         Map_Defining_Identifier (D),
+                       Type_Definition       =>
+                         Make_Derived_Type_Definition
+                           (Subtype_Indication    => T,
+                            Record_Extension_Part => No_Node,
+                            Is_Subtype            => Is_Subtype,
+                            Opt_Range             =>
+                              Convert_IDL_Range_To_Ada
+                                (Optional_Range (E), T)),
+                       Is_Subtype            => Is_Subtype);
             end if;
 
             --  Create the bindings between the IDL tree and the Ada
@@ -1030,18 +1085,16 @@ package body Backend.BE_CORBA_Ada.Stubs is
       -----------------------
 
       procedure Visit_Native_Type (E : Node_Id) is
-         --  Extract from the CORBA 3.0.3 spec (§3.11.5) concerning
-         --  native types :
+         --  CORBA 3.0.3 spec (§3.11.5) on native types:
 
-         --  "This declaration defines a new type with the specified
-         --  name. A native type is similar to an IDL basic type. The
-         --  possible values of a native type are language-mapping
-         --  dependent, as are the means for constructing them and
-         --  manipulating them.  Any interface that defines a native
-         --  type requires each language mapping to define how the
-         --  native type is mapped into that programming language."
+         --  "This declaration defines a new type with the specified name. A
+         --  native type is similar to an IDL basic type. The possible values
+         --  of a native type are language-mapping dependent, as are the means
+         --  for constructing them and manipulating them. Any interface that
+         --  defines a native type requires each language mapping to define how
+         --  the native type is mapped into that programming language."
 
-         --  So, we put a comment to indicate that.
+         --  Generate a comment to reflect that.
 
          N         : Node_Id;
          Type_Name : constant Name_Id :=
@@ -1066,12 +1119,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
          T              : Node_Id;
          L              : List_Id;
          Literal_Parent : Node_Id := No_Node;
+         Switch         : constant Node_Id :=
+           Make_Defining_Identifier (Switch_Name (E));
       begin
          Set_Main_Spec;
          T := Map_Expanded_Name (S);
 
-         --  If the discriminator is an enumeration type, we must put
-         --  the full names of literals
+         --  If the discriminator is an enumeration type, we must put the full
+         --  names of literals.
 
          if FEN.Kind (Orig_Type) = K_Enumeration_Type then
             Literal_Parent := Map_Expanded_Name
@@ -1083,7 +1138,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
          L := New_List;
          Append_To (L,
            Make_Variant_Part
-             (Make_Defining_Identifier (CN (C_Switch)),
+             (Switch,
                 Map_Variant_List (Switch_Type_Body (E), Literal_Parent)));
 
          N := Make_Full_Type_Declaration
@@ -1092,8 +1147,9 @@ package body Backend.BE_CORBA_Ada.Stubs is
             (Make_Record_Definition (L)),
             New_List
             (Make_Component_Declaration
-             (Make_Defining_Identifier (CN (C_Switch)), T,
+             (Switch, T,
               Make_Attribute_Reference (T, A_First))));
+
          Bind_FE_To_BE (Identifier (E), N, B_Stub);
          Bind_FE_To_BE (Identifier (E), N, B_Type_Def);
 
@@ -1218,9 +1274,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             N := Next_Entity (N);
          end loop;
 
-         --  In case of multiple inheritance, generate the mappings
-         --  for the operations and attributes of the parents except
-         --  the first one.
+         --  In case of multiple inheritance, generate the mappings for the
+         --  operations and attributes of the parents except the first one.
 
          Map_Inherited_Entities_Bodies
            (Current_Interface    => E,
@@ -1306,14 +1361,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
             and then Is_Local_Interface (Container));
          NVList_Name     : Name_Id;
 
-         --  The flags below indicate whether the operation is mapped
-         --  to an Ada function or an Ada procedure.
+         --  The flags below indicate whether the operation is mapped to an Ada
+         --  function or an Ada procedure.
 
          Has_Out_Params  : constant Boolean := Contains_Out_Parameters (E);
          Non_Void        : constant Boolean :=
-           FEN.Kind (Type_Spec (E)) /= K_Void;
+                             FEN.Kind (Type_Spec (E)) /= K_Void;
          Is_Function     : constant Boolean :=
-           Non_Void and then not Has_Out_Params;
+                             Non_Void and then not Has_Out_Params;
       begin
          --  Generate nil reference check for Self
 
@@ -2016,13 +2071,13 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                N := Make_Selected_Component (PN (P_Arg_List), PN (P_Returns));
 
-               --  If the return value is a class-wide type, cast
-               --  the record field.
+               --  If the return value is a class-wide type, cast the record
+               --  field.
 
                if Is_Class_Wide (E) then
                   N := Make_Type_Conversion
                     (Make_Attribute_Reference
-                     (Get_Type_Definition_Node (Type_Spec (E)), A_Class),
+                       (Get_Type_Definition_Node (Type_Spec (E)), A_Class),
                      N);
                end if;
 
@@ -2032,8 +2087,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
             end if;
          end if;
 
-         --  In case of SII, retreive the OUT parameter values. In the case
-         --  of DII, this is performed transparently.
+         --  In case of SII, retreive the OUT parameter values. In the case of
+         --  DII, this is performed transparently.
 
          if Use_SII then
             P := First_Entity (Parameters (E));
@@ -2109,14 +2164,14 @@ package body Backend.BE_CORBA_Ada.Stubs is
             and then Is_Local_Interface (Container));
          Res_Exp          : Node_Id;
 
-         --  The flags below indicates whether the operation is mapped
-         --  to an Ada function or an Ada procedure.
+         --  The flags below indicates whether the operation is mapped to an
+         --  Ada function or an Ada procedure.
 
          Has_Out_Params  : constant Boolean := Contains_Out_Parameters (E);
          Non_Void        : constant Boolean :=
-           FEN.Kind (Type_Spec (E)) /= K_Void;
+                             FEN.Kind (Type_Spec (E)) /= K_Void;
          Is_Function     : constant Boolean :=
-           Non_Void and then not Has_Out_Params;
+                             Non_Void and then not Has_Out_Params;
       begin
          if not Local_Interface then
 
@@ -2510,12 +2565,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
       Parent_Statement : Node_Id;
 
       function Is_Equivalent_Statement (E : Node_Id) return Node_Id;
-      --  This function returns a logical "or else" expression. The
-      --  operands of the expression are calls to CORBA.Is_Equivalent
-      --  function on all the parents (direct parents as well as in
-      --  direct parents) of the interface. It returns a null node in
-      --  the case where the interface does not inherit from another
-      --  interface.
+      --  This function returns a logical "or else" expression. The operands of
+      --  the expression are calls to CORBA.Is_Equivalent function on all the
+      --  parents (direct parents as well as in direct parents) of the
+      --  interface. It returns a null node in the case where the interface
+      --  does not inherit from another interface.
 
       -----------------------------
       -- Is_Equivalent_Statement --
@@ -2542,8 +2596,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
                T := Get_Type_Definition_Node (Par_Int);
 
-               --  Build the Repository_Id constant corresponding to
-               --  the parent interface.
+               --  Build the Repository_Id constant corresponding to the parent
+               --  interface.
 
                Rep_Id := Make_Selected_Component
                  (Get_Parent_Unit_Name (T),
@@ -2566,7 +2620,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                       Rep_Id));
                end if;
 
-               --  Adding recursively the parents of parents.
+               --  Adding recursively the parents of parents
 
                Parent_Statement := Is_Equivalent_Statement
                  (Reference
@@ -2585,8 +2639,8 @@ package body Backend.BE_CORBA_Ada.Stubs is
       end Is_Equivalent_Statement;
 
    begin
-      --  The Repository_Id constant is declared just after the Ada
-      --  Ref type mapped from the interface.
+      --  The Repository_Id constant is declared just after the Ada Ref type
+      --  mapped from the interface.
 
       N := Next_Node (Type_Def_Node (BE_Node (Identifier (E))));
       Repository_Id := Expand_Designator (N);
@@ -2612,7 +2666,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
       N := Make_Expression
         (N, Op_Or_Else, M);
 
-      --  Add the parents (recusively).
+      --  Add the parents (recusively)
 
       Parent_Statement := Is_Equivalent_Statement (E);
 
