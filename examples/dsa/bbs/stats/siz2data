@@ -1,5 +1,0 @@
-#! /bin/sh
-
-tr = ' ' |
-awk '/Elapsed/ { time = $3 }
-     /siz/     { print $2 " " time }'
