@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . S E T U P . C O M M O N _ B A S E             --
+--               P O L Y O R B . L O G . E X C E P T I O N S                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,25 +31,64 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+with Ada.Exceptions;
 
-with PolyORB.Log.Initialization;
-pragma Warnings (Off, PolyORB.Log.Initialization);
-pragma Elaborate_All (PolyORB.Log.Initialization);
+with GNAT.Exception_Actions;
 
-with PolyORB.Log.Exceptions;
-pragma Warnings (Off, PolyORB.Log.Exceptions);
-pragma Elaborate_All (PolyORB.Log.Exceptions);
+with PolyORB.Initialization;
+with PolyORB.Log;
+with PolyORB.Utils.Strings;
 
-with PolyORB.Setup.Default_Parameters;
-pragma Warnings (Off, PolyORB.Setup.Default_Parameters);
-pragma Elaborate_All (PolyORB.Setup.Default_Parameters);
+package body PolyORB.Log.Exceptions is
 
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
+   use Ada.Exceptions;
+   use PolyORB.Log;
 
-package body PolyORB.Setup.Common_Base is
-end PolyORB.Setup.Common_Base;
+   package L is new PolyORB.Log.Facility_Log ("polyorb.log.exceptions");
+   procedure O (Message : String; Level : Log_Level := Debug)
+     renames L.Output;
+   function C (Level : Log_Level := Debug) return Boolean renames L.Enabled;
+
+   procedure Initialize;
+
+   procedure Log_Exception (Occ : Exception_Occurrence);
+   --  Generate trace for Occ
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      if C then
+         GNAT.Exception_Actions.Register_Global_Action (Log_Exception'Access);
+      end if;
+   end Initialize;
+
+   -------------------
+   -- Log_Exception --
+   -------------------
+
+   procedure Log_Exception (Occ : Exception_Occurrence) is
+   begin
+      if Exception_Identity (Occ) = Standard'Abort_Signal'Identity then
+         O ("<asynchronous abort>");
+      end if;
+      O (Exception_Information (Occ));
+   end Log_Exception;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"log.exceptions",
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => PolyORB.Initialization.String_Lists.Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
+end PolyORB.Log.Exceptions;

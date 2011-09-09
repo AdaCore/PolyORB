@@ -1418,6 +1418,8 @@ src/polyorb-jobs.adb
 src/polyorb-jobs.ads
 src/polyorb-lanes.adb
 src/polyorb-lanes.ads
+src/polyorb-log-exceptions.adb
+src/polyorb-log-exceptions.ads
 src/polyorb-log-initialization.adb
 src/polyorb-log-initialization.ads
 src/polyorb-log-stderr.adb

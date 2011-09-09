@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . S E T U P . C O M M O N _ B A S E             --
+--               P O L Y O R B . L O G . E X C E P T I O N S                --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,25 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+--  This unit allows runtime control of exception traces
 
-with PolyORB.Log.Initialization;
-pragma Warnings (Off, PolyORB.Log.Initialization);
-pragma Elaborate_All (PolyORB.Log.Initialization);
-
-with PolyORB.Log.Exceptions;
-pragma Warnings (Off, PolyORB.Log.Exceptions);
-pragma Elaborate_All (PolyORB.Log.Exceptions);
-
-with PolyORB.Setup.Default_Parameters;
-pragma Warnings (Off, PolyORB.Setup.Default_Parameters);
-pragma Elaborate_All (PolyORB.Setup.Default_Parameters);
-
-with PolyORB.References.File;
-pragma Warnings (Off, PolyORB.References.File);
-pragma Elaborate_All (PolyORB.References.File);
-
-package body PolyORB.Setup.Common_Base is
-end PolyORB.Setup.Common_Base;
+package PolyORB.Log.Exceptions is
+   pragma Elaborate_Body;
+end PolyORB.Log.Exceptions;
