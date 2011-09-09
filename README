@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -151,6 +151,8 @@ contributors:
 * Fabien Azavant
 * Benjamin Bagland
 * Khaled Barbaria
+* Nikolay Boshnakov
+* Reto Buerki
 * Emmanuel Chavane
 * Karim Chine
 * Jean-Marie Cottin
@@ -164,6 +166,7 @@ contributors:
 * Jerome Guitton
 * Jerome Hugues
 * Mejdi Kaddour
+* Oliver Kellogg
 * Fabrice Kordon
 * Narinder Kumar
 * Laurent Kubler

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,8 +45,7 @@ package PolyORB.Binding_Data.GIOP.IIOP is
 
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;
-      Oid :        Objects.Object_Id)
-      return Profile_Access;
+      Oid : Objects.Object_Id) return Profile_Access;
 
    function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access;
 
@@ -72,11 +71,6 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      return Profile_Access;
 
    function Image (Prof : IIOP_Profile_Type) return String;
-
-   function Get_OA
-     (Profile : IIOP_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
 
    procedure Add_Transport_Mechanism_Factory
      (PF : in out IIOP_Profile_Factory;

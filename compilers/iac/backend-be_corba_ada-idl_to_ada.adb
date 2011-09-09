@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -396,7 +396,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Container_Name (E : Node_Id) return Name_Id is
       The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (E)));
    begin
-      Set_Str_To_Name_Buffer ("Content_Ü_");
+      Set_Str_To_Name_Buffer ("Content" & Unique_Infix);
       Get_Name_String_And_Append (The_Name);
       return Name_Find;
    end Map_Container_Name;
@@ -629,7 +629,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       Type_Name : constant Name_Id := Map_Fixed_Type_Name (F);
    begin
-      Set_Str_To_Name_Buffer ("Helper_Ü_");
+      Set_Str_To_Name_Buffer ("Helper" & Unique_Infix);
       Get_Name_String_And_Append (Type_Name);
       return Name_Find;
    end Map_Fixed_Type_Helper_Name;
@@ -762,18 +762,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Set_IDL_Unit (Z, P);
       Set_Parent (Z, D);
 
-      --  Internals is a subunit of Helper
+      --  Internals is a nested within Helper
 
-      Set_Is_Subunit_Package (Package_Specification (Z), True);
+      Set_Is_Nested_Package (Package_Specification (Z), True);
 
-      Append_To (Subunits (Package_Specification (D)),
+      Append_To (Nested_Packages (Package_Specification (D)),
         Package_Specification (Z));
 
       Append_To (Statements (Package_Body (D)),
         Package_Body (Z));
 
-      --  As a subunit of Helper, Interals shares its list of withed
-      --  packages with Helper.
+      --  As a package nested within Helper, Interals shares its list of
+      --  with-ed packages with Helper.
 
       Set_Context_Clause (Package_Specification (Z),
                            Context_Clause (Package_Specification (D)));
@@ -870,8 +870,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
             Set_Str_To_Name_Buffer ("Impl");
             N := Make_Selected_Component
-              (I,
-               Make_Defining_Identifier (Name_Find));
+                   (I, Make_Defining_Identifier (Name_Find));
             D := Make_Package_Declaration (N);
             Set_IDL_Unit (D, P);
             Set_Parent (D, M);
@@ -912,7 +911,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Indices_Name (D : Node_Id) return Name_Id is
       The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (D)));
    begin
-      Set_Str_To_Name_Buffer ("Indices_Ü_");
+      Set_Str_To_Name_Buffer ("Indices" & Unique_Infix);
       Get_Name_String_And_Append (The_Name);
       return Name_Find;
    end Map_Indices_Name;
@@ -924,7 +923,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Lengths_Name (D : Node_Id) return Name_Id is
       The_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (D)));
    begin
-      Set_Str_To_Name_Buffer ("Lengths_Ü_");
+      Set_Str_To_Name_Buffer ("Lengths" & Unique_Infix);
       Get_Name_String_And_Append (The_Name);
       return Name_Find;
    end Map_Lengths_Name;
@@ -1007,7 +1006,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Pointer_Type_Name (E : Node_Id) return Name_Id is
       Type_Name : constant Name_Id := To_Ada_Name (IDL_Name (Identifier (E)));
    begin
-      Set_Str_To_Name_Buffer ("Ptr_Ü_");
+      Set_Str_To_Name_Buffer ("Ptr" & Unique_Infix);
       Get_Name_String_And_Append (Type_Name);
 
       return Name_Find;
@@ -2792,7 +2791,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Entity := First_Entity (Interface_Body (Parent_Interface));
 
       while Present (Entity) loop
-         case  FEN.Kind (Entity) is
+         case FEN.Kind (Entity) is
             when K_Type_Declaration =>
                declare
                   D             : Node_Id;
@@ -2803,19 +2802,18 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
                   D := First_Entity (Declarators (Entity));
 
                   while Present (D) loop
-                     if not FEU.Is_Redefined (D, Child_Interface) and then
-                       not Already_Inherited
-                       (IDL_Name (Identifier (D)))
+                     if not FEU.Is_Redefined (D, Child_Interface)
+                          and then
+                        not Already_Inherited (IDL_Name (Identifier (D)))
                      then
-
-                        --  Adding an explaining comment
+                        --  Add explanatory comment
 
                         Explaining_Comment
                           (FEN.IDL_Name (Identifier (D)),
                            FEU.Fully_Qualified_Name
-                           (Identifier (Parent_Interface),
+                             (Identifier (Parent_Interface),
                             Separator => "."),
-                           " : inherited from ");
+                           ": inherited from ");
 
                         if Stub then
                            --  Subtype declaration
@@ -3331,7 +3329,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
       Get_Name_String (O);
       Add_Str_To_Name_Buffer ("_Arg_Name_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Identifier_Name;
 
@@ -3343,7 +3341,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Set_Str_To_Name_Buffer ("Argument_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Name;
 
@@ -3355,7 +3353,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Set_Str_To_Name_Buffer ("Arg_CC_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Content_Name;
 
@@ -3367,7 +3365,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    begin
       Set_Str_To_Name_Buffer ("Arg_Any_");
       Get_Name_String_And_Append (P);
-      Add_Str_To_Name_Buffer ("_Ü");
+      Add_Str_To_Name_Buffer (Unique_Suffix);
       return Name_Find;
    end Map_Argument_Any_Name;
 
@@ -3378,7 +3376,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Result_Subprogram_Name (O : Name_Id) return Name_Id is
    begin
       Get_Name_String (O);
-      Add_Str_To_Name_Buffer ("_Result_Ü");
+      Add_Str_To_Name_Buffer ("_Result" & Unique_Suffix);
       return Name_Find;
    end Map_Result_Subprogram_Name;
 
@@ -3389,7 +3387,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Result_Identifier_Name (O : Name_Id) return Name_Id is
    begin
       Get_Name_String (O);
-      Add_Str_To_Name_Buffer ("_Result_Name_Ü");
+      Add_Str_To_Name_Buffer ("_Result_Name" & Unique_Suffix);
       return Name_Find;
    end Map_Result_Identifier_Name;
 

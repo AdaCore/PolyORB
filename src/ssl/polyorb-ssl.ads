@@ -163,8 +163,6 @@ package PolyORB.SSL is
 
 private
 
-   pragma Linker_Options ("-lpolyorb-ssl");
-
    type Context_Record is null record;
    pragma Convention (C, Context_Record);
 

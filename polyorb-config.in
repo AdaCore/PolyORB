@@ -5,6 +5,18 @@
 
 # @configure_input@
 
+host=@host@
+target=@target@
+if [ "$host" = "$target" ]; then
+  is_cross=false
+else
+  is_cross=true
+fi
+
+# Library type (for now always static)
+
+LIBRARY_TYPE=static
+
 # Determine installation prefix
 
 case "$0" in
@@ -29,12 +41,17 @@ case "$OS" in
       exec_prefix=`cygpath -w $exec_prefix`
 esac
 
-if [ -f "${exec_prefix}"/include/polyorb/polyorb.ads ]; then
-  prefix="${exec_prefix}"
-else
-  # Fall back to configure-time prefix
-  prefix="@prefix@"
+unset tgt_subdir
+if $is_cross; then
+  tgt_subdir=/$target
 fi
+
+for candidate_prefix in "${exec_prefix}${tgt_subdir}" "@prefix@${tgt_subdir}"; do
+  prefix="${candidate_prefix}"
+  if [ -f "${candidate_prefix}"/include/polyorb/polyorb.ads ]; then
+    break
+  fi
+done
 
 have_gnatmake_aPdir=@HAVE_GNATMAKE_APDIR@
 default_appli="@APPLI_LIST@"
@@ -88,11 +105,11 @@ Options:
             Output all the flags (compiler and linker) required
             to compile your program.
         [--prefix[=DIR]]
-            Output the directory in which PolyORB architecture-independent 
-           files are installed, or set this directory to DIR.
+            Output the directory in which PolyORB architecture-independent
+            files are installed, or set this directory to DIR.
         [--exec-prefix[=DIR]]
-            Output the directory in which PolyORB architecture-dependent 
-           files are installed, or set this directory to DIR.
+            Output the directory in which PolyORB architecture-dependent
+            files are installed, or set this directory to DIR.
         [--version|-v]
             Output the version of PolyORB.
         [--config]
@@ -135,7 +152,7 @@ while test $# -gt 0; do
       fi
       ;;
     --prefix)
-      echo_prefix=true      
+      echo_prefix=true
       ;;
     --exec-prefix=*)
       exec_prefix=$optarg
@@ -144,7 +161,10 @@ while test $# -gt 0; do
       echo_exec_prefix=true
       ;;
     --version|-v)
-      echo "PolyORB @POLYORB_VERSION@" 1>&2
+      echo "PolyORB @POLYORB_VERSION@ for ${target}" 1>&2
+      if $is_cross; then
+        echo " hosted on ${host}" 1>&2
+      fi
       exit 0
       ;;
     --config)
@@ -156,7 +176,7 @@ Personalities built :
 * SSL support               : @HAVE_SSL@
 EOF
       exit 0
-      ;;  
+      ;;
     --libs)
       echo_libs=true
       ;;
@@ -183,11 +203,10 @@ EOF
   shift
 done
 
-exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
 polyorb_dir="${includedir}/polyorb"
-polyorb_lib="@LDFLAGS@ -L${libdir}/polyorb/static"
+polyorb_lib="@LDFLAGS@ -L${libdir}/polyorb/static -lpolyorb"
 corba_idl_dir="-I${includedir}/polyorb"
 
 for P in $appli; do
@@ -212,33 +231,37 @@ for P in $appli; do
    if [ "x@HAVE_SSL@" = "xyes" ]; then
      polyorb_lib="$polyorb_lib -lpolyorb-corba-security -lpolyorb-corba-security-gssup"
    fi
- fi 
+ fi
 
  if [ "x$P" = "xaws" ]
  then
    polyorb_lib="$polyorb_lib -lpolyorb-web_common"
    require_xmlada=true
- fi 
+ fi
 done
 
 for P in $proto; do
  polyorb_lib="$polyorb_lib -lpolyorb-${P}"
 
- if [ "x$P" = "xgiop" ]
- then
-   polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
+ case "$P" in
+  giop)
+   polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"
    if [ "x@HAVE_SSL@" = "xyes" ]
    then
      polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-ssliop"
      polyorb_lib="$polyorb_lib -lpolyorb-giop-iiop-security -lpolyorb-giop-iiop-security-tls"
    fi
- fi
+   ;;
 
- if [ "x$P" = "xsoap" ]
- then
+  soap)
    polyorb_lib="$polyorb_lib -lpolyorb-web_common"
    require_xmlada=true
- fi
+   ;;
+
+  dns)
+   polyorb_lib="$polyorb_lib -lpolyorb-dns-udns -lpolyorb-dns-mdns"
+   ;;
+ esac
 done
 
 if [ "x@HAVE_SSL@" = "xyes" ]
@@ -257,8 +280,15 @@ polyorb_lib="$polyorb_lib -lpolyorb-setup"
 # (specifically, System.Partition_Interface.*).
 
 if $require_xmlada; then
-  xmlada_dir="`xmlada-config --cflags`"
-  xmlada_lib="`xmlada-config --libs`"
+  case $LIBRARY_TYPE in
+    relocatable) xmlada_libtypeflag=--shared ;;
+    *)           xmlada_libtypeflag=--static ;;
+  esac
+
+  xmlada_config_cmd="xmlada-config ${xmlada_libtypeflag}"
+  xmlada_dir="`${xmlada_config_cmd} --cflags`"
+  xmlada_lib="`${xmlada_config_cmd} --libs`"
+  xmlada_mflags="`${xmlada_config_cmd}`"
 fi
 
 if test x$have_gnatmake_aPdir = xyes; then
@@ -266,7 +296,7 @@ if test x$have_gnatmake_aPdir = xyes; then
 fi
 
 if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
-   echo ${apdir} -aI${polyorb_dir} -aO${libdir}/polyorb ${xmlada_dir} -largs ${polyorb_lib} ${xmlada_lib}
+   echo ${apdir} -aI${polyorb_dir} -aO${libdir}/polyorb ${xmlada_mflags} -largs ${polyorb_lib} ${xmlada_lib}
 fi
 
 if test x"$echo_prefix" = x"true" ; then

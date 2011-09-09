@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -191,7 +191,7 @@ package body all_types.Impl is
    function echoOtherAllTypes
      (Self : access Object;
       arg  : all_types.otherAllTypes)
-     return all_types.otherAllTypes is
+     return all_types.otherAllTypes'Class is
    begin
       return arg;
    end echoOtherAllTypes;
@@ -401,6 +401,14 @@ package body all_types.Impl is
    begin
       return arg;
    end echoUnionSequence;
+
+   function echoAny
+     (Self : access Object;
+      Arg  : CORBA.Any) return CORBA.Any
+   is
+   begin
+      return Arg;
+   end echoAny;
 
    procedure set_MyColor
      (Self : access Object;

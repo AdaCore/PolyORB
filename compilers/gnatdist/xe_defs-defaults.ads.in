@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,9 +46,5 @@ package XE_Defs.Defaults is
    Default_Protocol_Data : constant String := "@DEFPROTOCOLDATA@";
    Default_Protocol_Name : constant String := "@DEFPROTOCOLNAME@";
    Default_Dist_Flags    : constant String := "@GNAT_RTS_FLAG@";
-   Default_Prefix        : constant String := "@prefix@";
    Version               : constant String := "@GNATDIST_VERSION@";
-
-   Windows_On_Host       : constant Boolean := @WINDOWS_ON_HOST@;
-
 end XE_Defs.Defaults;

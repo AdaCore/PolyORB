@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,6 +70,10 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Binding_Data,
       RU_PolyORB_Binding_Data_GIOP,
       RU_PolyORB_Binding_Data_GIOP_IIOP,
+      RU_PolyORB_Binding_Data_DNS,
+      RU_PolyORB_Binding_Data_DNS_MDNS,
+      RU_PolyORB_Protocols,
+      RU_PolyORB_Protocols_DNS,
       RU_PolyORB_Initialization,
       RU_PolyORB_ORB_Controller,
       RU_PolyORB_ORB_Controller_Workers,
@@ -77,6 +81,8 @@ package body XE_Back.PolyORB is
       RU_PolyORB_ORB_No_Tasking,
       RU_PolyORB_DSA_P,
       RU_PolyORB_DSA_P_Name_Server,
+      RU_PolyORB_DSA_P_Name_Service,
+      RU_PolyORB_DSA_P_Name_Service_mDNS,
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_DSA_P_Storages,
       RU_PolyORB_DSA_P_Storages_Config,
@@ -85,6 +91,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Setup,
       RU_PolyORB_Setup_Access_Points,
       RU_PolyORB_Setup_Access_Points_IIOP,
+      RU_PolyORB_Setup_Access_Points_MDNS,
       RU_PolyORB_Setup_Base,
       RU_PolyORB_Setup_IIOP,
       RU_PolyORB_Setup_OA,
@@ -112,17 +119,21 @@ package body XE_Back.PolyORB is
       RE_Run,
       RE_Run_In_Task,
       RE_Shutdown_World,
-      RE_The_ORB);
+      RE_The_ORB,
+      RE_Set_Default_Servant,
+      RE_Get_MDNS_Servant);
 
    RE : array (RE_Id) of Unit_Name_Type;
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
-     (RE_Check            => RU_System_Partition_Interface,
-      RE_Launch_Partition => RU_PolyORB_DSA_P_Remote_Launch,
-      RE_Run              => RU_PolyORB_ORB,
-      RE_Run_In_Task      => RU_PolyORB_Tasking_Threads,
-      RE_Shutdown_World   => RU_PolyORB_Initialization,
-      RE_The_ORB          => RU_PolyORB_Setup);
+     (RE_Check               => RU_System_Partition_Interface,
+      RE_Launch_Partition    => RU_PolyORB_DSA_P_Remote_Launch,
+      RE_Run                 => RU_PolyORB_ORB,
+      RE_Run_In_Task         => RU_PolyORB_Tasking_Threads,
+      RE_Shutdown_World      => RU_PolyORB_Initialization,
+      RE_The_ORB             => RU_PolyORB_Setup,
+      RE_Set_Default_Servant => RU_PolyORB_Protocols_DNS,
+      RE_Get_MDNS_Servant    => RU_PolyORB_DSA_P_Name_Service_mDNS);
 
    ---------------------
    -- Parameter types --
@@ -141,9 +152,11 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options,
       PE_Boot_Location,
       PE_Self_Location,
+      PE_Tasking_Available,
       PE_Termination_Initiator,
       PE_Termination_Policy,
-      PE_Partition_Name);
+      PE_Partition_Name,
+      PE_Name_Context);
 
    PE : array (PE_Id) of Unit_Name_Type;
 
@@ -152,9 +165,11 @@ package body XE_Back.PolyORB is
       PE_Rsh_Options           => PS_DSA,
       PE_Boot_Location         => PS_DSA,
       PE_Self_Location         => PS_DSA,
+      PE_Tasking_Available     => PS_DSA,
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
       PE_Partition_Name        => PS_DSA,
+      PE_Name_Context          => PS_DSA,
       PE_Start_Threads         => PS_Tasking,
       PE_Max_Spare_Threads     => PS_Tasking,
       PE_Max_Threads           => PS_Tasking,
@@ -239,8 +254,7 @@ package body XE_Back.PolyORB is
    -- Generate_Ada_Starter_Code --
    -------------------------------
 
-   procedure Generate_Ada_Starter_Code
-   is
+   procedure Generate_Ada_Starter_Code is
       Remote_Host : Name_Id;
    begin
       for J in Partitions.First + 1 .. Partitions.Last loop
@@ -313,19 +327,29 @@ package body XE_Back.PolyORB is
          Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
          Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
 
+         if Default_Name_Server = Multicast then
+            Write_With_Clause (RU (RU_PolyORB_Binding_Data_DNS_MDNS));
+         end if;
+
       else
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
 
          if Current.Tasking = User_Tasking then
-            Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
+            Write_With_Clause
+              (RU (RU_PolyORB_ORB) and
+                 ORB_Tasking_Policy_Img (Thread_Pool));
             Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
-
+            if Default_Name_Server = Multicast then
+               Write_With_Clause (RU (RU_PolyORB_Binding_Data_DNS_MDNS));
+            end if;
          else
             Write_With_Clause
               (RU (RU_PolyORB_ORB) and ORB_Tasking_Policy_Img
                (Current.ORB_Tasking_Policy));
             Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_IIOP));
-
+            if Default_Name_Server = Multicast then
+               Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_MDNS));
+            end if;
          end if;
       end if;
 
@@ -467,8 +491,8 @@ package body XE_Back.PolyORB is
       Comp_Args (3) := A_Stub_Dir;
       Comp_Args (4) := I_Current_Dir;
 
-      --  If there is no project file, then save ali and object files
-      --  in partition directory.
+      --  If there is no project file, then save ALI and object files in the
+      --  partition directory.
 
       if Project_File_Name = null then
          Comp_Args (5) := Object_Dir_Flag;
@@ -581,6 +605,11 @@ package body XE_Back.PolyORB is
 
       Set_Conf (PE_Partition_Name, Current.Name);
 
+      --  Set tasking mode
+
+      Set_Str_To_Name_Buffer (Boolean'Image (Current.Tasking /= No_Tasking));
+      Set_Conf (PE_Tasking_Available, Name_Find);
+
       --  Add the termination policy to the configuration table, if no
       --  termination policy is set, the default is Global_Termination.
 
@@ -649,7 +678,10 @@ package body XE_Back.PolyORB is
       --  Set reconnection policies for all RCIs (note: we also set this for
       --  local RCIs so that we can abort partition elaboration when a stale
       --  reference is present in the name server and the partition's policy
-      --  is Reject_On_Restart.
+      --  is Reject_On_Restart. Further note, actually we set the reconnection
+      --  parameter for all conf units (both SP and RCI), because at this point
+      --  the ALI for some RCIs might be unavailable (if we are not building
+      --  all partitions).
 
       for Rem_P in Partitions.First .. Partitions.Last loop
          declare
@@ -660,18 +692,24 @@ package body XE_Back.PolyORB is
             if Remote.Reconnection /= No_Reconnection then
                U := Remote.First_Unit;
                while U /= No_Conf_Unit_Id loop
-                  if Units.Table (Conf_Units.Table (U).My_Unit).RCI then
-                     Key := Attribute_Name (U, Reconnection);
-                     Set_Conf
-                       (Section, Key,
-                        Reconnection_Img (Remote.Reconnection),
-                        Quote => True);
-                  end if;
+                  Key := Attribute_Name (U, Reconnection);
+                  Set_Conf
+                    (Section, Key,
+                     Reconnection_Img (Remote.Reconnection),
+                     Quote => True);
                   U := Conf_Units.Table (U).Next_Unit;
                end loop;
             end if;
          end;
       end loop;
+
+      --  Set the corect Name_Context, depending on the Name_Server
+
+      if Default_Name_Server = Multicast then
+         Set_Conf (PE_Name_Context, XE_Utils.Id ("MDNS"));
+      else
+         Set_Conf (PE_Name_Context, XE_Utils.Id ("COS"));
+      end if;
 
       --  The configuration is done, start generating the code
 
@@ -825,6 +863,11 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_System_Partition_Interface));
       Write_With_Clause (RU (RU_System_DSA_Services));
 
+      if Default_Name_Server = Multicast then
+         Write_With_Clause (RU (RU_PolyORB_DSA_P_Name_Service_mDNS));
+         Write_With_Clause (RU (RU_PolyORB_Protocols_DNS));
+      end if;
+
       --  Assign RCI or SP skels on the partition
 
       Conf_Unit := Current.First_Unit;
@@ -844,6 +887,15 @@ package body XE_Back.PolyORB is
       Write_Line (" is");
       Write_Line ("begin");
       Increment_Indentation;
+
+      --  If Name_Server is Multicast, set the default mDNS servant
+
+      if Default_Name_Server = Multicast then
+         Write_Call (RU (RE_Unit_Table (RE_Set_Default_Servant)) and
+                     RE (RE_Set_Default_Servant),
+                     RU (RE_Unit_Table (RE_Get_MDNS_Servant)) and
+                     RE (RE_Get_MDNS_Servant));
+      end if;
 
       --  Check version consistency of RCI stubs
 
@@ -897,10 +949,6 @@ package body XE_Back.PolyORB is
       Secondary_PCS_Project      : Name_Id;
       Secondary_PCS_Project_File : File_Name_Type;
    begin
-      --  In the two project files below, we use ".." as the object directory,
-      --  relative to the project directory, so that all objects are stored in
-      --  the user's build directory.
-
       --  Create intermediate PCS project, extending the main PolyORB project,
       --  but removing source files that need to be rebuilt as client or server
       --  stubs, and those that are overridden by each partition.
@@ -910,7 +958,7 @@ package body XE_Back.PolyORB is
       Secondary_PCS_Project := Name_Find;
       Set_Corresponding_Project_File_Name (Secondary_PCS_Project_File);
 
-      Prj_Fname := Dir (Id (Root), Secondary_PCS_Project_File);
+      Prj_Fname := Dir (Root_Id, Secondary_PCS_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
       Write_Str  ("project ");
@@ -951,7 +999,7 @@ package body XE_Back.PolyORB is
 
       --  Create project for PCS units that need to be rebuilt per-partition
 
-      Prj_Fname := Dir (Id (Root), PCS_Project_File);
+      Prj_Fname := Dir (Root_Id, PCS_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
       Write_Str  ("with """);
@@ -1059,13 +1107,6 @@ package body XE_Back.PolyORB is
          PE (E) := Strip (PE_Id'Image (E), To_Lower => True);
       end loop;
 
-      --  Pass name server IOR from starter to all slave partitions
-
-      Add_Environment_Variable
-        (Partitions.Table (Default_Partition_Id).First_Env_Var,
-         Partitions.Table (Default_Partition_Id).Last_Env_Var,
-         Id ("POLYORB_DSA_NAME_SERVICE"));
-
       Generate_PCS_Project_Files;
       Generate_Application_Project_Files;
    end Initialize;
@@ -1109,11 +1150,30 @@ package body XE_Back.PolyORB is
 
    procedure Run_Backend (Self : access PolyORB_Backend)
    is
-      Current : Partition_Type;
-      Is_Initiator_Set : Boolean := False;
+      Current                   : Partition_Type;
+      Is_Initiator_Set          : Boolean := False;
+      Enable_Global_Termination : Boolean := False;
    begin
       Prepare_Directories;
       Generate_All_Stubs_And_Skels;
+
+      --  Scan all partitions to check global application properties
+
+      for J in Partitions.First + 1 .. Partitions.Last loop
+         Current := Partitions.Table (J);
+
+         --  Termination policy has been set for all built partitions
+
+         pragma Assert (Current.Termination /= No_Termination
+                          or else not Current.To_Build);
+
+         --  Enable a termination initiator only if at least one node has
+         --  global termination.
+
+         if Current.Termination = Global_Termination then
+            Enable_Global_Termination := True;
+         end if;
+      end loop;
 
       --  For each partition, generate the elaboration, main, executable
       --  and stamp files.
@@ -1128,12 +1188,14 @@ package body XE_Back.PolyORB is
 
          --  Set termination initiator option on first partition with non local
          --  termination. Note that this must be done outside of the To_Build
-         --  test. Otherwise, when building two partitions in separate
-         --  gnatdist runs, both may end up being set up as initiators.
+         --  test. Otherwise, when building two partitions in separate gnatdist
+         --  runs, both may end up being set up as initiators. Note that if
+         --  no partition has global termination, then no initiator is defined.
 
          if not Is_Initiator_Set
            and then Current.Tasking /= No_Tasking
            and then Current.Termination /= Local_Termination
+           and then Enable_Global_Termination
          then
             Set_Str_To_Name_Buffer ("true");
             Set_Conf (PE_Termination_Initiator, Name_Find);

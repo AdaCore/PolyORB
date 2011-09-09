@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -178,9 +178,10 @@ package body PortableInterceptor.RequestInfo.Impl is
       use Service_Context_Lists;
       use type Service_Id;
 
-      SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access
-        := QoS_GIOP_Service_Contexts_Parameter_Access
-            (Extract_Reply_Parameter (GIOP_Service_Contexts, Self.Request));
+      SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access :=
+               QoS_GIOP_Service_Contexts_Parameter_Access
+                 (Extract_Reply_Parameter
+                   (GIOP_Service_Contexts, Self.Request.all));
       Iter : Iterator;
    begin
       if SCP /= null then
@@ -263,9 +264,10 @@ package body PortableInterceptor.RequestInfo.Impl is
       use Service_Context_Lists;
       use type Service_Id;
 
-      SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access
-        := QoS_GIOP_Service_Contexts_Parameter_Access
-            (Extract_Request_Parameter (GIOP_Service_Contexts, Self.Request));
+      SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access :=
+               QoS_GIOP_Service_Contexts_Parameter_Access
+                 (Extract_Request_Parameter
+                   (GIOP_Service_Contexts, Self.Request.all));
       Iter : Iterator;
    begin
       if SCP /= null then
@@ -367,18 +369,15 @@ package body PortableInterceptor.RequestInfo.Impl is
    ----------
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : String)
-      return Boolean
+     (Self            : not null access Object;
+      Logical_Type_Id : String) return Boolean
    is
       pragma Unreferenced (Self);
    begin
       return CORBA.Is_Equivalent
-        (Logical_Type_Id,
-         PortableInterceptor.RequestInfo.Repository_Id)
+        (Logical_Type_Id, PortableInterceptor.RequestInfo.Repository_Id)
         or else CORBA.Is_Equivalent
-          (Logical_Type_Id,
-           "IDL:omg.org/CORBA/Object:1.0");
+          (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
    ----------

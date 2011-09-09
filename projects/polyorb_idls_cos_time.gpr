@@ -33,7 +33,7 @@
 
 with "polyorb_common", "polyorb_src", "polyorb_src_corba";
 
-project PolyORB_idls_cos_time is
+library project PolyORB_idls_cos_time is
 
    Dir := "idls/cos/time";
    Obj_Dir := PolyORB_Common.Build_Dir & Dir;
@@ -43,7 +43,7 @@ project PolyORB_idls_cos_time is
    for Library_Name use "polyorb-corba-cos-time";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/idls_cos_time";
-   for Library_Kind use "static";
+   for Library_Kind use PolyORB_Common.Library_Kind;
 
    package Compiler is
 

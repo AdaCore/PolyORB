@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,23 +34,23 @@
 with PolyORB.Constants;
 with PolyORB.ORB;
 with PolyORB.Parameters;
+with PolyORB.Utils.Backtrace;
 
 package body PolyORB.ORB_Controller is
 
    use PolyORB.Task_Info;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
 
    My_Factory : ORB_Controller_Factory_Access;
 
-   --------------------
-   -- Terminate_Task --
-   --------------------
+   type Tracked_Mutex is new Mutex_Type with record
+      Mutex : Mutex_Access;
+      Owner : Thread_Id := Null_Thread_Id;
+   end record;
 
-   procedure Terminate_Task
-     (O  : access ORB_Controller; TI : in out PTI.Task_Info)
-   is
-   begin
-      Set_State_Terminated (O.Summary, TI);
-   end Terminate_Task;
+   overriding procedure Enter (M : access Tracked_Mutex);
+   overriding procedure Leave (M : access Tracked_Mutex);
 
    ------------
    -- Create --
@@ -61,14 +61,75 @@ package body PolyORB.ORB_Controller is
       O := Create (My_Factory.all);
    end Create;
 
+   -----------
+   -- Enter --
+   -----------
+
+   overriding procedure Enter (M : access Tracked_Mutex) is
+      Self : constant Thread_Id := Current_Task;
+   begin
+      pragma Abort_Defer;
+      pragma Debug (C1, O1 ("Enter Tracked_Mutex: " & Image (Self)
+                            & ", current owner " & Image (M.Owner)));
+
+      if M.Owner = Self then
+         O1 ("attempt to re-enter critical section at "
+             & Utils.Backtrace.Backtrace, Warning);
+
+      else
+         M.Mutex.Enter;
+         M.Owner := Self;
+      end if;
+   end Enter;
+
+   -----------
+   -- Leave --
+   -----------
+
+   overriding procedure Leave (M : access Tracked_Mutex) is
+   begin
+      pragma Abort_Defer;
+      pragma Debug (C1, O1 ("Leave Tracked_Mutex " & Image (Current_Task)));
+      M.Owner := Null_Thread_Id;
+      M.Mutex.Leave;
+   end Leave;
+
+   --------------------
+   -- Terminate_Task --
+   --------------------
+
+   procedure Terminate_Task
+     (O : access ORB_Controller; TI : PTI.Task_Info_Access)
+   is
+   begin
+      --  If terminating an idle or blocked task, notify ourselves
+
+      case State (TI.all) is
+         when Idle =>
+            Notify_Event
+              (ORB_Controller'Class (O.all)'Access,
+               Event'(Kind => Idle_Awake, Awakened_Task => TI));
+
+         when Blocked =>
+            Notify_Event
+              (ORB_Controller'Class (O.all)'Access,
+               Event'(Kind       => End_Of_Check_Sources,
+                      On_Monitor => Selector (TI.all)));
+
+         when others =>
+            null;
+      end case;
+
+      Set_State_Terminated (O.Summary, TI.all);
+   end Terminate_Task;
+
    --------------------------------
    -- Enter_ORB_Critical_Section --
    --------------------------------
 
    procedure Enter_ORB_Critical_Section (O : access ORB_Controller) is
    begin
-      pragma Debug (C1, O1 ("Enter_ORB_Critical_Section"));
-      PTM.Enter (O.ORB_Lock);
+      O.ORB_Lock.Enter;
    end Enter_ORB_Critical_Section;
 
    ------------------
@@ -153,18 +214,19 @@ package body PolyORB.ORB_Controller is
    procedure Initialize (OC : in out ORB_Controller) is
       use PolyORB.Parameters;
 
-      Polling_Interval : constant Natural
+      Polling_Interval : constant Duration
         := Get_Conf ("orb_controller",
                      "polyorb.orb_controller.polling_interval",
-                     0);
+                     PolyORB.Constants.Forever);
 
-      Polling_Timeout : constant Natural
+      Polling_Timeout : constant Duration
         := Get_Conf ("orb_controller",
                      "polyorb.orb_controller.polling_timeout",
-                     0);
+                     PolyORB.Constants.Forever);
 
    begin
-      PTM.Create (OC.ORB_Lock);
+      OC.ORB_Lock := new Tracked_Mutex;
+      PTM.Create (Tracked_Mutex (OC.ORB_Lock.all).Mutex);
 
       for J in OC.AEM_Infos'Range loop
          PTCV.Create (OC.AEM_Infos (J).Polling_Completed);
@@ -174,17 +236,8 @@ package body PolyORB.ORB_Controller is
       OC.Job_Queue := PolyORB.Jobs.Create_Queue;
 
       for J in OC.AEM_Infos'Range loop
-         if Polling_Interval = 0 then
-            OC.AEM_Infos (J).Polling_Interval := PolyORB.Constants.Forever;
-         else
-            OC.AEM_Infos (J).Polling_Interval := Polling_Interval * 0.01;
-         end if;
-
-         if Polling_Timeout = 0 then
-            OC.AEM_Infos (J).Polling_Timeout := PolyORB.Constants.Forever;
-         else
-            OC.AEM_Infos (J).Polling_Timeout := Polling_Timeout * 0.01;
-         end if;
+         OC.AEM_Infos (J).Polling_Interval := Polling_Interval;
+         OC.AEM_Infos (J).Polling_Timeout := Polling_Timeout;
       end loop;
    end Initialize;
 
@@ -196,7 +249,6 @@ package body PolyORB.ORB_Controller is
      (O                      : access ORB_Controller;
       Expected_Running_Tasks : Natural) return Boolean
    is
-      use PolyORB.Tasking.Threads;
       Result : Boolean;
    begin
       pragma Debug
@@ -240,8 +292,7 @@ package body PolyORB.ORB_Controller is
 
    procedure Leave_ORB_Critical_Section (O : access ORB_Controller) is
    begin
-      pragma Debug (C1, O1 ("Leave_ORB_Critical_Section"));
-      PTM.Leave (O.ORB_Lock);
+      O.ORB_Lock.Leave;
    end Leave_ORB_Critical_Section;
 
    -----------------------
@@ -267,9 +318,11 @@ package body PolyORB.ORB_Controller is
            and then O.AEM_Infos (Index).TI = null;
       end Needs_Polling;
 
+   --  Start of processing for Need_Polling_Task
+
    begin
       --  To promote fairness among AEM, we retain the value of the last
-      --  last monitored AEM, and test it iff no other AEM need polling.
+      --  monitored AEM, and test it iff no other AEM need polling.
 
       --  Check whether any AEM but the last monitored needs a polling task
 
@@ -387,8 +440,6 @@ package body PolyORB.ORB_Controller is
    ------------
 
    function Status (O : ORB_Controller) return String is
-      use PolyORB.Tasking.Threads;
-
       function Counters_For_State (S : Any_Task_State) return String;
       --  Return the task counters for state S
 
@@ -411,10 +462,14 @@ package body PolyORB.ORB_Controller is
             return Count (2 .. Count'Last) & Kind_Name (1);
          end Counter_For_Kind;
 
+      --  Start of processing for Counters_For_State
+
       begin
          return State_Name (1) & ": "
            & Counter_For_Kind (Permanent) & "/" & Counter_For_Kind (Transient);
       end Counters_For_State;
+
+   --  Start of processing for Status
 
    begin
       return Counters_For_State (Any)

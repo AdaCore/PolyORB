@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -138,6 +138,8 @@ package PolyORB.Any is
        Tk_Array,
        Tk_Except,
        Tk_Fixed,
+       Tk_Value,
+       Tk_Valuebox,
       --  End aggregates
 
        Tk_String,
@@ -147,15 +149,13 @@ package PolyORB.Any is
        Tk_Longdouble,
        Tk_Widechar,
        Tk_Wstring,
-       Tk_Value,
-       Tk_Valuebox,
        Tk_Native,
        Tk_Abstract_Interface,
        Tk_Local_Interface,
        Tk_Component,
        Tk_Home,
        Tk_Event);
-   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Fixed;
+   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Valuebox;
 
    type ValueModifier is new Types.Short;
 
@@ -762,27 +762,46 @@ package PolyORB.Any is
      (X  : Ada.Strings.Wide_Superbounded.Super_String;
       TC : access function return TypeCode.Local_Ref) return Any;
 
-   function Wrap (X : access Types.Short)              return Content'Class;
-   function Wrap (X : access Types.Long)               return Content'Class;
-   function Wrap (X : access Types.Long_Long)          return Content'Class;
-   function Wrap (X : access Types.Unsigned_Short)     return Content'Class;
-   function Wrap (X : access Types.Unsigned_Long)      return Content'Class;
-   function Wrap (X : access Types.Unsigned_Long_Long) return Content'Class;
-   function Wrap (X : access Types.Float)              return Content'Class;
-   function Wrap (X : access Types.Double)             return Content'Class;
-   function Wrap (X : access Types.Long_Double)        return Content'Class;
-   function Wrap (X : access Types.Boolean)            return Content'Class;
-   function Wrap (X : access Types.Char)               return Content'Class;
-   function Wrap (X : access Types.Wchar)              return Content'Class;
-   function Wrap (X : access Types.Octet)              return Content'Class;
-   function Wrap (X : access Any)                      return Content'Class;
-   function Wrap (X : access TypeCode.Local_Ref)       return Content'Class;
-   function Wrap (X : access Types.String)             return Content'Class;
-   function Wrap (X : access Types.Wide_String)        return Content'Class;
-   function Wrap (X : access Ada.Strings.Superbounded.Super_String)
-                                                       return Content'Class;
-   function Wrap (X : access Ada.Strings.Wide_Superbounded.Super_String)
-                                                       return Content'Class;
+   function Wrap
+     (X : not null access Types.Short)              return Content'Class;
+   function Wrap
+     (X : not null access Types.Long)               return Content'Class;
+   function Wrap
+     (X : not null access Types.Long_Long)          return Content'Class;
+   function Wrap
+     (X : not null access Types.Unsigned_Short)     return Content'Class;
+   function Wrap
+     (X : not null access Types.Unsigned_Long)      return Content'Class;
+   function Wrap
+     (X : not null access Types.Unsigned_Long_Long) return Content'Class;
+   function Wrap
+     (X : not null access Types.Float)              return Content'Class;
+   function Wrap
+     (X : not null access Types.Double)             return Content'Class;
+   function Wrap
+     (X : not null access Types.Long_Double)        return Content'Class;
+   function Wrap
+     (X : not null access Types.Boolean)            return Content'Class;
+   function Wrap
+     (X : not null access Types.Char)               return Content'Class;
+   function Wrap
+     (X : not null access Types.Wchar)              return Content'Class;
+   function Wrap
+     (X : not null access Types.Octet)              return Content'Class;
+   function Wrap
+     (X : not null access Any)                      return Content'Class;
+   function Wrap
+     (X : not null access TypeCode.Local_Ref)       return Content'Class;
+   function Wrap
+     (X : not null access Types.String)             return Content'Class;
+   function Wrap
+     (X : not null access Types.Wide_String)        return Content'Class;
+   function Wrap
+     (X : not null access Ada.Strings.Superbounded.Super_String)
+                                                    return Content'Class;
+   function Wrap
+     (X : not null access Ada.Strings.Wide_Superbounded.Super_String)
+                                                    return Content'Class;
 
    function From_Any (C : Any_Container'Class) return Types.Short;
    function From_Any (C : Any_Container'Class) return Types.Long;
@@ -1069,13 +1088,14 @@ private
       procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
       --  Note: this assumes that C has the proper typecode
 
-      function Wrap (X : access T) return Content'Class;
+      function Wrap (X : not null access T) return Content'Class;
 
       function Unchecked_Get_V
         (X : not null access T_Content) return System.Address;
       pragma Inline (Unchecked_Get_V);
 
-      function Unchecked_Get_V (X : not null access T_Content) return T_Ptr;
+      function Unchecked_Get_V
+        (X : not null access T_Content) return T_Ptr;
       pragma Inline (Unchecked_Get_V);
       --  Unchecked access to the wrapped value
 

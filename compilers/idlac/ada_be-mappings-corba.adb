@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,7 +76,8 @@ package body Ada_Be.Mappings.CORBA is
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Exception         =>
+           K_Exception         |
+           K_Boxed_ValueType   =>
             null;
 
          when K_Scoped_Name =>

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -195,8 +195,8 @@ private
 
    type Pending_Request is record
       Req            : Requests.Request_Access;
-      Locate_Req_Id  : Types.Unsigned_Long;
-      Request_Id     : Types.Unsigned_Long;
+      Locate_Req_Id  : Types.Unsigned_Long := 0;
+      Request_Id     : Types.Unsigned_Long := 0;
       Target_Profile : Binding_Data.Profile_Access;
       --  XXX This attribute should be removed, and Get_Reference_Info on
       --  Req.Target should be used instead when it is necessary to access the
@@ -207,9 +207,8 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
 
-   package Pend_Req_Tables is
-      new PolyORB.Utils.Dynamic_Tables
-     (Pending_Request_Access, Natural, 1, 10, 10);
+   package Pend_Req_Tables is new
+     PolyORB.Utils.Dynamic_Tables (Pending_Request_Access, Natural, 1, 10, 10);
 
    --------------------
    -- GIOP send mode --
@@ -236,8 +235,8 @@ private
    --  Version-specific information associated with a GIOP message
 
    type GIOP_Message_Context is abstract tagged record
-      Message_Endianness : PolyORB.Buffers.Endianness_Type
-        := PolyORB.Buffers.Host_Order;
+      Message_Endianness : PolyORB.Buffers.Endianness_Type :=
+                             PolyORB.Buffers.Host_Order;
       Message_Type : Msg_Type;
       Message_Size : Types.Unsigned_Long;
       Request_Id   : aliased Types.Unsigned_Long;
@@ -330,7 +329,7 @@ private
    --  Implementations may override this operation to provide outgoing messages
    --  fragmentation.
 
-   procedure Process_Abort_Request
+   procedure Send_Cancel_Request
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
       R      : Request_Access)
@@ -473,10 +472,13 @@ private
       --  Req_Index.
 
       Pending_Reqs : Pend_Req_Tables.Instance;
-      --  List of pendings request
+      --  List of pendings requests. Note: when Bidirectional_GIOP is
+      --  implemented, this component will need to be split into a client-side
+      --  and a server-side list.
+      --  Investigate usage of an Ordered_Map container???
 
       Req_Index    : Types.Unsigned_Long := 1;
-      --  Counter to have new Request Index
+      --  Request Id for next request
    end record;
    type GIOP_Session_Access is access all GIOP_Session;
 
@@ -491,17 +493,17 @@ private
          Character'Pos ('O'),
          Character'Pos ('P'));
 
-   --  Header size of GIOP_packet (non version specific header)
    GIOP_Header_Size : constant Stream_Element_Offset := 12;
+   --  Header size of GIOP_packet (non version specific header)
 
-   --  Size of the fixed GIOP_packet header (version specific header)
    GIOP_Fixed_Part_Size : constant Stream_Element_Offset := 6;
+   --  Size of the fixed GIOP_packet header (version specific header)
 
    Request_Id_Size : constant := 4;
 
-   --  Location of flags in GIOP packet
    Flags_Index       : constant Stream_Element_Offset := 7;
    Bit_Little_Endian : constant Octet_Flags.Bit_Count := 0;
+   --  Location of flags in GIOP packet
 
    ---------------------------
    -- Global GIOP Functions --
@@ -519,8 +521,7 @@ private
       Buffer : access PolyORB.Buffers.Buffer_Type);
    --  XXX description required
 
-   procedure Expect_GIOP_Header
-     (Sess : access GIOP_Session);
+   procedure Expect_GIOP_Header (Sess : access GIOP_Session);
    --  Prepare S to receive next GIOP message.
    --  This must be called once when a session is established (in
    --  Handle_Connect_Indication for a server session, in
@@ -540,9 +541,13 @@ private
    --  uses such a note to associate the Request with its
    --  Request_Id.
 
-   procedure Cancel_Pending_Request
-     (Sess : access GIOP_Session);
-   --  Cancel all requests that are pending on Sess
+   procedure Queue_Request
+     (Sess   : access GIOP_Session;
+      Req    : Request_Access;
+      Req_Id : Types.Unsigned_Long);
+   --  Queue Req for further processing by ORB (usually for service by a local
+   --  servant). Req is added to the (server-side) pending requests list
+   --  associated with Sess.
 
    --------------------------------
    -- Pending Request management --
@@ -563,27 +568,28 @@ private
 
    procedure Get_Pending_Request
      (Sess    : access GIOP_Session;
-      Id      :        Types.Unsigned_Long;
-      Req     :    out Pending_Request;
-      Success :    out Boolean;
-      Remove  :        Boolean := True);
-   --  Retrieve a pending request of Sess by its request id, and
-   --  remove it from the list of pending requests if Remove is set to
-   --  true. This procedure ensures proper mutual exclusion.
+      Id      : Types.Unsigned_Long;
+      Req     : out Pending_Request;
+      Success : out Boolean);
+   --  Retrieve a pending request of Sess by its request id, and remove it from
+   --  the list of pending requests. The caller is reponsible for ensuring
+   --  that this procedure is called under mutual exclusion.
 
    procedure Get_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
-      Id      :        Types.Unsigned_Long;
-      Req     :    out Pending_Request_Access;
-      Success :    out Boolean);
-   --  Retrieve a pending request of Sess by its locate request id.
-   --  The request is left on Sess' pending requests list. This
-   --  procedure ensures proper mutual exclusion.
+      L_Id    : Types.Unsigned_Long;
+      Req     : out Pending_Request_Access;
+      Success : out Boolean;
+      Remove  : Boolean);
+   --  Retrieve a pending request of Sess by its locate request id, and remove
+   --  it from the list of pending requests if Remove is set True. In this
+   --  case, Req is set to null on return. This procedure ensures proper mutual
+   --  exclusion.
 
    procedure Remove_Pending_Request
      (Sess    : access GIOP_Session;
       Id      : Types.Unsigned_Long;
-      Success :    out Boolean);
+      Success : out Boolean);
    --  Remove pending request by its request id from the list of pending
    --  requests on Sess. This procedure ensures proper mutual exclusion.
 

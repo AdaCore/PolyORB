@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -2751,21 +2751,17 @@ package body DynamicAny.DynAny.Impl is
    ----------
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : Standard.String)
-      return Boolean
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean
    is
       pragma Unreferenced (Self);
-
    begin
       return
         CORBA.Is_Equivalent
-        (Logical_Type_Id,
-         DynamicAny.DynAny.Repository_Id)
-        or else
-          CORBA.Is_Equivalent
-          (Logical_Type_Id,
-           "IDL:omg.org/CORBA/Object:1.0");
+          (Logical_Type_Id, DynamicAny.DynAny.Repository_Id)
+          or else
+        CORBA.Is_Equivalent
+          (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
    ---------------------------
@@ -2780,8 +2776,7 @@ package body DynamicAny.DynAny.Impl is
            | Tk_Sequence
            | Tk_Array
            | Tk_Except
-           | Tk_Value
-         =>
+           | Tk_Value =>
             return True;
 
          when others =>

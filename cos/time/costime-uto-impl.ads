@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,7 @@ package CosTime.UTO.Impl is
 
    function absolute_time
      (Self : access Object)
-     return Ref;
+     return Ref'Class;
 
    function compare_time
      (Self : access Object;

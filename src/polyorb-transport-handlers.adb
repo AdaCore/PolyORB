@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Event handlers associated with all transport access points and
---  transport endpoints.
+--  Event handlers associated with all transport access points and endpoints
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Components;
@@ -48,14 +47,13 @@ package body PolyORB.Transport.Handlers is
       use PolyORB.Components;
       use PolyORB.ORB;
 
-      Reply : constant Message'Class :=
+      Reply : Message'Class :=
                 Emit
                   (Component_Access (H.TE),
                    Filters.Iface.Data_Indication'(Data_Amount => 0));
       --  The size of the data received is not known yet
 
    begin
-
       if Reply in Filters.Iface.Filter_Error then
 
          --  Notify the tasking policy that an endpoint is being destroyed.
@@ -91,6 +89,10 @@ package body PolyORB.Transport.Handlers is
                                 = H.TE.Binding_Object);
                Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
             end if;
+
+            --  Clear error once it has been propagated through the stack
+
+            Errors.Catch (Filters.Iface.Filter_Error (Reply).Error);
 
             --  The complete binding object will be finalised when this block
             --  is exited, provided it is not referenced anymore.

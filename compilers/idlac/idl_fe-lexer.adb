@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -937,8 +937,8 @@ package body Idl_Fe.Lexer is
    begin
       Set_Mark;
       if not Is_Escaped
-        and Get_Current_Char = 'L'
-        and View_Next_Char = ''' then
+        and then Get_Current_Char = 'L'
+        and then View_Next_Char = ''' then
          Skip_Char;
          Set_End_Mark;
          case Scan_Char (True) is
@@ -950,8 +950,8 @@ package body Idl_Fe.Lexer is
                raise Idlac_Errors.Internal_Error;
          end case;
       elsif not Is_Escaped
-        and Get_Current_Char = 'L'
-        and View_Next_Char = Quotation then
+        and then Get_Current_Char = 'L'
+        and then View_Next_Char = Quotation then
          Skip_Char;
          Set_End_Mark;
          case Scan_String (True) is
@@ -1021,7 +1021,7 @@ package body Idl_Fe.Lexer is
             Skip_Char;
          end loop;
       end if;
-      if Get_Current_Char /= '.' and View_Next_Char = '.' then
+      if Get_Current_Char /= '.' and then View_Next_Char = '.' then
          Skip_Char;
       end if;
       if Get_Current_Char = '.' then

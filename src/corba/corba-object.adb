@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -98,7 +98,7 @@ package body CORBA.Object is
    -------------------
 
    function Get_Interface (Self : Ref) return CORBA.Object.Ref'Class is
-      Request          : PolyORB.Requests.Request_Access;
+      Request          : aliased PolyORB.Requests.Request;
       Arg_List         : PolyORB.Any.NVList.Ref;
       Result           : PolyORB.Any.NamedValue;
 
@@ -120,20 +120,17 @@ package body CORBA.Object is
                  Argument  => CORBA.Internals.Get_Empty_Any (TC_Object),
                  Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
          Operation => RPC_Interface_Op_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-        (Request, PolyORB.Requests.Flags (0));
+        (Request'Access, PolyORB.Requests.Flags (0));
 
       PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-
       return CORBA.Object.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Interface;
 
@@ -145,7 +142,7 @@ package body CORBA.Object is
      (Self            : Ref;
       Logical_Type_Id : Standard.String) return CORBA.Boolean
    is
-      Request          : PolyORB.Requests.Request_Access;
+      Request          : aliased PolyORB.Requests.Request;
       Arg_List         : PolyORB.Any.NVList.Ref;
       Result           : PolyORB.Any.NamedValue;
 
@@ -165,20 +162,17 @@ package body CORBA.Object is
          Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Boolean),
          Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
          Operation => RPC_Is_A_Op_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-        (Request, PolyORB.Requests.Flags (0));
+        (Request'Access, PolyORB.Requests.Flags (0));
 
       PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-
       return PolyORB.Any.From_Any (Result.Argument);
    end RPC_Is_A;
 
@@ -187,7 +181,7 @@ package body CORBA.Object is
    ----------------------
 
    function RPC_Non_Existent (Self : Ref) return CORBA.Boolean is
-      Request          : PolyORB.Requests.Request_Access;
+      Request          : aliased PolyORB.Requests.Request;
       Arg_List         : PolyORB.Any.NVList.Ref;
       Result           : PolyORB.Any.NamedValue;
 
@@ -204,26 +198,22 @@ package body CORBA.Object is
          Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Boolean),
          Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => CORBA.Object.Internals.To_PolyORB_Ref (Self),
          Operation => RPC_Non_Existent_Op_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       --  Special case: for a non-existent object, return True instead of
       --  raising OBJECT_NOT_EXIST.
 
       begin
          PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-           (Request, PolyORB.Requests.Flags (0));
+           (Request'Access, PolyORB.Requests.Flags (0));
 
          PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-         PolyORB.Requests.Destroy_Request (Request);
-
          return PolyORB.Any.From_Any (Result.Argument);
-
       exception
          when CORBA.Object_Not_Exist =>
             return True;

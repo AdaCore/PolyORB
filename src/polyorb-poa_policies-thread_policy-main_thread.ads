@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -31,9 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of the 'Main thread' POA Policy.
 
 with PolyORB.Components;
+with PolyORB.Requests;
 
 package PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
@@ -58,10 +61,9 @@ private
 
    type Main_Thread_Executor is new Servants.Executor with null record;
 
-   function Handle_Request_Execution
+   overriding function Execute_In_Context
      (Self      : access Main_Thread_Executor;
-      Msg       :        PolyORB.Components.Message'Class;
-      Requestor :        PolyORB.Components.Component_Access)
-     return PolyORB.Components.Message'Class;
+      Req       : Requests.Request_Access;
+      Requestor : Components.Component_Access) return Boolean;
 
 end PolyORB.POA_Policies.Thread_Policy.Main_Thread;

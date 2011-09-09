@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -676,7 +676,7 @@ package body Idl_Fe.Types is
 
    begin
       if T.Max < T.Last_Val then
-         if T.Length = 0 and T.Max = Min - 1 then
+         if T.Length = 0 and then T.Max = Min - 1 then
             T.Max := Min + Initial - 1;
             T.Length :=  T.Max - Min + 1;
          else

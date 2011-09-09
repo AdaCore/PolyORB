@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -108,7 +108,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_Close_Connection
      (P   : access Thread_Pool_Policy;
-      TE  :        Transport_Endpoint_Access)
+      TE  : Transport_Endpoint_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -125,8 +125,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_New_Server_Connection
      (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
-      AC  :        Active_Connection)
+      ORB : ORB_Access;
+      AC  : Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -231,14 +231,11 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Idle
      (P         : access Thread_Pool_Policy;
-      This_Task : in out PolyORB.Task_Info.Task_Info;
+      This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access)
    is
       pragma Unreferenced (P);
-
-      package PTI  renames PolyORB.Task_Info;
       package PTCV renames PolyORB.Tasking.Condition_Variables;
-
    begin
       --  We are currently in the ORB critical section
 
@@ -250,7 +247,7 @@ package body PolyORB.ORB.Thread_Pool is
 
       if This_Task.Kind = Permanent
            and then
-         May_Exit (This_Task)
+         May_Exit (This_Task.all)
            and then
          Get_Tasks_Count
            (ORB.ORB_Controller.all, Kind => Permanent, State => Idle)
@@ -261,9 +258,9 @@ package body PolyORB.ORB.Thread_Pool is
       end if;
 
       pragma Debug (C, O ("Thread "
-                       & Image (PTI.Id (This_Task)) & " going idle"));
+                       & Image (PTI.Id (This_Task.all)) & " going idle"));
 
-      PTCV.Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
+      PTCV.Wait (PTI.Condition (This_Task.all), PTI.Mutex (This_Task.all));
 
       --  This task is about to leave Idle state: check whether new spares
       --  need to be created.
@@ -271,7 +268,7 @@ package body PolyORB.ORB.Thread_Pool is
       Check_Spares (ORB);
 
       pragma Debug
-        (C, O ("Thread " & Image (PTI.Id (This_Task)) & " leaving idle"));
+        (C, O ("Thread " & Image (PTI.Id (This_Task.all)) & " leaving idle"));
    end Idle;
 
    -------------------------

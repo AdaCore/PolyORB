@@ -171,16 +171,19 @@ begin
 
    V := 2 * K + 1;
    loop
+      K_To_V := Float (V) / Float (K);
+      Initialize (Seed, K_To_V, Optim);
+
       begin
-         K_To_V := Float (V) / Float (K);
-         Initialize (Seed, K_To_V, Optim);
          Compute (Position.all);
          exit;
-      exception when others =>
-         if Optim = CPU_Time then
-            raise;
-         end if;
-         V := V + 1;
+      exception
+         when Too_Many_Tries =>
+            if Optim = CPU_Time then
+               raise;
+            end if;
+
+            V := V + 1;
       end;
    end loop;
 

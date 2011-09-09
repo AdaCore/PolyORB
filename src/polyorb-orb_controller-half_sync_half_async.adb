@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -223,7 +223,13 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
             --  Unblock blocked tasks
 
             for J in O.AEM_Infos'Range loop
-               if O.AEM_Infos (J).TI /= null then
+
+               --  Note: if polling is temporarily disabled, then the polling
+               --  tasks may be Idle and have a null Selector.
+
+               if O.AEM_Infos (J).TI /= null
+                 and then State (O.AEM_Infos (J).TI.all) = Blocked
+               then
                   PTI.Request_Abort_Polling (O.AEM_Infos (J).TI.all);
                   PolyORB.Asynch_Ev.Abort_Check_Sources
                     (Selector (O.AEM_Infos (J).TI.all).all);
@@ -398,7 +404,9 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                pragma Debug (C2, O2 (Status (O.all)));
 
             else
-               --  Go idle
+               --  Go idle. Note that monitoring tasks that go idle are managed
+               --  directly by the ORB controller rather than by the idle tasks
+               --  manager.
 
                O.Monitoring_Tasks (AEM_Index).Idle := True;
 
@@ -408,7 +416,8 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                Set_State_Idle
                  (O.Summary,
                   TI.all,
-                  O.Monitoring_Tasks (AEM_Index).CV, O.ORB_Lock);
+                  O.Monitoring_Tasks (AEM_Index).CV,
+                  O.ORB_Lock);
             end if;
 
          else

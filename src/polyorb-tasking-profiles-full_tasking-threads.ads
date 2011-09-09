@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -123,8 +123,8 @@ private
       --  The environment task
    end record;
 
-   The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access
-     := new Full_Tasking_Thread_Factory_Type;
+   The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access :=
+                          new Full_Tasking_Thread_Factory_Type;
 
    type Set_Priority_Hook is access procedure
      (TF : access Full_Tasking_Thread_Factory_Type;

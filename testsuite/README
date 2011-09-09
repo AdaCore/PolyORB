@@ -1,8 +1,6 @@
 README for the PolyORB testsuite
 --------------------------------
 
-$Id: //droopi/main/testsuite/README#2 $
-
 This file details the organization of PolyORB's test suite.
 
 * Directory structure
@@ -41,12 +39,40 @@ for more details.
 
 * Run the test suite
 
+Note: GNATPython is required to run the testsuite. To install it, run:
+svn checkout svn://scm.forge.open-do.org/scmrepos/svn/gnatpython/trunk gnatpython
+export PYTHONPATH=/path/to/gnatpython
+
 $ make run_tests
 
-This will launch the test suite. Output is in $build_dir/output.
+or
 
-$build_dir/output/error provides information on any internal error,
-$build_dir/output/failed lists failed tests,
-$build_dir/output/log provides various information,
-$build_dir/output/<scenario_name>/<test> is a trace of the test.
+$ ./testsuite -j N --diff
 
+All results are stored in the 'out' directory by default and log in the 'log'
+directory.
+
+To run only the corba tests:
+
+./testsuite.py -j N --diff corba
+
+To run the all_exceptions corba tests
+
+./testsuite.py -j N --diff corba/all_exceptions/
+
+And to run a specific test CORBA_ALL_EXCEPTIONS_0
+
+./testsuite.py -j N --diff corba/all_exceptions/CORBA_ALL_EXCEPTIONS_0
+
+A report is created in out/report.
+
+See ./testsuite.py -h for more help
+
+4/ Discriminants
+
+The following discriminants are available:
+
+  1- for each app perso there is corresponding app_<name>
+  2- for each protocol perso there is a corresponding proto_<name>
+  3- for each services available there is a corresponding serv_<name>
+  4- if SSL is supported, the discriminant 'ssl_support' is set

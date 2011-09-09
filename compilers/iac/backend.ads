@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,10 +36,11 @@ with Types; use Types;
 package Backend is
 
    procedure Set_Current_Language (Language : String);
-   --  Reset the current language.
+   --  Set the current language.
 
    function Current_Language return String;
-   --  Return language previously set. Null string when uninitialized.
+   --  Return language previously set. Must not be called until after
+   --  Backend.Config.Initialize.
 
    type Generate_Procedure is access procedure (IDL_Spec : Node_Id);
    procedure Generate (IDL_Spec : Node_Id);
@@ -47,14 +48,13 @@ package Backend is
 
    type Usage_Procedure is access procedure (Indent : Natural);
 
-   procedure Register
+   procedure Register_Language
      (Generate  : Generate_Procedure;
       Usage     : Usage_Procedure;
       Language  : String;
       Comments  : String);
    --  Register a new language with its code generation procedure, its
    --  name and a comment associated to it (for usage output).
-   --  The current language is set to this last language.
 
    function Is_Valid_Language (L : String) return Boolean;
    --  Return True when there is a backend corresponding to L

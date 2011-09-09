@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,6 +61,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
    use PolyORB.ORB;
    use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils;
    use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
 
@@ -99,17 +100,31 @@ package body PolyORB.Setup.Access_Points.IIOP is
    begin
       if Get_Conf ("access_points", "iiop", True) then
          declare
-            Port_Hint : constant Port_Interval := To_Port_Interval
+            --  default_addr is <host>[:<port-interval>]
+
+            Primary_Addr_Str : constant String :=
+                                 Get_Conf
+                                      ("iiop",
+                                       "polyorb.protocols.iiop.default_addr",
+                                       Image (No_Inet_Addr));
+            Primary_Addr_Sep : constant Natural :=
+                                 Find (Primary_Addr_Str,
+                                       Start => Primary_Addr_Str'First,
+                                       What  => ':');
+
+            --  default_port is <port-interval>
+            --  If present, it overrides any <port-interval> from default_addr
+
+            Port_Hint : Port_Interval := To_Port_Interval
                           (Get_Conf
                            ("iiop",
                             "polyorb.protocols.iiop.default_port",
                             (Integer (Any_Port), Integer (Any_Port))));
 
-            Primary_Addr : constant Inet_Addr_Type
-              := Inet_Addr (String'(Get_Conf
-                                    ("iiop",
-                                     "polyorb.protocols.iiop.default_addr",
-                                     Image (No_Inet_Addr))));
+            Primary_Addr : constant Inet_Addr_Type :=
+                             Inet_Addr (Primary_Addr_Str
+                                          (Primary_Addr_Str'First ..
+                                           Primary_Addr_Sep - 1));
 
             Alternate_Listen_Addresses : constant String
               := Get_Conf ("iiop",
@@ -117,6 +132,15 @@ package body PolyORB.Setup.Access_Points.IIOP is
                            "");
 
          begin
+            if Port_Hint = (Any_Port, Any_Port)
+                 and then Primary_Addr_Sep < Primary_Addr_Str'Last
+            then
+               Port_Hint :=
+                 To_Port_Interval
+                   (To_Interval (Primary_Addr_Str (Primary_Addr_Sep + 1
+                                                .. Primary_Addr_Str'Last)));
+            end if;
+
             Initialize_Socket
               (Primary_IIOP_Access_Point, Primary_Addr, Port_Hint);
 
@@ -215,10 +239,10 @@ package body PolyORB.Setup.Access_Points.IIOP is
                               Alternate_IIOP_Access_Point.SAP);
 
                            Register_Access_Point
-                             (ORB    => The_ORB,
-                              TAP    => Alternate_IIOP_Access_Point.SAP,
-                              Chain  => IIOP_Factories'Access,
-                              PF     => null);
+                             (ORB   => The_ORB,
+                              TAP   => Alternate_IIOP_Access_Point.SAP,
+                              Chain => IIOP_Factories'Access,
+                              PF    => null);
                         end if;
                      end;
 

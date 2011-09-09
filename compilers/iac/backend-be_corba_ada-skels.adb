@@ -37,6 +37,7 @@ with Namet;     use Namet;
 with Values;    use Values;
 
 with Flags;     use Flags;
+with Output;
 
 with Frontend.Nodes; use Frontend.Nodes;
 with Frontend.Nutils;
@@ -47,6 +48,7 @@ with Backend.BE_CORBA_Ada.Nutils;     use Backend.BE_CORBA_Ada.Nutils;
 with Backend.BE_CORBA_Ada.Runtime;    use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Common;     use Backend.BE_CORBA_Ada.Common;
 
+with GNAT.OS_Lib;
 with GNAT.Perfect_Hash_Generators;
 
 package body Backend.BE_CORBA_Ada.Skels is
@@ -96,11 +98,11 @@ package body Backend.BE_CORBA_Ada.Skels is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         --  No Skel package is generated for an abstract or a local
-         --  interface.
+         --  No Skel package is generated for an abstract or local interface
 
-         if FEN.Is_Abstract_Interface (E) or else
-           FEN.Is_Local_Interface (E)
+         if FEN.Is_Abstract_Interface (E)
+              or else
+            FEN.Is_Local_Interface (E)
          then
             return;
          end if;
@@ -109,8 +111,15 @@ package body Backend.BE_CORBA_Ada.Skels is
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Skeleton_Spec;
 
-         N := Make_Pragma (Pragma_Elaborate_Body);
-         Append_To (Visible_Part (Current_Package), N);
+         --  Generate declaration of Deferred_Initialization so that a package
+         --  body is required. We do not use a pragma Elaborate_Body here
+         --  because we need to support having one in the Impl (in the case
+         --  of an interface with no operations).
+
+         Append_To (Visible_Part (Current_Package),
+           Make_Subprogram_Specification
+             (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
+              No_List));
 
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
@@ -169,23 +178,48 @@ package body Backend.BE_CORBA_Ada.Skels is
 
       Invoke_Then_Statements  : List_Id := No_List;
       Invoke_Elsif_Statements : List_Id := No_List;
+      Invoke_Methods          : List_Id := No_List;
       Package_Initialization  : List_Id := No_List;
       Choice_List             : List_Id := No_List;
       Dependency_List         : List_Id := No_List;
       Has_Operations          : Boolean := False;
       Buffer_Necessary        : Boolean := False;
 
+      function Gen_Invoke_Method
+        (Operation_Name : Name_Id;
+         Declarations   : List_Id;
+         Statements     : List_Id) return Node_Id;
+      --  Generates and returns a call to the Invoke_<Operation_Name>
+      --  procedure. As a side effect, generates the spec and body of that
+      --  procedure, and appends them to Invoke_Methods. There is one such
+      --  procedure for each method, and they are called from the case
+      --  statement in the Dispatch procedure below.
+
+      function Gen_Dispatch
+        (Case_Statement : Node_Id) return Node_Id;
+      --  Generates and returns a call to the Dispatch procedure. As a side
+      --  effect, generates the spec and body of that procedure, and appends
+      --  them to Invoke_Methods. The Dispatch procedure contains a case
+      --  statement that calls the appropriate Invoke_<Operation_Name>.
+
       function Deferred_Initialization_Body (E : Node_Id) return Node_Id;
       --  Generate the body of the deferred initialization procedure
 
       function Gen_Invoke_Part (E : Node_Id) return Node_Id;
-      --  Generate the statements related to the operation `E' in the
-      --  Invoke procedure.
+      --  Generate an 'elsif' or 'when ...' containing the statements related
+      --  to the operation `E' in the Invoke procedure.
 
       function Invoke_Body
         (E              : Node_Id;
          Is_A_Invk_Part : Node_Id)
         return Node_Id;
+      --  Generate the body of procedure Invoke. This body contains one nested
+      --  procedure Invoke_<Operation_Name> for each method, plus a procedure
+      --  Dispatch, which contains a case statement calling all the procedures
+      --  Invoke_<Operation_Name>. Invoke calls Dispatch and catches
+      --  exceptions. One reason for separating out the nested procedures is to
+      --  make the generated code compile in a reasonable amount of time/memory
+      --  in sjlj mode. Also, it seems a bit more readable.
 
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
@@ -206,7 +240,6 @@ package body Backend.BE_CORBA_Ada.Skels is
       N_Subprograms           : Unsigned_Long_Long;
       Register_Procedure_List : List_Id;
       Invoke_Subp_Bodies      : List_Id;
-      Optim                   : PHG.Optimization;
 
       function Hash_Package_Name (E : Node_Id) return Name_Id;
       --  This function generates the name of the package that will
@@ -231,6 +264,11 @@ package body Backend.BE_CORBA_Ada.Skels is
       function Register_Procedure_Body (E : Node_Id) return Node_Id;
       --  Generation of the Register_Procedure subprogram which is
       --  called to register a procedure in the hash table.
+
+      procedure Put_To_Stdout;
+      --  Read the perfect-hash files in the current directory, and send them
+      --  to standard output. Used for the -p switch (see
+      --  Achieve_Hash_Function_Optimization below).
 
       ----------------------------------
       -- Deferred_Initialization_Body --
@@ -277,6 +315,59 @@ package body Backend.BE_CORBA_Ada.Skels is
          return N;
       end Deferred_Initialization_Body;
 
+      -----------------------
+      -- Gen_Dispatch --
+      -----------------------
+
+      function Gen_Dispatch
+        (Case_Statement : Node_Id) return Node_Id is
+
+         Dispatch : constant Node_Id :=
+           Make_Defining_Identifier (SN (S_Dispatch));
+
+         N : Node_Id;
+      begin
+         N := Make_Subprogram_Specification (Dispatch, No_List);
+         Append_To (Invoke_Methods, N);
+         N := Make_Subprogram_Body
+           (Specification =>
+              Make_Subprogram_Specification (Dispatch, No_List),
+            Declarations  => No_List,
+            Statements    => New_List (Case_Statement));
+         Append_To (Invoke_Methods, N);
+
+         N := Make_Subprogram_Call (Dispatch, No_List);
+         return N;
+      end Gen_Dispatch;
+
+      -----------------------
+      -- Gen_Invoke_Method --
+      -----------------------
+
+      function Gen_Invoke_Method
+        (Operation_Name : Name_Id;
+         Declarations   : List_Id;
+         Statements     : List_Id) return Node_Id is
+
+         Invoke_Method : constant Node_Id :=
+           Make_Defining_Identifier
+             (Add_Prefix_To_Name ("Invoke_", Operation_Name));
+
+         N : Node_Id;
+      begin
+         N := Make_Subprogram_Specification (Invoke_Method, No_List);
+         Append_To (Invoke_Methods, N);
+         N := Make_Subprogram_Body
+           (Specification =>
+              Make_Subprogram_Specification (Invoke_Method, No_List),
+            Declarations  => Declarations,
+            Statements    => Statements);
+         Append_To (Invoke_Methods, N);
+
+         N := Make_Subprogram_Call (Invoke_Method, No_List);
+         return N;
+      end Gen_Invoke_Method;
+
       ---------------------
       -- Gen_Invoke_Part --
       ---------------------
@@ -284,22 +375,22 @@ package body Backend.BE_CORBA_Ada.Skels is
       function Gen_Invoke_Part (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Operation_Declaration);
 
-         C                    : Node_Id;
-         N                    : Node_Id;
-         M                    : Node_Id;
-         Param                : Node_Id;
-         Param_Name           : Name_Id;
-         Type_Node            : Node_Id;
-         New_Name             : Name_Id;
-         Params               : List_Id;
-         Impl_Id              : Node_Id;
-         Operation_Name       : Name_Id := FEN.IDL_Name (Identifier (E));
-         Arg_Name             : Name_Id;
-         Discret_Choice_Value : Value_Id;
-         Record_Node          : Node_Id;
-         Declarative_Part     : constant List_Id := New_List;
-         Statements           : constant List_Id := New_List;
-         Inv_Profile          : constant List_Id := New_List;
+         C                     : Node_Id;
+         N                     : Node_Id;
+         M                     : Node_Id;
+         Param                 : Node_Id;
+         Param_Name            : Name_Id;
+         Type_Node             : Node_Id;
+         New_Name              : Name_Id;
+         Params                : List_Id;
+         Impl_Id               : Node_Id;
+         Operation_Name        : Name_Id := FEN.IDL_Name (Identifier (E));
+         Arg_Name              : Name_Id;
+         Discrete_Choice_Value : Value_Id;
+         Record_Node           : Node_Id;
+         Declarative_Part      : constant List_Id := New_List;
+         Statements            : constant List_Id := New_List;
+         Inv_Profile           : constant List_Id := New_List;
 
          --  The flags below indicate whether the operation is mapped
          --  to an Ada function or an Ada procedure.
@@ -393,15 +484,19 @@ package body Backend.BE_CORBA_Ada.Skels is
             return Result;
          end Exception_Handler_Alternative;
 
+      --  Start of processing for Gen_Invoke_Part
+
       begin
          --  The first argument in the implementation call is an
          --  access to the object implementation. We create here this
          --  access and append it to the actual profile of the
-         --  implementtation call.
+         --  implementation call.
 
          N := Implementation_Package (Current_Entity);
-         N := First_Node (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
+         N := Make_Selected_Component
+                (Prefix        => N,
+                 Selector_Name => Make_Identifier (TN (T_Object)));
          N := Make_Attribute_Reference (N, A_Class);
          C := Make_Explicit_Dereference (Make_Identifier (PN (P_Self)));
          N := Make_Type_Conversion (N, C);
@@ -806,7 +901,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             Append_To (Statements, N);
          end if;
 
-         --  The bloc above implements the generation of:
+         --  The block above implements the generation of:
 
          --  * The call of the corresponding method implemented by the
          --  programmer.
@@ -827,7 +922,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          begin
 
             --  Looking whether the operation throws exceptions and
-            --  setting Inner_statement to the corresponding value.
+            --  setting Inner_Statements to the corresponding value.
 
             if not FEU.Is_Empty (Exceptions (E)) then
                Inner_Statements  := New_List;
@@ -906,10 +1001,9 @@ package body Backend.BE_CORBA_Ada.Skels is
                C := Defining_Identifier (Impl_Node (BE_Node (Identifier (E))));
             end if;
 
-            --  Re-adjusting the parent unit name of the
-            --  operation. This is necessary in the case of operations
-            --  or attributes inherited from the second until the last
-            --  parent (multiple inheritance)
+            --  Re-adjusting the parent unit name of the operation. This is
+            --  necessary in the case of operations or attributes inherited
+            --  from the second until the last parent (multiple inheritance).
 
             Impl_Id := Make_Selected_Component
               (Defining_Identifier
@@ -1173,9 +1267,11 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Operation_Name := Map_Operation_Name_Literal (E);
 
-         --  If no optimization is requested by the user, we generate
-         --  an elsif statement. Else, we generate an case statement
-         --  alternative
+         --  If no optimization is requested by the user, we generate an elsif
+         --  statement. Otherwise, we generate a case statement alternative.
+
+         N := Gen_Invoke_Method
+           (Operation_Name, Declarative_Part, Statements);
 
          if not Use_Minimal_Hash_Function then
             C := Make_Expression
@@ -1185,9 +1281,6 @@ package body Backend.BE_CORBA_Ada.Skels is
                (New_String_Value
                 (Operation_Name, False)));
 
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
             N := Make_Elsif_Statement
               (C, New_List (N));
          else
@@ -1197,17 +1290,13 @@ package body Backend.BE_CORBA_Ada.Skels is
             Insert_And_Register_Statements (Operation_Name);
 
             --  Prepare the case alternative
-            --  * Discret Choice : value of N_Subprogram minus 1
+            --  * Discrete Choice : value of N_Subprogram minus 1
 
-            Discret_Choice_Value := New_Integer_Value
+            Discrete_Choice_Value := New_Integer_Value
               (N_Subprograms - 1, 1, 10);
 
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
-
             N := Make_Case_Statement_Alternative
-              (New_List (Make_Literal (Discret_Choice_Value)),
+              (New_List (Make_Literal (Discrete_Choice_Value)),
                New_List (N));
          end if;
 
@@ -1314,6 +1403,7 @@ package body Backend.BE_CORBA_Ada.Skels is
             N := Make_Case_Statement
               (Make_Identifier (VN (V_Index)),
                Invoke_Subp_Bodies);
+            N := Gen_Dispatch (N);
             Append_To (Invoke_Then_Statements, N);
          end if;
 
@@ -1338,8 +1428,10 @@ package body Backend.BE_CORBA_Ada.Skels is
               New_List (Exception_Handler));
          Append_To (Invoke_Statements, N);
 
-         --  Generation of the Invoke Procedure
+         --  Generation of the Invoke Procedure. Note that Append_To is
+         --  appending the entire Invoke_Methods list onto D.
 
+         Append_To (D, First_Node (Invoke_Methods));
          N := Make_Subprogram_Body (Spec, D, Invoke_Statements);
 
          return N;
@@ -1487,14 +1579,16 @@ package body Backend.BE_CORBA_Ada.Skels is
       ----------------------
 
       function Is_A_Invoke_Part return Node_Id is
-         N                    : Node_Id;
-         Declarative_Part     : constant List_Id
+         N                     : Node_Id;
+         Declarative_Part      : constant List_Id
            := New_List;
-         Statements           : constant List_Id
+         Statements            : constant List_Id
            := New_List;
-         Discret_Choice_Value : Value_Id;
+         Discrete_Choice_Value : Value_Id;
 
          Profile : List_Id;
+
+         Operation_Name : Name_Id;
       begin
          --  Declarative part
 
@@ -1588,33 +1682,31 @@ package body Backend.BE_CORBA_Ada.Skels is
          Append_To (Statements, N);
 
          --  If no optimization is requested by the user, we generate
-         --  an elsif statement. Else, we generate a case alternative
-         --  statement
+         --  an elsif??? statement. Else, we generate a case alternative
+         --  statement.
+
+         Set_Str_To_Name_Buffer ("_is_a");
+         Operation_Name := Name_Find;
+
+         N := Gen_Invoke_Method
+           (Operation_Name, Declarative_Part, Statements);
 
          if not Use_Minimal_Hash_Function then
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
+            null;  --  ???No elsif here.
          else
             --  Insert the subprogram name into the hash function
             --  generator and add a call to Register_Procedure
 
-            Set_Str_To_Name_Buffer ("_is_a");
-            Insert_And_Register_Statements
-              (Name_Find);
+            Insert_And_Register_Statements (Operation_Name);
 
-            --  Prepare the case alternative * Discret Choice : value
+            --  Prepare the case alternative * Discrete Choice : value
             --  of N_Subprogram minus 1
 
-            Discret_Choice_Value := New_Integer_Value
+            Discrete_Choice_Value := New_Integer_Value
               (N_Subprograms - 1, 1, 10);
 
-            N := Make_Block_Statement
-              (Declarative_Part => Declarative_Part,
-               Statements       => Statements);
-
             N := Make_Case_Statement_Alternative
-              (New_List (Make_Literal (Discret_Choice_Value)),
+              (New_List (Make_Literal (Discrete_Choice_Value)),
                New_List (N));
          end if;
 
@@ -1652,13 +1744,20 @@ package body Backend.BE_CORBA_Ada.Skels is
             Method_Name_1 : String;
             Method_Name_2 : String := "")
          is
-            N              : Node_Id;
-            Discret_Choice : Node_Id;
-            Op_Name        : Name_Id;
-            C              : Node_Id;
+            N                    : Node_Id;
+            Discrete_Choice      : Node_Id;
+            Op_Name_1, Op_Name_2 : Name_Id;
+            C                    : Node_Id;
          begin
-            N := Make_Block_Statement (Declarative_Part => Declarations,
-                                       Statements       => Statements);
+            Set_Str_To_Name_Buffer (Method_Name_1);
+            Op_Name_1 := Name_Find;
+            if Method_Name_2 /= "" then
+               Set_Str_To_Name_Buffer (Method_Name_2);
+               Op_Name_2 := Name_Find;
+            end if;
+
+            N := Gen_Invoke_Method
+              (Op_Name_1, Declarations, Statements);
 
             --  If no optimization is requested by the user, we
             --  generate an elsif statement. Else, we generate a case
@@ -1666,24 +1765,19 @@ package body Backend.BE_CORBA_Ada.Skels is
 
             if not Use_Minimal_Hash_Function then
 
-               Set_Str_To_Name_Buffer (Method_Name_1);
-               Op_Name := Name_Find;
-
                C := Make_Expression
                  (Make_Defining_Identifier (VN (V_Operation)),
                   Op_Equal,
-                  Make_Literal (New_String_Value (Op_Name, False)));
+                  Make_Literal (New_String_Value (Op_Name_1, False)));
 
-               if Method_Name_2'Length /= 0 then
+               if Method_Name_2 /= "" then
                   declare
                      C_2 : Node_Id;
                   begin
-                     Set_Str_To_Name_Buffer (Method_Name_1);
-                     Op_Name := Name_Find;
                      C_2 := Make_Expression
                        (Make_Defining_Identifier (VN (V_Operation)),
                         Op_Equal,
-                        Make_Literal (New_String_Value (Op_Name, False)));
+                        Make_Literal (New_String_Value (Op_Name_2, False)));
                      C := Make_Expression (C, Op_Or_Else, C_2);
                   end;
                end if;
@@ -1694,33 +1788,31 @@ package body Backend.BE_CORBA_Ada.Skels is
                --  Insert the subprogram name into the hash function
                --  generator and add a call to Register_Procedure
 
-               Set_Str_To_Name_Buffer (Method_Name_1);
-               Insert_And_Register_Statements (Name_Find);
+               Insert_And_Register_Statements (Op_Name_1);
 
                --  Prepare the case alternative
 
-               --  * Discret Choice : value of N_Subprogram minus 1
+               --  * Discrete Choice : value of N_Subprogram minus 1
 
-               Discret_Choice := Make_Literal
+               Discrete_Choice := Make_Literal
                  (New_Integer_Value (N_Subprograms - 1, 1, 10));
 
-               if Method_Name_2'Length /= 0 then
+               if Method_Name_2 /= "" then
                   declare
                      DC_2 : Node_Id;
                   begin
-                     Set_Str_To_Name_Buffer (Method_Name_2);
-                     Insert_And_Register_Statements (Name_Find);
+                     Insert_And_Register_Statements (Op_Name_2);
 
                      DC_2 := Make_Literal
                        (New_Integer_Value (N_Subprograms - 1, 1, 10));
 
-                     Discret_Choice := Make_Expression
-                       (Discret_Choice, Op_Vertical_Bar, DC_2);
+                     Discrete_Choice := Make_Expression
+                       (Discrete_Choice, Op_Vertical_Bar, DC_2);
                   end;
                end if;
 
                N := Make_Case_Statement_Alternative
-                 (New_List (Discret_Choice),
+                 (New_List (Discrete_Choice),
                   New_List (N));
             end if;
 
@@ -1729,6 +1821,9 @@ package body Backend.BE_CORBA_Ada.Skels is
          end Add_Implicit_CORBA_Method;
 
          N       : Node_Id;
+
+         --  Start of processing for Implicit_CORBA_Methods
+
       begin
          --  For each implicit CORBA Method, add a similar block
          --  statement
@@ -1848,6 +1943,53 @@ package body Backend.BE_CORBA_Ada.Skels is
          return Result_List;
       end Implicit_CORBA_Methods;
 
+      -------------------
+      -- Put_To_Stdout --
+      -------------------
+
+      procedure Put_To_Stdout is
+         use Ada.Directories;
+
+         procedure Do_One_File (Dir_Entry : Directory_Entry_Type);
+         --  Read the file, and send it to standard output. Called once for
+         --  each file in the current directory.
+
+         procedure Do_One_File (Dir_Entry : Directory_Entry_Type) is
+            use GNAT.OS_Lib;
+
+            F_Name : aliased constant String :=
+                       Simple_Name (Dir_Entry) & ASCII.NUL;
+            FD : constant File_Descriptor :=
+                   Open_Read (F_Name'Address, Binary);
+         begin
+            Output.Copy_To_Standard_Output (FD);
+         end Do_One_File;
+
+         Just_Ordinary : constant Filter_Type :=
+                           (Ordinary_File            => True,
+                            Directory | Special_File => False);
+         --  Filter out everything but ordinary files. The RM does not specify
+         --  whether "." and ".." are included in the search, so it seems best
+         --  to explicitly skip them.
+
+      begin
+         --  There are two files, called <something>.ads and <something>.adb.
+         --  We wish to avoid depending on the exact names. The RM does not
+         --  define the order of Search. We wish to print the spec first, then
+         --  the body. Each of the following Searches will iterate just once.
+
+         Search
+           (Current_Directory,
+            Pattern => "*.ads",
+            Filter  => Just_Ordinary,
+            Process => Do_One_File'Access);
+         Search
+           (Current_Directory,
+            Pattern => "*.adb",
+            Filter  => Just_Ordinary,
+            Process => Do_One_File'Access);
+      end Put_To_Stdout;
+
       -----------------------
       -- Servant_Is_A_Body --
       -----------------------
@@ -1857,9 +1999,10 @@ package body Backend.BE_CORBA_Ada.Skels is
          N          : Node_Id;
       begin
          N := Implementation_Package (Current_Entity);
-         N := First_Node
-           (Visible_Part (Package_Specification (N)));
          N := Expand_Designator (N);
+         N := Make_Selected_Component
+                (Prefix        => N,
+                 Selector_Name => Make_Identifier (TN (T_Object)));
          N := Make_Attribute_Reference (N, A_Class);
          N := Make_Expression
            (Make_Explicit_Dereference (Make_Defining_Identifier (PN (P_Obj))),
@@ -2014,7 +2157,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Subprogram_Call
            (RE (RE_Set_Exception_Information),
             New_List
-            (Make_Identifier (PN (P_Request)),
+            (Make_Explicit_Dereference (Make_Identifier (PN (P_Request))),
              Make_Identifier (PN (P_E))));
          Append_To (S, N);
 
@@ -2055,21 +2198,6 @@ package body Backend.BE_CORBA_Ada.Skels is
 
       procedure Initialize_Hash_Function_Optimization is
       begin
-         --  Checking whether the user chose to optimize memory space
-         --  or CPU Time
-
-         if Optimize_CPU and then not Optimize_Memory then
-            Optim := PHG.CPU_Time;
-         elsif Optimize_Memory and then not Optimize_CPU then
-            Optim := PHG.Memory_Space;
-         else
-            declare Msg : constant String := "Cannot optimize CPU time"
-              & " and memory space at the same time";
-            begin
-               raise Program_Error with Msg;
-            end;
-         end if;
-
          --  Initialize the lists and the number of subprograms
 
          N_Subprograms           := 0;
@@ -2086,6 +2214,8 @@ package body Backend.BE_CORBA_Ada.Skels is
          V     : Natural;
          Seed  : constant Natural := 4321; --  Needed by the hash algorithm
          K_2_V : Float;                    --  The ratio of the algorithm
+
+         use Ada.Directories;
       begin
          --  We add a "with" clause to be able to use the "Hash"
          --  function
@@ -2135,36 +2265,31 @@ package body Backend.BE_CORBA_Ada.Skels is
                Expression    => Make_Null_Statement))));
          Append_To (Statements (Current_Package), N);
 
-         --  Insert the spec and the body of the Register_Procedure
-         --  procedure
+         --  Insert the spec and the body of the Register_Procedure procedure
 
          N := Register_Procedure_Spec;
          Append_To (Statements (Current_Package), N);
          N := Register_Procedure_Body (E);
          Append_To (Statements (Current_Package), N);
 
-         --  Compute the hash function generator, we use all positions
-         --  In the case of CPU time optimization, the algorithm
-         --  should succeed from the first iteration. For the Memory
-         --  space optimization the algorithm may fail, so we
-         --  increment the number of the graph vertexes until it
-         --  succeeds. We are sure that for V >= 257, the algorithm
+         --  Compute the hash function generator, we use all positions. In the
+         --  case of CPU time optimization, the algorithm should succeed from
+         --  the first iteration. For the Memory space optimization, it may
+         --  initially fail, in which case we increase the graph vertex count
+         --  until it succeeds. We are sure that for V >= 257, the algorithm
          --  will succeed.
 
          V := 2 * Natural (N_Subprograms) + 1;
          loop
             K_2_V := Float (V) / Float (N_Subprograms);
-            PHG.Initialize
-              (Seed   => Seed,
-               K_To_V => K_2_V,
-               Optim  => Optim);
+            PHG.Initialize (Seed, K_2_V, Optimization_Mode);
 
             begin
                PHG.Compute;
                exit;
             exception
-               when others =>
-                  if Optim = PHG.CPU_Time then
+               when PHG.Too_Many_Tries =>
+                  if Optimization_Mode = PHG.CPU_Time then
                      raise;
                   end if;
 
@@ -2176,6 +2301,40 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          --  Produce the package containing the Hash function; if the user
          --  specified an output directory, ensure the package is output there.
+         --  If the user specified -p (Use_Stdout), we ignore the
+         --  user-specified output directory (if any), and use a temporary
+         --  directory.
+
+         --  Note that Produce puts the output in files. It has a Use_Stdout
+         --  parameter, but we want to avoid using that, because it only exists
+         --  on recent versions of GNAT, which we don't want to depend on. So
+         --  instead, we use the temporary directory, then read the files and
+         --  send the data to standard output.  In order to avoid depending on
+         --  the file names chosen by Produce, we use wildcards. In the future,
+         --  we should eliminate this kludge, by using the Use_Stdout parameter
+         --  of Produce.
+
+         if Use_Stdout then
+            declare
+               use GNAT.OS_Lib;
+
+               Fd : File_Descriptor;
+               Fn : Temp_File_Name;
+
+               Dummy : Boolean;
+               pragma Unreferenced (Dummy);
+            begin
+               Create_Temp_File (Fd, Fn);
+               Close (Fd);
+
+               --  Strip trailing NUL from Fn
+
+               Output_Directory := new String'(Fn (Fn'First .. Fn'Last - 1));
+
+               Delete_File (Output_Directory.all, Success => Dummy);
+               Create_Directory (Output_Directory.all);
+            end;
+         end if;
 
          if Output_Directory = null then
             PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
@@ -2184,15 +2343,38 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  sources in the current directory).
 
             declare
-               use Ada.Directories;
                Save_Current_Directory : constant String := Current_Directory;
+
+               procedure Cleanup;
+               --  Put back the current directory, and (if -p) delete the
+               --  temporary directory.
+
+               -------------
+               -- Cleanup --
+               -------------
+
+               procedure Cleanup is
+               begin
+                  Set_Directory (Save_Current_Directory);
+
+                  if Use_Stdout then
+                     Delete_Tree (Output_Directory.all);
+                  end if;
+               end Cleanup;
+
             begin
                Set_Directory (Output_Directory.all);
                PHG.Produce (Pkg_Name => Name_Buffer (1 .. Name_Len));
-               Set_Directory (Save_Current_Directory);
+
+               if Use_Stdout then
+                  Put_To_Stdout;
+               end if;
+
+               Cleanup;
+
             exception
                when others =>
-                  Set_Directory (Save_Current_Directory);
+                  Cleanup;
                   raise;
             end;
          end if;
@@ -2406,28 +2588,32 @@ package body Backend.BE_CORBA_Ada.Skels is
                return True;
 
             else
-               return Imported (Scope_Entity (Identifier (Ent)));
+               return In_Imported (Scope_Entity (Identifier (Ent)));
             end if;
          end In_Imported;
 
       --  Start of processing for Visit_Interface_Declaration
 
       begin
-         --  No Skel package is generated for an abstract or a local
-         --  interface.
+         --  No Skel package is generated for an abstract or local interface
 
          if FEN.Is_Abstract_Interface (E)
-           or else FEN.Is_Local_Interface (E)
+              or else
+            FEN.Is_Local_Interface (E)
          then
             return;
          end if;
 
          N := BEN.Parent (Type_Def_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
-
          Set_Skeleton_Body;
 
+         Add_With_Package
+           (Expand_Designator (Implementation_Package (Current_Entity),
+            Add_With_Clause => False));
+
          Invoke_Then_Statements := New_List;
+         Invoke_Methods         := New_List;
          Package_Initialization := New_List;
          Dependency_List        := New_List;
          Has_Operations         := False;
@@ -2460,13 +2646,6 @@ package body Backend.BE_CORBA_Ada.Skels is
             Visit_Operation_Subp => Visit_Operation_Declaration'Access,
             Skel                 => True);
 
-         --  Start with an empty method list for hash table computation
-         --  (Finalize cleans out any previously inserted words).
-
-         if Use_Minimal_Hash_Function then
-            PHG.Finalize;
-         end if;
-
          --  We make a difference between the Is_A Method and the rest of
          --  implicit CORBA methods for two reasons:
          --  * Is_A is not implicit since it is declared in the stub.
@@ -2476,11 +2655,10 @@ package body Backend.BE_CORBA_Ada.Skels is
 
          Is_A_Invk_Part := Is_A_Invoke_Part;
 
-         --  Here, we assign the list of the the implicit CORBA
-         --  methods It's important to do this before the finalization
-         --  of the hash function generator (in case of optimisation)
-         --  so that all the hash keys could be inserted before the
-         --  computation phase of the algorithm.
+         --  Here, we assign the list of the implicit CORBA methods. It's
+         --  important to do this before the finalization of the hash function
+         --  generator (in case of optimisation) so that all the hash keys
+         --  can be inserted before the computation phase of the algorithm.
 
          Implicit_CORBA := Implicit_CORBA_Methods;
 
@@ -2488,8 +2666,12 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  achieve the perfect hash function generation and the building of
          --  the conditional structure which handles the request.
 
-         if Use_Minimal_Hash_Function and then not In_Imported (E) then
-            Achieve_Hash_Function_Optimization (E);
+         if Use_Minimal_Hash_Function then
+            if not In_Imported (E) then
+               Achieve_Hash_Function_Optimization (E);
+            end if;
+
+            PHG.Finalize;
          end if;
 
          --  Here, we append the implicit CORBA methods either to the
@@ -2620,4 +2802,5 @@ package body Backend.BE_CORBA_Ada.Skels is
       end Visit_Specification;
 
    end Package_Body;
+
 end Backend.BE_CORBA_Ada.Skels;

@@ -24,8 +24,7 @@ default: all
 #
 # testsuite -- builds the examples and testsuite
 #
-# run_tests -- runs the testsuite (presumes polyorb and test_driver are already
-# built)
+# run_tests -- runs the testsuite (presumes polyorb built)
 #
 # all-and-test -- builds everything needed, then runs the testsuite
 #
@@ -60,15 +59,20 @@ MAKEFLAGS := --no-builtin-rules \
 top_srcdir	:= @abs_top_srcdir@
 top_builddir	:= @abs_top_builddir@
 
-MOVEIFCHANGE	:= ${top_builddir}/support/move-if-change
-RM		:= @RM@
-XARGS_I		:= @XARGS_I@
-INSTALL		:= @INSTALL@
-LN_S		:= @LN_S@
-SHELL           := @SHELL@
+install_sh		:= @install_sh@
+MOVEIFCHANGE		:= ${top_builddir}/support/move-if-change
+RM			:= @RM@
+XARGS_I			:= @XARGS_I@
+INSTALL			:= @INSTALL@
+INSTALL_SCRIPT		:= @INSTALL_SCRIPT@
+INSTALL_PROGRAM		:= @INSTALL_PROGRAM@
+INSTALL_STRIP_PROGRAM	:= @INSTALL_STRIP_PROGRAM@
+INSTALL_BIN		:= @INSTALL_BIN@
+LN_S			:= @LN_S@
+SHELL			:= @SHELL@
 
-TOOL_EXE_SUFFIX		:= @TOOL_EXE_SUFFIX@
-COMPILER_EXE_SUFFIX	:= @COMPILER_EXE_SUFFIX@
+HOST_EXE_SUFFIX		:= @HOST_EXE_SUFFIX@
+TARGET_EXE_SUFFIX	:= @TARGET_EXE_SUFFIX@
 CC_FOR_TARGET		:= @CC_FOR_TARGET@
 GNATCHOP		:= @GNATCHOP@
 GNATMAKE		:= @GNATMAKE@
@@ -87,8 +91,14 @@ EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
 
-BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS}
+ifneq ($(filter -%args,$(EXTRA_GNATMAKE_FLAGS)),)
+MARGS:=-margs
+endif
+
+BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs -L${top_builddir}/lib ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS} ${MARGS}
 # Gnatmake flags for units built from project files
+# Note: if EXTRA_GNATMAKE_FLAGS contains a -%args argument, we add -margs at
+# the end because further builder flags may need to be passed.
 
 COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCH@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
 # Gnatmake flags for compilation tools mains, built without project files
@@ -98,7 +108,8 @@ CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
 ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
 GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
-HAVE_SSL	:= @HAVE_SSL@
+HAVE_ADA_DYNAMIC_PRIORITIES := @HAVE_ADA_DYNAMIC_PRIORITIES@
+HAVE_SSL := @HAVE_SSL@
 
 include ${top_builddir}/Makefile.common.project
 
@@ -205,6 +216,10 @@ build-iac: ${IAC_NODES_SOURCES}
 .PHONY: build-po_gnatdist
 
 build-po_gnatdist: \
+  PRJ_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files \
+                        -I${top_builddir}/compilers/common_files
+
+build-po_gnatdist: \
   compiler_dir := gnatdist
 
 ################################################
@@ -227,10 +242,12 @@ build-po_gnatdist \
 	mkdir -p compilers/${compiler_dir} && \
 	  cd compilers/${compiler_dir} && \
 	  ${GNATMAKE} -m \
-	   $* \
+	   $*.adb \
 	   ${COMP_TOOLS_GNATMAKE_FLAGS} \
 	   -I${top_srcdir}/compilers/${compiler_dir} \
-	   ${PRJ_GNATMAKE_FLAGS}
+	   ${PRJ_GNATMAKE_FLAGS} -bargs -E
+# Binder switch -E causes traceback information to be included in
+# Exception_Occurrences.
 
 # The following variables are used for invoking idlac. There is a static
 # pattern rule for each; see "Rules for running idlac", below. Each file
@@ -309,7 +326,7 @@ GEN_CODESET = src/giop/gen_codeset
 
 build-gen_codeset:
 	mkdir -p src/giop && cd src/giop && \
-	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS}
+	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS} -bargs -E
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
 	cd src/giop && ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
@@ -489,6 +506,12 @@ libpolyorb-dsa.a: PRJ_GNATMAKE_FLAGS := -a
 # Some components of the DSA application personality are child units of
 # System: use -a to allow them to be compiled.
 
+.PHONY: libpolyorb-dns.a
+libpolyorb-dns.a: polyorb_src_dns.gpr
+.PHONY: libpolyorb-dns-udns.a
+libpolyorb-dns-udns.a: polyorb_src_dns_udns.gpr
+.PHONY: libpolyorb-dns-mdns.a
+libpolyorb-dns-mdns.a: polyorb_src_dns_mdns.gpr
 .PHONY: libpolyorb-giop.a
 libpolyorb-giop.a: polyorb_src_giop.gpr
 .PHONY: libpolyorb-giop-diop.a
@@ -588,7 +611,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 ##########################
 # examples and testsuite #
@@ -643,7 +666,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
+	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
@@ -681,6 +704,11 @@ ifneq "${filter aws, ${APPLI_LIST}}" "aws"
   active_tests := ${filter-out examples/aws/%,${active_tests}}
 endif
 
+ifneq "${HAVE_ADA_DYNAMIC_PRIORITIES}" "true"
+  active_tests := ${filter-out examples/corba/rtcorba/%,${active_tests}}
+  active_tests := ${filter-out testsuite/corba/rtcorba/%,${active_tests}}
+endif
+
 #???The following are disabled for now, because of minor build problems:
 skip_tests := examples/bbs \
               examples/dsa \
@@ -701,7 +729,7 @@ print_active_tests:
 	@echo "Tests to build: ${patsubst %/build-test,%,${active_tests}}"
 
 .PHONY: testsuite
-testsuite: print_active_tests ${active_tests} build-test_driver
+testsuite: print_active_tests ${active_tests}
 
 # Create the 'examples' target as a subset of 'testsuite' -- just the ones
 # under the 'examples' subdirectory:
@@ -711,14 +739,9 @@ active_examples := ${filter examples/%,${active_tests}}
 .PHONY: examples
 examples: ${active_examples}
 
-.PHONY: build-test_driver
-build-test_driver: 
-	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P polyorb_testsuite_utils.gpr ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET}
-
 .PHONY: run_tests
 run_tests:
-	cd testsuite && ./utils/test_driver -full ${top_srcdir}/testsuite/scenarios -output file -config ${top_srcdir}/testsuite -verbose
+	cd testsuite && ./testsuite.py --diffs --testsuite-src-dir=${top_srcdir}/testsuite
 
 # 'all' depends on either build-iac or build-idlac; we might as well build
 # both, here. We run_tests via recursive make, rather than having all-and-test
@@ -804,41 +827,51 @@ docs:
 
 # Installation
 
+host=@host@
+target=@target@
 prefix=@prefix@
+
+ifeq (${target}, ${host})
+  target_prefix=${prefix}
+  host_exe_dir=${prefix}/bin
+  host_cmdprefix=
+  target_exe_dir=${prefix}/bin
+
+else
+  target_prefix=${prefix}/${target}
+  host_exe_dir=${prefix}/bin
+  host_cmdprefix=${target}-
+  target_exe_dir=${target_prefix}/bin
+endif
 
 .PHONY: install
 install: all
-	@echo "Install prefix: ${prefix}"
 	@echo "   Sources dir: ${top_srcdir}"
 	@echo "     Build dir: ${top_builddir}"
-	${INSTALL} -d ${prefix}/bin
-	${RM} -fr "${prefix}/lib/gnat/polyorb"
-	${INSTALL} -d ${prefix}/lib/gnat/polyorb
-	${INSTALL} -d ${prefix}/lib/polyorb
-	${INSTALL} -d ${prefix}/lib/polyorb/static
-	${RM} -fr "${prefix}/include/polyorb"
-	${INSTALL} -d ${prefix}/include/polyorb
+	@echo "Install prefix: ${prefix}"
+	@echo "          Host: ${host}"
+	@echo "        Target: ${target}"
+	${INSTALL} -d ${prefix}/bin ${target_prefix}/bin
+	${RM} -fr "${target_prefix}/lib/gnat/polyorb"
+	${INSTALL} -d ${target_prefix}/lib/gnat/polyorb
+	${INSTALL} -d ${target_prefix}/lib/polyorb
+	${INSTALL} -d ${target_prefix}/lib/polyorb/static
+	${RM} -fr "${target_prefix}/include/polyorb"
+	${INSTALL} -d ${target_prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
-	  ${INSTALL} ${top_builddir}/compilers/$${comp}${COMPILER_EXE_SUFFIX} ${prefix}/bin; \
-	  : Special case, symlink iac as idlac for backwards compatibility; \
-	  if [ `basename $${comp}` = iac ]; then \
-	    cd ${prefix}/bin && ${RM} -f idlac${TOOL_EXE_SUFFIX} && ${LN_S} iac${TOOL_EXE_SUFFIX} idlac${TOOL_EXE_SUFFIX}; \
-          fi; \
+	  ${INSTALL_BIN} ${top_builddir}/compilers/$${comp}${HOST_EXE_SUFFIX} ${host_exe_dir}/${host_cmdprefix}`basename $${comp}`${HOST_EXE_SUFFIX}; \
 	done
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/po_cos_naming_shell${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_cos_naming/ir_ab_names${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_ir/po_ir${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_catref/po_catref${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_createref/po_createref${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_names/po_names${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/tools/po_dumpir/po_dumpir${TOOL_EXE_SUFFIX} ${prefix}/bin
-	${INSTALL} ${top_builddir}/polyorb-config ${prefix}/bin
-	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb/static
-	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
-	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat
-	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat/polyorb
-	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/gnat/polyorb
+	${INSTALL_SCRIPT} ${top_builddir}/polyorb-config ${host_exe_dir}/${host_cmdprefix}polyorb-config
+	for tool in po_cos_naming/po_cos_naming po_cos_naming/po_cos_naming_shell po_cos_naming/ir_ab_names po_ir/po_ir po_catref/po_catref po_createref/po_createref po_names/po_names po_dumpir/po_dumpir; do \
+	  ${INSTALL_BIN} ${top_builddir}/tools/$$tool${TARGET_EXE_SUFFIX} ${target_exe_dir}/`basename $$tool`${TARGET_EXE_SUFFIX}; \
+	done
+	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/polyorb/static
+	ls ${top_builddir}/lib/*.so | ${XARGS_I} ${INSTALL} -m 555 {} ${target_prefix}/lib
+	ls ${top_builddir}/lib/*.dll | ${XARGS_I} ${INSTALL} -m 555 {} ${target_prefix}/lib
+	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat
+	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat
+	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat/polyorb
+	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat/polyorb
 	(find \
 	  ${top_builddir}/src \
 	  ${top_builddir}/cos \
@@ -847,18 +880,22 @@ install: all
 	  ${top_srcdir}/cos \
 	  ${top_srcdir}/idls \
 	  -name '*.ads' -o -name '*.adb' -o -name '*.idl') | \
-	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/include/polyorb
+	${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/include/polyorb
 	(find \
 	  ${top_builddir}/ali \
 	  -name '*.ali' \
 	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
 	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
-	${XARGS_I} ${INSTALL} -m 444 {} ${prefix}/lib/polyorb
-	# Install documentation only if it has been built:
+	${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/polyorb
+	# Install documentation only if it has been built locally, or
+	# pre-built and packaged with sources.
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
 	  (cd docs && ${MAKE} install-data-local prefix="${prefix}"); \
+	elif [ -r $(top_srcdir)/docs/polyorb_ug.html ]; \
+	then \
+	  (cd docs && ${MAKE} install-data-local prefix="${prefix}" doc_build_dir="$(top_srcdir)/docs/"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
@@ -2000,12 +2037,6 @@ idlac_output_files := \
     idls/cos/time/timebase.ads \
     idls/cos/time/timebase-helper.adb \
     idls/cos/time/timebase-helper.ads \
-    cos/naming/file.adb \
-    cos/naming/file.ads \
-    cos/naming/file-helper.adb \
-    cos/naming/file-helper.ads \
-    cos/naming/file-skel.adb \
-    cos/naming/file-skel.ads \
     cos/ir/corba-repository_root-abstractinterfacedef.adb \
     cos/ir/corba-repository_root-abstractinterfacedef.ads \
     cos/ir/corba-repository_root-abstractinterfacedef-helper.adb \
@@ -2207,6 +2238,72 @@ idlac_output_files := \
     cos/ir/corba-repository_root-wstringdef-helper.ads \
     cos/ir/corba-repository_root-wstringdef-skel.adb \
     cos/ir/corba-repository_root-wstringdef-skel.ads \
+    cos/ir/corba_repository_root_abstractinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_abstractinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_aliasdef_hash.adb \
+    cos/ir/corba_repository_root_aliasdef_hash.ads \
+    cos/ir/corba_repository_root_arraydef_hash.adb \
+    cos/ir/corba_repository_root_arraydef_hash.ads \
+    cos/ir/corba_repository_root_attributedef_hash.adb \
+    cos/ir/corba_repository_root_attributedef_hash.ads \
+    cos/ir/corba_repository_root_constantdef_hash.adb \
+    cos/ir/corba_repository_root_constantdef_hash.ads \
+    cos/ir/corba_repository_root_contained_hash.adb \
+    cos/ir/corba_repository_root_contained_hash.ads \
+    cos/ir/corba_repository_root_container_hash.adb \
+    cos/ir/corba_repository_root_container_hash.ads \
+    cos/ir/corba_repository_root_enumdef_hash.adb \
+    cos/ir/corba_repository_root_enumdef_hash.ads \
+    cos/ir/corba_repository_root_exceptiondef_hash.adb \
+    cos/ir/corba_repository_root_exceptiondef_hash.ads \
+    cos/ir/corba_repository_root_extabstractinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_extabstractinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_extattributedef_hash.adb \
+    cos/ir/corba_repository_root_extattributedef_hash.ads \
+    cos/ir/corba_repository_root_extinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_extinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_extlocalinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_extlocalinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_fixeddef_hash.adb \
+    cos/ir/corba_repository_root_fixeddef_hash.ads \
+    cos/ir/corba_repository_root_idltype_hash.adb \
+    cos/ir/corba_repository_root_idltype_hash.ads \
+    cos/ir/corba_repository_root_interfaceattrextension_hash.adb \
+    cos/ir/corba_repository_root_interfaceattrextension_hash.ads \
+    cos/ir/corba_repository_root_interfacedef_hash.adb \
+    cos/ir/corba_repository_root_interfacedef_hash.ads \
+    cos/ir/corba_repository_root_irobject_hash.adb \
+    cos/ir/corba_repository_root_irobject_hash.ads \
+    cos/ir/corba_repository_root_localinterfacedef_hash.adb \
+    cos/ir/corba_repository_root_localinterfacedef_hash.ads \
+    cos/ir/corba_repository_root_moduledef_hash.adb \
+    cos/ir/corba_repository_root_moduledef_hash.ads \
+    cos/ir/corba_repository_root_nativedef_hash.adb \
+    cos/ir/corba_repository_root_nativedef_hash.ads \
+    cos/ir/corba_repository_root_operationdef_hash.adb \
+    cos/ir/corba_repository_root_operationdef_hash.ads \
+    cos/ir/corba_repository_root_primitivedef_hash.adb \
+    cos/ir/corba_repository_root_primitivedef_hash.ads \
+    cos/ir/corba_repository_root_repository_hash.adb \
+    cos/ir/corba_repository_root_repository_hash.ads \
+    cos/ir/corba_repository_root_sequencedef_hash.adb \
+    cos/ir/corba_repository_root_sequencedef_hash.ads \
+    cos/ir/corba_repository_root_stringdef_hash.adb \
+    cos/ir/corba_repository_root_stringdef_hash.ads \
+    cos/ir/corba_repository_root_structdef_hash.adb \
+    cos/ir/corba_repository_root_structdef_hash.ads \
+    cos/ir/corba_repository_root_typedefdef_hash.adb \
+    cos/ir/corba_repository_root_typedefdef_hash.ads \
+    cos/ir/corba_repository_root_uniondef_hash.adb \
+    cos/ir/corba_repository_root_uniondef_hash.ads \
+    cos/ir/corba_repository_root_valueboxdef_hash.adb \
+    cos/ir/corba_repository_root_valueboxdef_hash.ads \
+    cos/ir/corba_repository_root_valuedef_hash.adb \
+    cos/ir/corba_repository_root_valuedef_hash.ads \
+    cos/ir/corba_repository_root_valuememberdef_hash.adb \
+    cos/ir/corba_repository_root_valuememberdef_hash.ads \
+    cos/ir/corba_repository_root_wstringdef_hash.adb \
+    cos/ir/corba_repository_root_wstringdef_hash.ads \
     cos/event/coseventchanneladmin-consumeradmin-skel.adb \
     cos/event/coseventchanneladmin-consumeradmin-skel.ads \
     cos/event/coseventchanneladmin-eventchannel-skel.adb \
@@ -2243,6 +2340,42 @@ idlac_output_files := \
     cos/event/costypedeventcomm-typedpullsupplier-skel.ads \
     cos/event/costypedeventcomm-typedpushconsumer-skel.adb \
     cos/event/costypedeventcomm-typedpushconsumer-skel.ads \
+    cos/event/coseventchanneladmin_consumeradmin_hash.adb \
+    cos/event/coseventchanneladmin_consumeradmin_hash.ads \
+    cos/event/coseventchanneladmin_eventchannel_hash.adb \
+    cos/event/coseventchanneladmin_eventchannel_hash.ads \
+    cos/event/coseventchanneladmin_proxypullconsumer_hash.adb \
+    cos/event/coseventchanneladmin_proxypullconsumer_hash.ads \
+    cos/event/coseventchanneladmin_proxypullsupplier_hash.adb \
+    cos/event/coseventchanneladmin_proxypullsupplier_hash.ads \
+    cos/event/coseventchanneladmin_proxypushconsumer_hash.adb \
+    cos/event/coseventchanneladmin_proxypushconsumer_hash.ads \
+    cos/event/coseventchanneladmin_proxypushsupplier_hash.adb \
+    cos/event/coseventchanneladmin_proxypushsupplier_hash.ads \
+    cos/event/coseventchanneladmin_supplieradmin_hash.adb \
+    cos/event/coseventchanneladmin_supplieradmin_hash.ads \
+    cos/event/coseventcomm_pullconsumer_hash.adb \
+    cos/event/coseventcomm_pullconsumer_hash.ads \
+    cos/event/coseventcomm_pullsupplier_hash.adb \
+    cos/event/coseventcomm_pullsupplier_hash.ads \
+    cos/event/coseventcomm_pushconsumer_hash.adb \
+    cos/event/coseventcomm_pushconsumer_hash.ads \
+    cos/event/coseventcomm_pushsupplier_hash.adb \
+    cos/event/coseventcomm_pushsupplier_hash.ads \
+    cos/event/costypedeventchanneladmin_typedconsumeradmin_hash.adb \
+    cos/event/costypedeventchanneladmin_typedconsumeradmin_hash.ads \
+    cos/event/costypedeventchanneladmin_typedeventchannel_hash.adb \
+    cos/event/costypedeventchanneladmin_typedeventchannel_hash.ads \
+    cos/event/costypedeventchanneladmin_typedproxypullsupplier_hash.adb \
+    cos/event/costypedeventchanneladmin_typedproxypullsupplier_hash.ads \
+    cos/event/costypedeventchanneladmin_typedproxypushconsumer_hash.adb \
+    cos/event/costypedeventchanneladmin_typedproxypushconsumer_hash.ads \
+    cos/event/costypedeventchanneladmin_typedsupplieradmin_hash.adb \
+    cos/event/costypedeventchanneladmin_typedsupplieradmin_hash.ads \
+    cos/event/costypedeventcomm_typedpullsupplier_hash.adb \
+    cos/event/costypedeventcomm_typedpullsupplier_hash.ads \
+    cos/event/costypedeventcomm_typedpushconsumer_hash.adb \
+    cos/event/costypedeventcomm_typedpushconsumer_hash.ads \
     cos/notification/cosnotification-adminpropertiesadmin-skel.adb \
     cos/notification/cosnotification-adminpropertiesadmin-skel.ads \
     cos/notification/cosnotification-qosadmin-skel.adb \
@@ -2319,12 +2452,108 @@ idlac_output_files := \
     cos/notification/cosnotifyfilter-filter-skel.ads \
     cos/notification/cosnotifyfilter-mappingfilter-skel.adb \
     cos/notification/cosnotifyfilter-mappingfilter-skel.ads \
+    cos/notification/cosnotification_adminpropertiesadmin_hash.adb \
+    cos/notification/cosnotification_adminpropertiesadmin_hash.ads \
+    cos/notification/cosnotification_qosadmin_hash.adb \
+    cos/notification/cosnotification_qosadmin_hash.ads \
+    cos/notification/cosnotifychanneladmin_consumeradmin_hash.adb \
+    cos/notification/cosnotifychanneladmin_consumeradmin_hash.ads \
+    cos/notification/cosnotifychanneladmin_eventchannelfactory_hash.adb \
+    cos/notification/cosnotifychanneladmin_eventchannelfactory_hash.ads \
+    cos/notification/cosnotifychanneladmin_eventchannel_hash.adb \
+    cos/notification/cosnotifychanneladmin_eventchannel_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxyconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxyconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypullconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypullconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypullsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypullsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypushconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypushconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxypushsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxypushsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_proxysupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_proxysupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypullsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_sequenceproxypushsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypullconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypullconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypullsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypullsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypushconsumer_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypushconsumer_hash.ads \
+    cos/notification/cosnotifychanneladmin_structuredproxypushsupplier_hash.adb \
+    cos/notification/cosnotifychanneladmin_structuredproxypushsupplier_hash.ads \
+    cos/notification/cosnotifychanneladmin_supplieradmin_hash.adb \
+    cos/notification/cosnotifychanneladmin_supplieradmin_hash.ads \
+    cos/notification/cosnotifycomm_notifypublish_hash.adb \
+    cos/notification/cosnotifycomm_notifypublish_hash.ads \
+    cos/notification/cosnotifycomm_notifysubscribe_hash.adb \
+    cos/notification/cosnotifycomm_notifysubscribe_hash.ads \
+    cos/notification/cosnotifycomm_pullconsumer_hash.adb \
+    cos/notification/cosnotifycomm_pullconsumer_hash.ads \
+    cos/notification/cosnotifycomm_pullsupplier_hash.adb \
+    cos/notification/cosnotifycomm_pullsupplier_hash.ads \
+    cos/notification/cosnotifycomm_pushconsumer_hash.adb \
+    cos/notification/cosnotifycomm_pushconsumer_hash.ads \
+    cos/notification/cosnotifycomm_pushsupplier_hash.adb \
+    cos/notification/cosnotifycomm_pushsupplier_hash.ads \
+    cos/notification/cosnotifycomm_sequencepullconsumer_hash.adb \
+    cos/notification/cosnotifycomm_sequencepullconsumer_hash.ads \
+    cos/notification/cosnotifycomm_sequencepullsupplier_hash.adb \
+    cos/notification/cosnotifycomm_sequencepullsupplier_hash.ads \
+    cos/notification/cosnotifycomm_sequencepushconsumer_hash.adb \
+    cos/notification/cosnotifycomm_sequencepushconsumer_hash.ads \
+    cos/notification/cosnotifycomm_sequencepushsupplier_hash.adb \
+    cos/notification/cosnotifycomm_sequencepushsupplier_hash.ads \
+    cos/notification/cosnotifycomm_structuredpullconsumer_hash.adb \
+    cos/notification/cosnotifycomm_structuredpullconsumer_hash.ads \
+    cos/notification/cosnotifycomm_structuredpullsupplier_hash.adb \
+    cos/notification/cosnotifycomm_structuredpullsupplier_hash.ads \
+    cos/notification/cosnotifycomm_structuredpushconsumer_hash.adb \
+    cos/notification/cosnotifycomm_structuredpushconsumer_hash.ads \
+    cos/notification/cosnotifycomm_structuredpushsupplier_hash.adb \
+    cos/notification/cosnotifycomm_structuredpushsupplier_hash.ads \
+    cos/notification/cosnotifyfilter_filteradmin_hash.adb \
+    cos/notification/cosnotifyfilter_filteradmin_hash.ads \
+    cos/notification/cosnotifyfilter_filterfactory_hash.adb \
+    cos/notification/cosnotifyfilter_filterfactory_hash.ads \
+    cos/notification/cosnotifyfilter_filter_hash.adb \
+    cos/notification/cosnotifyfilter_filter_hash.ads \
+    cos/notification/cosnotifyfilter_mappingfilter_hash.adb \
+    cos/notification/cosnotifyfilter_mappingfilter_hash.ads \
+    cos/naming/file.adb \
+    cos/naming/file.ads \
+    cos/naming/file-helper.adb \
+    cos/naming/file-helper.ads \
+    cos/naming/file-skel.adb \
+    cos/naming/file-skel.ads \
+    cos/naming/cosnaming_bindingiterator_hash.adb \
+    cos/naming/cosnaming_bindingiterator_hash.ads \
+    cos/naming/cosnaming_namingcontextext_hash.adb \
+    cos/naming/cosnaming_namingcontextext_hash.ads \
+    cos/naming/cosnaming_namingcontext_hash.adb \
+    cos/naming/cosnaming_namingcontext_hash.ads \
+    cos/naming/file_hash.adb \
+    cos/naming/file_hash.ads \
     cos/time/costime-timeservice-skel.adb \
     cos/time/costime-timeservice-skel.ads \
     cos/time/costime-tio-skel.adb \
     cos/time/costime-tio-skel.ads \
     cos/time/costime-uto-skel.adb \
-    cos/time/costime-uto-skel.ads
+    cos/time/costime-uto-skel.ads \
+    cos/time/costime_timeservice_hash.adb \
+    cos/time/costime_timeservice_hash.ads \
+    cos/time/costime_tio_hash.adb \
+    cos/time/costime_tio_hash.ads \
+    cos/time/costime_uto_hash.adb \
+    cos/time/costime_uto_hash.ads
 
 ################
 
@@ -2353,6 +2582,8 @@ debug-makefile:
 	@echo APPLI_EXES = ${APPLI_EXES}
 	@echo SERVICE_EXES = ${SERVICE_EXES}
 	@echo COMPILERS = ${COMPILERS}
+	@echo IAC_NODES_STAMPS = ${IAC_NODES_STAMPS}
+	@echo IAC_NODES_SOURCES = ${IAC_NODES_SOURCES}
 	@echo active_tests = ${active_tests}
 	@echo "debug-makefile done"
 

@@ -56,7 +56,7 @@ package body PolyORB.Transport is
    -------------------
 
    function Handle_Message
-     (TAP : access Transport_Access_Point;
+     (TAP : not null access Transport_Access_Point;
       Msg : Components.Message'Class) return Components.Message'Class
    is
    begin
@@ -73,12 +73,8 @@ package body PolyORB.Transport is
       pragma Warnings (On);
    end Handle_Message;
 
-   -------------------
-   -- Handle_Mesage --
-   -------------------
-
    function Handle_Message
-     (TE  : access Transport_Endpoint;
+     (TE  : not null access Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class
    is
       use Filters.Iface;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,8 +86,7 @@ package PolyORB.Initialization is
       --  The shutdown procedure for this module
    end record;
 
-   procedure Register_Module
-     (Info                   : Module_Info);
+   procedure Register_Module (Info : Module_Info);
    --  Register a module described by Info with
    --  the autoconfigurator.
 

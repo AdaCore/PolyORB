@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -200,9 +200,9 @@ package body PolyORB.Any is
       -- Wrap --
       ----------
 
-      function Wrap (X : access T) return Content'Class is
+      function Wrap (X : not null access T) return Content'Class is
       begin
-         return T_Content'(V => T_Ptr (X));
+         return T_Content'(V => X.all'Unchecked_Access);
       end Wrap;
 
    end Elementary_Any;
@@ -585,21 +585,29 @@ package body PolyORB.Any is
             declare
                List_Type : constant TypeCode.Object_Ptr :=
                              Unwind_Typedefs (L_Type);
+               Count     : constant Types.Unsigned_Long :=
+                             TypeCode.Member_Count (List_Type);
                M_Type    : TypeCode.Object_Ptr;
+
                L_ACC : Aggregate_Content'Class
                          renames Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class
                          renames Aggregate_Content'Class (Right.The_Value.all);
             begin
-               for J in 0 .. TypeCode.Member_Count (List_Type) - 1 loop
-                  M_Type := TypeCode.Member_Type (List_Type, J);
-                  if not Agg_Elements_Equal
-                           (M_Type, L_ACC'Access, R_ACC'Access, J)
-                  then
-                     pragma Debug (C, O ("Equal (Any, struct/except): end"));
-                     return False;
-                  end if;
-               end loop;
+               --  Note: Count is unsigned, guard against Count - 1 overflow
+
+               if Count > 0 then
+                  for J in 0 .. Count - 1 loop
+                     M_Type := TypeCode.Member_Type (List_Type, J);
+                     if not Agg_Elements_Equal
+                              (M_Type, L_ACC'Access, R_ACC'Access, J)
+                     then
+                        pragma Debug
+                          (C, O ("Equal (Any, struct/except): end"));
+                        return False;
+                     end if;
+                  end loop;
+               end if;
                pragma Debug (C, O ("Equal (Any, struct/except): end"));
                return True;
             end;
@@ -1662,7 +1670,8 @@ package body PolyORB.Any is
    function Image (TC : TypeCode.Object_Ptr) return Standard.String is
       use TypeCode;
 
-      Kind : constant TCKind := TypeCode.Kind (TC);
+      Kind   : constant TCKind := TypeCode.Kind (TC);
+      Count  : Unsigned_Long;
       Result : Types.String;
    begin
       case Kind is
@@ -1699,14 +1708,21 @@ package body PolyORB.Any is
                  Tk_Except             =>
 
                   Result := Result & " {";
-                  for J in 0 .. Member_Count (TC) - 1 loop
-                     Result := Result
-                       & " "
-                       & Image (Member_Type (TC, J))
-                       & " "
-                       & Types.String (Member_Name (TC, J))
-                       & ";";
-                  end loop;
+
+                  --  Note: Count is unsigned, guard against overflow
+                  --  of Count - 1.
+
+                  Count := Member_Count (TC);
+                  if Count > 0 then
+                     for J in 0 .. Count - 1 loop
+                        Result := Result
+                          & " "
+                          & Image (Member_Type (TC, J))
+                          & " "
+                          & Types.String (Member_Name (TC, J))
+                          & ";";
+                     end loop;
+                  end if;
                   Result := Result & " }";
 
                   return To_Standard_String (Result);
@@ -1719,16 +1735,19 @@ package body PolyORB.Any is
                     & Types.Long'Image (Default_Index (TC))
                     & ") {";
 
-                  for J in 0 .. Member_Count (TC) - 1 loop
-                     Result := Result &
-                       " case " & Ada.Strings.Fixed.Trim
-                                    (Image (Member_Label (TC, J)),
-                                     Ada.Strings.Left)
-                       & ": "
-                       & Image (Member_Type (TC, J))
-                       & " "
-                       & Types.String (Member_Name (TC, J)) & ";";
-                  end loop;
+                  Count := Member_Count (TC);
+                  if Count > 0 then
+                     for J in 0 .. Count - 1 loop
+                        Result := Result &
+                          " case " & Ada.Strings.Fixed.Trim
+                                       (Image (Member_Label (TC, J)),
+                                        Ada.Strings.Left)
+                          & ": "
+                          & Image (Member_Type (TC, J))
+                          & " "
+                          & Types.String (Member_Name (TC, J)) & ";";
+                     end loop;
+                  end if;
                   Result := Result & " }";
 
                   return To_Standard_String (Result);
@@ -1785,8 +1804,7 @@ package body PolyORB.Any is
    -- Image (Any_Container'Class) --
    ---------------------------------
 
-   function Image (C : Any_Container'Class) return Standard.String
-   is
+   function Image (C : Any_Container'Class) return Standard.String is
       TC   : constant TypeCode.Local_Ref := Unwind_Typedefs (Get_Type (C));
       Kind : constant TCKind := TypeCode.Kind (TC);
    begin
@@ -1874,9 +1892,7 @@ package body PolyORB.Any is
    -- Initialize --
    ----------------
 
-   procedure Initialize
-     (Self : in out Any)
-   is
+   procedure Initialize (Self : in out Any) is
       use type PolyORB.Smart_Pointers.Entity_Ptr;
 
       Container : constant Any_Container_Ptr := new Any_Container;
@@ -1884,7 +1900,7 @@ package body PolyORB.Any is
       pragma Debug (C, O ("Initializing Any: enter"));
       pragma Assert (Entity_Of (Self) = null);
 
-      Set (Self, PolyORB.Smart_Pointers.Entity_Ptr (Container));
+      Use_Entity (Self, PolyORB.Smart_Pointers.Entity_Ptr (Container));
       pragma Debug (C, O ("Initializing Any: leave"));
    end Initialize;
 
@@ -1960,9 +1976,17 @@ package body PolyORB.Any is
      (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long)
    is
+      Prev_Last : constant Integer := Content_Tables.Last (ACC.V);
    begin
       Content_Tables.Set_Last (ACC.V,
         Content_Tables.First (ACC.V) + Natural (Count) - 1);
+
+      --  Note: there is no default initialization for table elements, so
+      --  make sure here that they are properly initialized to null.
+
+      for J in Prev_Last + 1 .. Content_Tables.Last (ACC.V) loop
+         ACC.V.Table (J) := null;
+      end loop;
    end Set_Aggregate_Count;
 
    ---------------------------
@@ -2022,7 +2046,17 @@ package body PolyORB.Any is
          Finalize_Value (ACC.V.Table (V_First + 1).all);
       end if;
       Set_Type (El_C, TC);
-      Move_Any_Value (Dst_C => El_C, Src_C => From_C);
+
+      if From_C.Foreign then
+
+         --  If From_C is foreign, we are not allowed to steal its contents
+         --  pointer (it may become invalid at any point).
+
+         Copy_Any_Value (Dst_C => El_C, Src_C => From_C);
+
+      else
+         Move_Any_Value (Dst_C => El_C, Src_C => From_C);
+      end if;
    end Set_Aggregate_Element;
 
    -----------------------------
@@ -2373,54 +2407,66 @@ package body PolyORB.Any is
    -- Wrap --
    ----------
 
-   function Wrap (X : access Types.Octet) return Content'Class
-                    renames Elementary_Any_Octet.Wrap;
-   function Wrap (X : access Types.Short) return Content'Class
-                    renames Elementary_Any_Short.Wrap;
-   function Wrap (X : access Types.Long) return Content'Class
-                    renames Elementary_Any_Long.Wrap;
-   function Wrap (X : access Types.Long_Long) return Content'Class
-                    renames Elementary_Any_Long_Long.Wrap;
-   function Wrap (X : access Types.Unsigned_Short) return Content'Class
-                    renames Elementary_Any_UShort.Wrap;
-   function Wrap (X : access Types.Unsigned_Long) return Content'Class
-                    renames Elementary_Any_ULong.Wrap;
-   function Wrap (X : access Types.Unsigned_Long_Long) return Content'Class
-                    renames Elementary_Any_ULong_Long.Wrap;
-   function Wrap (X : access Types.Boolean) return Content'Class
-                    renames Elementary_Any_Boolean.Wrap;
-   function Wrap (X : access Types.Char) return Content'Class
-                    renames Elementary_Any_Char.Wrap;
-   function Wrap (X : access Types.Wchar) return Content'Class
-                    renames Elementary_Any_Wchar.Wrap;
-   function Wrap (X : access Types.Float) return Content'Class
-                    renames Elementary_Any_Float.Wrap;
-   function Wrap (X : access Types.Double) return Content'Class
-                    renames Elementary_Any_Double.Wrap;
-   function Wrap (X : access Types.Long_Double) return Content'Class
-                    renames Elementary_Any_Long_Double.Wrap;
-   function Wrap (X : access Types.String) return Content'Class
-                    renames Elementary_Any_String.Wrap;
-   function Wrap (X : access Types.Wide_String) return Content'Class
-                    renames Elementary_Any_Wide_String.Wrap;
+   function Wrap
+     (X : not null access Types.Octet) return Content'Class
+     renames Elementary_Any_Octet.Wrap;
+   function Wrap
+     (X : not null access Types.Short) return Content'Class
+     renames Elementary_Any_Short.Wrap;
+   function Wrap
+     (X : not null access Types.Long) return Content'Class
+     renames Elementary_Any_Long.Wrap;
+   function Wrap
+     (X : not null access Types.Long_Long) return Content'Class
+     renames Elementary_Any_Long_Long.Wrap;
+   function Wrap
+     (X : not null access Types.Unsigned_Short) return Content'Class
+     renames Elementary_Any_UShort.Wrap;
+   function Wrap
+     (X : not null access Types.Unsigned_Long) return Content'Class
+     renames Elementary_Any_ULong.Wrap;
+   function Wrap
+     (X : not null access Types.Unsigned_Long_Long) return Content'Class
+     renames Elementary_Any_ULong_Long.Wrap;
+   function Wrap
+     (X : not null access Types.Boolean) return Content'Class
+     renames Elementary_Any_Boolean.Wrap;
+   function Wrap
+     (X : not null access Types.Char) return Content'Class
+     renames Elementary_Any_Char.Wrap;
+   function Wrap
+     (X : not null access Types.Wchar) return Content'Class
+     renames Elementary_Any_Wchar.Wrap;
+   function Wrap
+     (X : not null access Types.Float) return Content'Class
+     renames Elementary_Any_Float.Wrap;
+   function Wrap
+     (X : not null access Types.Double) return Content'Class
+     renames Elementary_Any_Double.Wrap;
+   function Wrap
+     (X : not null access Types.Long_Double) return Content'Class
+     renames Elementary_Any_Long_Double.Wrap;
+   function Wrap
+     (X : not null access Types.String) return Content'Class
+     renames Elementary_Any_String.Wrap;
+   function Wrap
+     (X : not null access Types.Wide_String) return Content'Class
+     renames Elementary_Any_Wide_String.Wrap;
 
-   --  For compatibility with Ada 2005, we cannot use a renaming-as-body
-   --  here, as the formal of the renamed subprogram would have to be
-   --  explicitly null-excluding, which would make it illegal in Ada 95.
+   function Wrap (X : not null access Any) return Content'Class
+     renames Elementary_Any_Any.Wrap;
 
-   function Wrap (X : access Any) return Content'Class is
-   begin
-      return Elementary_Any_Any.Wrap (X);
-   end Wrap;
+   function Wrap (X : not null access TypeCode.Local_Ref) return Content'Class
+     renames Elementary_Any_TypeCode.Wrap;
 
-   function Wrap (X : access TypeCode.Local_Ref) return Content'Class
-                    renames Elementary_Any_TypeCode.Wrap;
-   function Wrap (X : access Ada.Strings.Superbounded.Super_String)
-                    return Content'Class
-                    renames Elementary_Any_Bounded_String.Wrap;
-   function Wrap (X : access Ada.Strings.Wide_Superbounded.Super_String)
-                    return Content'Class
-                    renames Elementary_Any_Bounded_Wide_String.Wrap;
+   function Wrap
+     (X : not null access Ada.Strings.Superbounded.Super_String)
+      return Content'Class
+     renames Elementary_Any_Bounded_String.Wrap;
+   function Wrap
+     (X : not null access Ada.Strings.Wide_Superbounded.Super_String)
+      return Content'Class
+     renames Elementary_Any_Bounded_Wide_String.Wrap;
 
    --------------
    -- TypeCode --
@@ -2731,6 +2777,7 @@ package body PolyORB.Any is
 
       function Equivalent (Left, Right : Object_Ptr) return Boolean is
          Nb_Param : constant Unsigned_Long := Member_Count (Left);
+         pragma Assert (Nb_Param > 0);
 
          U_Left  : Object_Ptr := Left;
          U_Right : Object_Ptr := Right;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,9 +56,8 @@ package DynamicAny.DynEnum.Impl is
       Value : CORBA.Unsigned_Long);
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : Standard.String)
-      return Boolean;
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean;
 
    package Internals is
 

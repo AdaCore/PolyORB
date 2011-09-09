@@ -40,15 +40,14 @@ with PolyORB.Sockets;
 
 package PolyORB.Utils.Sockets is
 
-   function String_To_Addr
-     (Str : Standard.String) return PolyORB.Sockets.Inet_Addr_Type;
-   --  Convert an IP address in dotted decimal form or a host name into an
-   --  Inet_Addr_Type value.
-
    type Socket_Name (Name_Len : Natural) is record
       Host_Name : String (1 .. Name_Len);
       Port      : PolyORB.Sockets.Port_Type;
    end record;
+
+   function To_Address
+     (SN : Socket_Name) return PolyORB.Sockets.Sock_Addr_Type;
+   --  Convert socket name to socket address
 
    type Socket_Name_Ptr is access all Socket_Name;
    procedure Free is
@@ -79,5 +78,9 @@ package PolyORB.Utils.Sockets is
 
    function Is_IP_Address (Name : String) return Boolean;
    --  True iff S is an IP address in dotted quad notation
+
+   function Local_Inet_Address return PolyORB.Sockets.Inet_Addr_Type;
+   --  Return an IP address associated with the local host name, preferring
+   --  non-loopback addresses over loopback ones.
 
 end PolyORB.Utils.Sockets;

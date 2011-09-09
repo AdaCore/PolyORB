@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -191,7 +191,7 @@ package body Namet is
    ----------
 
    function Hash return Hash_Index_Type is
-      subtype Int_1_12 is Int range 1 .. 12;
+      subtype Int_1_12 is Positive range 1 .. 12;
       --  Used to avoid when others on case jump below
 
       Even_Name_Len : Integer;
@@ -229,7 +229,7 @@ package body Namet is
       --  hash. The positioning is randomized, with the bias that characters
       --  later on participate fully (i.e. are added towards the right side).
 
-      case Int_1_12 (Name_Len) is
+      case Int_1_12'(Name_Len) is
 
          when 1 =>
             return

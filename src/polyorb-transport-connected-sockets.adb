@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,10 +74,10 @@ package body PolyORB.Transport.Connected.Sockets is
    -----------------------
 
    procedure Accept_Connection
-     (TAP :     Socket_Access_Point;
+     (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
-      New_Socket : Socket_Type;
+      New_Socket  : Socket_Type;
       New_Address : Sock_Addr_Type;
    begin
       TE := new Socket_Endpoint;
@@ -85,6 +85,7 @@ package body PolyORB.Transport.Connected.Sockets is
         (Server  => TAP.Socket,
          Socket  => New_Socket,
          Address => New_Address);
+      pragma Debug (C, O ("Accept_Connection: from " & Image (New_Address)));
       Create (Socket_Endpoint (TE.all), New_Socket);
    end Accept_Connection;
 
@@ -105,9 +106,11 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Create
      (SAP     : in out Socket_Access_Point;
-      Socket  :        Socket_Type;
-      Address : in out Sock_Addr_Type) is
+      Socket  : Socket_Type;
+      Address : in out Sock_Addr_Type)
+   is
    begin
+      pragma Debug (C, O ("Create: listening on " & Image (Address)));
       Bind_Socket (Socket, Address);
       Listen_Socket (Socket);
 
@@ -115,16 +118,15 @@ package body PolyORB.Transport.Connected.Sockets is
 
       if Address.Addr = Any_Inet_Addr then
 
-         --  Address is unspecified, choose one IP for the SAP looking
-         --  up hostname.
+         --  Address is unspecified, choose one IP for the SAP looking up
+         --  local host name.
          --  ??? Instead SAP.Addr should be a Socket_Name, and we should keep
          --  Host_Name unresolved.
 
-         SAP.Addr.Addr := Addresses (Get_Host_By_Name (Host_Name), 1);
+         SAP.Addr.Addr := Local_Inet_Address;
          Address := SAP.Addr;
 
       else
-
          --  Use specified IP address for SAP
 
          SAP.Addr := Address;
@@ -153,7 +155,8 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Create
      (TE : in out Socket_Endpoint;
-      S  :        Socket_Type) is
+      S  : Socket_Type)
+   is
    begin
       TE.Socket := S;
 
@@ -186,7 +189,8 @@ package body PolyORB.Transport.Connected.Sockets is
    -----------------------
 
    function Is_Data_Available
-     (TE : Socket_Endpoint; N  : Natural) return Boolean
+     (TE : Socket_Endpoint;
+      N  : Natural) return Boolean
    is
       Request : Request_Type (N_Bytes_To_Read);
    begin
@@ -213,6 +217,10 @@ package body PolyORB.Transport.Connected.Sockets is
       procedure Receive_Socket (V : access Iovec);
       --  Lowlevel socket receive
 
+      --------------------
+      -- Receive_Socket --
+      --------------------
+
       procedure Receive_Socket (V : access Iovec) is
          Count : Ada.Streams.Stream_Element_Count;
          Vecs  : Vector_Type (1 .. 1);
@@ -223,8 +231,11 @@ package body PolyORB.Transport.Connected.Sockets is
          V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
       end Receive_Socket;
 
-      procedure Receive_Buffer is new PolyORB.Buffers.Receive_Buffer
-        (Receive_Socket);
+      procedure Receive_Buffer is
+        new PolyORB.Buffers.Receive_Buffer (Receive_Socket);
+
+   --  Start of processing for Read
+
    begin
       begin
          Receive_Buffer (Buffer, Size, Data_Received);
@@ -290,13 +301,17 @@ package body PolyORB.Transport.Connected.Sockets is
 
       procedure Send_Buffer is new Buffers.Send_Buffer (Socket_Send);
 
+   --  Start of processing for Write
+
    begin
+      pragma Abort_Defer;
+
       pragma Debug (C, O ("Write: enter"));
 
       --  Send_Buffer is not atomic, needs to be protected.
 
       Enter (TE.Mutex);
-      pragma Debug (C, O ("TE mutex acquired"));
+      pragma Debug (C, O ("Write: TE mutex acquired"));
 
       begin
          Send_Buffer (Buffer);
@@ -314,6 +329,8 @@ package body PolyORB.Transport.Connected.Sockets is
                 (Minor => 0, Completed => Completed_Maybe));
       end;
       Leave (TE.Mutex);
+
+      pragma Debug (C, O ("Write: leave"));
    end Write;
 
    --------------------
@@ -361,13 +378,13 @@ package body PolyORB.Transport.Connected.Sockets is
             Close_Socket (TE.Socket);
             TE.Socket := No_Socket;
          end if;
-         Leave (TE.Mutex);
       exception
          when E : others =>
             pragma Debug (C, O ("Close (Socket_Endpoint): got "
                              & Ada.Exceptions.Exception_Information (E)));
             null;
       end;
+      Leave (TE.Mutex);
    end Close;
 
    -------------

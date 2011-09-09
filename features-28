@@ -1,0 +1,50 @@
+=============================
+PolyORB 2.8 NEW FEATURES LIST
+=============================
+
+Copyright (C) 2009-2011, AdaCore
+
+This file contains a complete list of new features in version 2.8 of PolyORB.
+See also file NEWS for various information about this release.
+
+An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
+This date shows the implementation date of the feature. Any 2.8 wavefront
+subsequent to this date will contain the indicated feature, as will any
+subsequent releases.
+
+NF-28-K909-043 Exceptions tracing (2011-09-09)
+
+   A new debugging trace is now available that logs a message for every
+   exception raised in a partition (using GNAT.Exception_Actions).
+
+NF-28-K906-034 Support for new IDL pragmas (2011-09-06)
+
+   IAC implements support for new IDL pragmas defined in version 1.3 of
+   the CORBA/Ada mapping: subtype, derived, and range. It also includes
+   support for implementation defined pragma switchname, compatible with
+   the GNACK IDL compiler, to help in transitioning legacy Ada code to
+   CORBA.
+
+NF-28-K806-001 Improve behaviour in tasking intensive context (2011-08-29)
+
+   Taking advantage of a new feature in the GNAT runtime library, a
+   performance bottleneck has been removed in the PolyORB full tasking
+   profile. This significantly improves performance in situations where a
+   large number of tasks need to be created and destroyed.
+
+NF-28-JC17-036 Support for partition-wide RPC timeout setting (2010-12-23)
+
+   A new runtime parameter rpc_timeout in section [dsa] specifies a global
+   timeout (in milliseconds) to be applied to all remote subprogram calls.
+
+NF-28-JA25-023 Support for additional configuration pragmas (2010-10-26)
+
+   A new configure command line switch --enable-conf-pragmas is provided, which
+   allows the user to specify then name of an additional configuration pragmas
+   file to be used when compiling the PolyORB runtime library, for example
+   containing some application-mandated Restrictions pragmas.
+
+NF-28-J121-026 IDLAC is obsoleted (2011-03-28)
+
+   The legacy IDL to Ada compiler, idlac, is obsoleted. Users should switch
+   to iac, which has been the default since 2008.

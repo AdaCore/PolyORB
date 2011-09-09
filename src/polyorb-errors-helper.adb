@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,9 +80,11 @@ package body PolyORB.Errors.Helper is
       elsif Error.Kind in POA_Error then
          Result := To_Any (Exception_Name,
                            Null_Members (Error.Member.all));
+
       else
-         raise Program_Error;
          --  Never happens
+
+         raise Program_Error;
       end if;
 
       pragma Debug (C, O ("Error_To_Any: leave."));

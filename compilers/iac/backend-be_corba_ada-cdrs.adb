@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1769,7 +1769,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Add_Char_To_Name_Buffer ('_');
                      Add_Nat_To_Name_Buffer (I);
                      Index_Node := Make_Defining_Identifier
-                       (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+                       (Add_Suffix_To_Name (Unique_Suffix, Name_Find));
                      Append_To (Index_List, Index_Node);
                      Enclosing_Statements := Loop_Statements;
                      Loop_Statements := New_List;
@@ -2269,7 +2269,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                      Add_Char_To_Name_Buffer ('_');
                      Add_Nat_To_Name_Buffer (I);
                      Index_Node := Make_Defining_Identifier
-                       (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+                       (Add_Suffix_To_Name (Unique_Suffix, Name_Find));
                      Append_To (Index_List, Index_Node);
                      Enclosing_Statements := Loop_Statements;
                      Loop_Statements := New_List;
@@ -2601,7 +2601,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
          Set_Str_To_Name_Buffer ("Element_");
          Element_Number := Element_Number + 1;
          Add_Nat_To_Name_Buffer (Element_Number);
-         Element := Add_Suffix_To_Name (Var_Suffix, Name_Find);
+         Element := Add_Suffix_To_Name (Unique_Suffix, Name_Find);
          return Element;
       end Get_Element_Name;
 

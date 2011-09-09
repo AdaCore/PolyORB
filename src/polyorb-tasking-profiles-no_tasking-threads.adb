@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,12 +33,22 @@
 
 --  Implementation of Threads under the No_Tasking profile
 
+with Ada.Calendar;
+with Ada.Unchecked_Conversion;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-with Ada.Calendar;
-
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
+
+   --  For the no-tasking profile, there is only one valid Thread_Id,
+   --  Main_Thread_Id, which is arbitrarily defined but must be different from
+   --  Null_Thread_Id.
+
+   function To_Thread_Id is
+     new Ada.Unchecked_Conversion (System.Address, PTT.Thread_Id);
+   Main_Thread_Id : constant PTT.Thread_Id :=
+                      To_Thread_Id (The_Thread_Factory'Address);
 
    ---------------------------
    -- Get_Current_Thread_Id --
@@ -52,7 +62,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (TF);
       pragma Warnings (On);
    begin
-      return PTT.Null_Thread_Id;
+      return Main_Thread_Id;
    end Get_Current_Thread_Id;
 
    -------------------
@@ -67,7 +77,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      return PTT.Null_Thread_Id;
+      return Main_Thread_Id;
    end Get_Thread_Id;
 
    ---------------------
@@ -79,11 +89,17 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       TID : PTT.Thread_Id)
       return String
    is
+      use PTT;
+
       pragma Warnings (Off);
-      pragma Unreferenced (TF, TID);
+      pragma Unreferenced (TF);
       pragma Warnings (On);
    begin
-      return "main_task";
+      if TID = Null_Thread_Id then
+         return "<null thread id>";
+      else
+         return "main_task";
+      end if;
    end Thread_Id_Image;
 
    -----------------
@@ -115,8 +131,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
-      P                : PTT.Parameterless_Procedure)
-     return PTT.Thread_Access
+      P                : PTT.Parameterless_Procedure) return PTT.Thread_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);

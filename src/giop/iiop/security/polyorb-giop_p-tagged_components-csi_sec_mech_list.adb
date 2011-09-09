@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,6 +78,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    use PolyORB.Security.Types;
    use PolyORB.Security.Types.OID_Lists;
    use PolyORB.Types;
+
    use Mechanism_Lists;
    use Service_Configuration_Lists;
 
@@ -113,8 +114,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
      (P : access PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type);
 
    function Fetch_Tagged_Component
-     (Oid : PolyORB.Objects.Object_Id)
-      return Tagged_Component_Access;
+     (Oid : PolyORB.Objects.Object_Id) return Tagged_Component_Access;
 
    function Fetch_QoS
      (End_Point : PolyORB.Transport.Transport_Endpoint_Access)

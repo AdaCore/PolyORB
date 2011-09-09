@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-project PolyORB_Common is
+abstract project PolyORB_Common is
 
    --  This project is imported by all the polyorb project files.
 
    for Source_Files use ();
+
+   type Library_Kind_Type is ("relocatable", "static");
+   Library_Kind : Library_Kind_Type := external ("Library_Kind", "static");
+
+   Library_Dir := "../..";
+
+   case Library_Kind is
+      when "relocatable" =>
+         Library_Dir := "../..";
+
+      when "static" =>
+         Library_Dir := "../../polyorb/static";
+   end case;
 
 end PolyORB_Common;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1992-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 1992-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,6 +44,10 @@ pragma Elaborate_Body (Output);
    -----------------
    -- Subprograms --
    -----------------
+
+   procedure Copy_To_Standard_Output (Input : GNAT.OS_Lib.File_Descriptor);
+   --  Read the entire Input, and copy the data to standard output. Finally,
+   --  close the Input.
 
    procedure Set_Output (New_Output : GNAT.OS_Lib.File_Descriptor);
    --  Sets subsequent output to appear on the given file

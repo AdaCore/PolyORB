@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -110,7 +110,7 @@ package body PolyORB.Transport.Datagram is
    --------------------
 
    function Handle_Message
-     (TE  : access Datagram_Transport_Endpoint;
+     (TE  : not null access Datagram_Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Buffers;

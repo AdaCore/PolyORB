@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -122,7 +122,7 @@ package body CORBA.Object.Policies is
    is
       Operation_Name : constant Standard.String := "_domain_managers";
 
-      Request     : PolyORB.Requests.Request_Access;
+      Request     : aliased PolyORB.Requests.Request;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
       Result_Name : constant CORBA.String := To_CORBA_String ("Result");
@@ -140,20 +140,17 @@ package body CORBA.Object.Policies is
           (CORBA.DomainManager.Helper.TC_IDL_SEQUENCE_DomainManager),
          Arg_Modes => 0);
 
-      PolyORB.Requests.Create_Request
-        (Target    => Internals.To_PolyORB_Ref (Ref (Self)),
+      PolyORB.Requests.Setup_Request
+        (Req       => Request,
+         Target    => Internals.To_PolyORB_Ref (Ref (Self)),
          Operation => Operation_Name,
          Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
+         Result    => Result);
 
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-        (Request, PolyORB.Requests.Flags (0));
+        (Request'Access, PolyORB.Requests.Flags (0));
 
       PolyORB.CORBA_P.Exceptions.Request_Raise_Occurrence (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-
       return CORBA.DomainManager.Helper.From_Any (CORBA.Any (Result.Argument));
    end Get_Domain_Managers;
 

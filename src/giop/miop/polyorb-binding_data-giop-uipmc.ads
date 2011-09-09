@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Binding data concrete implementation for UIPMC.
+--  Binding data concrete implementation for UIPMC
 
 with PolyORB.Buffers;
 with PolyORB.MIOP_P.Groups;
@@ -48,19 +48,16 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
 
    function Create_Profile
      (PF  : access UIPMC_Profile_Factory;
-      Oid :        Objects.Object_Id)
-     return Profile_Access;
+      Oid :        Objects.Object_Id) return Profile_Access;
 
    function Duplicate_Profile
-     (P : UIPMC_Profile_Type)
-     return Profile_Access;
+     (P : UIPMC_Profile_Type) return Profile_Access;
 
    function Get_Profile_Tag (Profile : UIPMC_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
    function Get_Profile_Preference
-     (Profile : UIPMC_Profile_Type)
-     return Profile_Preference;
+     (Profile : UIPMC_Profile_Type) return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
    procedure Create_Factory
@@ -73,14 +70,12 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
       Profile :        Profile_Access);
 
    function Unmarshall_UIPMC_Profile_Body
-     (Buffer   : access Buffer_Type)
-    return  Profile_Access;
+     (Buffer   : access Buffer_Type) return  Profile_Access;
 
    function Image (Prof : UIPMC_Profile_Type) return String;
 
    function Get_OA
-     (Profile : UIPMC_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
+     (Profile : UIPMC_Profile_Type) return PolyORB.Smart_Pointers.Entity_Ptr;
    pragma Inline (Get_OA);
 
 private

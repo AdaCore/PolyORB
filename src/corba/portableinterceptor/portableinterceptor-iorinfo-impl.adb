@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -156,11 +156,9 @@ package body PortableInterceptor.IORInfo.Impl is
    --------------------
 
    function Get_Manager_Id (Self : access Object) return AdapterManagerId is
-      pragma Unreferenced (Self);
-      Result : AdapterManagerId;
    begin
       raise Program_Error;
-      return Result;
+      return Get_Manager_Id (Self);
    end Get_Manager_Id;
 
    ---------------
@@ -168,11 +166,9 @@ package body PortableInterceptor.IORInfo.Impl is
    ---------------
 
    function Get_State (Self : access Object) return AdapterState is
-      pragma Unreferenced (Self);
-      Result : AdapterState;
    begin
       raise Program_Error;
-      return Result;
+      return Get_State (Self);
    end Get_State;
 
    ----------
@@ -192,18 +188,15 @@ package body PortableInterceptor.IORInfo.Impl is
    ----------
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : Standard.String)
-      return Boolean
+     (Self            : not null access Object;
+      Logical_Type_Id : Standard.String) return Boolean
    is
       pragma Unreferenced (Self);
    begin
       return CORBA.Is_Equivalent
-        (Logical_Type_Id,
-         PortableInterceptor.IORInfo.Repository_Id)
+        (Logical_Type_Id, PortableInterceptor.IORInfo.Repository_Id)
         or else CORBA.Is_Equivalent
-          (Logical_Type_Id,
-           "IDL:omg.org/CORBA/Object:1.0");
+          (Logical_Type_Id, "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
 --   -------------------------

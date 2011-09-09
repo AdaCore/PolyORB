@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The Request object.
-
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Errors.Helper;
@@ -41,6 +39,7 @@ with PolyORB.ORB.Iface;
 with PolyORB.Protocols.Iface;
 with PolyORB.Request_QoS;
 with PolyORB.Setup;
+with PolyORB.Tasking.Threads;
 
 package body PolyORB.Requests is
 
@@ -87,6 +86,12 @@ package body PolyORB.Requests is
    --  reconciliation method, according to the identification capabilities of
    --  the personalities.
 
+   procedure Free is new Ada.Unchecked_Deallocation (Request, Request_Access);
+
+   type Request_Completion_Runnable (Req : access Request) is
+     new Tasking.Threads.Runnable with null record;
+   overriding procedure Run (R : not null access Request_Completion_Runnable);
+
    --------------------
    -- Create_Request --
    --------------------
@@ -114,22 +119,17 @@ package body PolyORB.Requests is
       pragma Debug (C, O ("Create_Request: enter"));
 
       Req := new Request;
-      Req.Target     := Target;
-      Req.Operation  := PolyORB.Utils.Strings."+" (Operation);
-      Req.Args       := Arg_List;
-      Req.Deferred_Arguments_Session := Deferred_Arguments_Session;
-      Req.Result     := Result;
-      Req.Result.Arg_Modes := Any.ARG_OUT;
-      Req.Exc_List   := Exc_List;
-      Req.Args_Ident := Identification;
-      Req.Req_Flags  := Req_Flags;
+      Setup_Request (Req                        => Req.all,
+                     Target                     => Target,
+                     Operation                  => Operation,
+                     Arg_List                   => Arg_List,
+                     Result                     => Result,
+                     Exc_List                   => Exc_List,
+                     Req_Flags                  => Req_Flags,
+                     Deferred_Arguments_Session => Deferred_Arguments_Session,
+                     Identification             => Identification,
+                     Dependent_Binding_Object   => Dependent_Binding_Object);
 
-      Set_Request_QoS (Req, Fetch_QoS (Req.Target));
-
-      if Dependent_Binding_Object /= null then
-         Smart_Pointers.Set
-           (Req.Dependent_Binding_Object, Dependent_Binding_Object);
-      end if;
       pragma Debug (C, O ("Create_Request: leave"));
    end Create_Request;
 
@@ -137,25 +137,39 @@ package body PolyORB.Requests is
    -- Destroy_Request --
    ---------------------
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Request, Request_Access);
-
-   procedure Destroy_Request (R : in out Request_Access) is
+   procedure Destroy_Request (Req : in out Request_Access) is
    begin
-      if R /= null then
-         PolyORB.Utils.Strings.Free (R.Operation);
-         Annotations.Destroy (R.Notepad);
-         Free (R);
-      end if;
+      Free (Req);
    end Destroy_Request;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (Req : in out Request) is
+   begin
+      Tasking.Mutexes.Create (Req.Upcall_Abortable_Mutex);
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (Req : in out Request) is
+   begin
+      PolyORB.Utils.Strings.Free (Req.Operation);
+      Annotations.Destroy (Req.Notepad);
+      Tasking.Mutexes.Destroy (Req.Upcall_Abortable_Mutex);
+   end Finalize;
 
    ------------
    -- Invoke --
    ------------
 
    procedure Invoke
-     (Self         : Request_Access;
-      Invoke_Flags : Flags := 0)
+     (Self         : access Request;
+      Invoke_Flags : Flags := 0;
+      Timeout      : Duration := 0.0)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Invoke_Flags);
@@ -165,19 +179,41 @@ package body PolyORB.Requests is
       use PolyORB.ORB.Iface;
       use PolyORB.Setup;
 
+      Req : constant Request_Access := Self.all'Unchecked_Access;
+
+      R : aliased Request_Completion_Runnable (Self);
+
    begin
       PolyORB.ORB.Queue_Request_To_Handler (The_ORB,
-        Queue_Request'(Request   => Self,
-                       Requestor => Self.Requesting_Component));
+        Queue_Request'(Request   => Req,
+                       Requestor => Req.Requesting_Component));
 
       --  Execute the ORB until the request is completed
 
-      PolyORB.ORB.Run
-        (The_ORB,
-         Exit_Condition_T'
-           (Condition => Self.Completed'Access,
-            Task_Info => Self.Requesting_Task'Access),
-         May_Exit => True);
+      if Timeout = 0.0 then
+         R.Run;
+      else
+         declare
+            use Tasking.Abortables;
+            pragma Warnings (Off);
+            --  WAG:FSF-4.5.0
+            --  Hide warning "AR is not referenced"
+            AR      : aliased Abortable'Class :=
+                        Make_Abortable (Abortable_Tag, R'Access);
+            pragma Warnings (On);
+            Expired : Boolean := False;
+            Error   : Errors.Error_Container;
+         begin
+            AR.Run_With_Timeout (Timeout, Expired);
+            if Expired then
+               Throw
+                 (Error, Timeout_E,
+                  System_Exception_Members'
+                    (Minor => 1, Completed => Completed_Maybe));
+               Set_Exception (Req.all, Error);
+            end if;
+         end;
+      end if;
    end Invoke;
 
    -----------------------------------
@@ -328,7 +364,7 @@ package body PolyORB.Requests is
 
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
-      Copied_Src_Args : array (1 .. Long (Get_Count (Src_Args))) of Boolean
+      Copied_Src_Args : array (1 .. Get_Count (Src_Args)) of Boolean
         := (others => False);
       Src_Idx : Long;
       Src_It : Iterator;
@@ -469,7 +505,7 @@ package body PolyORB.Requests is
 
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
-      Copied_Src_Args : array (1 .. Long (Get_Count (Src_Args))) of Boolean
+      Copied_Src_Args : array (1 .. Get_Count (Src_Args)) of Boolean
         := (others => False);
       Src_Idx : Long;
       Src_It : Iterator;
@@ -689,14 +725,24 @@ package body PolyORB.Requests is
    -- Reset_Request --
    -------------------
 
-   procedure Reset_Request (Request : PolyORB.Requests.Request_Access) is
+   procedure Reset_Request (Request : in out PolyORB.Requests.Request) is
       Null_Any : PolyORB.Any.Any;
 
    begin
-      Request.Completed := False;
+      Request.Completed        := False;
       Request.Arguments_Called := False;
-      Request.Exception_Info := Null_Any;
+      Request.Exception_Info   := Null_Any;
    end Reset_Request;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run (R : not null access Request_Completion_Runnable) is
+      use PolyORB.Setup;
+   begin
+      PolyORB.ORB.Run (The_ORB, R.Req.all'Unchecked_Access, May_Exit => True);
+   end Run;
 
    ---------------
    -- Arguments --
@@ -857,7 +903,7 @@ package body PolyORB.Requests is
    -- Set_Exception --
    -------------------
 
-   procedure Set_Exception (Self : Request_Access; Error : Error_Container) is
+   procedure Set_Exception (Self : in out Request; Error : Error_Container) is
    begin
       Self.Exception_Info := PolyORB.Errors.Helper.Error_To_Any (Error);
    end Set_Exception;
@@ -904,5 +950,45 @@ package body PolyORB.Requests is
       --  XXX If a method has IN and OUT args and R.Args contains only the IN
       --  arguments (and no empty Any's for the OUT ones) what happens?
    end Set_Out_Args;
+
+   -------------------
+   -- Setup_Request --
+   -------------------
+
+   procedure Setup_Request
+     (Req                        : out Request;
+      Target                     : References.Ref;
+      Operation                  : String;
+      Arg_List                   : Any.NVList.Ref;
+      Result                     : in out Any.NamedValue;
+      Exc_List                   : Any.ExceptionList.Ref :=
+                                     Any.ExceptionList.Nil_Ref;
+      Req_Flags                  : Flags := Default_Flags;
+      Deferred_Arguments_Session : Components.Component_Access := null;
+      Identification             : Arguments_Identification :=
+                                     Ident_By_Position;
+      Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null)
+   is
+      use PolyORB.Request_QoS;
+      use type Smart_Pointers.Entity_Ptr;
+
+   begin
+      Req.Target     := Target;
+      Req.Operation  := PolyORB.Utils.Strings."+" (Operation);
+      Req.Args       := Arg_List;
+      Req.Deferred_Arguments_Session := Deferred_Arguments_Session;
+      Req.Result     := Result;
+      Req.Result.Arg_Modes := Any.ARG_OUT;
+      Req.Exc_List   := Exc_List;
+      Req.Args_Ident := Identification;
+      Req.Req_Flags  := Req_Flags;
+
+      Set_Request_QoS (Req, Fetch_QoS (Req.Target));
+
+      if Dependent_Binding_Object /= null then
+         Smart_Pointers.Set
+           (Req.Dependent_Binding_Object, Dependent_Binding_Object);
+      end if;
+   end Setup_Request;
 
 end PolyORB.Requests;

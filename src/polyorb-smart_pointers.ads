@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -80,8 +80,8 @@ package PolyORB.Smart_Pointers is
    --  The base type of all references. This type is often derived but never
    --  extended. It contains one field, which designates the referenced object.
 
-   procedure Adjust     (The_Ref : in out Ref);
-   procedure Finalize   (The_Ref : in out Ref);
+   procedure Adjust   (The_Ref : in out Ref);
+   procedure Finalize (The_Ref : in out Ref);
 
    procedure Set
      (The_Ref    : in out Ref;
@@ -100,6 +100,15 @@ package PolyORB.Smart_Pointers is
    --  reference to be reconstructed from a saved Entity_Ptr value, ensuring
    --  that the designated entity is not being finalized.
    --  The_Ref is expected to be nil before the call.
+
+   procedure Use_Entity
+     (The_Ref    : in out Ref;
+      The_Entity : Entity_Ptr);
+   --  Equivalent to Set (The_Ref, The_Entity), but requires The_Entity's usage
+   --  counter to be zero, and The_Ref to be a null reference. Does not require
+   --  the ORB to have been initialized. The caller is responsible to ensure
+   --  task safety (this subprogram is expected to be used only to associate
+   --  a reference to a newly allocated object).
 
    procedure Unref (The_Ref : in out Ref) renames Finalize;
    procedure Release (The_Ref : in out Ref) renames Finalize;
@@ -151,6 +160,9 @@ private
    --  want any dependence on Ada.Tags, because that would prevent this unit
    --  from being preelaborable. So, we call External_Tag indirectly through
    --  a hook that is set during PolyORB initialization.
+   --
+   --  Note: Ada.Tags is preelaborable in Ada 2005, we need to review this
+   --  dependency.
 
    type Entity_External_Tag_Hook is access
      function (X : Unsafe_Entity'Class) return String;

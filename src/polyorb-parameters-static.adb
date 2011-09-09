@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2008, Free Software Foundation, Inc.            --
+--         Copyright (C) 2008-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,29 +41,35 @@ package body PolyORB.Parameters.Static is
 
    --  The length of the array is unknown, the last entry must be marked with
    --  a null access.
+
    pragma Suppress (Range_Check);
    Parameters : Static_Parameter_Array  (1 .. 1);
-   pragma Import (Ada, Parameters, "__PolyORB_static_parameters");
+   pragma Import (Ada, Parameters, Static_Parameters_Link_Name);
+
+   Last_Index : Natural := 0;
+   --  Actual index of last entry
+
    pragma Warnings (Off); -- WAG:GPL2007
    pragma Weak_External (Parameters);
    pragma Warnings (On); -- WAG:GPL2007
+
    --  This symbol is optional, PolyORB can be configured using other methods
    --  like the command line or environment variables.
    --  In some platforms like VxWorks 5.5 the loader gives a warning even if
    --  the unresolved symbol is weak. This external name was chosen to avoid
    --  alarming the user when this happen instead of a more descriptive one.
 
-   Last : Natural := 0;
-
    type Partition_Source is new Parameters_Source with null record;
-
-   --------------
-   -- Get_Conf --
-   --------------
 
    function Get_Conf
      (Source       : access Partition_Source;
       Section, Key : String) return String;
+
+   procedure Initialize;
+
+   --------------
+   -- Get_Conf --
+   --------------
 
    function Get_Conf
       (Source       : access Partition_Source;
@@ -73,9 +79,9 @@ package body PolyORB.Parameters.Static is
 
       S : constant String := Make_Global_Key (Section, Key);
    begin
-      for I in 1 .. Last loop
-         if Parameters (I).Parameter.all = S then
-            return Parameters (I).Value.all;
+      for J in 1 .. Last_Index loop
+         if Parameters (J).Parameter.all = S then
+            return Parameters (J).Value.all;
          end if;
       end loop;
       return "";
@@ -87,19 +93,20 @@ package body PolyORB.Parameters.Static is
    -- Initialize --
    ----------------
 
-   procedure Initialize;
-
    procedure Initialize is
    begin
-      Last := 0;
       --  If a weak symbol isn't resolved by the linker, it is assigned the
       --  null address.
+
       if Parameters'Address /= System.Null_Address then
          loop
-            if Parameters (Last + 1).Parameter = null then
+            --  Last entry has null Parameter and Value components
+
+            if Parameters (Last_Index + 1).Parameter = null then
                exit;
+
             else
-               Last := Last + 1;
+               Last_Index := Last_Index + 1;
             end if;
          end loop;
       end if;
@@ -109,6 +116,7 @@ package body PolyORB.Parameters.Static is
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
+
 begin
       Register_Module
       (Module_Info'

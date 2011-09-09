@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -170,7 +170,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
             --  No task should go idle. Receiving this event denotes an
             --  internal error.
 
-            raise Program_Error;
+            raise Program_Error with "unexpected Idle_Awake event";
 
          when Task_Registered =>
             null;
@@ -224,7 +224,10 @@ package body PolyORB.ORB_Controller.No_Tasking is
          declare
             AEM_Index : constant Natural := Need_Polling_Task (O);
          begin
-            pragma Assert (AEM_Index /= 0);
+            if AEM_Index = 0 then
+               O1 ("no event source to monitor", Critical);
+               raise Program_Error with "dead lock detected";
+            end if;
 
             O.AEM_Infos (AEM_Index).Polling_Scheduled := False;
             O.AEM_Infos (AEM_Index).TI := TI;

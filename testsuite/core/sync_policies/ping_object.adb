@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,8 +36,6 @@ with Ada.Text_IO;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Requests;
-with PolyORB.Servants.Iface;
 with PolyORB.Types;
 with PolyORB.Errors;
 
@@ -47,7 +45,6 @@ package body Ping_Object is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Iface;
 
    Count : Natural := 0;
    --  Count number of invocations
@@ -58,61 +55,49 @@ package body Ping_Object is
 
    function Execute_Servant
      (Obj : not null access My_Object;
-      Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class
+      Req : PolyORB.Requests.Request_Access) return Boolean
    is
       pragma Unreferenced (Obj);
 
       use PolyORB.Any.NVList;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Errors;
       use PolyORB.Types;
 
+      Args  : PolyORB.Any.NVList.Ref;
+      Error : Error_Container;
    begin
-      Put_Line ("Handle Message : enter");
+      Put_Line ("The server is executing the request:"
+                & PolyORB.Requests.Image (Req.all));
 
-      if Msg in Execute_Request then
-         declare
-            use PolyORB.Any.NVList.Internals;
-            use PolyORB.Any.NVList.Internals.NV_Lists;
-            use PolyORB.Errors;
+      Create (Args);
+      if Req.all.Operation.all = "ping" then
+         Add_Item (Args,
+                   (Name => To_PolyORB_String ("S"),
+                    Argument => Get_Empty_Any (TypeCode.TC_String),
+                    Arg_Modes => PolyORB.Any.ARG_IN));
+         Arguments (Req, Args, Error);
 
-            Req   : Request_Access renames Execute_Request (Msg).Req;
-            Args  : PolyORB.Any.NVList.Ref;
-            Error : Error_Container;
-         begin
-            Put_Line ("The server is executing the request:"
-                      & PolyORB.Requests.Image (Req.all));
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more constructive
 
-            Create (Args);
-            if Req.all.Operation.all = "ping" then
-               Add_Item (Args,
-                         (Name => To_PolyORB_String ("S"),
-                          Argument => Get_Empty_Any (TypeCode.TC_String),
-                          Arg_Modes => PolyORB.Any.ARG_IN));
-               Arguments (Req, Args, Error);
+         end if;
 
-               if Found (Error) then
-                  raise Program_Error;
-                  --  XXX We should do something more constructive
+         --  Actual implementation of the echoString function:
+         --  simply return the argument
+         Count := Count + 1;
 
-               end if;
+         Put_Line ("Pong !" & Count'Img);
 
-               --  Actual implementation of the echoString function:
-               --  simply return the argument
-               Count := Count + 1;
-
-               Put_Line ("Pong !" & Count'Img);
-
-               Req.Result.Argument := To_Any
-                 (Get_Empty_Any (TypeCode.TC_Void));
-            else
-               raise Program_Error;
-            end if;
-
-            return Executed_Request'(Req => Req);
-         end;
+         Req.Result.Argument := To_Any
+           (Get_Empty_Any (TypeCode.TC_Void));
       else
          raise Program_Error;
       end if;
+
+      return True;
 
    exception
       when E : others =>

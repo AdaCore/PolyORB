@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -107,9 +107,8 @@ package PortableInterceptor.RequestInfo.Impl is
       return IOP.ServiceContext;
 
    function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : String)
-     return Boolean;
+     (Self            : not null access Object;
+      Logical_Type_Id : String) return Boolean;
 
    procedure Init
      (Self       : access Object;

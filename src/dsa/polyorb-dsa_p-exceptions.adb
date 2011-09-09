@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -71,6 +71,7 @@ package body PolyORB.DSA_P.Exceptions is
 
       Is_Error    : Boolean;
       Err_Id      : Error_Id;
+
    begin
       pragma Assert (not Any.Is_Empty (Occurrence));
 
@@ -78,7 +79,7 @@ package body PolyORB.DSA_P.Exceptions is
 
       Exception_Name_To_Error_Id (Exc_Repo_Id, Is_Error, Err_Id);
       if Is_Error then
-         raise System.RPC.Communication_Error;
+         raise System.RPC.Communication_Error with Err_Id'Img;
       end if;
 
       --  Here in the default case (user-generated exception)

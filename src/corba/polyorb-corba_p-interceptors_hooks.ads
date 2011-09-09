@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,17 +44,17 @@ package PolyORB.CORBA_P.Interceptors_Hooks is
    package PSPCE renames PolyORB.Smart_Pointers.Controlled_Entities;
 
    type Client_Invoke_Handler is access procedure
-     (Self  : PolyORB.Requests.Request_Access;
+     (Self  : access PolyORB.Requests.Request;
       Flags : PolyORB.Requests.Flags);
 
    type Server_Invoke_Handler is access procedure
      (Self    : access PSPCE.Entity'Class;
       --  Actually must be PortableServer.DynamicImplementation'Class.
-      Request : PolyORB.Requests.Request_Access;
+      Request : access PolyORB.Requests.Request;
       Profile : PolyORB.Binding_Data.Profile_Access);
 
    type Server_Intermediate_Handler is access procedure
-     (Self           : PolyORB.Requests.Request_Access;
+     (Self           : access PolyORB.Requests.Request;
       From_Agruments : Boolean);
 
    type POA_Create_Handler is access procedure

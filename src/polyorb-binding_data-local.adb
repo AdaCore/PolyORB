@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,11 +30,6 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  Contact information for an object that exists within the local ORB.
-
-with PolyORB.ORB;
-with PolyORB.Setup;
 
 package body PolyORB.Binding_Data.Local is
 
@@ -162,19 +157,5 @@ package body PolyORB.Binding_Data.Local is
    begin
       return "Object_Id: " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : Local_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-   is
-      pragma Unreferenced (Profile);
-   begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
-   end Get_OA;
 
 end PolyORB.Binding_Data.Local;

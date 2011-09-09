@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,9 +54,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
      renames L.Enabled;
 
    type Bind_Tag is record
-      Tag  : Tag_Value;
+      Tag                 : Tag_Value;
       New_Empty_Component : New_Empty_Component_Func_Access;
-      Fetch_Component : Fetch_Component_Func_Access;
+      Fetch_Component     : Fetch_Component_Func_Access;
    end record;
 
    Binding_List : array (1 .. 10) of Bind_Tag;
@@ -187,9 +187,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
       --  Register tag
 
       Binding_List (Bind_Index)
-        := Bind_Tag'(Tag => Tag,
+        := Bind_Tag'(Tag                 => Tag,
                      New_Empty_Component => New_Empty_Component,
-                     Fetch_Component => Fetch_Component);
+                     Fetch_Component     => Fetch_Component);
    end Register;
 
    -------------------------------
@@ -268,8 +268,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ---------------------------------
 
    function Unmarshall_Tagged_Component
-     (Buffer : access Buffer_Type)
-     return Tagged_Component_List
+     (Buffer : access Buffer_Type) return Tagged_Component_List
    is
       Components : Tagged_Component_List := Null_Tagged_Component_List;
       Length     : Types.Unsigned_Long;
@@ -283,8 +282,8 @@ package body PolyORB.GIOP_P.Tagged_Components is
          declare
             use PolyORB.Errors;
 
-            TC : Tagged_Component_Access;
-            Tag : Tag_Value;
+            TC    : Tagged_Component_Access;
+            Tag   : Tag_Value;
             Error : Error_Container;
          begin
             Tag := Tag_Value (Types.Unsigned_Long'(Unmarshall (Buffer)));
@@ -342,8 +341,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    function Get_Component
      (List : Tagged_Component_List;
-      Tag  : Tag_Value)
-     return Tagged_Component_Access
+      Tag  : Tag_Value) return Tagged_Component_Access
    is
       use type PolyORB.Types.Unsigned_Long;
 
@@ -371,8 +369,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
    function Get_Components
      (List : Tagged_Component_List;
-      Tag  : Tag_Value)
-     return Tagged_Component_Array
+      Tag  : Tag_Value) return Tagged_Component_Array
    is
       It     : Iterator := First (List);
       Result : Tagged_Component_Array (1 .. Length (List));
@@ -400,8 +397,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ----------------------
 
    function Fetch_Components
-     (Oid : access PolyORB.Objects.Object_Id)
-     return Tagged_Component_List
+     (Oid : access PolyORB.Objects.Object_Id) return Tagged_Component_List
    is
       Result : Tagged_Component_List;
       New_Component : Tagged_Component_Access;
@@ -463,8 +459,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ---------------
 
    function Deep_Copy
-     (List : Tagged_Component_List)
-     return Tagged_Component_List
+     (List : Tagged_Component_List) return Tagged_Component_List
    is
       Result : Tagged_Component_List;
       Iter : Iterator := First (List);

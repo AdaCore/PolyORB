@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -70,7 +70,32 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    use Entity_Stack;
 
-   procedure New_Operator (O : Operator_Type; I : String := "");
+   --  The following strings are included in internally generated identifiers
+   --  to create names that are guaranteed never to clash with any legal
+   --  IDL identifier.
+
+   Latin_1_Unique_String : constant String :=
+                             (1 => Character'Val (16#DC#));
+   Latin_1_Unique_Suffix : aliased constant String :=
+                             "_" & Latin_1_Unique_String;
+   Latin_1_Unique_Infix  : aliased constant String :=
+                             Latin_1_Unique_Suffix & "_";
+
+   UTF_8_Unique_String : constant String :=
+                           (Character'Val (16#C3#), Character'Val (16#9C#));
+   UTF_8_Unique_Suffix : aliased constant String :=
+                           "_" & UTF_8_Unique_String;
+   UTF_8_Unique_Infix  : aliased constant String :=
+                           UTF_8_Unique_Suffix & "_";
+
+   --  The following are returned by the Unique_Suffix and Unique_Infix
+   --  functions. We initialize them to the default Latin_1 values, and if
+   --  -gnatW8 is given on the command line, they get set to the UTF_8 values.
+
+   The_Unique_Suffix : access constant String := Latin_1_Unique_Suffix'Access;
+   The_Unique_Infix  : access constant String := Latin_1_Unique_Infix'Access;
+
+   procedure New_Operator (Op : Operator_Type; I : String := "");
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
    pragma Inline (Internal_Name);
@@ -176,7 +201,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          if No (U) then
             if Output_Tree_Warnings then
                Write_Str  ("WARNING: node ");
-               Write_Name (Name (Defining_Identifier (E)));
+               Write_Name (Name (E));
                Write_Line (" has a null corresponding node");
             end if;
 
@@ -190,13 +215,13 @@ package body Backend.BE_CORBA_Ada.Nutils is
          pragma Assert (Kind (U) = K_Package_Specification
                         or else Kind (U) = K_Package_Instantiation);
 
-         --  This is a subunit and we do not need to add a with for
-         --  this unit but for one of its parents. If the kind of the
-         --  parent unit name is a K_Package_Instantiation, we
-         --  consider it as a subunit.
+         --  This is a nested package and we do not need to add a with for this
+         --  unit but for one of its parents. If the kind of the parent unit
+         --  name is a K_Package_Instantiation, we consider it as a nested
+         --  package.
 
          if Kind (U) = K_Package_Instantiation
-           or else Is_Subunit_Package (U)
+           or else Is_Nested_Package (U)
          then
             U := Get_Parent_Unit_Name (E);
 
@@ -294,11 +319,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       N := Fully_Qualified_Name (P);
 
-      if Is_Subunit_Package
+      if Is_Nested_Package
         (Package_Specification (Package_Declaration (Current_Package)))
       then
-         --  The package is a subunit of another package, uses its
-         --  parent's name.
+         --  The package is a nested within another package, uses its parent's
+         --  name.
 
          I := Get_Parent_Unit_Name
            (Defining_Identifier
@@ -389,6 +414,20 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Set_Last_Node (L, Last);
    end Append_To;
+
+   ----------------
+   -- Prepend_To --
+   ----------------
+
+   procedure Prepend_To (L : List_Id; E : Node_Id) is
+   begin
+      pragma Assert (No (Next_Node (E)));
+      Set_Next_Node (E, First_Node (L));
+      Set_First_Node (L, E);
+      if No (Last_Node (L)) then
+         Set_Last_Node (L, E);
+      end if;
+   end Prepend_To;
 
    -------------
    -- Convert --
@@ -493,6 +532,24 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return C;
    end Copy_Node;
+
+   -------------------
+   -- Unique_Suffix --
+   -------------------
+
+   function Unique_Suffix return String is
+   begin
+      return The_Unique_Suffix.all;
+   end Unique_Suffix;
+
+   ------------------
+   -- Unique_Infix --
+   ------------------
+
+   function Unique_Infix return String is
+   begin
+      return The_Unique_Infix.all;
+   end Unique_Infix;
 
    --------------------------
    -- Get_Declaration_Node --
@@ -701,8 +758,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       end if;
 
       D := Make_Selected_Component
-        (Expand_Designator (P, False),
-         Get_Base_Identifier (D));
+        (Expand_Designator (P, False), Get_Base_Identifier (D));
       P := Get_Parent_Unit_Name (D);
 
       --  Adding the with clause
@@ -801,8 +857,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Image --
    -----------
 
-   function Image (O : Operator_Type) return String is
-      S : String := Operator_Type'Image (O);
+   function Image (Op : Operator_Type) return String is
+      S : String := Operator_Type'Image (Op);
    begin
       To_Lower (S);
 
@@ -981,7 +1037,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       for V in Variable_Id loop
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-         Add_Str_To_Name_Buffer (Var_Suffix);
+         Add_Str_To_Name_Buffer (Unique_Suffix);
          GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
@@ -1008,10 +1064,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Set_Str_To_Name_Buffer ("CORBA");
       CORBA_Name := Name_Find;
+
       Set_Str_To_Name_Buffer ("Repository_Root");
       Repository_Root_Name := Name_Find;
+
       Set_Str_To_Name_Buffer ("IDL_Sequences");
       IDL_Sequences_Name := Name_Find;
+
+      Set_Str_To_Name_Buffer ("DomainManager");
+      DomainManager_Name := Name_Find;
    end Initialize;
 
    --------------
@@ -1100,9 +1161,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
    --------------------------------
 
    function Make_Array_Type_Definition
-     (Range_Constraints    : List_Id;
-      Component_Definition : Node_Id;
-      Index_Definition     : Node_Id := No_Node)
+     (Range_Constraints     : List_Id;
+      Component_Definition  : Node_Id;
+      Index_Definition      : Node_Id := No_Node;
+      Index_Def_Constrained : Boolean := False)
      return Node_Id
    is
       N : Node_Id;
@@ -1111,6 +1173,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Range_Constraints (N, Range_Constraints);
       Set_Component_Definition (N, Component_Definition);
       Set_Index_Definition (N, Index_Definition);
+      Set_Index_Def_Constrained (N, Index_Def_Constrained);
       return N;
    end Make_Array_Type_Definition;
 
@@ -1327,7 +1390,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Record_Extension_Part : Node_Id := No_Node;
       Is_Abstract_Type      : Boolean := False;
       Is_Private_Extension  : Boolean := False;
-      Is_Subtype            : Boolean := False)
+      Is_Subtype            : Boolean := False;
+      Opt_Range             : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -1338,6 +1402,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Subtype_Indication (N, Subtype_Indication);
       Set_Record_Extension_Part (N, Record_Extension_Part);
       Set_Is_Subtype (N, Is_Subtype);
+      Set_Range_Opt (N, Opt_Range);
       return N;
    end Make_Derived_Type_Definition;
 
@@ -1606,9 +1671,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------------------
 
    function Make_Literal_With_Parent
-     (Value  : Value_Id;
-      Parent : Node_Id  := No_Node)
-     return Node_Id
+     (Value  : Value_Id; Parent : Node_Id) return Node_Id
    is
       N : Node_Id := New_Node (K_Literal);
 
@@ -1752,7 +1815,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Make_Comment_Header (Context_Clause (Pkg), Identifier);
 
       Set_Visible_Part (Pkg, New_List);
-      Set_Subunits (Pkg, New_List);
+      Set_Nested_Packages (Pkg, New_List);
       Set_Private_Part (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
@@ -2354,16 +2417,16 @@ package body Backend.BE_CORBA_Ada.Nutils is
    ------------------
 
    procedure New_Operator
-     (O : Operator_Type;
+     (Op : Operator_Type;
       I : String := "") is
    begin
-      if O in Keyword_Operator then
-         Set_Str_To_Name_Buffer (Image (O));
+      if Op in Keyword_Operator then
+         Set_Str_To_Name_Buffer (Image (Op));
       else
          Set_Str_To_Name_Buffer (I);
       end if;
 
-      Operator_Image (Operator_Type'Pos (O)) := Name_Find;
+      Operator_Image (Operator_Type'Pos (Op)) := Name_Find;
    end New_Operator;
 
    ----------------
@@ -2781,5 +2844,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       return The_List;
    end Get_GList;
+
+   ------------------------
+   -- Set_UTF_8_Encoding --
+   ------------------------
+
+   procedure Set_UTF_8_Encoding is
+   begin
+      The_Unique_Suffix := UTF_8_Unique_Suffix'Access;
+      The_Unique_Infix  := UTF_8_Unique_Infix'Access;
+   end Set_UTF_8_Encoding;
 
 end Backend.BE_CORBA_Ada.Nutils;

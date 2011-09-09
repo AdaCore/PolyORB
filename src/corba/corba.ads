@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -765,7 +765,8 @@ package CORBA is
          function Build_Wstring_TC (Max : CORBA.Unsigned_Long) return Object;
          --  ??? Should use CORBA.ORB.Create_*_Tc instead of these
 
-         function Wrap (X : access Object) return PolyORB.Any.Content'Class;
+         function Wrap
+           (X : not null access Object) return PolyORB.Any.Content'Class;
 
       private
          pragma Inline (To_PolyORB_Object);
@@ -878,24 +879,24 @@ package CORBA is
 
    subtype Content is PolyORB.Any.Content;
 
-   function Wrap (X : access Short)              return Content'Class;
-   function Wrap (X : access Long)               return Content'Class;
-   function Wrap (X : access Long_Long)          return Content'Class;
-   function Wrap (X : access Unsigned_Short)     return Content'Class;
-   function Wrap (X : access Unsigned_Long)      return Content'Class;
-   function Wrap (X : access Unsigned_Long_Long) return Content'Class;
-   function Wrap (X : access CORBA.Float)        return Content'Class;
-   function Wrap (X : access Double)             return Content'Class;
-   function Wrap (X : access Long_Double)        return Content'Class;
-   function Wrap (X : access Boolean)            return Content'Class;
-   function Wrap (X : access Char)               return Content'Class;
-   function Wrap (X : access Wchar)              return Content'Class;
-   function Wrap (X : access Octet)              return Content'Class;
-   --  function Wrap (X : access Any)                return Content'Class;
+   function Wrap (X : not null access Short)              return Content'Class;
+   function Wrap (X : not null access Long)               return Content'Class;
+   function Wrap (X : not null access Long_Long)          return Content'Class;
+   function Wrap (X : not null access Unsigned_Short)     return Content'Class;
+   function Wrap (X : not null access Unsigned_Long)      return Content'Class;
+   function Wrap (X : not null access Unsigned_Long_Long) return Content'Class;
+   function Wrap (X : not null access CORBA.Float)        return Content'Class;
+   function Wrap (X : not null access Double)             return Content'Class;
+   function Wrap (X : not null access Long_Double)        return Content'Class;
+   function Wrap (X : not null access Boolean)            return Content'Class;
+   function Wrap (X : not null access Char)               return Content'Class;
+   function Wrap (X : not null access Wchar)              return Content'Class;
+   function Wrap (X : not null access Octet)              return Content'Class;
+   --  function Wrap (X : not null access Any)            return Content'Class;
    --  Implicitly inherited
-   function Wrap (X : access TypeCode.Object)    return Content'Class;
-   function Wrap (X : access CORBA.String)       return Content'Class;
-   function Wrap (X : access CORBA.Wide_String)  return Content'Class;
+   function Wrap (X : not null access TypeCode.Object)    return Content'Class;
+   function Wrap (X : not null access CORBA.String)       return Content'Class;
+   function Wrap (X : not null access CORBA.Wide_String)  return Content'Class;
    pragma Inline (Wrap);
 
    ----------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 with "polyorb_common", "polyorb_src", "polyorb_src_corba", "polyorb_cos_event";
 
-project PolyORB_idls_cos_notification is
+library project PolyORB_idls_cos_notification is
 
    Dir := "idls/cos/notification";
    Obj_Dir := PolyORB_Common.Build_Dir & Dir;
@@ -43,7 +43,7 @@ project PolyORB_idls_cos_notification is
    for Library_Name use "polyorb-corba-cos-notification";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/idls_cos_notification";
-   for Library_Kind use "static";
+   for Library_Kind use PolyORB_Common.Library_Kind;
 
    package Compiler is
 

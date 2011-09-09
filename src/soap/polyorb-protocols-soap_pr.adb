@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,7 +74,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    procedure Initialize;
 
-   procedure Process_Reply (S   : access SOAP_Session);
+   procedure Process_Reply (S : access SOAP_Session);
    --  ??? comment needed
 
    -------------------
@@ -86,7 +86,9 @@ package body PolyORB.Protocols.SOAP_Pr is
       R : Requests.Request_Access)
    is
    begin
-      raise Program_Error;
+      --  Can't abort a pending request with SOAP
+
+      null;
    end Abort_Request;
 
    ------------
@@ -141,6 +143,10 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             function Path_To_Oid (Path : Types.String)
               return Objects.Object_Id_Access;
+
+            -----------------
+            -- Path_To_Oid --
+            -----------------
 
             function Path_To_Oid (Path : Types.String)
               return Objects.Object_Id_Access
@@ -200,7 +206,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             if Found (Unmarshall_Error) then
                System_Exception_Members
                  (Unmarshall_Error.Member.all).Completed := Completed_No;
-               Set_Exception (Req, Unmarshall_Error);
+               Set_Exception (Req.all, Unmarshall_Error);
                Req.Completed := True;
                Catch (Unmarshall_Error);
             end if;
@@ -265,7 +271,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       if S.Pending_Rq /= null then
          P := S.Pending_Rq;
          S.Pending_Rq := null;
-         Set_Exception (P, Error);
+         Set_Exception (P.all, Error);
 
          --  After the following call, S may become invalid
 
@@ -293,9 +299,8 @@ package body PolyORB.Protocols.SOAP_Pr is
    --------------------
 
    function Handle_Message
-     (Sess : access SOAP_Session;
-      S : Components.Message'Class)
-     return Components.Message'Class
+     (Sess : not null access SOAP_Session;
+      S    : Components.Message'Class) return Components.Message'Class
    is
       use PolyORB.Protocols;
 
@@ -355,9 +360,9 @@ package body PolyORB.Protocols.SOAP_Pr is
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class)
    is
-      P : PolyORB.SOAP_P.Message.Payload.Object;
+      P    : PolyORB.SOAP_P.Message.Payload.Object;
       SPro : Binding_Data.SOAP.SOAP_Profile_Type'Class
-        renames Binding_Data.SOAP.SOAP_Profile_Type'Class (Pro.all);
+               renames Binding_Data.SOAP.SOAP_Profile_Type'Class (Pro.all);
    begin
       pragma Assert (S.Pending_Rq = null);
       S.Pending_Rq := R;
@@ -398,14 +403,14 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Process_Reply --
    -------------------
 
-   procedure Process_Reply (S   : access SOAP_Session)
+   procedure Process_Reply (S : access SOAP_Session)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      R : constant Requests.Request_Access := S.Pending_Rq;
+      R           : constant Requests.Request_Access := S.Pending_Rq;
       Return_Args : PolyORB.Any.NVList.Ref;
       --  This is an empty NVList, since SOAP is a self-described
       --  protocol. Thus it can fill the returned arguments by itself
@@ -444,7 +449,7 @@ package body PolyORB.Protocols.SOAP_Pr is
                Argument  => Res.Argument,
                Arg_Modes => ARG_OUT);
          else
-            Move_Any_Value (R.Result.Argument, Res.Argument);
+            Copy_Any_Value (R.Result.Argument, Res.Argument);
          end if;
       end;
       --  Some applicative personnalities, like AWS, do not specify
@@ -452,6 +457,10 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  CORBA. So we either copy the any data if the type of the
       --  namedvalue is specified, or simply set the namedvalue if its
       --  type is not specified.
+
+      --  Also note that R.Result.Argument may be a wrapper any, in which case
+      --  we must copy the value in place (instead of changing the Any's
+      --  contents pointer to designate the contents provided by Res.Argument).
 
       --  XXX We should consider changing this, by moving this kind of
       --  mechanism into the neutral layer. Thus, protocol

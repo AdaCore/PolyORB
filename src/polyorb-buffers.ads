@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -148,8 +148,7 @@ package PolyORB.Buffers is
    --  new buffers are set to the initial CDR position of the
    --  source.
 
-   procedure Release
-     (A_Buffer : in out Buffer_Access);
+   procedure Release (A_Buffer : in out Buffer_Access);
    --  Release the contents of A_Buffer and the associated control
    --  structures when they won't be used anymore.
    --  On return, A_Buffer is set to null.
@@ -310,8 +309,8 @@ package PolyORB.Buffers is
       --  actually received.
    procedure Receive_Buffer
      (Buffer   : access Buffer_Type;
-      Max      :        Ada.Streams.Stream_Element_Count;
-      Received :    out Ada.Streams.Stream_Element_Count);
+      Max      : Ada.Streams.Stream_Element_Count;
+      Received : out Ada.Streams.Stream_Element_Count);
    --  Received at most Max octets of data into Buffer at current position.
    --  On return, Received is set to the effective amount of data received.
    --  The current position is unchanged.

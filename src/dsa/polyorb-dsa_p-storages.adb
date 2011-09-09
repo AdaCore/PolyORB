@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . D S A _ P . S T O R A G E S               --
+--               P O L Y O R B . D S A _ P . S T O R A G E S                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008, Free Software Foundation, Inc.               --
+--         Copyright (C) 2008-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 pragma Ada_2005;
+
+with Ada.Exceptions;
 
 with GNAT.HTable;
 with GNAT.OS_Lib;
@@ -59,7 +61,7 @@ package body PolyORB.DSA_P.Storages is
       Key        => OS.String_Access,
       Hash       => Hash,
       Equal      => Equal);
-   --  Hash table containing shared variable managers of the local partiton.
+   --  Hash table containing shared variable managers of the local partition
 
    function Extract_Pkg_Name (Var_Name : String) return String;
    --  Var_Name is a fully qualified variable string name. Remove suffix
@@ -154,20 +156,29 @@ package body PolyORB.DSA_P.Storages is
       pragma Debug (C, O ("lookup variable " & Var_Name));
       Enter (Critical_Section);
 
-      --  Try to find a manager for shared variable Var_Name
+      begin
+         --  Try to find a manager for shared variable Var_Name
 
-      Var_Data := SST.Get (Var_Name'Unrestricted_Access);
-      if Var_Data = null then
+         Var_Data := SST.Get (Var_Name'Unrestricted_Access);
+         if Var_Data = null then
 
-         --  Manager for this variable isn't created yet,
-         --  so search a manager factory.
+            --  Manager for this variable isn't created yet,
+            --  so search a manager factory.
 
-         Lookup_Package (Extract_Pkg_Name (Var_Name), Pkg_Data);
-         Var_Data := Create (Pkg_Data, Var_Name);
-         SST.Set (new String'(Var_Name), Var_Data);
-      end if;
+            Lookup_Package (Extract_Pkg_Name (Var_Name), Pkg_Data);
+            Var_Data := Create (Pkg_Data, Var_Name);
+            SST.Set (new String'(Var_Name), Var_Data);
+         end if;
 
-      Leave (Critical_Section);
+         Leave (Critical_Section);
+      exception
+         when E : others =>
+            pragma Debug
+              (C, O ("Lookup_Variable: got exception "
+                     & Ada.Exceptions.Exception_Information (E)));
+            Leave (Critical_Section);
+            raise;
+      end;
    end Lookup_Variable;
 
    ----------------------
@@ -181,16 +192,20 @@ package body PolyORB.DSA_P.Storages is
       Old_Factory  : Shared_Data_Manager_RACW;
 
    begin
-      --  Don't register factory if already exists
-
+      pragma Debug (C, O ("Register_Factory: enter"));
       Enter (Critical_Section);
       Old_Factory := SST.Get (Factory_Name'Unrestricted_Access);
       if Old_Factory = null then
          SST.Set (new String'(Factory_Name), Factory_Data);
+         Leave (Critical_Section);
+      else
+         Leave (Critical_Section);
+         raise Program_Error with "duplicate factory " & Factory_Name;
       end if;
-      Leave (Critical_Section);
+      pragma Debug (C, O ("Register_Factory: leave"));
    end Register_Factory;
 
 begin
+   pragma Debug (C, O ("Create critical section"));
    Create (Critical_Section);
 end PolyORB.DSA_P.Storages;

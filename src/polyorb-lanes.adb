@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,7 +52,7 @@ package body PolyORB.Lanes is
    -- Run --
    ---------
 
-   procedure Run (R : access Lane_Runnable) is
+   procedure Run (R : not null access Lane_Runnable) is
    begin
       pragma Debug (C, O ("Entering lane's main loop"));
 
@@ -292,7 +292,7 @@ package body PolyORB.Lanes is
       RJ : PolyORB.ORB.Request_Job renames PolyORB.ORB.Request_Job (J.all);
 
       Parameter : constant QoS_Parameter_Access
-        := Extract_Request_Parameter (Static_Priority, RJ.Request);
+        := Extract_Request_Parameter (Static_Priority, RJ.Request.all);
 
       Queuing_Priority : External_Priority;
 
@@ -304,7 +304,7 @@ package body PolyORB.Lanes is
          Queuing_Priority := QoS_Static_Priority (Parameter.all).EP;
 
          Add_Reply_QoS
-           (RJ.Request,
+           (RJ.Request.all,
             Static_Priority,
             new QoS_Parameter'Class'(Parameter.all));
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2008, Free Software Foundation, Inc.            --
+--         Copyright (C) 2008-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,20 +30,24 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with PolyORB.Parameters.Static;
 use  PolyORB.Parameters.Static;
 
 --  Static configuration of PolyORB
+
 package PO_Static_Conf is
 
-   --  Strings can be completely static (no need to import memory management
-   --   symbols), or dynamic to ease editing.
+   --  Strings can be completely static (no need to for dynamic memory
+   --  allocation.
 
-   --  Parameters
+   --  Parameter names
+
    uipmc   : aliased constant String := "[access_points]uipmc";
    srp     : aliased constant String := "[access_points]srp";
 
    --  Values
+
    enable  : aliased constant String := "enable";
    disable : aliased constant String := "disable";
 
@@ -51,22 +55,25 @@ package PO_Static_Conf is
    --  different configuration options.
 
    Static_Parameters : constant Static_Parameter_Array := (
+
    --  Parameters for tasking
---       (new String'("[tasking]max_threads"), new String'("25")),
+--    (new String'("[tasking]max_threads"), new String'("25")),
 
    --  Enable/Disable access points
---       (new String'("[access_points]iiop"),  disable'Access),
---       (srp'Access,                          enable'Access),
+--    (new String'("[access_points]iiop"),  disable'Access),
+--    (srp'Access,                          enable'Access),
       (uipmc'Access,                        disable'Access),
 
       --  This MUST be the last element of the array:
+
       (null, null)
    );
 
    --  The package and variables can have any name, but the array must be
    --  exported with the following Convetion and External name:
+
    pragma Export (Convention    => Ada,
                   Entity        => Static_Parameters,
-                  External_Name => "__PolyORB_static_parameters");
+                  External_Name => Static_Parameters_Link_Name);
 
 end PO_Static_Conf;

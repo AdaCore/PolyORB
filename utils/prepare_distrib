@@ -87,7 +87,11 @@ sed_in_place() {
 # Switch default warnings mode to "n" (default is "e" when building from
 # a checkout).
 
-echo "define(DEFAULT_WARNINGS_MODE, [n])"
+echo "define([DEFAULT_WARNINGS_MODE], [n])"
+
+# Strip binaries when installing in non-debug mode
+
+echo "define([STRIP_PRODUCTION_BINARIES], [true])"
 
 # Release name override and additional version information from command line
 
@@ -107,6 +111,11 @@ fi
 # Use MANIFEST to filter output files
 
 echo "define([OUTPUT_FILTER],[MANIFEST])"
+
+# Define longest file name (configure will check its presence)
+longest_file_name=`awk 'BEGIN{max=""}{if (length($0) > length(max)) {max=$0}}END{print max}' < MANIFEST`
+echo "define([LONGEST_FILE_NAME],[$longest_file_name])"
+
 ) > support/distrib.m4
 
 echo support/distrib.m4 >> MANIFEST.distrib

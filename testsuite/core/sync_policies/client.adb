@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -104,8 +104,7 @@ procedure Client is
 
       PolyORB.ORB.Run
         (PolyORB.Setup.The_ORB,
-         (Condition => Req.Completed'Access,
-          Task_Info => Req.Requesting_Task'Access),
+         Request  => Req,
          May_Exit => True);
    end Issue_Request;
 

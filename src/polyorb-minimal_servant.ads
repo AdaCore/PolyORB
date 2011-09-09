@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A Minimal_Servant is servant independant from any application
 --  personalities. It allows the creation of servants on top of PolyORB's
 --  neutral core layer.
@@ -43,7 +45,6 @@
 --  to write Invoke function corresponding to your servant.
 --  This allows you to precisely control the servants created.
 
-with PolyORB.Components;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Smart_Pointers.Controlled_Entities;
@@ -53,6 +54,8 @@ package PolyORB.Minimal_Servant is
 
    pragma Elaborate_Body;
 
+   Discard_Request : exception;
+
    type Servant is abstract new Smart_Pointers.Controlled_Entities.Entity
      with private;
 
@@ -60,24 +63,25 @@ package PolyORB.Minimal_Servant is
 
    function Execute_Servant
      (Self : not null access Servant;
-      Msg  : Components.Message'Class) return Components.Message'Class;
+      Req  : Requests.Request_Access) return Boolean;
 
    function To_PolyORB_Servant (S : access Servant)
      return PolyORB.Servants.Servant_Access;
 
    procedure Invoke
      (Self    : access Servant;
-      Request : PolyORB.Requests.Request_Access)
-      is abstract;
+      Request : PolyORB.Requests.Request_Access) is abstract;
+   --  Run Request. If Discard_Request is raised, no further processing is
+   --  done (no reply sent to caller).
 
 private
 
    type Implementation (As_Servant : access Servant'Class) is
      new Servants.Servant with null record;
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Implementation;
-      Msg  : Components.Message'Class) return Components.Message'Class;
+      Req  : Requests.Request_Access) return Boolean;
 
    type Servant is abstract new Smart_Pointers.Controlled_Entities.Entity
    with record

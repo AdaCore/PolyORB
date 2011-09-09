@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -254,19 +254,16 @@ package body PolyORB.CORBA_P.Exceptions is
    -- Request_Raise_Occurrence --
    ------------------------------
 
-   procedure Request_Raise_Occurrence (R : in out Requests.Request_Access) is
+   procedure Request_Raise_Occurrence (R : Requests.Request) is
    begin
       if not Any.Is_Empty (R.Exception_Info) then
          declare
-            Exception_Occurrence : constant Any.Any := R.Exception_Info;
-            Exception_Information :
-              constant String :=
-                PolyORB.QoS.Exception_Informations.
-                  Get_Exception_Information (R);
+            Exception_Occurrence  : constant Any.Any := R.Exception_Info;
+            Exception_Information : constant String :=
+                                      PolyORB.QoS.Exception_Informations.
+                                        Get_Exception_Information (R);
             Last : Integer;
          begin
-            Requests.Destroy_Request (R);
-
             --  Truncate exception information to first 150 characters
 
             if Exception_Information'Length <= 150 then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -386,6 +386,29 @@ begin
             Output ("test fixed point", False);
       end;
 
+      --  Any
+
+      declare
+         X1 : constant CORBA.Unsigned_Long := 1234;
+         Y1 : CORBA.Unsigned_Long;
+
+         X2 : BoundedStr := BoundedStr (Bounded_String_12.Null_Bounded_String);
+         Y2 : BoundedStr;
+      begin
+         Y1 := From_Any (echoAny (Myall_types, To_Any (X1)));
+         Output ("test any<unsigned long>", Y1 = X1);
+
+         for Index in 1 .. 12 loop
+            X2 := X2 & Character'Val (Character'Pos ('A') + Index - 1);
+         end loop;
+         Y2 := All_Types.Helper.From_Any
+                 (echoAny (Myall_types, All_Types.Helper.To_Any (X2)));
+         Output ("test any<bounded string>", Y2 = X2);
+      exception
+         when others =>
+            Output ("test any", False);
+      end;
+
       --  Structs
       declare
          Test_Struct : constant simple_struct
@@ -452,9 +475,8 @@ begin
          Pass : Boolean;
       begin
          for J in Test_Unions'Range loop
-            Pass := echoUnion (Myall_types, Test_Unions (J))
-              = Test_Unions (J);
-            Output ("test union " & Test_Unions (J).Switch'Img, Pass);
+            Pass := echoUnion (Myall_types, Test_Unions (J)) = Test_Unions (J);
+            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
          end loop;
       exception
          when others =>

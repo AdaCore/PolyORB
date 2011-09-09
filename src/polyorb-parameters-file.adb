@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,7 +115,9 @@ package body PolyORB.Parameters.File is
    procedure Load_Configuration_File (Conf_File_Name : String) is
    begin
       PolyORB.Utils.Configuration_File.Load_Configuration_Table
-        (Conf_File_Name, Configuration_Table);
+        (Conf_File_Name,
+         Conf_File_Name = PolyORB_Conf_Default_Filename,
+         Configuration_Table);
    end Load_Configuration_File;
 
    -----------------------------

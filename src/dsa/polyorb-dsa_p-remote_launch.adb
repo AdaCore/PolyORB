@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,10 @@
 
 with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 with Ada.Strings.Maps;
 
+with GNAT.Expect;
 with GNAT.OS_Lib;
 
 with PolyORB.Initialization;
@@ -68,7 +70,7 @@ package body PolyORB.DSA_P.Remote_Launch is
    --  This is a no-op on non-Windows systems.
 
    function Escape_Spaces (S : String) return String;
-   --  Protect shell metacharacters in S with an \
+   --  Protect spaces and shell metacharacters in S with a backslash
    --  ??? Assumes a UNIX shell
 
    procedure Initialize;
@@ -162,19 +164,64 @@ package body PolyORB.DSA_P.Remote_Launch is
    procedure Launch_Partition
      (Host : String; Command : String; Env_Vars : String)
    is
-      U_Command : constant String := Escape_Spaces (Windows_To_Unix (Command));
+      U_Command : constant String :=
+                    Escape_Spaces (Windows_To_Unix (Command))
+                                     & " --polyorb-dsa-name_service="
+                                     & Get_Conf ("dsa", "name_service", "");
       Pid       : Process_Id;
       pragma Unreferenced (Pid);
 
+      Remote_Host : String_Access;
    begin
       pragma Debug (C, O ("Launch_Partition: enter"));
 
       --  ??? This is implemented assuming a UNIX-like shell on both the master
-      --  and the slave hosts. This should be made more portable.
+      --  and the slave hosts. This should be made more portable. If the
+      --  configuration file specified a shell script for the 'Host, then the
+      --  Host will look like `shell-script blah` (using back-quote notation),
+      --  so we have to strip off the back-quotes, and split it into command
+      --  name and arguments. We're using Argument_String_To_List to split off
+      --  the command name as well, which is also kludgy.
+
+      if Host (Host'First) = '`' then
+         declare
+            Argv : Argument_List_Access :=
+              Argument_String_To_List (Host (Host'First + 1 .. Host'Last - 1));
+            Command   : String renames Argv (Argv'First).all;
+            --  First "argument" found by Argument_String_To_List is the name
+            --  of the shell script.
+            Arguments : constant Argument_List (1 .. Argv'Length - 1) :=
+              Argv (2 .. Argv'Last);
+            --  Get_Command_Output requires a 1-based array, so we need to
+            --  slide Arguments.
+            Status    : aliased Integer;
+         begin
+            Remote_Host :=
+              new String'(GNAT.Expect.Get_Command_Output
+                            (Command,
+                             Arguments,
+                             Input => "",
+                             Status => Status'Access));
+            if Status /= 0 then
+               raise Program_Error with "Unable to launch " & Command;
+            end if;
+            for J in Argv'Range loop
+               Free (Argv (J));
+            end loop;
+            Free (Argv);
+         end;
+
+      --  Otherwise (no back-quote), we can just use Host as is.
+
+      else
+         Remote_Host := new String'(Host);
+      end if;
+
+      pragma Debug (C, O ("Remote_Host: " & Remote_Host.all));
 
       --  Local spawn
 
-      if Host (Host'First) /= '`' and then Is_Local_Host (Host) then
+      if Is_Local_Host (Remote_Host.all) then
 
          declare
             Args : Argument_List :=
@@ -190,7 +237,7 @@ package body PolyORB.DSA_P.Remote_Launch is
       --  Remote spawn
 
       else
-         declare
+         Remote_Spawn : declare
             function Expand_Env_Vars (Vars : String) return String;
             --  Given a space separated list of environment variable names,
             --  return a space separated list of assigments of the form:
@@ -198,60 +245,70 @@ package body PolyORB.DSA_P.Remote_Launch is
 
             function Expand_Env_Vars (Vars : String) return String is
                use Ada.Environment_Variables;
+               use Ada.Strings.Unbounded;
+
                First, Last : Integer;
+               Result : Unbounded_String;
             begin
                First := Vars'First;
 
-               --  Find first character of name
-
-               while First <= Env_Vars'Last
-                       and then Env_Vars (First) = ' '
                loop
-                  First := First + 1;
+                  --  Find first character of name
+
+                  while First <= Env_Vars'Last
+                          and then Env_Vars (First) = ' '
+                  loop
+                     First := First + 1;
+                  end loop;
+                  exit when First > Env_Vars'Last;
+
+                  --  Find last character of name
+
+                  Last := First;
+                  while Last < Env_Vars'Last
+                          and then Env_Vars (Last + 1) /= ' '
+                  loop
+                     Last := Last + 1;
+                  end loop;
+
+                  declare
+                     Var_Name : String renames Vars (First .. Last);
+                  begin
+                     if Exists (Var_Name) then
+                        if Length (Result) = 0 then
+                           Result := To_Unbounded_String ("env ");
+                        end if;
+                        Result := Result &
+                                  Var_Name & "='" & Value (Var_Name) & "' ";
+                     end if;
+                  end;
+
+                  First := Last + 1;
                end loop;
-               if First > Env_Vars'Last then
-                  return "";
-               end if;
-
-               --  Find last character of name
-
-               Last := First;
-               while Last < Env_Vars'Last
-                       and then Env_Vars (Last + 1) /= ' '
-               loop
-                  Last := Last + 1;
-               end loop;
-
-               declare
-                  Var_Name : String renames Vars (First .. Last);
-                  Rest     : String renames
-                               Expand_Env_Vars (Vars (Last + 1 .. Vars'Last));
-               begin
-                  if Exists (Var_Name) then
-                     return Var_Name & "='" & Value (Var_Name) & "' " & Rest;
-                  else
-                     return Rest;
-                  end if;
-               end;
+               return To_String (Result);
             end Expand_Env_Vars;
 
-            Remote_Host    : String_Access := new String'(Host);
             Remote_Command : String_Access :=
                                new String'(Expand_Env_Vars (Env_Vars)
                                              & U_Command
                                              & " --polyorb-dsa-detach");
+
+         --  Start of processing for Remote_Spawn
+
          begin
             pragma Debug
               (C, O ("Enter Spawn (remote: "
-                     & Rsh_Command.all & " " & Rsh_Options.all & Host & "): "
-                     & Remote_Command.all));
+                       & Rsh_Command.all & " "
+                       & Rsh_Options.all
+                       & Remote_Host.all & "): "
+                       & Remote_Command.all));
             Pid := Non_Blocking_Spawn
                      (Rsh_Command.all,
                       Remote_Host & Rsh_Args.all & Remote_Command);
-            Free (Remote_Host);
             Free (Remote_Command);
-         end;
+         end Remote_Spawn;
       end if;
+      Free (Remote_Host);
 
       pragma Debug (C, O ("Launch_Partition: leave"));
    end Launch_Partition;

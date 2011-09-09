@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,7 +115,7 @@ package PolyORB.Log is
 
 private
 
-   procedure Flush;
+   procedure Initialize;
    --  During early initialization (before the logging and configuration
    --  modules are properly initialized), messages are stored in a buffer.
    --  This procedure is called when logging is initialized to process

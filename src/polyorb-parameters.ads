@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +34,8 @@
 --  PolyORB runtime configuration facility.
 
 pragma Ada_2005;
+
+with PolyORB.Utils;
 
 package PolyORB.Parameters is
 
@@ -79,9 +81,7 @@ package PolyORB.Parameters is
    --  representation of an integer number.
    --  Constraint_Error is raised if the value is set to anything else.
 
-   type Interval is record
-      Lo, Hi : Integer;
-   end record;
+   subtype Interval is Utils.Interval;
 
    function Get_Conf
      (Section, Key : String;

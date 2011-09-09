@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,11 +86,6 @@ package PolyORB.Binding_Data.SOAP is
 
    function Image (Prof : SOAP_Profile_Type) return String;
    --  Represent Prof as a string, for debugging purposes.
-
-   function Get_OA
-     (Profile : SOAP_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr;
-   pragma Inline (Get_OA);
 
    ----------------------------
    -- SOAP profile factories --

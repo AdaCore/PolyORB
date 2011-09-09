@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,6 +52,7 @@ with Ada.Unchecked_Conversion;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.Platform;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
@@ -91,8 +92,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end record;
 
    function Get_Thread_Id
-     (T : access Full_Tasking_Thread_Type)
-     return PTT.Thread_Id;
+     (T : access Full_Tasking_Thread_Type) return PTT.Thread_Id;
 
    type Full_Tasking_Thread_Access
       is access all Full_Tasking_Thread_Type'Class;
@@ -111,12 +111,21 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end record;
    --  Simplified runnable for parameterless procedure
 
-   procedure Run (SR : access Simple_Runnable);
+   procedure Run (SR : not null access Simple_Runnable);
 
-   task Reaper is
+   --  WAG:642
+   --  For older compilers, we need a separate Reaper task to purge terminated
+   --  generic tasks. (In newer versions, we can just mark them to be freed
+   --  automatically upon termination, see NF-65-H911-007).
+
+   task type Reaper is
       entry Free (GT : Generic_Task_Access);
       --  Busy-wait for the designated task to terminate, then free it
    end Reaper;
+
+   ------------
+   -- Reaper --
+   ------------
 
    task body Reaper is
       Terminated_Task : Generic_Task_Access;
@@ -149,6 +158,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       end loop;
    end Reaper;
 
+   The_Reaper : access Reaper;
+
    --------------------
    -- P_To_A_Task_Id --
    --------------------
@@ -180,7 +191,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Run --
    ---------
 
-   procedure Run (SR : access Simple_Runnable)
+   procedure Run (SR : not null access Simple_Runnable)
    is
       use type PTT.Parameterless_Procedure;
    begin
@@ -208,16 +219,18 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       GT : Generic_Task_Access;
 
    begin
-      T.Priority := System.Priority
-        (PolyORB.Parameters.Get_Conf
-           ("tasking", "polyorb.tasking.threads." & Name & ".priority",
-            Default_Priority));
+      T.Priority :=
+        System.Priority
+          (Parameters.Get_Conf
+            ("tasking",
+             "polyorb.tasking.threads." & Name & ".priority",
+             Default_Priority));
 
       if Storage_Size = 0 then
-         T.Stack_Size := PolyORB.Parameters.Get_Conf
-           ("tasking",
-            "storage_size",
-            PTT.Default_Storage_Size);
+         T.Stack_Size := Parameters.Get_Conf
+                           ("tasking",
+                            "storage_size",
+                            PTT.Default_Storage_Size);
       else
          T.Stack_Size := Storage_Size;
       end if;
@@ -257,6 +270,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       The_Thread     : Full_Tasking_Thread_Access;
       The_Runnable   : PTT.Runnable_Access;
       Self           : Generic_Task_Access;
+
    begin
       accept Initialize (T : PTT.Thread_Access) do
          The_Thread := Full_Tasking_Thread_Access (T);
@@ -288,11 +302,22 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
       Free (The_Thread);
 
-      --  Here we should really signal the GNAT runtime that it can forget
-      --  this task altogether, but GNAT.Threads.Unregister_Thread can't be
-      --  called by an Ada task??? So, we use a specific reaper task instead.
+      --  Here we signal the GNAT runtime that it can forget this task
+      --  altogether (and deallocate its ATCB when it terminates). For older
+      --  runtime versions that do not support this feature, we use a separate
+      --  reaper task for this purpose.
 
-      Reaper.Free (Self);
+      if Platform.Free_On_Termination then
+
+         --  Note: It is a bounded error to call Unchecked_Deallocation on
+         --  Self because the task has discriminants (13.11.2(11)). However
+         --  no problem in practice as we are not going to reference them
+         --  beyond this point.
+
+         Free_Generic_Task (Self);
+      else
+         The_Reaper.Free (Self);
+      end if;
 
    end Generic_Task;
 
@@ -330,11 +355,17 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      (TF  : access Full_Tasking_Thread_Factory_Type;
       TID : PTT.Thread_Id) return String
    is
+      use PTT;
+
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
    begin
-      return Ada.Task_Identification.Image (P_To_A_Task_Id (TID));
+      if TID = Null_Thread_Id then
+         return "<null thread id>";
+      else
+         return Ada.Task_Identification.Image (P_To_A_Task_Id (TID));
+      end if;
    end Thread_Id_Image;
 
    ------------------
@@ -415,7 +446,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
       Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
 
-      TID : Task_Id;
+      S_TID : System.Tasking.Task_Id;
+      A_TID : Ada.Task_Identification.Task_Id;
+      for A_TID'Address use S_TID'Address;
+      pragma Import (Ada, A_TID);
       --  Task identifier used to climb up task tree until we reach the
       --  environment task.
 
@@ -423,11 +457,21 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
-      TID := System.Tasking.Self;
-      while TID.Common.Parent /= null loop
-         TID := TID.Common.Parent;
+      S_TID := System.Tasking.Self;
+      while S_TID.Common.Parent /= null loop
+         S_TID := S_TID.Common.Parent;
       end loop;
-      The_Thread_Factory.Environment_Task := TID;
+      The_Thread_Factory.Environment_Task := S_TID;
+
+      if not Platform.Free_On_Termination then
+         The_Reaper := new Reaper;
+         pragma Debug
+           (C, O ("Reaper task started: "
+                  & Ada.Task_Identification.Image (The_Reaper'Identity)));
+      end if;
+
+      pragma Debug (C, O ("Environment task: "
+                            & Ada.Task_Identification.Image (A_TID)));
    end Initialize;
 
    use PolyORB.Initialization;

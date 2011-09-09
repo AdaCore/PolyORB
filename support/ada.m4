@@ -1,3 +1,34 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                                C H E C K                                 --
+--                                                                          --
+--           Copyright (C) 2010, Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 dnl Ada compiler handling
 dnl $Id$
 dnl Contributed by Samuel Tardieu <sam@inf.enst.fr>
@@ -53,7 +84,7 @@ dnl Check whether a given configuration pragma is supported.
 
 AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [procedure Check is begin null; end Check;],[$1],[$2],[$3])])
 
 dnl Usage: AM_TRY_ADA_COMPILER_SWITCH(switch, success, failure)
@@ -61,7 +92,7 @@ dnl Check whether a given compiler command line switch is supported.
 
 AC_DEFUN([AM_TRY_ADA_COMPILER_SWITCH],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
-AM_TRY_ADA([$GNATMAKE_FOR_TARGET $1],[check.adb],
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $1],[check.adb],
 [procedure Check is begin null; end Check;],[],[$2],[$3])])
 
 dnl Usage: AM_PROG_WORKING_ADA
@@ -83,22 +114,34 @@ end Check;
 [AC_MSG_RESULT(no)
 AC_MSG_ERROR([Ada compiler is not working])])])
 
-dnl Usage: AM_ADA_PREREQ(date, version)
-dnl Check that GNAT is at least as recent as date (YYMMDD)
+dnl Usage: AM_ADA_DATE(gnatls, date, earlier, not-earlier)
+dnl Call the provided GNATLS tool to retrieve its date (YYYYMMDD).
+dnl If earlier than the given date, execute earlier, else execute
+dnl not-earlier.
+
+AC_DEFUN([AM_ADA_DATE],
+[am_gnatls_datever=`$1 -v | grep "^GNATLS"`
+am_gnatls_version=`echo $am_gnatls_datever | $SED -ne ['s/^GNATLS \(.*\) ([0-9]*[-)].*$/\1/p']`
+am_gnatls_date=`echo $am_gnatls_datever | $SED -ne ['s/^GNATLS .* (\([0-9]*\)[-)].*$/\1/p']`
+if test "$am_gnatls_date" -lt $2; then
+  : Earlier
+  $3
+else
+  : Same date or later
+  $4
+fi])
+
+dnl Usage: AM__ADA_PREREQ(date, version)
+dnl Check that GNAT is at least as recent as date (YYYYMMDD)
 
 AC_DEFUN([AM_ADA_PREREQ],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
-AC_CHECK_PROG(SED, sed, sed)
 AC_MSG_CHECKING([if the Ada compiler is recent enough])
-am_gnatls_date=`$GNATLS -v | $SED -ne 's/^GNATLS .*(\(.*\)).*$/\1/p'`
-if test "$1" -le "$am_gnatls_date"; then
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_RESULT(no)
-  am_gnatls_version=`$GNATLS -v | $SED -ne 's/^GNATLS \(.*\) (.*.*$/\1/p'`
-  AC_MSG_ERROR([Please get a version of GNAT no older than [$2 ($1)]
-(it looks like you only have GNAT [$am_gnatls_version ($am_gnatls_date)])])
-fi])
+AM_ADA_DATE($GNATLS,$1,
+[AC_MSG_RESULT(no)
+ AC_MSG_ERROR([Please get a compiler version no older than GNAT [$2 ($1)]
+(it looks like you only have GNAT [$am_gnatls_version ($am_gnatls_date)])])],
+[AC_MSG_RESULT(yes)])])
 
 dnl Usage: AM_CROSS_PROG_ADA
 dnl Look for an Ada compiler for the target (same as the host one if host and
@@ -223,7 +266,7 @@ AC_BEFORE([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS])
 AC_BEFORE([AM_HAS_PRAGMA_PROFILE_RAVENSCAR])
 AC_BEFORE([AM_HAS_PRAGMA_PROFILE_WARNINGS])
 AC_MSG_CHECKING([whether you have GNAT.Sockets.Copy])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [with GNAT.Sockets;
 procedure Check is
    S1, S2 : GNAT.Sockets.Socket_Set_Type;
@@ -243,7 +286,7 @@ dnl Determine whether GNAT.OS_Lib has a Close operation with status report.
 AC_DEFUN([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether you have GNAT.OS_Lib.Close (FD : File_Descriptor; Status : out Boolean)])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [with GNAT.OS_Lib;
 procedure Check is
    FD : GNAT.OS_Lib.File_Descriptor;
@@ -264,7 +307,7 @@ dnl Determine whether GNAT.Perfect_Hash_Generators exists
 AC_DEFUN([AM_HAS_GNAT_PERFECT_HASH_GENERATORS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether you have GNAT.Perfect_Hash_Generators])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
 [with GNAT.Perfect_Hash_Generators;
 procedure Check is begin null; end Check;
 ], [], [AC_MSG_RESULT(yes)
@@ -333,15 +376,75 @@ STYLE_SWITCH="-gnatyg"],
 STYLE_SWITCH="-gnaty"])
 AC_SUBST(STYLE_SWITCH)])
 
+dnl Syntax: AM_HAS_ADA_ATC
+dnl Determines whether the target environment supports Ada Asynchronous
+dnl Transfer of Control.
+
+AC_DEFUN([AM_HAS_ADA_ATC],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether environment supports ATC])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+[procedure Check is
+begin
+   select delay 1.0; then abort null; end select;
+end Check;
+], [], [AC_MSG_RESULT(yes)
+HAVE_ADA_ATC=true],
+[AC_MSG_RESULT(no)
+ADA_ATC="--  "
+HAVE_ADA_ATC=false])
+AC_SUBST(ADA_ATC)])
+
+dnl Syntax: AM_HAS_ADA_DYNAMIC_PRIORITIES
+dnl Determines whether the target environment supports dynamic task priotities
+
+AC_DEFUN([AM_HAS_ADA_DYNAMIC_PRIORITIES],
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_MSG_CHECKING([whether environment supports dynamic task priorities])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+[with Ada.Dynamic_Priorities;
+procedure Check is
+begin
+   null;
+end Check;
+], [], [AC_MSG_RESULT(yes)
+HAVE_ADA_DYNAMIC_PRIORITIES=true],
+[AC_MSG_RESULT(no)
+HAVE_ADA_DYNAMIC_PRIORITIES=false])
+AC_SUBST(ADA_DYNAMIC_PRIORITIES)
+AC_SUBST(HAVE_ADA_DYNAMIC_PRIORITIES)])
+
+dnl Syntax: AM_HAS_FREE_ON_TERMINATION
+dnl Determines whether the target environment supports TCB deallocation upon
+dnl task termination.
+
+AC_DEFUN([AM_HAS_FREE_ON_TERMINATION],
+[AC_REQUIRE([AM_CROSS_PROG_GNATLS])
+AC_MSG_CHECKING([whether environment supports free-on-termination])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+[with System.Tasking;
+procedure Check is
+   ATCB : System.Tasking.Ada_Task_Control_Block (0);
+begin
+   ATCB.Free_On_Termination := True;
+end Check;
+], [],
+[AC_MSG_RESULT(yes)
+HAVE_FREE_ON_TERMINATION=True],
+[AC_MSG_RESULT(no)
+HAVE_FREE_ON_TERMINATION=False])
+AC_SUBST(HAVE_FREE_ON_TERMINATION)])
+
 dnl Usage: AM_SUPPORT_RPC_ABORTION
 dnl For GNAT 5 or later with ZCX, we cannot support RPC abortion. In this
 dbl case, RPC execution may fail even when not aborted. Remove this feature
 dnl except when user really wants it to be enabled. When we can provide
 dnl this feature with SJLJ exception model and when the user really wants
-dnl it, then build GLADE with SJLJ model being the default.
+dnl it, then build PolyORB with SJLJ model being the default.
 
 AC_DEFUN([AM_SUPPORT_RPC_ABORTION],
 [AC_REQUIRE([AM_CROSS_PROG_GNATLS])
+AC_REQUIRE([AM_HAS_ADA_ATC])
 GNAT_RTS_FLAG="";
 am_gnat_major_version=`$GNATLS_FOR_TARGET -v | $SED -ne 's/^GNATLS [[^0-9]]*\(.\).*$/\1/p'`
 am_system_ads=`$GNATLS_FOR_TARGET -a -s system.ads`
@@ -411,7 +514,7 @@ dnl operations
 AC_DEFUN([AM_HAS_INTRINSIC_SYNC_COUNTERS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether platform supports atomic increment/decrement])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET],[check.adb],
 [
 with Interfaces; use Interfaces;
 procedure Check is

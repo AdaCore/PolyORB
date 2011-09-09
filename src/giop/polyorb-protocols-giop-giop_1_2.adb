@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,7 +46,6 @@ with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
 with PolyORB.Opaque;
-with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common);
@@ -116,6 +115,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      (Addressing_Disposition, Types.Unsigned_Short, Marshall);
 
    --  Helpers
+
+   -----------------------------
+   -- Marshall_Locate_Request --
+   -----------------------------
 
    procedure Marshall_Locate_Request
      (Buffer     : Buffer_Access;
@@ -242,6 +245,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             Process_Request (Sess'Access);
 
+         when Cancel_Request =>
+            if Sess.Role /= Server then
+               raise Bidirectionnal_GIOP_Not_Implemented;
+            end if;
+            Common_Process_Cancel_Request
+              (Sess'Access, Request_Id => Unmarshall (Sess.Buffer_In));
+
          when Reply =>
             if Sess.Role /= Client then
                raise Bidirectionnal_GIOP_Not_Implemented;
@@ -273,8 +283,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             if Sess.Role /= Server then
                raise Bidirectionnal_GIOP_Not_Implemented;
             end if;
-
-            Cancel_Pending_Request (Sess'Access);
             Expect_GIOP_Header (Sess'Access);
 
          when Fragment =>
@@ -421,8 +429,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Message_Error =>
             raise GIOP_Error;
 
-         when others =>
-            raise Program_Error;
       end case;
    end Process_Message;
 
@@ -439,7 +445,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Binding_Data.Local;
       use PolyORB.Obj_Adapters;
       use PolyORB.ORB;
-      use PolyORB.ORB.Iface;
       use PolyORB.QoS.Addressing_Modes;
       use PolyORB.References;
 
@@ -448,7 +453,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       SCtx  : GIOP_Session_Context_1_2
                 renames GIOP_Session_Context_1_2 (S.SCtx.all);
 
-      ORB              : constant ORB_Access := ORB_Access (S.Server);
       Sync             : Sync_Scope;
       Target_Addr      : Target_Address_Access;
       Operation        : Types.String;
@@ -508,7 +512,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                                  Target_Addr.Object_Key.all)));
 
             Args := Get_Empty_Arg_List
-              (Object_Adapter (ORB),
+              (Object_Adapter (ORB_Access (S.Server)),
                Target_Addr.Object_Key,
                To_Standard_String (Operation));
 
@@ -563,7 +567,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Reference_Addr =>
             AM := Reference;
 
-            Target := References.Ref (Target_Addr.Ref.IOR);
+            Target := Target_Addr.Ref.IOR;
 
             Def_Args := Component_Access (S);
             --  XXX By default, we do deferred unmarshalling, we
@@ -583,20 +587,20 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
              (S.Dependent_Binding_Object));
 
       Add_Request_QoS
-        (Req,
+        (Req.all,
          GIOP_Addressing_Mode,
          new QoS_GIOP_Addressing_Mode_Parameter'
          (Kind => GIOP_Addressing_Mode, Mode => AM));
 
       Add_Request_QoS
-        (Req,
+        (Req.all,
          GIOP_Service_Contexts,
          QoS_Parameter_Access (Service_Contexts));
-      Rebuild_Request_QoS_Parameters (Req);
+      Rebuild_Request_QoS_Parameters (Req.all);
 
       if Fetch_Secure_Transport_QoS /= null then
          Add_Request_QoS
-         (Req,
+         (Req.all,
           Transport_Security,
           Fetch_Secure_Transport_QoS
           (PolyORB.Transport.Transport_Endpoint_Access
@@ -607,28 +611,20 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       if not SCtx.CSN_Complete then
          CSP :=
            QoS_GIOP_Code_Sets_Parameter_Access
-             (Extract_Request_Parameter (GIOP_Code_Sets, Req));
+             (Extract_Request_Parameter (GIOP_Code_Sets, Req.all));
          SCtx.CS_Context   := null;
          SCtx.CSN_Complete := True;
 
          if CSP /= null then
             SCtx.CS_Context := new QoS_GIOP_Code_Sets_Parameter'(CSP.all);
             Set_Converters
-              (GIOP_1_2_CDR_Representation (GIOP_Session (S.all).Repr.all),
+              (GIOP_1_2_CDR_Representation (S.all.Repr.all),
                Get_Converter (Native_Char_Code_Set,  CSP.Char_Data),
                Get_Converter (Native_Wchar_Code_Set, CSP.Wchar_Data));
          end if;
       end if;
 
-      Set_Note
-        (Req.Notepad,
-         Request_Note'(Annotations.Note with Id => MCtx.Request_Id));
-
-      Queue_Request_To_Handler (ORB,
-        Queue_Request'
-          (Request   => Req,
-           Requestor => Component_Access (S)));
-
+      Queue_Request (S, Req, MCtx.Request_Id);
       Free (Target_Addr);
       pragma Debug (C, O ("Request queued."));
    end Process_Request;
@@ -665,14 +661,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Error);
 
       if Found (Error) then
-         Set_Exception (Request, Error);
+         Set_Exception (Request.all, Error);
          Catch (Error);
 
          Common_Send_Reply
            (Sess'Access,
             Request,
             MCtx'Access,
-            Error);
+            Error,
+            Recovery => True);
 
          if Found (Error) then
             Catch (Error);
@@ -924,7 +921,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                Ref.Selected_Profile_Index := Unmarshall (Buffer);
                Ref.IOR := Unmarshall (Buffer);
 
-               Target := References.Ref (Ref.IOR);
+               Target := Ref.IOR;
             end;
       end case;
 
@@ -1074,7 +1071,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Header_Space  : Reservation;
       Static_Buffer : constant QoS_GIOP_Static_Buffer_Parameter_Access :=
         QoS_GIOP_Static_Buffer_Parameter_Access
-        (Extract_Request_Parameter (PolyORB.QoS.GIOP_Static_Buffer, R.Req));
+          (Extract_Request_Parameter (QoS.GIOP_Static_Buffer, R.Req.all));
    begin
       pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 
@@ -1085,7 +1082,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       if SCtx.CS_Context /= null then
          Add_Request_QoS
-           (R.Req, GIOP_Code_Sets,
+           (R.Req.all,
+            GIOP_Code_Sets,
             new QoS_GIOP_Code_Sets_Parameter'(SCtx.CS_Context.all));
       end if;
 
@@ -1136,9 +1134,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
          OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
            := Get_OA (R.Target_Profile.all);
-         QoS       : constant QoS_GIOP_Addressing_Mode_Parameter_Access
-           := QoS_GIOP_Addressing_Mode_Parameter_Access
-           (Extract_Request_Parameter (GIOP_Addressing_Mode, R.Req));
+         QoS       : constant QoS_GIOP_Addressing_Mode_Parameter_Access :=
+           QoS_GIOP_Addressing_Mode_Parameter_Access
+             (Extract_Request_Parameter (GIOP_Addressing_Mode, R.Req.all));
          Mode      : Addressing_Disposition := Key_Addr;
 
       begin
@@ -1218,11 +1216,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Service context
 
-      Rebuild_Request_Service_Contexts (R.Req);
+      Rebuild_Request_Service_Contexts (R.Req.all);
       Marshall_Service_Context_List
         (Buffer,
          QoS_GIOP_Service_Contexts_Parameter_Access
-           (Extract_Request_Parameter (GIOP_Service_Contexts, R.Req)));
+           (Extract_Request_Parameter (GIOP_Service_Contexts, R.Req.all)));
 
       --  Arguments
 
@@ -1370,11 +1368,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end if;
    end Negotiate_Code_Set_And_Update_Session;
 
-   ---------------------------
-   -- Process_Abort_Request --
-   ---------------------------
+   -------------------------
+   -- Send_Cancel_Request --
+   -------------------------
 
-   procedure Process_Abort_Request
+   procedure Send_Cancel_Request
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       R      : Request_Access)
@@ -1395,12 +1393,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       MCtx.Fragmented := False;
       MCtx.Message_Type := Cancel_Request;
-      Common_Process_Abort_Request (Sess'Access, R, MCtx'Access, Error);
+      Common_Send_Cancel_Request (Sess'Access, R, MCtx'Access, Error);
       if Found (Error) then
          Catch (Error);
          raise GIOP_Error;
       end if;
-   end Process_Abort_Request;
+   end Send_Cancel_Request;
 
    ---------------------------------
    -- Unmarshalling / Marshalling --
@@ -1626,11 +1624,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, MCtx_1_2.Request_Id);
       Marshall (Buffer, MCtx_1_2.Reply_Status);
 
-      Rebuild_Reply_Service_Contexts (R);
+      Rebuild_Reply_Service_Contexts (R.all);
       Marshall_Service_Context_List
        (Buffer,
         QoS_GIOP_Service_Contexts_Parameter_Access
-         (Extract_Reply_Parameter (GIOP_Service_Contexts, R)));
+         (Extract_Reply_Parameter (GIOP_Service_Contexts, R.all)));
    end Marshall_GIOP_Header_Reply;
 
    -----------------------------

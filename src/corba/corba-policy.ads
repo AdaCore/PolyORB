@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,6 +36,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Object;
 with CORBA.Sequences.Unbounded;
 
@@ -49,13 +51,9 @@ package CORBA.Policy is
 
    type Ref is new CORBA.Object.Ref with null record;
 
-   function Get_Policy_Type
-     (Self : Ref)
-     return PolicyType;
+   function Get_Policy_Type (Self : Ref) return PolicyType;
 
-   function Copy
-     (Self : Ref'Class)
-     return Ref'Class;
+   function Copy (Self : Ref'Class) return Ref'Class;
 
    --  Destroy unneeded
    --    procedure Destroy (Self : Ref);
@@ -64,8 +62,7 @@ package CORBA.Policy is
    --  in package CORBA. Yet, this would create circular dependencies
    --  between CORBA and CORBA.Sequences.
 
-   package IDL_SEQUENCE_Policy is new
-     CORBA.Sequences.Unbounded (Ref);
+   package IDL_SEQUENCE_Policy is new CORBA.Sequences.Unbounded (Ref);
 
    subtype PolicyList is IDL_SEQUENCE_Policy.Sequence;
    --  Implementation Note: the IDL-to-Ada mapping defines the

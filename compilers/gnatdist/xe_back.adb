@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,8 +37,8 @@ with GNAT.HTable;
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
 
+with Platform;
 with XE;       use XE;
-with XE_Defs.Defaults;
 with XE_Flags; use XE_Flags;
 with XE_Front; use XE_Front;
 with XE_IO;    use XE_IO;
@@ -230,7 +230,7 @@ package body XE_Back is
       --  Create application-wide project, extending user project file if
       --  provided.
 
-      Prj_Fname := Dir (Id (Root), Dist_App_Project_File);
+      Prj_Fname := Dir (Root_Id, Dist_App_Project_File);
       Create_File (Prj_File, Prj_Fname);
       Set_Output (Prj_File);
 
@@ -261,12 +261,13 @@ package body XE_Back is
       Write_Str  ("   for Source_Dirs use ("".""");
       if Project_File_Name = null then
          Write_Line (",");
-         Write_Line ("     ""..""");
+         Write_Line ("     ""../..""");
          for J in Source_Directories.First .. Source_Directories.Last loop
             declare
                Normalized_Dir : constant String :=
                                   Normalize_Pathname
-                                    (Source_Directories.Table (J).all);
+                                    (Source_Directories.Table (J).all,
+                                     Resolve_Links => Resolve_Links);
             begin
                if Is_Directory (Normalized_Dir) then
                   Write_Line (",");
@@ -299,7 +300,8 @@ package body XE_Back is
       --  includes the PCS as well.
 
       Project_File_Name := new String'(
-                             Normalize_Pathname (Get_Name_String (Prj_Fname)));
+                             Normalize_Pathname (Get_Name_String (Prj_Fname),
+                             Resolve_Links => Resolve_Links));
    end Generate_Application_Project_Files;
 
    -------------------------------------
@@ -342,8 +344,10 @@ package body XE_Back is
             if Exec_Dir'Length = 0
               or else not Is_Absolute_Path (Exec_Dir)
             then
-               --  Reach up to main dir from  dsa/partitions/<cfg>/<partition>
-               Write_Str ("../../../../");
+               --  Reach up to main dir from
+               --  dsa/<target>/partitions/<cfg>/<partition>
+
+               Write_Str ("../../../../../");
             end if;
             Write_Str (Exec_Dir);
          end;
@@ -470,8 +474,7 @@ package body XE_Back is
    -- Generate_Starter_File --
    ---------------------------
 
-   procedure Generate_Starter_File (Backend : Backend_Access)
-   is
+   procedure Generate_Starter_File (Backend : Backend_Access) is
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id);
       procedure Generate_Host_Name_Evaluation   (P : Partition_Id);
       procedure Generate_Executable_Invocation  (P : Partition_Id);
@@ -482,7 +485,6 @@ package body XE_Back is
 
       procedure Generate_Boot_Server_Evaluation (P : Partition_Id) is
          L : Location_Id := Partitions.Table (P).First_Network_Loc;
-
       begin
          if L = No_Location_Id then
             L := Default_First_Boot_Location;
@@ -532,14 +534,13 @@ package body XE_Back is
 
          if P /= Main_Partition then
             Write_Name (Get_Rsh_Command);
-            Write_Str  (" $");
+            Write_Str  (" ${");
             Write_Name (Current.Name);
-            Write_Str  ("_HOST ");
+            Write_Str  ("_HOST} ");
             Write_Name (Get_Rsh_Options);
             Write_Char (' ');
             Write_Char (Ext_Quote);
-            Write_Str (Get_Env_Vars (P, Names_Only => False));
-            Write_Char (' ');
+            Write_Str  (Get_Env_Vars (P, Q => Int_Quote, Names_Only => False));
          end if;
 
          --  Executable file name must be quoted because it may contain
@@ -550,11 +551,19 @@ package body XE_Back is
          Write_Name (To_Absolute_File (Current.Executable_File));
          Write_Char (Int_Quote);
 
-         Write_Str  (" --boot_location ");
+         --  Boot_Location not currently supported with PolyORB, instead pass
+         --  name service reference directly.
 
+         --  Write_Str  (" --boot_location ");
+         --  Write_Char (Int_Quote);
+         --  Write_Str  ("${BOOT_LOCATION}");
+         --  Write_Char (Int_Quote);
+
+         Write_Str (" --polyorb-dsa-name_service=");
          Write_Char (Int_Quote);
-         Write_Str  ("$BOOT_LOCATION");
+         Write_Str  ("${POLYORB_DSA_NAME_SERVICE}");
          Write_Char (Int_Quote);
+
          Write_Name (Current.Command_Line);
 
          if P /= Main_Partition then
@@ -574,7 +583,6 @@ package body XE_Back is
 
       procedure Generate_Host_Name_Evaluation (P : Partition_Id) is
          H : Name_Id;
-
       begin
          Write_Image (H, Partitions.Table (P).Host, P);
          if No (H) then
@@ -598,6 +606,8 @@ package body XE_Back is
       File      : File_Descriptor;
       Exec_File : File_Name_Type;
       Success   : Boolean;
+
+   --  Start of processing for Generate_Starter_File
 
    begin
       --  Do not build start unless also building all partitions
@@ -789,7 +799,7 @@ package body XE_Back is
    begin
       for J in Cmd'Range loop
          if Cmd (J) = Dir_Separator then
-            return Normalize_Pathname (Cmd);
+            return Normalize_Pathname (Cmd, Resolve_Links => Resolve_Links);
          end if;
       end loop;
 
@@ -810,7 +820,9 @@ package body XE_Back is
    ------------------
 
    function Get_Env_Vars
-     (P : Partition_Id; Names_Only : Boolean) return String
+     (P          : Partition_Id;
+      Q          : Character := ' ';
+      Names_Only : Boolean) return String
    is
       V : Env_Var_Id;
    begin
@@ -820,20 +832,21 @@ package body XE_Back is
 
       V := Partitions.Table (P).First_Env_Var;
       while V /= No_Env_Var_Id loop
+         if V = Partitions.Table (P).First_Env_Var then
+            Add_Str_To_Name_Buffer ("env ");
+         end if;
          Get_Name_String_And_Append (Env_Vars.Table (V).Name);
          if not Names_Only then
-            Add_Str_To_Name_Buffer ("=$");
+            Add_Char_To_Name_Buffer ('=');
+            Add_Char_To_Name_Buffer (Q);
+            Add_Str_To_Name_Buffer ("${");
             Get_Name_String_And_Append (Env_Vars.Table (V).Name);
+            Add_Char_To_Name_Buffer ('}');
+            Add_Char_To_Name_Buffer (Q);
          end if;
          Add_Str_To_Name_Buffer (" ");
          V := Env_Vars.Table (V).Next_Env_Var;
       end loop;
-
-      --  Remove trailing space, if the string is not empty
-
-      if Name_Len > 0 then
-         Name_Len := Name_Len - 1;
-      end if;
 
       return Name_Buffer (1 .. Name_Len);
    end Get_Env_Vars;
@@ -915,7 +928,7 @@ package body XE_Back is
       if Is_Readable_File (Exec_Prefix & Check_For) then
          return Exec_Prefix;
       else
-         return XE_Defs.Defaults.Default_Prefix & Dir_Separator;
+         return Platform.Prefix & Dir_Separator;
       end if;
    end Prefix;
 
@@ -946,7 +959,9 @@ package body XE_Back is
             if Present (Current.Executable_Dir) then
                Get_Name_String (Current.Executable_Dir);
                Set_Str_To_Name_Buffer
-                 (Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+                 (Normalize_Pathname
+                    (Name_Buffer (1 .. Name_Len),
+                     Resolve_Links => Resolve_Links));
                Current.Executable_Dir := Name_Find;
                Create_Dir (Current.Executable_Dir);
             end if;

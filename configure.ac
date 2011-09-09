@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.7.0w]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.8.0w]))
 
 AC_PREREQ(2.57)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -11,7 +11,15 @@ AC_CONFIG_AUX_DIR(support)
 AM_SUBVERSION
 POLYORB_VERSION="$PACKAGE_VERSION (rev. $SVNREVISION)"
 AC_SUBST(POLYORB_VERSION)
+
 AC_MSG_NOTICE([Configuring PolyORB $POLYORB_VERSION])
+
+ifdef([LONGEST_FILE_NAME],[
+if test ! -f ${srcdir}/LONGEST_FILE_NAME; then
+  AC_MSG_ERROR([Source directory sanity check failed, check your distribution!
+
+Note that this package must be extracted with GNU tar.])
+fi])
 
 ##########################################
 # Initialization.
@@ -35,11 +43,12 @@ AC_SUBST(LIBVERSIONINFO)
 
 define(DEBUG_OPTIONS, [dnl
   if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O0"; fi
-  BASE_ADAFLAGS="-XBuild=DEBUG"
+  BASE_ADAFLAGS="-XBuild=DEBUG $VALIDITY_FLAG"
   BARGS=-E
   ASSERTION_POLICY_DEFAULT=Check
   DEBUG_POLICY_DEFAULT=Check
   DEBUG_ONLY=""
+  INSTALL_BIN='${INSTALL_PROGRAM}'
   debug=true])
 
 define(NODEBUG_OPTIONS, [dnl
@@ -47,11 +56,19 @@ define(NODEBUG_OPTIONS, [dnl
   BASE_ADAFLAGS="-XBuild=PRODUCTION"
   BARGS=
   DEBUG_ONLY="--  "
+  INSTALL_BIN='${]ifdef([STRIP_PRODUCTION_BINARIES],
+          [INSTALL_STRIP_PROGRAM],
+          [INSTALL_PROGRAM])[}'
   debug=false])
 
 AC_ARG_ENABLE(debug,
-AS_HELP_STRING([--enable-debug], [Turn on debugging options]),
-[if [[ "$enableval" = "yes" ]]; then
+AS_HELP_STRING([--enable-debug], [Turn on debugging options (yes/all/no)]),
+[
+if [[ "$enableval" = "all" ]]; then
+  VALIDITY_FLAG="-gnatVa"
+  enableval=yes
+fi
+if [[ "$enableval" = "yes" ]]; then
   DEBUG_OPTIONS
 else
   NODEBUG_OPTIONS
@@ -80,6 +97,32 @@ AC_SUBST(WARNINGS_MODE)
 
 AM_ARG_ENABLE_POLICY(assertion, Ignore)
 AM_ARG_ENABLE_POLICY(debug, Check)
+
+AC_SUBST(INSTALL_BIN)
+
+#######################################
+# Additional configuration pragmas file
+#######################################
+
+AC_ARG_ENABLE(conf-pragmas,
+AS_HELP_STRING([--enable-conf-pragmas=F],
+               [Additional Ada configuration pragmas file for target]),
+[
+  if test -f "${enableval}"; then
+    # Set switch that will be incorporated into ADAFLAGS_FOR_TARGET (for
+    # configure's own purposes).
+
+    ADDITIONAL_CONF_PRAGMAS_SWITCH="-gnatec=${enableval}"
+
+    # Set substitution for project file
+
+    ADDITIONAL_CONF_PRAGMAS="\"${ADDITIONAL_CONF_PRAGMAS_SWITCH}\""
+  else
+    AC_ERROR([valid file name required for --enable-conf-pragmas])
+  fi
+],
+[ADDITIONAL_CONF_PRAGAMS=""])
+AC_SUBST(ADDITIONAL_CONF_PRAGMAS)
 
 ##########################################
 # Set platform-specific supplementary CFLAGS and options
@@ -126,7 +169,7 @@ case $target_os in
     TARGET_EXE_SUFFIX=.exe
     ;;
 esac
-ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
+ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET} ${ADDITIONAL_CONF_PRAGMAS_SWITCH}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
 AC_SUBST(WINDOWS_ON_TARGET)
@@ -134,17 +177,8 @@ AC_SUBST(WINDOWS_ON_TARGET)
 #  Implementation note: the *vxworks* rule above is for VxWorks 5, it can
 #    present some problems for VxWorks 6.
 
-# Compilers are always built using the native Ada compiler. Therefore,
-# their executable suffix depends on the host operating system.
-
-COMPILER_EXE_SUFFIX=$HOST_EXE_SUFFIX
-AC_SUBST(COMPILER_EXE_SUFFIX)
-
-# Tools are using the cross Ada compiler. Therefore, their executable
-# suffix depends on the target operating system.
-
-TOOL_EXE_SUFFIX=$TARGET_EXE_SUFFIX
-AC_SUBST(TOOL_EXE_SUFFIX)
+AC_SUBST(HOST_EXE_SUFFIX)
+AC_SUBST(TARGET_EXE_SUFFIX)
 
 # By default treat all warnings as errors when building directly from the
 # source repository. The packaging procedure changes the default to "n".
@@ -200,6 +234,8 @@ AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
 AM_HAS_INTRINSIC_SYNC_COUNTERS
+AM_HAS_ADA_DYNAMIC_PRIORITIES
+AM_HAS_FREE_ON_TERMINATION
 
 ##########################################
 # Check C environment features (for target)
@@ -213,9 +249,16 @@ CC="$CC_FOR_TARGET"
 # junk preprocessor test that will use the host preprocessor
 # instead of the target compiler.
 
-AC_CHECK_HEADERS([fcntl.h], [], [], [/*relax*/])
+# Mandatory features
 
-AC_CHECK_FUNCS(setsid)
+AC_CHECK_HEADERS([fcntl.h],
+ [],
+ [AC_ERROR([One or more required header file could not be found.])],
+ [/*relax*/])
+
+# Optional features
+
+AC_CHECK_FUNCS([setsid strftime])
 CC="$save_CC"
 
 ##########################################
@@ -239,7 +282,7 @@ LIBS_LIST=""
 
 AC_MSG_CHECKING([default protocol personalities])
 AC_ARG_WITH(proto-perso,
-AS_HELP_STRING([--with-proto-perso=x], [Enumerate protocol personalities]),
+AS_HELP_STRING([--with-proto-perso=X], [Enumerate protocol personalities]),
 [
   PROTO_LIST=""
 
@@ -267,7 +310,7 @@ AC_SUBST(PROTO_LIST)
 
 AC_MSG_CHECKING([default application personalities])
 AC_ARG_WITH(appli-perso,
-AS_HELP_STRING([--with-appli-perso=x], [Enumerate application personalities]),
+AS_HELP_STRING([--with-appli-perso=X], [Enumerate application personalities]),
 [
   APPLI_LIST=""
 
@@ -294,7 +337,7 @@ AC_SUBST(APPLI_LIST)
 ############################################
 
 AC_ARG_WITH(idl-compiler,
-AS_HELP_STRING([--with-idl-compiler=x], [Select IDL compiler]),
+AS_HELP_STRING([--with-idl-compiler=X], [Select IDL compiler]),
 [
   IDLAC=${withval}
 ],
@@ -310,7 +353,7 @@ AM_IDLCPP_NEEDS_DOT
 
 AC_MSG_CHECKING([default services])
 AC_ARG_WITH(corba-services,
-AS_HELP_STRING([--with-corba-services=x], [Enumerate services]),
+AS_HELP_STRING([--with-corba-services=X], [Enumerate services]),
 [
   SERVICE_LIST=""
 
@@ -526,69 +569,66 @@ AS_HELP_STRING([--enable-rpc-abortion], [Enable RPC abortion even when not suppo
 AM_SUPPORT_RPC_ABORTION
 AC_MSG_CHECKING(whether we support RPC abortion)
 if test "$SUPPORT_RPC_ABORTION" = "True"; then
-  AC_MSG_RESULT([true])
+  AC_MSG_RESULT([yes])
 else
-  AC_MSG_RESULT([false])
+  AC_MSG_RESULT([no])
 fi
 AC_SUBST(SUPPORT_RPC_ABORTION)
 
 #
 # Check for exception model
 #
+
 AC_MSG_CHECKING(for exception model to use)
 AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
+
+#
+# If ATC or dynamic priritoes are not supported, remove corresponding units.
+# Note: can't use a multi-line value for an AC_SUBST variable, this works only
+# with recent versions of autoconf (which use awk(1) for all substitutions).
+# Older versions that rely on sed(1) don't handle multi-line substitutions
+# correctly.
+#
+
+EXCLUDED_SOURCE_FILES=config.excluded_source_files
+
+if $HAVE_ADA_ATC; then
+  : No excluded files
+else
+  cat <<__EOF__
+polyorb-tasking-profiles-full_tasking_atc.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.adb
+__EOF__
+fi > ${EXCLUDED_SOURCE_FILES}
+
+if $HAVE_ADA_DYNAMIC_PRIORITIES; then
+  : No excluded files
+else
+  cat <<__EOF__
+polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.ads
+polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
+__EOF__
+fi >> ${EXCLUDED_SOURCE_FILES}
+
+AC_SUBST_FILE(EXCLUDED_SOURCE_FILES)
 
 ##########################################
 # XML/Ada
 ##########################################
 
-XMLADA_INCS=""
-XMLADA_LIBS=""
-has_xmlada=no
-
-dnl Legacy build infrastructure: find XmlAda using xmlada-config
-
-AC_MSG_CHECKING([XmlAda])
-if xmlada-config --version 2>&1 | ${GREP} "^XmlAda" > /dev/null 2>&1; then
-   XMLADA_INCS="`xmlada-config --cflags`"
-   XMLADA_LIBS="`xmlada-config --libs`"
-   has_xmlada=yes
-else
-   has_xmlada=no
-fi
-AC_MSG_RESULT($has_xmlada)
-AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
-
-dnl Projects-based build infrastructure: find XmlAda project in project path
-dnl AM_HAS_GNAT_PROJECT([xmlada])
-dnl AM_CONDITIONAL(HAS_XMLADA, test x"$HAVE_GNAT_PROJECT_xmlada" = xyes)
+dnl Projects-based build infrastructure: find XML/Ada project in project path
 
 soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
 
-##########################################
-# Test : if SOAP personality is built,
-#        then XmlAda must be configured
-##########################################
-
-if test x"$soap_enabled" = xyes -a x"$has_xmlada" != xyes
-then
-   AC_MSG_ERROR("Protocol personality SOAP requires XmlAda")
+if test x"$soap_enabled" = xyes; then
+  AC_MSG_CHECKING([for XML/Ada])
+  AM_HAS_GNAT_PROJECT([xmlada])
+  if test x"$HAVE_GNAT_PROJECT_xmlada" != xyes; then
+    AC_MSG_ERROR(["Protocol personality SOAP requires XML/Ada"])
+  fi
 fi
-
-##########################################
-# Update Xml/Ada configuration flags
-# iff SOAP is built
-##########################################
-
-if test x"$soap_enabled" != xyes
-then
-   XMLADA_INCS=""
-   XMLADA_LIBS=""
-fi
-
-AC_SUBST(XMLADA_INCS)
-AC_SUBST(XMLADA_LIBS)
 
 ##########################################
 # SSL/TLS Support with OpenSSL
@@ -834,9 +874,11 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects-distrib/polyorb.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
+        src/src.exclude
 	src/setup/polyorb-setup-base.adb
 	src/setup/polyorb-setup-client_base.adb
 	src/setup/polyorb-setup-server.adb
+	src/setup/polyorb-setup-tasking-full_tasking.adb
 	src/polyorb-platform.ads
 	src/polyorb-platform-ssl_linker_options.ads
 	src/ravenscar.adc

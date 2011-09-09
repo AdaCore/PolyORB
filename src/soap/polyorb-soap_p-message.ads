@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2000-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,11 +39,18 @@ package PolyORB.SOAP_P.Message is
 
    use Ada.Strings.Unbounded;
 
-   type Object is tagged private;
+   type Object is tagged record
+      Name_Space   : Unbounded_String;
+      Wrapper_Name : Unbounded_String;
+      P            : SOAP_P.Parameters.List;
+   end record;
 
    function XML_Image (M : Object) return Unbounded_String;
    --  Returns the XML image for the wrapper and parameters. This is designed
    --  to be used by Payload and Response object.
+
+   --  Note: the following accessors are deprecated, they are here for
+   --  legacy reasons, as Object used to be a private type.
 
    function Name_Space   (M : Object'Class) return String;
    --  Returns message Namespace.
@@ -52,29 +59,21 @@ package PolyORB.SOAP_P.Message is
    --  Returns wrapper name.
 
    function Parameters   (M : Object'class) return SOAP_P.Parameters.List;
-   --  Returns the parameter.
+   --  Returns the parameters
 
    procedure Set_Name_Space
      (M    : in out Object'Class;
       Name : String);
-   --  Set message's Namespace.
+   --  Set message's name space
 
    procedure Set_Wrapper_Name
      (M     : in out Object'Class;
       Name  : String);
-   --  Set message's wrapper name.
+   --  Set message's wrapper name
 
    procedure Set_Parameters
      (M     : in out Object'Class;
       P_Set : SOAP_P.Parameters.List);
-   --  Set message's parameters.
-
-private
-
-   type Object is tagged record
-      Name_Space   : Unbounded_String;
-      Wrapper_Name : Unbounded_String;
-      P            : SOAP_P.Parameters.List;
-   end record;
+   --  Set message's parameters
 
 end PolyORB.SOAP_P.Message;

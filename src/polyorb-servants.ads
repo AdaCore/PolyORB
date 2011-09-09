@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,8 +33,11 @@
 
 --  Root type for concrete object implementations (servants)
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Components;
+with PolyORB.Requests;
 
 package PolyORB.Servants is
 
@@ -50,12 +53,12 @@ package PolyORB.Servants is
    type Servant_Access is access all Servant'Class;
 
    function Handle_Message
-     (S   : access Servant;
+     (S   : not null access Servant;
       Msg : Components.Message'Class) return Components.Message'Class;
 
    function Execute_Servant
      (S   : not null access Servant;
-      Msg : Components.Message'Class) return Components.Message'Class
+      Req : Requests.Request_Access) return Boolean
       is abstract;
    --  This primitive is redispatched to by Handle_Message to process
    --  the Execute_Request message. Note that we explicitly specify
@@ -63,37 +66,46 @@ package PolyORB.Servants is
    --  consistent when compiled in Ada 95 and in Ada 2005 mode. This is
    --  needed because Servant is derived in the PolyORB version of
    --  System.Partition_Interface, which is always processed in Ada 2005 mode.
+   --  Returns True if the request has been executed (and can be destroyed),
+   --  False if the request has been queued for later execution.
+
+   function Abortable_Execute_Servant
+     (S   : not null access Servant'Class;
+      Req : Requests.Request_Access) return Boolean;
+   --  Call Execute_Servant within an Abortable object
 
    function Notepad_Of
      (S : Servant_Access) return PolyORB.Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
    --  Return Notepad associated to a servant
 
+   overriding procedure Destroy (S : in out Servant);
+   --  Deallocate any storage resource associated with S
+
    --------------
    -- Executor --
    --------------
 
-   --  An Executor is responsible for establishing the proper context for a
-   --  Servant object to execute a request.
+   --  An Executor is responsible for establishing the proper context to
+   --  perform a call to Abortable_Execute_Servant, depending on object adapter
+   --  thread policy. By default, Execute_In_Context just makes the call in the
+   --  current task. Object adapters may provide derived executor types, e.g.
+   --  to grab appropriate locks.
 
-   type Executor is abstract tagged limited private;
+   type Executor is tagged limited private;
    type Executor_Access is access all Executor'Class;
 
-   function Handle_Request_Execution
+   function Execute_In_Context
      (Self      : access Executor;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
-     return PolyORB.Components.Message'Class
-      is abstract;
+      Req       : Requests.Request_Access;
+      Requestor : Components.Component_Access) return Boolean;
 
-   procedure Set_Executor
-     (S    : access Servant;
-      Exec :        Executor_Access);
+   procedure Set_Executor (S : access Servant; Exec : Executor_Access);
    pragma Inline (Set_Executor);
 
 private
 
-   type Executor is abstract tagged limited null record;
+   type Executor is tagged limited null record;
 
    type Servant is abstract new PolyORB.Components.Component with record
       Exec    : Executor_Access;

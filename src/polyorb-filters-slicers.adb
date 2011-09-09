@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -74,9 +74,8 @@ package body PolyORB.Filters.Slicers is
    --------------------
 
    function Handle_Message
-     (F : access Slicer_Filter;
-      S :        Components.Message'Class)
-     return Components.Message'Class
+     (F : not null access Slicer_Filter;
+      S : Components.Message'Class) return Components.Message'Class
    is
       Res : Components.Null_Message;
    begin
@@ -107,7 +106,7 @@ package body PolyORB.Filters.Slicers is
       elsif S in Data_Indication then
          declare
             Data_Received : constant Stream_Element_Count
-              := Stream_Element_Count (Data_Indication (S).Data_Amount);
+              := Data_Indication (S).Data_Amount;
 
          begin
             pragma Debug (C, O ("Expected" & F.Data_Expected'Img

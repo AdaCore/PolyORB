@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -115,13 +115,11 @@ package body Backend.BE_CORBA_Ada is
         (Hdr & "-noir    Do not generate code for interface repository "
          & "(default)");
       Write_Line
-        (Hdr & "-hc      Using perfect minimal hash tables in skeletons");
+        (Hdr & "-hc      Minimize CPU time in perfect hash tables in skels");
       Write_Line
-        (Hdr & "         and minimize CPU time");
+        (Hdr & "-hm      Minimize memory use in perfect hash tables in skels");
       Write_Line
-        (Hdr & "-hm      Using perfect minimal hash tables in skeletons");
-      Write_Line
-        (Hdr & "         and minimize memory space");
+        (Hdr & "         This is the default.");
       Write_Line
         (Hdr & "-rs      Use the SII/SSI to handle requests");
 
@@ -264,18 +262,23 @@ package body Backend.BE_CORBA_Ada is
       procedure Dispatched_Visit (Entity : Node_Id) is
          E_Name : Name_Id;
       begin
-         if FEN.Kind (Entity) = K_Module then
-            E_Name := FEN.IDL_Name (Identifier (Entity));
-         else
-            return;
-         end if;
+         case FEN.Kind (Entity) is
+            when K_Module                        |
+                 K_Interface_Declaration         |
+                 K_Forward_Interface_Declaration =>
+               E_Name := FEN.IDL_Name (Identifier (Entity));
+
+            when others =>
+               return;
+         end case;
 
          if E_Name = Nutils.Repository_Root_Name then
 
             --  Uncomment the instruction below if you want to
-            --  generate code for the CORBA::IDL_Sequences module:
+            --  generate code for various parts of the CORBA module:
 
-            --  or else E_Name = Nutils.IDL_Sequences_name
+            --  or else E_Name = Nutils.IDL_Sequences_Name
+            --  or else E_Name = Nutils.DomainManager_Name
 
             case PK is
                when PK_CDR_Spec =>

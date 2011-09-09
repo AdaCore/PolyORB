@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -158,11 +158,15 @@ package body PolyORB.Filters.HTTP is
    procedure Initialize (F : in out HTTP_Filter) is
    begin
       Clear_Message_State (F);
+      F.In_Buf := new PolyORB.Buffers.Buffer_Type;
+      --  HTTP has its own buffer for protocol stuff; the upper layer
+      --  provides another buffer for message payload.
    end Initialize;
 
    procedure Destroy (F : in out HTTP_Filter) is
    begin
       Clear_Message_State (F);
+      Buffers.Release (F.In_Buf);
       PolyORB.Filters.Destroy (Filter (F));
    end Destroy;
 
@@ -171,7 +175,7 @@ package body PolyORB.Filters.HTTP is
    --  Main filter message processing
 
    function Handle_Message
-     (F : access HTTP_Filter;
+     (F : not null access HTTP_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is
       Res : Components.Null_Message;
@@ -188,15 +192,12 @@ package body PolyORB.Filters.HTTP is
 
          F.State := Start_Line;
          F.Data_Received := 0;
-         F.In_Buf := new PolyORB.Buffers.Buffer_Type;
-         --  HTTP has its own buffer for protocol stuff;
-         --  the upper layer provides another buffer for
-         --  message payload.
+
+         --  Wait for first line of message
 
          Expect_Data (F, F.In_Buf, Buffer_Size);
-         --  Wait for first line of message.
-
          Emit_No_Reply (F.Upper, S);
+
       elsif S in Data_Expected then
          F.Message_Buf := Data_Expected (S).In_Buf;
 
@@ -302,8 +303,7 @@ package body PolyORB.Filters.HTTP is
      (F : access HTTP_Filter;
       S : Filters.Iface.Data_Indication)
    is
-      Data_Received : Stream_Element_Count :=
-                        Stream_Element_Count (S.Data_Amount);
+      Data_Received : Stream_Element_Count := S.Data_Amount;
 
       New_Data : PolyORB.Opaque.Opaque_Pointer;
       New_Data_Position : Stream_Element_Offset :=

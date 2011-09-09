@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,8 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Binding_Objects;
-with PolyORB.ORB;
-with PolyORB.Setup;
 
 package body PolyORB.Binding_Data.Neighbour is
 
@@ -84,10 +82,10 @@ package body PolyORB.Binding_Data.Neighbour is
 
    procedure Bind_Profile
      (Profile : access Neighbour_Profile_Type;
-      The_ORB :        Components.Component_Access;
-      QoS     :        PolyORB.QoS.QoS_Parameters;
-      BO_Ref  :    out Smart_Pointers.Ref;
-      Error   :    out Errors.Error_Container)
+      The_ORB : Components.Component_Access;
+      QoS     : PolyORB.QoS.QoS_Parameters;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Error   : out Errors.Error_Container)
    is
       pragma Unreferenced (The_ORB, QoS, Error);
 
@@ -144,20 +142,6 @@ package body PolyORB.Binding_Data.Neighbour is
         & ") - Object_Id: "
         & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
-
-   ------------
-   -- Get_OA --
-   ------------
-
-   function Get_OA
-     (Profile : Neighbour_Profile_Type)
-     return PolyORB.Smart_Pointers.Entity_Ptr
-   is
-      pragma Unreferenced (Profile);
-   begin
-      return PolyORB.Smart_Pointers.Entity_Ptr
-        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
-   end Get_OA;
 
    ------------------
    -- Is_Colocated --

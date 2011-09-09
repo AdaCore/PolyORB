@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,8 @@
 --        * to gateway asynchronous external events to the
 --          synchronous messaging architecture used within PolyORB.
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;
@@ -53,7 +55,6 @@ with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
-with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB is
@@ -91,7 +92,7 @@ package PolyORB.ORB is
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class;
                   ORB_Controller :        POC.ORB_Controller_Access)
-   is new PolyORB.Components.Component with private;
+     is new PolyORB.Components.Component with private;
 
    type ORB_Access is access all ORB_Type;
 
@@ -100,8 +101,8 @@ package PolyORB.ORB is
    -----------------
 
    type Request_Job is new PJ.Job with record
-      ORB       : ORB_Access;
-      Request   : Requests.Request_Access;
+      ORB     : ORB_Access;
+      Request : Requests.Request_Access;
    end record;
 
    -------------------------------
@@ -142,7 +143,7 @@ package PolyORB.ORB is
 
    procedure Idle
      (P         : access Tasking_Policy_Type;
-      This_Task : in out PTI.Task_Info;
+      This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access) is abstract;
    --  Called by a task that has nothing to do.
    --  The calling task must be in the ORB critical section at the call point;
@@ -153,13 +154,6 @@ package PolyORB.ORB is
    ------------------------------
    -- Server object operations --
    ------------------------------
-
-   type Task_Info_Access_Access is access all PTI.Task_Info_Access;
-
-   type Exit_Condition_T is record
-      Condition : PolyORB.Types.Boolean_Ptr;
-      Task_Info : Task_Info_Access_Access;
-   end record;
 
    procedure Create (ORB : in out ORB_Type);
    --  Initialize a newly-allocated ORB object
@@ -181,21 +175,21 @@ package PolyORB.ORB is
    --  Binding Object if found, or a nil reference if not.
 
    procedure Run
-     (ORB            : access ORB_Type;
-      Exit_Condition : Exit_Condition_T := (null, null);
-      May_Exit       : Boolean);
+     (ORB      : access ORB_Type;
+      Request  : Requests.Request_Access := null;
+      May_Exit : Boolean);
    --  Execute the ORB until:
    --    - Exit_Condition.Condition.all becomes True
    --      (if Exit_Condition.Condition /= null), or
    --    - Shutdown is called on this ORB.
 
-   --  This procedure is executed by permanent ORB tasks (those with
-   --  Exit_Condition.Condition = null), and is also entered by user tasks that
-   --  need to wait for a certain condition to occur.
+   --  This procedure is executed by permanent ORB tasks (those with a null
+   --  Request parameter), and is also entered by user tasks that need to wait
+   --  need to wait for the completion of a Request ("transient" tasks).
 
-   --  If Exit_Condition.Task_Info is not null, it is set on entry into Run to
-   --  an access value that designates this task's Task_Info structure while it
-   --  is executing ORB.Run.
+   --  If Request is not null, its Requesting_Task component is set on entry
+   --  into Run to designate this task's Task_Info structure while it is
+   --  executing ORB.Run.
 
    --  For a permanent task, if May_Exit is False then the task remains in this
    --  procedure until ORB shutdown, else it may return earlier (in which case
@@ -251,8 +245,15 @@ package PolyORB.ORB is
    subtype BO_Ref_List is BO_Ref_Lists.List;
    --  A list of References to Binding Objects
 
-   function Get_Binding_Objects (ORB : access ORB_Type) return BO_Ref_List;
-   --  Return a list of references to the BOs owned by this ORB
+   function Get_Binding_Objects
+     (ORB       : access ORB_Type;
+      Predicate : access function
+                           (BO_Acc : Binding_Objects.Binding_Object_Access)
+                           return Boolean
+                    := null) return BO_Ref_List;
+   --  Return a list of references to the BOs owned by this ORB. If Predicate
+   --  is not null, look for BOs matching the predicate, and stop at the first
+   --  valid matching one.
 
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
@@ -274,7 +275,7 @@ package PolyORB.ORB is
    --  Create an object reference that designates object Oid within this ORB
 
    function Handle_Message
-     (ORB : access ORB_Type;
+     (ORB : not null access ORB_Type;
       Msg : Components.Message'Class) return Components.Message'Class;
 
    ----------------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -402,8 +402,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
       Index_Image : constant String := Integer'Image (Get_Thread_Index (TID));
    begin
-      return Ada.Task_Identification.Image (P_To_A_Task_Id (TID))
-        & "(" & Index_Image (Index_Image'First + 1 .. Index_Image'Last) & ")";
+      if TID = Null_Thread_Id then
+         return "<null thread id>";
+      else
+         return Ada.Task_Identification.Image (P_To_A_Task_Id (TID))
+           & "(" & Index_Image (Index_Image'First + 1 .. Index_Image'Last)
+           & ")";
+      end if;
    end Thread_Id_Image;
 
    -------------------
@@ -842,9 +847,8 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Initialize is
       use Ada.Real_Time;
-      Time_0 : constant Time := Time_Of (0, Time_Span_Zero);
    begin
-      PTT.Node_Boot_Time := To_Duration (Clock - Time_0);
+      PTT.Node_Boot_Time := To_Duration (Clock - Time_First);
       Thread_Index_Manager.Initialize;
       Synchro_Index_Manager.Initialize (False);
       Main_Task_Tid := Ada.Task_Identification.Current_Task;

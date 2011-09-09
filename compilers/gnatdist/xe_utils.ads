@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,6 +52,7 @@ package XE_Utils is
    ALI_Suffix    : constant String := ".ali";
    ADB_Suffix    : constant String := ".adb";
    ADS_Suffix    : constant String := ".ads";
+   Root_Id       : File_Name_Type;
    Cfg_Suffix_Id : File_Name_Type;
    Obj_Suffix_Id : File_Name_Type;
    Exe_Suffix_Id : File_Name_Type;

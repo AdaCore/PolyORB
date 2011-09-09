@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,10 +45,8 @@ package PolyORB.CORBA_P.Local is
    type Local_Object_Base_Ref is access all Local_Object_Base'Class;
 
    function Is_A
-     (Obj             : access Local_Object_Base;
-      Logical_Type_Id : String)
-     return Boolean
-      is abstract;
+     (Obj             : not null access Local_Object_Base;
+      Logical_Type_Id : String) return Boolean is abstract;
 
    function Is_Local (Self : CORBA.Object.Ref'Class) return Boolean;
    --  True iff Self is a valid reference a local object.

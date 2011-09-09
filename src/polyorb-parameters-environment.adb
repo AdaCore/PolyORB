@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,11 +50,16 @@ package body PolyORB.Parameters.Environment is
    -----------------------------
 
    type Env_Source is new Parameters_Source with null record;
+
    function Get_Conf
      (Source       : access Env_Source;
       Section, Key : String) return String;
 
    The_Env_Source : aliased Env_Source;
+
+   --------------
+   -- Get_Conf --
+   --------------
 
    function Get_Conf
      (Source       : access Env_Source;

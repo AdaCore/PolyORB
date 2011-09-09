@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -113,11 +113,7 @@ package body PortableServer.POA is
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
    begin
       PolyORB.POA.Activate_Object
-        (POA,
-         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
-         null,
-         U_Oid,
-         Error);
+        (POA, To_PolyORB_Servant (P_Servant), null, U_Oid, Error);
 
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
@@ -155,7 +151,7 @@ package body PortableServer.POA is
    begin
       PolyORB.POA.Activate_Object
         (POA,
-         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
+         To_PolyORB_Servant (P_Servant),
          A_Oid'Unchecked_Access,
          U_Oid,
          Error);
@@ -1005,8 +1001,7 @@ package body PortableServer.POA is
    begin
       pragma Debug (C, O ("Get_The_POAManager: enter"));
 
-      Set (Res, Entity_Ptr (PolyORB.POA_Manager.Entity_Of
-                            (To_POA (Self).POA_Manager)));
+      Set (Res, PolyORB.POA_Manager.Entity_Of (To_POA (Self).POA_Manager));
 
       pragma Debug (C, O ("Get_The_POAManager: leave"));
       return Res;
@@ -1515,10 +1510,7 @@ package body PortableServer.POA is
       Error : PolyORB.Errors.Error_Container;
 
    begin
-      PolyORB.POA.Set_Servant
-        (POA,
-         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
-         Error);
+      PolyORB.POA.Set_Servant (POA, To_PolyORB_Servant (P_Servant), Error);
 
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);

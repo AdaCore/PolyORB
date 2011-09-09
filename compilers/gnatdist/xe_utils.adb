@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,6 +35,8 @@ with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Command_Line;        use Ada.Command_Line;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+
+with Platform;
 
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
@@ -110,6 +112,9 @@ package body XE_Utils is
    procedure Check_User_Provided_S_RPC (Dir : String);
    --  Check whether the given directory contains a user-provided version of
    --  s-rpc.adb, and if so set the global flag User_Provided_S_RPC to True.
+
+   function Is_Project_Switch (S : String) return Boolean;
+   --  True if S is a builder command line switch specifying a project file
 
    ---------
    -- "&" --
@@ -211,8 +216,8 @@ package body XE_Utils is
    is
       Length            : constant Positive :=
                             Arguments'Length + 5
-                            + Make_Switches.Last
-                            - Make_Switches.First;
+                              + Make_Switches.Last
+                              - Make_Switches.First;
       Flags             : Argument_List (1 .. Length);
       N_Flags           : Natural := 0;
       Library_Name_Flag : Natural;
@@ -268,7 +273,7 @@ package body XE_Utils is
 
          --  Detect any project file
 
-         if Arguments (I).all = Project_File_Flag.all then
+         if Is_Project_Switch (Arguments (I).all) then
             Has_Prj := True;
          end if;
       end loop;
@@ -280,9 +285,15 @@ package body XE_Utils is
          --  project file from the Make switches is ignored.
 
          if Has_Prj
-           and then Make_Switches.Table (Index).all = Project_File_Flag.all
+           and then Is_Project_Switch (Make_Switches.Table (Index).all)
          then
-            Index := Index + 1;
+            if Make_Switches.Table (Index).all = Project_File_Flag.all then
+
+               --  Case of "-P" followed by project file name in a separate
+               --  argument.
+
+               Index := Index + 1;
+            end if;
 
          else
             N_Flags := N_Flags + 1;
@@ -378,9 +389,9 @@ package body XE_Utils is
       Fatal     : Boolean := True)
    is
       Length  : constant Natural :=
-        Arguments'Length + 5
-        + Make_Switches.Last
-        - Make_Switches.First;
+                  Arguments'Length + 5
+                    + Make_Switches.Last
+                    - Make_Switches.First;
       Flags   : Argument_List (1 .. Length);
       N_Flags : Natural := 0;
       Success : Boolean;
@@ -399,7 +410,9 @@ package body XE_Utils is
       N_Flags := N_Flags + 1;
       Get_Name_String (Source);
       Flags (N_Flags) :=
-        new String'(Normalize_Pathname (Name_Buffer (1 .. Name_Len)));
+        new String'(Normalize_Pathname
+                      (Name_Buffer (1 .. Name_Len),
+                       Resolve_Links => Resolve_Links));
 
       --  Check whether we have a predefined unit
 
@@ -434,7 +447,7 @@ package body XE_Utils is
 
          --  Detect any project file
 
-         if Arguments (I).all = Project_File_Flag.all then
+         if Is_Project_Switch (Arguments (I).all) then
             Has_Prj := True;
          end if;
       end loop;
@@ -446,9 +459,15 @@ package body XE_Utils is
          --  project file from the Make switches is ignored.
 
          if Has_Prj
-           and then Make_Switches.Table (Index).all = Project_File_Flag.all
+           and then Is_Project_Switch (Make_Switches.Table (Index).all)
          then
-            Index := Index + 1;
+            if Make_Switches.Table (Index).all = Project_File_Flag.all then
+
+               --  Case of "-P" followed by project file name in a separate
+               --  argument.
+
+               Index := Index + 1;
+            end if;
 
          else
             N_Flags := N_Flags + 1;
@@ -551,6 +570,7 @@ package body XE_Utils is
       end if;
       Name_Buffer (1 .. S'Length) := S;
       Name_Len := S'Length;
+
       return Name_Find;
    end Id;
 
@@ -569,12 +589,15 @@ package body XE_Utils is
       ALI_Suffix_Id  := Id (ALI_Suffix);
       ADB_Suffix_Id  := Id (ADB_Suffix);
       ADS_Suffix_Id  := Id (ADS_Suffix);
-      Part_Dir_Name  := Dir (Id (Root), Id ("partitions"));
-      Stub_Dir_Name  := Dir (Id (Root), Id ("stubs"));
+      Root_Id        := Dir (Id (Root), Id (Platform.Target));
+      Part_Dir_Name  := Dir (Root_Id, Id ("partitions"));
+      Stub_Dir_Name  := Dir (Root_Id, Id ("stubs"));
       Stub_Dir       := new String'(Name_Buffer (1 .. Name_Len));
       PWD_Id         := Dir (Id ("`pwd`"), No_File_Name);
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
+
+      Monolithic_Obj_Dir  := Dir (Root_Id, Id ("obj"));
 
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
@@ -615,10 +638,15 @@ package body XE_Utils is
 
       Install_Int_Handler (Sigint_Intercepted'Access);
 
+      Create_Dir (Monolithic_Obj_Dir);
       Create_Dir (Stub_Dir_Name);
       Create_Dir (Part_Dir_Name);
 
-      GNAT_Driver := Locate ("gnat");
+      if Platform.Is_Cross then
+         GNAT_Driver := Locate (Platform.Target & "-gnat");
+      else
+         GNAT_Driver := Locate ("gnat");
+      end if;
 
       --  Note: we initialize variable GPRBuild in Scan_Dist_Arg rather than
       --  unconditionally in Initialize so that the absence of gprbuild does
@@ -627,6 +655,17 @@ package body XE_Utils is
 
       Check_User_Provided_S_RPC (".");
    end Initialize;
+
+   -----------------------
+   -- Is_Project_Switch --
+   -----------------------
+
+   function Is_Project_Switch (S : String) return Boolean is
+      Fl : String renames Project_File_Flag.all;
+   begin
+      return S'Length >= Fl'Length
+               and then S (S'First .. S'First + Fl'Length - 1) = Fl;
+   end Is_Project_Switch;
 
    ----------
    -- List --
@@ -687,7 +726,7 @@ package body XE_Utils is
 
          --  Detect any project file
 
-         if Arguments (I).all = Project_File_Flag.all then
+         if Is_Project_Switch (Arguments (I).all) then
             Has_Prj := True;
          end if;
       end loop;
@@ -699,9 +738,15 @@ package body XE_Utils is
          --  project file from the List switches is ignored.
 
          if Has_Prj
-           and then List_Switches.Table (Index).all = Project_File_Flag.all
+           and then Is_Project_Switch (List_Switches.Table (Index).all)
          then
-            Index := Index + 1;
+            if List_Switches.Table (Index).all = Project_File_Flag.all then
+
+               --  Case of "-P" followed by project file name in a separate
+               --  argument.
+
+               Index := Index + 1;
+            end if;
 
          else
             N_Flags := N_Flags + 1;
@@ -884,7 +929,11 @@ package body XE_Utils is
       end case;
 
       if Project_File_Name_Expected then
-         Project_File_Name          := new String'(Normalize_Pathname (Argv));
+         Project_File_Name :=
+           new String'(Normalize_Pathname (Argv,
+                                           Resolve_Links => Resolve_Links));
+         Add_List_Switch (Project_File_Name.all);
+         Add_Make_Switch (Project_File_Name.all);
          Project_File_Name_Expected := False;
 
       elsif Argv (Argv'First) = '-' then
@@ -926,6 +975,7 @@ package body XE_Utils is
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
+
             if Argv (Argv'First + 2) = 'I' and then not Implicit then
                Add_Source_Directory (Argv (Argv'First + 3 .. Argv'Last));
             end if;
@@ -941,7 +991,8 @@ package body XE_Utils is
             if Argv'Length > 2 then
                Project_File_Name :=
                  new String'(Normalize_Pathname
-                              (Argv (Argv'First + 2 .. Argv'Last)));
+                              (Argv (Argv'First + 2 .. Argv'Last),
+                               Resolve_Links => Resolve_Links));
                Add_List_Switch (Project_File_Flag.all);
                Add_List_Switch (Project_File_Name.all);
                Add_Make_Switch (Project_File_Flag.all);
@@ -953,9 +1004,13 @@ package body XE_Utils is
                Add_Make_Switch (Project_File_Flag.all);
             end if;
 
-         elsif Argv (Argv'First + 1) = 'X' then
+         elsif Argv (Argv'First + 1) = 'e' then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
+
+            if Argv'Length = 3 and then Argv (Argv'Last) = 'L' then
+               Resolve_Links := True;
+            end if;
 
          --  Debugging switches
 
@@ -997,7 +1052,6 @@ package body XE_Utils is
                      --  Pass other debugging flags to the builder untouched
 
                      Add_Make_Switch (Argv);
-
                end case;
             end if;
 
@@ -1027,8 +1081,9 @@ package body XE_Utils is
                   --  Switch is passed to gnatmake later on
 
                when others =>
-                  --  Pass unrecognized switches to gnatmake
+                  --  Pass unrecognized switches to gnat make and gnat ls
 
+                  Add_List_Switch (Argv);
                   Add_Make_Switch (Argv);
             end case;
 
@@ -1044,10 +1099,13 @@ package body XE_Utils is
          elsif Argv'Length > 6
            and then Argv (Argv'First + 1 .. Argv'First + 5) = "-RTS="
          then
-            Add_Make_Switch (Argv);
             Add_List_Switch (Argv);
+            Add_Make_Switch (Argv);
+
+         --  Pass all unrecognized switches on to gnat make and gnat ls
 
          else
+            Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
          end if;
 
@@ -1156,12 +1214,9 @@ package body XE_Utils is
       Add_Str_To_Name_Buffer (ADB_Suffix);
       Monolithic_Src_Base_Name := Name_Find;
 
-      Monolithic_Src_Name := Dir (Id (Root), Monolithic_Src_Base_Name);
+      Monolithic_Src_Name := Dir (Root_Id, Monolithic_Src_Base_Name);
       Monolithic_ALI_Name := To_Afile (Monolithic_Src_Name);
       Monolithic_Obj_Name := To_Ofile (Monolithic_Src_Name);
-      Monolithic_Obj_Dir  := Dir (Id (Root), Id ("obj"));
-
-      Create_Dir (Monolithic_Obj_Dir);
 
       Get_Name_String (Configuration_Name);
       To_Lower (Name_Buffer (1 .. Name_Len));

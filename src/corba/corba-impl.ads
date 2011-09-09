@@ -6,12 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+-- provisions that follow apply solely to the contents neither explicitly   --
+-- nor implicitly specified by the CORBA Specification defined by the OMG.  --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Components;
+pragma Ada_2005;
+
+with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Smart_Pointers.Controlled_Entities;
@@ -56,8 +58,7 @@ package CORBA.Impl is
 
    function Execute_Servant
      (Self : not null access Object;
-      Msg  : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
+      Req  : PolyORB.Requests.Request_Access) return Boolean;
 
    function To_PolyORB_Servant
      (S : access Object)
@@ -76,19 +77,20 @@ package CORBA.Impl is
 
 private
 
-   type Implementation (As_Object : access Object'Class)
-   is new PolyORB.Servants.Servant with null record;
+   type Implementation (As_Object : access Object'Class) is
+     new PolyORB.Servants.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Implementation;
-      Msg  : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class;
+      Req  : PolyORB.Requests.Request_Access) return Boolean;
 
    type Object is abstract new PSPCE.Entity with record
       Neutral_View : aliased Implementation (Object'Access);
       --  The PolyORB (personality-neutral) view of this servant.
       --  See also PolyORB.Minimal_Servant.
    end record;
+
+   overriding procedure Finalize (O : in out Object);
 
 end CORBA.Impl;

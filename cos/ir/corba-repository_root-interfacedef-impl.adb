@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -187,14 +187,12 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
    function is_a
      (Self : access Object;
-      interface_id : CORBA.RepositoryId)
-     return CORBA.Boolean
+      interface_id : CORBA.RepositoryId) return CORBA.Boolean
    is
-      Result : CORBA.Boolean;
    begin
       --  Insert implementation of is_a
       raise Program_Error;
-      return Result;
+      return False;
    end is_a;
 
    function describe_interface

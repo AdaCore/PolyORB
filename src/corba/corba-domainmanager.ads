@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,6 +36,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Object;
 with CORBA.Policy;
 with CORBA.Sequences.Unbounded;
@@ -46,20 +48,17 @@ package CORBA.DomainManager is
 
    function Get_Domain_Policy
      (Self        : Ref;
-      Policy_Type : CORBA.PolicyType)
-      return CORBA.Policy.Ref;
+      Policy_Type : CORBA.PolicyType) return CORBA.Policy.Ref;
 
    function Is_A
      (Self            : Ref;
-      Logical_Type_Id : Standard.String)
-     return CORBA.Boolean;
+      Logical_Type_Id : Standard.String) return CORBA.Boolean;
 
    --  Implementation note: this Sequence type should be defined in
    --  package CORBA. Yet, this would create circular dependencies
    --  between CORBA and CORBA.Sequences.
 
-   package IDL_SEQUENCE_DomainManager is
-     new CORBA.Sequences.Unbounded (Ref);
+   package IDL_SEQUENCE_DomainManager is new CORBA.Sequences.Unbounded (Ref);
 
    subtype DomainManagersList is IDL_SEQUENCE_DomainManager.Sequence;
    --  Implementation Note: the IDL-to-Ada mapping defines the

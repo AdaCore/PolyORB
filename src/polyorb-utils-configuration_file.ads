@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,15 +46,14 @@ package PolyORB.Utils.Configuration_File is
 
    procedure Load_Configuration_Table
      (Configuration_Filename : String;
-      Table          : in out Configuration_Table.Table_Instance);
-   --  Load Configuration_Filename configuration file into Table
+      Is_Default             : Boolean;
+      Table                  : in out Configuration_Table.Table_Instance);
+   --  Load Configuration_Filename configuration file into Table.
+   --  Is_Default is True if the Configuration_Filename is the default one.
 
    --  The following helper functions allow the manipulation of a
    --  configuration table and then writes it into a configuration
    --  file that can be further read by a PolyORB-based application.
-
-   procedure Load_Configuration_File (Configuration_Filename : String);
-   --  Load Configuration_Filename in local configuration table
 
    procedure Set_Conf (Configuration_Filename, Section, Key, Value : String);
    --  Add or rewrite a configuration (Section, Key) tuple with Value

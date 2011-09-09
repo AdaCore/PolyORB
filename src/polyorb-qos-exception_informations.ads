@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,18 +50,18 @@ package PolyORB.QoS.Exception_Informations is
      access all QoS_Ada_Exception_Information_Parameter'Class;
 
    procedure Set_Exception_Information
-     (Request    : PolyORB.Requests.Request_Access;
+     (Request    : in out Requests.Request;
       Occurrence : Ada.Exceptions.Exception_Occurrence);
    --  Add additional exception information to Ada_Exception_Information reply
    --  service context.
 
    function Get_Exception_Information
-     (R : Requests.Request_Access) return String;
+     (R : Requests.Request) return String;
    --  Utility function to extract the above QoS parameter from a request.
    --  A zero-length string is returned if no such QoS parameter is present.
 
    function Get_Exception_Message
-     (R : Requests.Request_Access) return String;
+     (R : Requests.Request) return String;
    --  Utility function to extract just the Exception_Message part from the
    --  Exception_Information. Like the above, returns a zero length string
    --  if no suitable QoS parameter is available.
