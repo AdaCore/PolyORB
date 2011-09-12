@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,15 +64,11 @@ package PolyORB.Tasking.Condition_Variables is
    --        task (via the Signal or Broadcast operations described below);
    --  On return, M is owned again.
 
-   procedure Broadcast
-     (C : access Condition_Type)
-      is abstract;
-   --  Unblock all tasks blocked on C.
+   procedure Broadcast (C : access Condition_Type) is abstract;
+   --  Unblock all tasks blocked on C
 
-   procedure Signal
-     (C : access Condition_Type)
-      is abstract;
-   --  Unblock one task blocked on C.
+   procedure Signal (C : access Condition_Type) is abstract;
+   --  Unblock one task blocked on C
 
    -----------------------
    -- Condition_Factory --
