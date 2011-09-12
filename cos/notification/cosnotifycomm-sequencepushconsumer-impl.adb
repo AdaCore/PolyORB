@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with CosEventComm.Helper;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Semaphores;
+with PolyORB.Tasking.Condition_Variables;
 
 with CosNotifyComm.SequencePushConsumer.Skel;
 pragma Warnings (Off, CosNotifyComm.SequencePushConsumer.Skel);
@@ -46,7 +46,7 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Semaphores;
+   use PolyORB.Tasking.Condition_Variables;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("sequencepushconsumer");
@@ -61,27 +61,9 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Empty     : Boolean;
       Events    : CosNotification.EventBatch;
       Peer      : CosNotifyChannelAdmin.SequenceProxyPushSupplier.Ref;
-      Semaphore : Semaphore_Access;
+      M         : Mutex_Access;
+      CV        : Condition_Access;
    end record;
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   T_Initialized : Boolean := False;
-   Self_Mutex : Mutex_Access;
-
-   procedure Ensure_Initialization is
-   begin
-      if not T_Initialized then
-         Create (Self_Mutex);
-         T_Initialized := True;
-      end if;
-   end Ensure_Initialization;
 
    ------------------
    -- Offer_Change --
@@ -96,12 +78,8 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       pragma Unreferenced (Self, Added, Removed);
       pragma Warnings (On);  --  WAG:3.14
    begin
-      Ensure_Initialization;
       pragma Debug (O ("offer_change in sequencepushconsumer"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
+      null;
    end Offer_Change;
 
    ----------------------------
@@ -113,16 +91,14 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Notifications : CosNotification.EventBatch)
    is
    begin
-      Ensure_Initialization;
       pragma Debug (O ("push sequence of structured events "&
                        "to sequencepushconsumer"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Self.X.Empty  := False;
       Self.X.Events := Notifications;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
+      Signal (Self.X.CV);
    end Push_Structured_Events;
 
    ---------------------- ----------------
@@ -135,15 +111,13 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Peer    : CosNotifyChannelAdmin.SequenceProxyPushSupplier.Ref;
       Nil_Ref : CosNotifyChannelAdmin.SequenceProxyPushSupplier.Ref;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("disconnect sequencepushconsumer"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
+      Broadcast (Self.X.CV);
 
       if not CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
              (Peer) then
@@ -170,7 +144,8 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Consumer.X.This  := Consumer;
       Consumer.X.Empty := True;
       Consumer.X.Peer  := Peer_Ref;
-      Create (Consumer.X.Semaphore);
+      Create (Consumer.X.M);
+      Create (Consumer.X.CV);
       Initiate_Servant (PortableServer.Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
@@ -185,14 +160,13 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
    is
       My_Ref   : SequencePushConsumer.Ref;
    begin
-      Ensure_Initialization;
       pragma Debug
       (O ("connect_sequence_proxy_push_supplier in sequencepushconsumer"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       if not CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
       (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          CosEventChannelAdmin.Helper.Raise_AlreadyConnected
            ((CORBA.IDL_Exception_Members with null record));
       end if;
@@ -200,7 +174,7 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Self.X.Peer := Proxy;
 
       Servant_To_Reference (PortableServer.Servant (Self.X.This), My_Ref);
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       CosNotifyChannelAdmin.SequenceProxyPushSupplier.
          connect_sequence_push_consumer (Proxy, My_Ref);
@@ -216,19 +190,16 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
    is
       Notifications : CosNotification.EventBatch;
    begin
-      Ensure_Initialization;
+      pragma Debug
+        (O ("attempt to pull sequence of structured events " &
+            "from sequencepushconsumer"));
+
+      Enter (Self.X.M);
 
       loop
-         pragma Debug
-         (O ("attempt to pull sequence of structured events " &
-             "from sequencepushconsumer"));
-
-         P (Self.X.Semaphore);
-         Enter (Self_Mutex);
-
          if CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
          (Self.X.Peer) then
-            Leave (Self_Mutex);
+            Leave (Self.X.M);
             CosEventComm.Helper.Raise_Disconnected
               ((CORBA.IDL_Exception_Members with null record));
          end if;
@@ -236,12 +207,12 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
          if not Self.X.Empty then
             Self.X.Empty := True;
             Notifications := Self.X.Events;
-            Leave (Self_Mutex);
             exit;
          end if;
-
-         Leave (Self_Mutex);
+         Wait (Self.X.CV, Self.X.M);
       end loop;
+
+      Leave (Self.X.M);
 
       pragma Debug
       (O ("succeded to pull sequence of structured events " &
@@ -259,16 +230,15 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Done : out    CORBA.Boolean;
       Data : out    CosNotification.EventBatch) is
    begin
-      Ensure_Initialization;
       pragma Debug
       (O ("try to pull sequence of structured events " &
           "from sequencepushconsumer"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
 
       if CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
       (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          CosEventComm.Helper.Raise_Disconnected
            ((CORBA.IDL_Exception_Members with null record));
       end if;
@@ -280,7 +250,7 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
          Data := Self.X.Events;
       end if;
 
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
    end Try_Pull;
 
 end CosNotifyComm.SequencePushConsumer.Impl;

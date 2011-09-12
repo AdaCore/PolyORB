@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,6 @@ with CosTypedEventChannelAdmin.TypedEventChannel;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Semaphores;
 
 with CosTypedEventComm.TypedPushConsumer.Skel;
 pragma Warnings (Off, CosTypedEventComm.TypedPushConsumer.Skel);
@@ -58,7 +57,6 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Semaphores;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("typedpushconsumer");
@@ -73,28 +71,9 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
       Peer    : ProxyPushSupplier.Ref;
       Empty   : Boolean;
       Event   : CORBA.Any;
-      Semaphore : Semaphore_Access;
+      M       : Mutex_Access;
       Uses_Interface : TypedEventChannel.Impl.Interface_Ptr;
    end record;
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   T_Initialized : Boolean := False;
-   Self_Mutex : Mutex_Access;
-
-   procedure Ensure_Initialization is
-   begin
-      if not T_Initialized then
-         Create (Self_Mutex);
-         T_Initialized := True;
-      end if;
-   end Ensure_Initialization;
 
    ------------------------
    -- Get_Typed_Consumer --
@@ -110,11 +89,9 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
       pragma Debug (O ("get the mutually agreed Interface from" &
                         "TypedPushConsumer"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       InterfaceObject := Self.X.Uses_Interface.all;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       Initiate_Servant (PortableServer.Servant (InterfaceObject), Ref);
       return Ref;
@@ -132,8 +109,6 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
    begin
       pragma Debug (O ("trying to push new data to Typed PushConsumer"));
       pragma Debug (O ("no need to use generic push in Typed PushConsumer"));
-
-      Ensure_Initialization;
 
       --  No need to implement push in TypedPushConsumer
 
@@ -153,14 +128,10 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
    begin
       pragma Debug (O ("disconnect typedpush consumer"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
 
       if not ProxyPushSupplier.Is_Nil (Peer) then
          ProxyPushSupplier.disconnect_push_supplier (Peer);
@@ -184,7 +155,7 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
       Consumer.X       := new Typed_Push_Consumer_Record;
       Consumer.X.This  := Consumer;
       Consumer.X.Empty := True;
-      Create (Consumer.X.Semaphore);
+      Create (Consumer.X.M);
       Initiate_Servant (Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
@@ -200,11 +171,9 @@ package body CosTypedEventComm.TypedPushConsumer.Impl is
       pragma Debug (O ("set the supported interface pointer in" &
                        "typedpushconsumer"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Self.X.Uses_Interface := I_Ptr;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
    end SetInterface_Ptr;
 
 end CosTypedEventComm.TypedPushConsumer.Impl;

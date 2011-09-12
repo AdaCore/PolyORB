@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ with CosNotification.Helper;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Semaphores;
+with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Utils.Chained_Lists;
 
 with CosNotifyChannelAdmin.StructuredProxyPullSupplier.Skel;
@@ -57,7 +57,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Semaphores;
+   use PolyORB.Tasking.Condition_Variables;
 
    package Convert is new
       ConsumerAdmin_Forward.Convert (CosNotifyChannelAdmin.ConsumerAdmin.Ref);
@@ -84,27 +84,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       Peer       : CosNotifyComm.StructuredPullConsumer.Ref;
       QoSPropSeq : CosNotification.QoSProperties;
       Queue      : Event_Queue;
-      Semaphore  : Semaphore_Access;
+      M          : Mutex_Access;
+      CV         : Condition_Access;
    end record;
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   T_Initialized : Boolean := False;
-   Self_Mutex : Mutex_Access;
-
-   procedure Ensure_Initialization is
-   begin
-      if not T_Initialized then
-         Create (Self_Mutex);
-         T_Initialized := True;
-      end if;
-   end Ensure_Initialization;
 
    --------------------------------------
    -- Connect_Structured_Pull_Consumer --
@@ -115,19 +97,18 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       Pull_Consumer : CosNotifyComm.StructuredPullConsumer.Ref)
    is
    begin
-      Ensure_Initialization;
       pragma Debug
       (O ("connect_structured_pull_consumer in structuredproxypullsupplier"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       if not CosNotifyComm.StructuredPullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          CosEventChannelAdmin.Helper.Raise_AlreadyConnected
            ((CORBA.IDL_Exception_Members with null record));
       end if;
 
       Self.X.Peer := Pull_Consumer;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
    end Connect_Structured_Pull_Consumer;
 
    ----------------
@@ -140,12 +121,11 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
    is
       MyType : CosNotifyChannelAdmin.ProxyType;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("get_mytype in structuredproxypullsupplier"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       MyType := Self.X.MyType;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       return MyType;
    end Get_MyType;
@@ -162,11 +142,9 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
    begin
       pragma Debug (O ("get_myadmin in structuredproxypullsupplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       MyAdmin := Convert.To_Forward (Self.X.Admin);
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       return MyAdmin;
    end Get_MyAdmin;
@@ -184,13 +162,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Warnings (On);  --  WAG:3.14
       MyFilter : CosNotifyFilter.MappingFilter.Ref;
    begin
-      Ensure_Initialization;
-
       pragma Debug (O ("get_priority_filter in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
       return MyFilter;
    end Get_Priority_Filter;
 
@@ -206,13 +178,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Unreferenced (Self, To);
       pragma Warnings (On);  --  WAG:3.14
    begin
-      Ensure_Initialization;
-
       pragma Debug (O ("set_priority_filter in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
+      null;
    end Set_Priority_Filter;
 
    -------------------------
@@ -228,12 +195,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Warnings (On);  --  WAG:3.14
       MyFilter : CosNotifyFilter.MappingFilter.Ref;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("get_lifetime_filter in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
       return MyFilter;
    end Get_Lifetime_Filter;
 
@@ -249,12 +211,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Unreferenced (Self, To);
       pragma Warnings (On);  --  WAG:3.14
    begin
-      Ensure_Initialization;
       pragma Debug (O ("set_lifetime_filter in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
+      null;
    end Set_Lifetime_Filter;
 
    --------------------------
@@ -271,12 +229,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Warnings (On);  --  WAG:3.14
       MySeq : CosNotification.EventTypeSeq;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("obtain_offered_types in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
       return MySeq;
    end Obtain_Offered_Types;
 
@@ -293,12 +246,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Unreferenced (Self, Required_QoS, Available_QoS);
       pragma Warnings (On);  --  WAG:3.14
    begin
-      Ensure_Initialization;
       pragma Debug (O ("validate_event_qos in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
+      null;
    end Validate_Event_QoS;
 
    -------------
@@ -311,12 +260,11 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
    is
       MyQoS : CosNotification.QoSProperties;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("get_qos in structuredproxypullsupplier"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       MyQoS := Self.X.QoSPropSeq;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       return MyQoS;
    end Get_QoS;
@@ -336,7 +284,6 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       MyErrorSeq : CosNotification.PropertyErrorSeq;
       SeqLen     : Integer;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("set_qos in structuredproxypullsupplier"));
 
       SeqLen := Length (QoS);
@@ -438,7 +385,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       end if;
 
       SeqLen := Length (QoS);
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       for Index in 1 .. SeqLen loop
          MyProp := Get_Element (QoS, Index);
          if MyProp.name = "ConnectionReliability" then
@@ -451,7 +398,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
             Replace_Element (Self.X.QoSPropSeq, 5, MyProp);
          end if;
       end loop;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
    end Set_QoS;
 
@@ -472,7 +419,6 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       MyErrorSeq   : CosNotification.PropertyErrorSeq;
       SeqLen       : Integer;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("validate_qos in structuredproxypullsupplier"));
 
       SeqLen := Length (Required_QoS);
@@ -573,7 +519,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
            ((CORBA.IDL_Exception_Members with qos_err => MyErrorSeq));
       end if;
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       SeqLen := Length (Self.X.QoSPropSeq);
       for Index in 1 .. SeqLen loop
          MyProp := Get_Element (Self.X.QoSPropSeq, Index);
@@ -599,7 +545,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
                Append (Available_QoS, MyNamedRange);
          end if;
       end loop;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
    end Validate_QoS;
 
@@ -618,11 +564,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       MyFilterID : CosNotifyFilter.FilterID;
       MyID       : CORBA.Long;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("add_filter in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
 
       MyID := 0;
       MyFilterID := CosNotifyFilter.FilterID (MyID);
@@ -641,11 +583,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Unreferenced (Self, Filter);
       pragma Warnings (On);  --  WAG:3.14
    begin
-      Ensure_Initialization;
       pragma Debug (O ("remove_filter in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
+      null;
    end Remove_Filter;
 
    ----------------
@@ -662,12 +601,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Warnings (On);  --  WAG:3.14
       MyFilter : CosNotifyFilter.Filter.Ref;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("get_filter in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
       return MyFilter;
    end Get_Filter;
 
@@ -684,12 +618,7 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Warnings (On);  --  WAG:3.14
       MyFilterSeq : CosNotifyFilter.FilterIDSeq;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("get_all_filters in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
       return MyFilterSeq;
    end Get_All_Filters;
 
@@ -704,11 +633,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Unreferenced (Self);
       pragma Warnings (On);  --  WAG:3.14
    begin
-      Ensure_Initialization;
       pragma Debug (O ("remove_all_filters in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
+      null;
    end Remove_All_Filters;
 
    -------------------------
@@ -724,12 +650,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Unreferenced (Self, Added, Removed);
       pragma Warnings (On);  --  WAG:3.14
    begin
-      Ensure_Initialization;
       pragma Debug (O ("subscription_change in structuredproxypullsupplier"));
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
+      null;
    end Subscription_Change;
 
    ---------------------------
@@ -742,28 +664,25 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
    is
       Event : CosNotification.StructuredEvent;
    begin
-      Ensure_Initialization;
       pragma Debug
       (O ("attempt to pull structuredevent from structuredproxypullsupplier"));
 
-      P (Self.X.Semaphore);
+      Enter (Self.X.M);
 
-      Enter (Self_Mutex);
+      loop
+         if CosNotifyComm.StructuredPullConsumer.Is_Nil (Self.X.Peer) then
+            Leave (Self.X.M);
+            CosEventComm.Helper.Raise_Disconnected
+              ((CORBA.IDL_Exception_Members with null record));
+         end if;
 
-      if CosNotifyComm.StructuredPullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
-         CosEventComm.Helper.Raise_Disconnected
-           ((CORBA.IDL_Exception_Members with null record));
-      end if;
+         exit when Length (Self.X.Queue) > 0;
+         Wait (Self.X.CV, Self.X.M);
+      end loop;
 
-      if State (Self.X.Semaphore) >= 0 then
-         Extract_First (Self.X.Queue, Event);
-         pragma Debug
-         (O ("succeed to pull structuredevent from "&
-             "structuredproxypullsupplier"));
-      end if;
+      Extract_First (Self.X.Queue, Event);
 
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
       return Event;
    end Pull_Structured_Event;
 
@@ -780,25 +699,20 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Debug
       (O ("try to pull structuredevent from structuredproxypullsupplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
 
       if CosNotifyComm.StructuredPullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          CosEventComm.Helper.Raise_Disconnected
            ((CORBA.IDL_Exception_Members with null record));
       end if;
 
-      Has_Event := State (Self.X.Semaphore) > 0;
+      Has_Event := Length (Self.X.Queue) > 0;
 
       if Has_Event then
          Extract_First (Self.X.Queue, Returns);
-         Leave (Self_Mutex);
-         P (Self.X.Semaphore);
-      else
-         Leave (Self_Mutex);
       end if;
+      Leave (Self.X.M);
 
    end Try_Pull_Structured_Event;
 
@@ -812,15 +726,13 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       Peer    : CosNotifyComm.StructuredPullConsumer.Ref;
       Nil_Ref : CosNotifyComm.StructuredPullConsumer.Ref;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("disconnect structuredproxypullsupplier"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
+      Signal (Self.X.CV);
 
       if not CosNotifyComm.StructuredPullConsumer.Is_Nil (Peer) then
          CosNotifyComm.StructuredPullConsumer.
@@ -851,7 +763,8 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       Supplier.X.MyType     := Ptype;
       Supplier.X.This       := Supplier;
       Supplier.X.QoSPropSeq := Initial_QoS;
-      Create (Supplier.X.Semaphore);
+      Create (Supplier.X.M);
+      Create (Supplier.X.CV);
 
       Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
       return Supplier;
@@ -869,13 +782,10 @@ package body CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl is
       pragma Debug
       (O ("post new structuredevent to structuredproxypullsupplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Append (Self.X.Queue, Data);
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
+      Signal (Self.X.CV);
    end Structured_Post;
 
 end CosNotifyChannelAdmin.StructuredProxyPullSupplier.Impl;

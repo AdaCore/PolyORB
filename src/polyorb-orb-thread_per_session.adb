@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,6 @@ with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Protocols;
 with PolyORB.Setup;
-with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
@@ -53,8 +52,8 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.Protocols;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Condition_Variables;
-   use PolyORB.Tasking.Semaphores;
    use PolyORB.Tasking.Threads;
 
    package L is new PolyORB.Log.Facility_Log
@@ -91,8 +90,10 @@ package body PolyORB.ORB.Thread_Per_Session is
      (S  : Session_Thread_Info;
       RI :    Request_Info) is
    begin
+      Enter (S.Request_M);
       Request_Queues.Append (S.Request_List.all, RI);
-      V (S.Request_Semaphore);
+      Leave (S.Request_M);
+      Signal (S.Request_CV);
 
       pragma Debug (C, O ("A request has been queued"));
    end Add_Request;
@@ -270,9 +271,10 @@ package body PolyORB.ORB.Thread_Per_Session is
    ---------
 
    procedure Run (R : not null access Session_Runnable) is
-      Sem : Semaphore_Access     := null;
-      L   : Request_Queue_Access := null;
-      N   : Notepad_Access       := null;
+      M   : Mutex_Access;
+      CV  : Condition_Access;
+      L   : Request_Queue_Access;
+      N   : Notepad_Access;
       Q   : Request_Info;
    begin
       pragma Debug (C, O ("Session Thread number "
@@ -281,12 +283,15 @@ package body PolyORB.ORB.Thread_Per_Session is
 
       --  Runnable initialization
 
-      Create (Sem);
+      Create (M);
+      Create (CV);
       L := new Request_Queue;
       N := new Notepad;
       Set_Note (N.all,
-                Session_Thread_Info'(Note with Request_Semaphore => Sem,
-                                     Request_List => L));
+                Session_Thread_Info'(Note with
+                                       Request_M    => M,
+                                       Request_CV   => CV,
+                                       Request_List => L));
       Set_Task_Info (R.A_S, N);
 
       --  Runnable main loop
@@ -296,8 +301,16 @@ package body PolyORB.ORB.Thread_Per_Session is
                           & Image (Current_Task)
                           & " is waiting"));
 
-         P (Sem);
+         --  Fetch one element from L
+
+         Enter (M);
+         loop
+            exit when Request_Queues.Length (L.all) > 0;
+            Wait (CV, M);
+         end loop;
          Request_Queues.Extract_First (L.all, Q);
+         Leave (M);
+
          pragma Debug (C, O ("Thread number"
                           & Image (Current_Task)
                           & " is executing Job"));
@@ -321,7 +334,8 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Debug (C, O ("Finalizing thread " & Image (Current_Task)));
       Request_Queues.Deallocate (L.all);
       Free (L);
-      Destroy (Sem);
+      Destroy (M);
+      Destroy (CV);
       Destroy (N.all);
       Free (N);
 

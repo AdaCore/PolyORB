@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,7 +34,8 @@
 with PolyORB.Annotations;
 with PolyORB.Jobs;
 with PolyORB.Utils.Chained_Lists;
-with PolyORB.Tasking.Semaphores;
+with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Mutexes;
 
 package PolyORB.ORB.Thread_Per_Session is
 
@@ -97,16 +98,15 @@ private
    --  Request queue attached to a thread
 
    type Session_Thread_Info is new PolyORB.Annotations.Note with record
-      Request_Semaphore : Tasking.Semaphores.Semaphore_Access := null;
-      Request_List      : Request_Queue_Access := null;
+      Request_List : Request_Queue_Access;
+      Request_M    : Tasking.Mutexes.Mutex_Access;
+      Request_CV   : Tasking.Condition_Variables.Condition_Access;
    end record;
-   --  This structure is used in order to be able to retrieve the queue
-   --  and the semaphore associated with a thread, with the knownledge of
-   --  of a session access
+   --  Management of a session's request queue, protected by its mutex and cv
 
    procedure Add_Request
      (S  : Session_Thread_Info;
-      RI :    Request_Info);
+      RI : Request_Info);
    --  Add a job to a job queue
 
    type Thread_Per_Session_Policy is new Tasking_Policy_Type with null record;

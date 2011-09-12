@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ with CosEventComm.PullSupplier.Helper;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Semaphores;
+with PolyORB.Tasking.Condition_Variables;
 
 with CosNotifyComm.PullSupplier.Skel;
 pragma Warnings (Off, CosNotifyComm.PullSupplier.Skel);
@@ -47,7 +47,7 @@ package body CosNotifyComm.PullSupplier.Impl is
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Semaphores;
+   use PolyORB.Tasking.Condition_Variables;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("pullsupplier");
@@ -62,27 +62,9 @@ package body CosNotifyComm.PullSupplier.Impl is
       Peer      : CosNotifyChannelAdmin.ProxyPullConsumer.Ref;
       Empty     : Boolean;
       Event     : CORBA.Any;
-      Semaphore : Semaphore_Access;
+      M         : Mutex_Access;
+      CV        : Condition_Access;
    end record;
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   T_Initialized : Boolean := False;
-   Self_Mutex : Mutex_Access;
-
-   procedure Ensure_Initialization is
-   begin
-      if not T_Initialized then
-         Create (Self_Mutex);
-         T_Initialized := True;
-      end if;
-   end Ensure_Initialization;
 
    -------------------------------------
    -- Connect_Any_Proxy_Pull_Consumer --
@@ -95,19 +77,18 @@ package body CosNotifyComm.PullSupplier.Impl is
       My_Ref  : PullSupplier.Ref;
       Sup_Ref : CosEventComm.PullSupplier.Ref;
    begin
-      Ensure_Initialization;
       pragma Debug (O ("connect_any_proxy_pull_consumer in pullsupplier"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       if not CosNotifyChannelAdmin.ProxyPullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          CosEventChannelAdmin.Helper.Raise_AlreadyConnected
            ((CORBA.IDL_Exception_Members with null record));
       end if;
       Self.X.Peer := Proxy;
 
       Servant_To_Reference (PortableServer.Servant (Self.X.This), My_Ref);
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       Sup_Ref := CosEventComm.PullSupplier.Helper.To_Ref (My_Ref);
       CosNotifyChannelAdmin.ProxyPullConsumer.connect_any_pull_supplier
@@ -129,12 +110,7 @@ package body CosNotifyComm.PullSupplier.Impl is
       pragma Warnings (On);  --  WAG:3.14
    begin
       pragma Debug (O ("subscription_change in pullsupplier"));
-
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
-      Leave (Self_Mutex);
-
+      null;
    end Subscription_Change;
 
    ------------------------------
@@ -147,16 +123,13 @@ package body CosNotifyComm.PullSupplier.Impl is
       Peer    : CosNotifyChannelAdmin.ProxyPullConsumer.Ref;
       Nil_Ref : CosNotifyChannelAdmin.ProxyPullConsumer.Ref;
    begin
-      Ensure_Initialization;
-
       pragma Debug (O ("disconnect pull supplier"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Peer := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
+      Broadcast (Self.X.CV);
 
       if not CosNotifyChannelAdmin.ProxyPullConsumer.Is_Nil (Peer) then
          CosNotifyChannelAdmin.ProxyPullConsumer.disconnect_pull_consumer
@@ -168,22 +141,14 @@ package body CosNotifyComm.PullSupplier.Impl is
    -- Pull --
    ----------
 
-   function Pull
-     (Self : access Object)
-     return CORBA.Any
-   is
+   function Pull (Self : access Object) return CORBA.Any is
       Event : CORBA.Any;
    begin
-
-      Ensure_Initialization;
-
+      Enter (Self.X.M);
       loop
          pragma Debug (O ("attempt to pull new data from pull supplier"));
-         P (Self.X.Semaphore);
-
-         Enter (Self_Mutex);
          if CosNotifyChannelAdmin.ProxyPullConsumer.Is_Nil (Self.X.Peer) then
-            Leave (Self_Mutex);
+            Leave (Self.X.M);
             CosEventComm.Helper.Raise_Disconnected
               ((CORBA.IDL_Exception_Members with null record));
          end if;
@@ -191,13 +156,13 @@ package body CosNotifyComm.PullSupplier.Impl is
          if not Self.X.Empty then
             Event := Self.X.Event;
             Self.X.Empty := True;
-            Leave (Self_Mutex);
             exit;
          end if;
 
-         Leave (Self_Mutex);
+         Wait (Self.X.CV, Self.X.M);
       end loop;
 
+      Leave (Self.X.M);
       pragma Debug (O ("succeed to pull new data from pull supplier"));
 
       return Event;
@@ -213,14 +178,11 @@ package body CosNotifyComm.PullSupplier.Impl is
    begin
       pragma Debug (O ("push new data to pull supplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Self.X.Empty := False;
       Self.X.Event := Data;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
+      Signal (Self.X.CV);
    end Push;
 
    --------------
@@ -232,12 +194,11 @@ package body CosNotifyComm.PullSupplier.Impl is
       Has_Event : out    CORBA.Boolean;
       Returns   : out    CORBA.Any) is
    begin
-      Ensure_Initialization;
       pragma Debug (O ("try to pull new data from pull supplier"));
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       if CosNotifyChannelAdmin.ProxyPullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          CosEventComm.Helper.Raise_Disconnected
            ((CORBA.IDL_Exception_Members with null record));
       end if;
@@ -249,7 +210,7 @@ package body CosNotifyComm.PullSupplier.Impl is
          Self.X.Empty := True;
       end if;
 
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
    end Try_Pull;
 
    ------------
@@ -270,7 +231,8 @@ package body CosNotifyComm.PullSupplier.Impl is
       Supplier.X.This  := Supplier;
       Supplier.X.Empty := True;
       Supplier.X.Peer  := Peer_Ref;
-      Create (Supplier.X.Semaphore);
+      Create (Supplier.X.M);
+      Create (Supplier.X.CV);
 
       Initiate_Servant (PortableServer.Servant (Supplier), My_Ref);
       return Supplier;

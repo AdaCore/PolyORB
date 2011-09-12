@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,6 @@ with CosTypedEventChannelAdmin.TypedEventChannel;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
-with PolyORB.Tasking.Semaphores;
 with PolyORB.Tasking.Mutexes;
 
 with CosTypedEventComm.TypedPullSupplier.Skel;
@@ -53,7 +52,6 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
    use PortableServer;
 
    use PolyORB.CORBA_P.Server_Tools;
-   use PolyORB.Tasking.Semaphores;
    use PolyORB.Tasking.Mutexes;
 
    use PolyORB.Log;
@@ -69,28 +67,9 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
       Peer    : ProxyPullConsumer.Ref;
       Empty   : Boolean;
       Event   : CORBA.Any;
-      Semaphore : Semaphore_Access;
+      M       : Mutex_Access;
       Supports_Interface : TypedEventChannel.Impl.Interface_Ptr;
    end record;
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   T_Initialized : Boolean := False;
-   Self_Mutex : Mutex_Access;
-
-   procedure Ensure_Initialization is
-   begin
-      if not T_Initialized then
-         Create (Self_Mutex);
-         T_Initialized := True;
-      end if;
-   end Ensure_Initialization;
 
    ------------
    -- Create --
@@ -109,7 +88,7 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
       Supplier.X       := new Typed_Pull_Supplier_Record;
       Supplier.X.This  := Supplier;
       Supplier.X.Empty := True;
-      Create (Supplier.X.Semaphore);
+      Create (Supplier.X.M);
 
       Initiate_Servant (Servant (Supplier), My_Ref);
 
@@ -127,11 +106,9 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
       pragma Debug (O ("set the supported interface pointer in " &
                        "typed pullsupplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Self.X.Supports_Interface := I_Ptr;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
    end SetInterface_Ptr;
 
    ------------------------
@@ -148,10 +125,9 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
       pragma Debug (O ("get the mutually agreed interface from " &
                        "typed pullsupplier"));
 
-      Ensure_Initialization;
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       InterfaceObject := Self.X.Supports_Interface.all;
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       Initiate_Servant (PortableServer.Servant (InterfaceObject), Ref);
       return Ref;
@@ -171,7 +147,6 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
    begin
       pragma Debug (O ("attempt to pull new data from typed pullsupplier"));
       pragma Debug (O ("no need to use generic pull in typed pullsupplier"));
-      Ensure_Initialization;
 
       --  No need to implement generic pull in Typed PullSupplier
 
@@ -196,7 +171,6 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
    begin
       pragma Debug (O ("try to pull new data from typed pullsupplier"));
       pragma Debug (O ("No need to use try_pull in typed pullsupplier"));
-      Ensure_Initialization;
 
       --  No need to implement generic try_pull in Typed PullSupplier
       raise Program_Error;
@@ -215,14 +189,10 @@ package body CosTypedEventComm.TypedPullSupplier.Impl is
    begin
       pragma Debug (O ("disconnect typedpull supplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
 
       if not ProxyPullConsumer.Is_Nil (Peer) then
          ProxyPullConsumer.disconnect_pull_consumer (Peer);

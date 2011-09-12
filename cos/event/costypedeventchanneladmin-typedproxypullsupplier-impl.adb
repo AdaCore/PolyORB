@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,6 @@ with CosTypedEventChannelAdmin;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Semaphores;
 
 with CosTypedEventChannelAdmin.TypedProxyPullSupplier.Skel;
 pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPullSupplier.Skel);
@@ -48,7 +47,6 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Semaphores;
 
    use PortableServer;
 
@@ -61,31 +59,13 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
    pragma Unreferenced (C); --  For conditional pragma Debug
 
    type TypedProxy_Pull_Supplier_Record is record
-      This      : Object_Ptr;
-      Peer      : PullConsumer.Ref;
-      Admin     : TypedConsumerAdmin.Impl.Object_Ptr;
-      Semaphore : Semaphore_Access;
+      This  : Object_Ptr;
+      Peer  : PullConsumer.Ref;
+      Admin : TypedConsumerAdmin.Impl.Object_Ptr;
+      M     : Mutex_Access;
+
       supported_interface : CosTypedEventChannelAdmin.Key;
    end record;
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   T_Initialized : Boolean := False;
-   Self_Mutex : Mutex_Access;
-
-   procedure Ensure_Initialization is
-   begin
-      if not T_Initialized then
-         Create (Self_Mutex);
-         T_Initialized := True;
-      end if;
-   end Ensure_Initialization;
 
    ---------------------------
    -- Connect_Pull_Consumer --
@@ -96,18 +76,16 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       Pull_Consumer : PullConsumer.Ref) is
    begin
       pragma Debug (O ("connect pull consumer to typed proxy pull supplier"));
-      Ensure_Initialization;
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
 
       if not PullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          raise AlreadyConnected;
       end if;
 
       Self.X.Peer := Pull_Consumer;
-
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
    end Connect_Pull_Consumer;
 
    ------------
@@ -130,7 +108,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       Supplier.X.This  := Supplier;
       Supplier.X.Admin := Admin;
       Supplier.X.supported_interface := supported_interface;
-      Create (Supplier.X.Semaphore);
+      Create (Supplier.X.M);
 
       Initiate_Servant (Servant (Supplier), My_Ref);
 
@@ -150,14 +128,10 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
    begin
       pragma Debug (O ("disconnect typedproxy pull supplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
 
       if not PullConsumer.Is_Nil (Peer) then
          PullConsumer.disconnect_pull_consumer (Peer);
@@ -176,12 +150,10 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
    begin
       pragma Debug (O ("Get the mutually agreed Interface TypedPullSupplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Ref := TypedConsumerAdmin.Impl.Pull
              (Self.X.Admin, Self.X.supported_interface);
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
       return Ref;
    end Get_Typed_Supplier;
@@ -190,10 +162,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
    -- Pull --
    ----------
 
-   function Pull
-     (Self : access Object)
-     return CORBA.Any
-   is
+   function Pull (Self : access Object) return CORBA.Any is
       pragma Unreferenced (Self);
 
       Event : CORBA.Any;
@@ -201,7 +170,6 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       pragma Debug (O ("attempt to pull new data from "&
                        "typedproxypull supplier"));
       pragma Debug (O ("no need to use generic pull in typed pullsupplier"));
-      Ensure_Initialization;
 
       --  No need to implement generic pull in Typed ProxyPullSupplier
       raise Program_Error;
@@ -224,7 +192,6 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
    begin
       pragma Debug (O ("try to pull new data from typedproxypull supplier"));
       pragma Debug (O ("no need to use try_pull in typed pullsupplier"));
-      Ensure_Initialization;
 
       --  No need to implement generic try_pull in Typed ProxyPullSupplier
       raise Program_Error;

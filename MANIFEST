@@ -1708,8 +1708,6 @@ src/polyorb-tasking-profiles-ravenscar.ads
 src/polyorb-tasking-profiles.ads
 src/polyorb-tasking-rw_locks.adb
 src/polyorb-tasking-rw_locks.ads
-src/polyorb-tasking-semaphores.adb
-src/polyorb-tasking-semaphores.ads
 src/polyorb-tasking-threads-annotations.adb
 src/polyorb-tasking-threads-annotations.ads
 src/polyorb-tasking-threads.adb

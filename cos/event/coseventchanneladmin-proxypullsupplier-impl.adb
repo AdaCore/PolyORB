@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,7 +37,7 @@ with CosEventChannelAdmin;
 with PolyORB.Log;
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Semaphores;
+with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Utils.Chained_Lists;
 
 with CosEventChannelAdmin.ProxyPullSupplier.Skel;
@@ -52,7 +52,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Semaphores;
+   use PolyORB.Tasking.Condition_Variables;
 
    use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("proxypullsupplier");
@@ -69,31 +69,13 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    subtype Event_Queue is Event_Queues.List;
 
    type Proxy_Pull_Supplier_Record is record
-      This      : Object_Ptr;
-      Peer      : PullConsumer.Ref;
-      Admin     : ConsumerAdmin.Impl.Object_Ptr;
-      Queue     : Event_Queue;
-      Semaphore : Semaphore_Access;
+      This  : Object_Ptr;
+      Peer  : PullConsumer.Ref;
+      Admin : ConsumerAdmin.Impl.Object_Ptr;
+      Queue : Event_Queue;
+      M     : Mutex_Access;
+      CV    : Condition_Access;
    end record;
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   T_Initialized : Boolean := False;
-   Self_Mutex : Mutex_Access;
-
-   procedure Ensure_Initialization is
-   begin
-      if not T_Initialized then
-         Create (Self_Mutex);
-         T_Initialized := True;
-      end if;
-   end Ensure_Initialization;
 
    ---------------------------
    -- Connect_Pull_Consumer --
@@ -104,18 +86,16 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
       Pull_Consumer : PullConsumer.Ref) is
    begin
       pragma Debug (O ("connect pull consumer to proxy pull supplier"));
-      Ensure_Initialization;
 
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
 
       if not PullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          raise AlreadyConnected;
       end if;
 
       Self.X.Peer := Pull_Consumer;
-
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
    end Connect_Pull_Consumer;
 
    ------------
@@ -123,8 +103,7 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    ------------
 
    function Create
-     (Admin : ConsumerAdmin.Impl.Object_Ptr)
-     return Object_Ptr
+     (Admin : ConsumerAdmin.Impl.Object_Ptr) return Object_Ptr
    is
       Supplier : Object_Ptr;
       My_Ref   : ProxyPullSupplier.Ref;
@@ -136,10 +115,10 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
       Supplier.X       := new Proxy_Pull_Supplier_Record;
       Supplier.X.This  := Supplier;
       Supplier.X.Admin := Admin;
-      Create (Supplier.X.Semaphore);
+      Create (Supplier.X.M);
+      Create (Supplier.X.CV);
 
       Initiate_Servant (Servant (Supplier), My_Ref);
-
       return Supplier;
    end Create;
 
@@ -147,23 +126,18 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    -- Disconnect_Pull_Supplier --
    ------------------------------
 
-   procedure Disconnect_Pull_Supplier
-     (Self : access Object)
-   is
+   procedure Disconnect_Pull_Supplier (Self : access Object) is
       Peer    : PullConsumer.Ref;
       Nil_Ref : PullConsumer.Ref;
 
    begin
       pragma Debug (O ("disconnect proxy pull supplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave (Self_Mutex);
-
-      V (Self.X.Semaphore);
+      Leave (Self.X.M);
+      Broadcast (Self.X.CV);
 
       if not PullConsumer.Is_Nil (Peer) then
          PullConsumer.disconnect_pull_consumer (Peer);
@@ -180,48 +154,39 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    begin
       pragma Debug (O ("post new data to proxy pull supplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
       Append (Self.X.Queue, Data);
-      Leave (Self_Mutex);
+      Leave (Self.X.M);
 
-      V (Self.X.Semaphore);
+      Signal (Self.X.CV);
    end Post;
 
    ----------
    -- Pull --
    ----------
 
-   function Pull
-     (Self : access Object)
-     return CORBA.Any
-   is
+   function Pull (Self : access Object) return CORBA.Any is
       Event : CORBA.Any;
 
    begin
-      pragma Debug
-        (O ("attempt to pull new data from proxy pull supplier"));
+      pragma Debug (O ("attempt to pull new data from proxy pull supplier"));
 
-      Ensure_Initialization;
+      Enter (Self.X.M);
 
-      P (Self.X.Semaphore);
+      loop
+         if PullConsumer.Is_Nil (Self.X.Peer) then
+            Leave (Self.X.M);
+            raise Disconnected;
+         end if;
 
-      Enter (Self_Mutex);
+         exit when Length (Self.X.Queue) > 0;
 
-      if PullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
-         raise Disconnected;
-      end if;
+         Wait (Self.X.CV, Self.X.M);
+      end loop;
 
-      if State (Self.X.Semaphore) >= 0 then
-         Extract_First (Self.X.Queue, Event);
-         pragma Debug (O ("succeed to pull data from proxy pull supplier"));
-      end if;
+      Extract_First (Self.X.Queue, Event);
 
-      Leave (Self_Mutex);
-
-      --  XXX what if nothing was pulled ?
+      Leave (Self.X.M);
 
       return Event;
    end Pull;
@@ -237,24 +202,19 @@ package body CosEventChannelAdmin.ProxyPullSupplier.Impl is
    begin
       pragma Debug (O ("try to pull new data from proxy pull supplier"));
 
-      Ensure_Initialization;
-
-      Enter (Self_Mutex);
+      Enter (Self.X.M);
 
       if PullConsumer.Is_Nil (Self.X.Peer) then
-         Leave (Self_Mutex);
+         Leave (Self.X.M);
          raise Disconnected;
       end if;
 
-      Has_Event := State (Self.X.Semaphore) > 0;
+      Has_Event := Length (Self.X.Queue) > 0;
 
       if Has_Event then
          Extract_First (Self.X.Queue, Returns);
-         Leave (Self_Mutex);
-
-         P (Self.X.Semaphore);
       end if;
-
+      Leave (Self.X.M);
    end Try_Pull;
 
 end CosEventChannelAdmin.ProxyPullSupplier.Impl;
