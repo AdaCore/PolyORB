@@ -62,12 +62,12 @@ Multiple implementations of each personalisable aspect can
 coexist within the same instance of the running middleware:
 unlike previous generic middleware, PolyORB is actually schizophrenic.
 
-The decoupling of application and protocol personalities, and the support
-for multiple simultaneous personalities within the same running middleware
-are key features required for the construction of interoperable
-distributed applications.  This allows PolyORB to communicate
-with middleware that implement different distribution standards:
-PolyORB provides middleware-to-middleware interoperability.
+The decoupling of application and protocol personalities, and the
+support for multiple simultaneous personalities within the same running
+middleware are key features required for the construction of interoperable
+distributed applications.  This allows PolyORB to communicate with
+middleware that implement different distribution standards: PolyORB
+provides middleware-to-middleware interoperability.
 
 The PolyORB architecture also permits the automatic,
 just-in-time creation of proxies between incompatible environments
