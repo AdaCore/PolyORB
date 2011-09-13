@@ -38,18 +38,18 @@ What is PolyORB?
 
 PolyORB is a polymorphic, reusable infrastructure for building
 object-oriented distributed systems.  Middleware environments are
-software libraries that hide the complex issues of distribution
-and provide the programmer with high-level abstractions that allow
-easy and transparent construction of distributed applications.
-A number of different standards exist for creating object-oriented
-distributed applications.  These standards define two things:
+software libraries that hide the complex issues of distribution and
+provide the programmer with high-level abstractions that allow easy
+and transparent construction of distributed applications.  A number
+of different standards exist for creating object-oriented distributed
+applications.  These standards define two things:
 
     * the interface seen by the developer's applicative objects;
     * the protocol used by the middleware environment to talk to other
       nodes in the distributed application.
 
-Usually, middleware for one platform supports only one set of
-such interfaces, and cannot interoperate with other platforms.
+Usually, middleware for one platform supports only one set of such interfaces,
+and cannot interoperate with other platforms.
 
 A polymorphic middleware allows the existence of several different
 implementations of each of these aspects to be used within the same
