@@ -97,4 +97,5 @@ package PolyORB.DSA_P.Name_Service is
 
    function Is_Reference_Valid (R : PolyORB.References.Ref) return Boolean;
    --  Binds a reference to determine whether it is valid
+
 end PolyORB.DSA_P.Name_Service;
