@@ -53,19 +53,19 @@ and cannot interoperate with other platforms.
 
 A polymorphic middleware allows the existence of several different
 implementations of each of these aspects to be used within the same
-middleware framework.  In addition, PolyORB allows such different
+middleware framework. In addition, PolyORB allows such different
 personalities to coexist in the same instance of the running middleware;
 it decouples the personality presented to applications on one side
-("application personality"), and the personality presented
-to other middleware on the other side ("protocol personality").
-Multiple implementations of each personalisable aspect can
-coexist within the same instance of the running middleware:
-unlike previous generic middleware, PolyORB is actually schizophrenic.
+("application personality"), and the personality presented to other
+middleware on the other side ("protocol personality"). Multiple
+implementations of each personalisable aspect can coexist within the same
+instance of the running middleware: unlike previous generic middleware,
+PolyORB is actually schizophrenic.
 
 The decoupling of application and protocol personalities, and the
 support for multiple simultaneous personalities within the same running
 middleware are key features required for the construction of interoperable
-distributed applications.  This allows PolyORB to communicate with
+distributed applications. This allows PolyORB to communicate with
 middleware that implement different distribution standards: PolyORB
 provides middleware-to-middleware interoperability.
 
