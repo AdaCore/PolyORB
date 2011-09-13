@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1001,7 +1001,8 @@ package body Backend.BE_CORBA_Ada.Common is
                Switch_Case         : Node_Id;
                Has_Default         : Boolean := False;
             begin
-               Switch_Node := Make_Identifier (CN (C_Switch));
+               Switch_Node :=
+                 Make_Identifier (FEN.Switch_Name (Rewinded_Type));
                if Var_Exp /= No_Node then
                   Switch_Node := Make_Selected_Component
                     (Var_Exp, Switch_Node);
@@ -1248,7 +1249,7 @@ package body Backend.BE_CORBA_Ada.Common is
 
                M := Make_Selected_Component
                  (Var,
-                  Make_Identifier (CN (C_Switch)));
+                  Make_Identifier (FEN.Switch_Name (Rewinded_Type)));
 
                C := Switch_Type_Spec (Rewinded_Type);
                M := Cast_Variable_To_PolyORB_Aligned_Type (M, C);

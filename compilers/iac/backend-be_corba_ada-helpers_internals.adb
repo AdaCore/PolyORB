@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1411,7 +1411,8 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                         N := Make_Component_Association
                           (Make_Defining_Identifier (CN (C_Switch_Cache)),
-                           Make_Selected_Component (PN (P_X), CN (C_Switch)));
+                           Make_Selected_Component
+                             (PN (P_X), FEN.Switch_Name (E)));
                         Append_To (Aggr_List, N);
 
                      when K_Structure_Type =>
@@ -1811,7 +1812,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                      N := Make_Selected_Component (PN (P_ACC), CN (C_V));
                      Switch_Item := Make_Selected_Component
                        (N,
-                        Make_Identifier (CN (C_Switch)));
+                        Make_Identifier (FEN.Switch_Name (E)));
 
                      Append_To (Statements,
                        Make_Case_Statement (Switch_Item, Switch_Alternatives));
@@ -2204,7 +2205,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
                   N := Make_Selected_Component
                     (Make_Selected_Component (PN (P_ACC), CN (C_V)),
-                     Make_Identifier (CN (C_Switch)));
+                     Make_Identifier (FEN.Switch_Name (E)));
                   N := Make_Assignment_Statement
                     (Make_Selected_Component
                      (PN (P_ACC), CN (C_Switch_Cache)),
@@ -2261,7 +2262,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Make_Selected_Component (PN (P_ACC), CN (C_V));
                   Switch_Item := Make_Selected_Component
                     (N,
-                     Make_Identifier (CN (C_Switch)));
+                     Make_Identifier (FEN.Switch_Name (E)));
 
                   if FEN.Kind (Orig_Type) = K_Enumeration_Type then
                      Literal_Parent := Map_Expanded_Name
@@ -2595,7 +2596,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  Declare the New_Union variable
 
                   N := Make_Component_Association
-                    (Make_Identifier (CN (C_Switch)),
+                    (Make_Identifier (FEN.Switch_Name (E)),
                      Make_Identifier (PN (P_New_Switch)));
                   N := Make_Type_Conversion (Get_Type_Definition_Node (E), N);
                   N := Make_Object_Declaration
