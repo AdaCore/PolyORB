@@ -180,11 +180,9 @@ package body PolyORB.Binding_Objects is
       BO_Ref  : out Smart_Pointers.Ref;
       Pro     : Binding_Data.Profile_Access)
    is
-      BO : Binding_Object_Access;
+      BO     : constant Binding_Object_Access := new Binding_Object;
       Bottom : Filters.Filter_Access;
    begin
-      BO  := new Binding_Object;
-
       Smart_Pointers.Set (BO_Ref, Smart_Pointers.Entity_Ptr (BO));
 
       Set_Profile (BO, Pro);
