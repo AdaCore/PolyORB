@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -81,9 +81,9 @@ package body PolyORB.Transport.Connected is
             FFC     => H.Filter_Factory_Chain.all,
             BO_Ref  => New_TE.Dependent_Binding_Object,
             Pro     => null);
-         --  XXX Until bidirectional BOs are implemented,
-         --  We mark Server BOs as having a null Profile
-         --  cf. PolyORB.ORB.Find_Reusable_Binding_Object.
+         --  Until bidirectional BOs are implemented, we mark server
+         --  BOs as having a null Profile???
+         --  See PolyORB.ORB.Find_Reusable_Binding_Object.
 
          ORB.Register_Binding_Object
            (H.ORB,
