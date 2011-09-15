@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               C L I E N T                                --
+--                      P A R A L L E L _ C L I E N T                       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
