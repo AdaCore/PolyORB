@@ -1034,19 +1034,12 @@ package body XE_Utils is
                   when 'f' =>
                      Add_Make_Switch ("-df");
 
-                  --  -dP: Force using project files to reference the PolyORB
-                  --       PCS even on non-Windows platforms.
-
-                  when 'P' =>
-                     Use_PolyORB_Project := True;
-
                   --  -dB: Use gprbuild (implies -dP)
                   --       (for experimentation, not expected to work yet???)
 
                   when 'B' =>
                      GPRBuild := Locate ("gprbuild");
                      Use_GPRBuild := True;
-                     Use_PolyORB_Project := True;
 
                   when others =>
                      --  Pass other debugging flags to the builder untouched

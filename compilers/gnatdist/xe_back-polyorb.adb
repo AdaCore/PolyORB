@@ -241,14 +241,10 @@ package body XE_Back.PolyORB is
 
    --  Installation information
 
-   DSA_Inc_Rel_Dir : constant String :=
-                       "include" & Dir_Separator & "polyorb";
-   --  PolyORB include directory, relative to the installation prefix
-
    PolyORB_Prefix  : constant String :=
                        XE_Back.Prefix
-                         (Check_For => DSA_Inc_Rel_Dir
-                                         & Dir_Separator & "polyorb.ads");
+                         (Check_For => "lib" & Dir_Separator & "gnat"
+                                        & Dir_Separator & "polyorb.gpr");
 
    -------------------------------
    -- Generate_Ada_Starter_Code --
@@ -944,11 +940,38 @@ package body XE_Back.PolyORB is
       Prj_Fname  : File_Name_Type;
       Prj_File   : File_Descriptor;
 
-      DSA_Inc_Dir : constant String := PolyORB_Prefix & DSA_Inc_Rel_Dir;
+      DSA_Inc_Dir : File_Name_Type;
+
+      List_Flags : constant Argument_List := (new String'("-Ppolyorb"),
+                                              new String'("-s"));
+      Output      : File_Name_Type;
+      First, Last : Text_Ptr;
+      Buffer      : Text_Buffer_Ptr;
 
       Secondary_PCS_Project      : Name_Id;
       Secondary_PCS_Project_File : File_Name_Type;
    begin
+      --  Get path to PolyORB sources by querying gnat list
+
+      --  Note that we used to use PolyORB_Prefix for this, but this may
+      --  lead to incorrect behaviour if that path involves symblic links,
+      --  and we end up referencing sources using a diffrent path than the
+      --  one the project manager expects.
+
+      Set_Str_To_Name_Buffer ("polyorb.ads");
+      List
+        (Sources   => (1 => Name_Find),
+         Arguments => List_Flags,
+         Output    => Output);
+      Read_File (Output, First, Last, Buffer);
+
+      Set_Str_To_Name_Buffer (String (Buffer (First .. Last)));
+      while Name_Buffer (Name_Len) /= Dir_Separator loop
+         Name_Len := Name_Len - 1;
+      end loop;
+      Name_Len := Name_Len - 1;
+      DSA_Inc_Dir := Name_Find;
+
       --  Create intermediate PCS project, extending the main PolyORB project,
       --  but removing source files that need to be rebuilt as client or server
       --  stubs, and those that are overridden by each partition.
@@ -967,7 +990,9 @@ package body XE_Back.PolyORB is
       Write_Str  (" extends all ""polyorb""");
       Write_Line (" is");
       Write_Line ("   for Externally_Built use ""true"";");
-      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
+      Write_Str  ("   for Source_Dirs use (""");
+      Write_Name (DSA_Inc_Dir);
+      Write_Line (""");");
 
       --  The files to be removed are the only source files for the extending
       --  project (all other sources are made visible as inherited), so we
@@ -1009,7 +1034,9 @@ package body XE_Back.PolyORB is
       Write_Name (PCS_Project);
       Write_Line (" is");
       Write_Line ("   for Object_Dir use ""obj"";");
-      Write_Line ("   for Source_Dirs use (""" & DSA_Inc_Dir & """);");
+      Write_Str  ("   for Source_Dirs use (""");
+      Write_Name (DSA_Inc_Dir);
+      Write_Line (""");");
       Write_Line ("   for Source_Files use");
       Write_Line ("     (""polyorb-dsa_p-partitions.ads"",");
       Write_Line ("      ""polyorb-dsa_p-partitions.adb"");");
@@ -1279,42 +1306,19 @@ package body XE_Back.PolyORB is
    procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
    begin
-      --  WAG:61
-      --  We would normally get linker switches for the PolyORB runtime library
-      --  through project files. This is the only supported option in MinGW
-      --  context, where we cannot use the polyorb-config shell script.
-      --  In the UNIX case, we still use polyorb-config, so that we get not
-      --  only the project file path but also the legacy -L/-l command line
-      --  switches, which allow correct operation even with older compilers.
-      --  Note that in the UNIX case we rely on polyorb-config to set both
-      --  -aP and -aI, to avoid setting -aP here to a value that might be
-      --  inconsistent with the -aI path set by polyorb-config.
+      --  We get source, object and ALI paths and linker switches for the
+      --  PolyORB runtime library through project files.
 
-      if XE_Flags.Use_PolyORB_Project then
-         Scan_Dist_Arg ("-margs");
-         Scan_Dist_Arg ("-aP" & PolyORB_Prefix
-                              & "lib" & Dir_Separator & "gnat");
+      --  Historically, on UNIX we used to rely on the polyorb-config script,
+      --  but this does not work well in contexts where the path to the PolyORB
+      --  sources involve symbolic links, because the paths we generate in the
+      --  local PCS project files may be inconsistent with the project manager
+      --  view of the original source paths from the installed polyorb project.
+      --  See also comments in Generate_PCS_Project_Files.
 
-      else
-         begin
-            declare
-               Status : aliased Integer;
-               PolyORB_Config_Command : constant String :=
-                                          PolyORB_Prefix
-                                            & "bin" & Dir_Separator
-                                            & "polyorb-config";
-               PolyORB_Config_Output : constant String :=
-                 Get_Command_Output (PolyORB_Config_Command,
-                                     (1 .. 0 => null), "", Status'Access);
-            begin
-               Scan_Dist_Args (PolyORB_Config_Output);
-            end;
-         exception
-            when others =>
-               raise Fatal_Error with "PolyORB installation is invalid "
-                                    & "(polyorb-config failure)";
-         end;
-      end if;
+      Scan_Dist_Arg ("-margs");
+      Scan_Dist_Arg ("-aP" & PolyORB_Prefix
+                           & "lib" & Dir_Separator & "gnat");
    end Set_PCS_Dist_Flags;
 
    -----------

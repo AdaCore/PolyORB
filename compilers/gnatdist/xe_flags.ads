@@ -55,12 +55,6 @@ package XE_Flags is
    --  User provided his own version of s-rpc.adb, overriding the one from the
    --  PCS.
 
-   Use_PolyORB_Project  : Boolean := Platform.Windows_On_Host;
-   --  True when the installed project file must be used to reference the
-   --  PolyORB PCS (otherwise the external script polyorb-config is used,
-   --  exception on Windows where the MinGW environment does not support
-   --  spawning arbitrary shell scripts).
-
    Use_GPRBuild         : Boolean := False;
    --  Use GPRBuild instead of gnatmake
 
