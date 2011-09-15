@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object references (binding operation).
-
+with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
@@ -264,7 +263,7 @@ package body PolyORB.References.Binding is
                pragma Debug (C, O ("About to finalize Continuation"));
             end;
 
-            --  End of processing for local profile case.
+            --  End of processing for local profile case
 
             goto Leave_Mutex_And_Return;
 
@@ -307,6 +306,12 @@ package body PolyORB.References.Binding is
 
    <<Leave_Mutex_And_Return>>
       Leave_Mutex (R);
+   exception
+      when E : others =>
+         pragma Debug
+           (C, O ("Bind: raised " & Ada.Exceptions.Exception_Information (E)));
+         Leave_Mutex (R);
+         raise;
    end Bind;
 
    -------------------------
