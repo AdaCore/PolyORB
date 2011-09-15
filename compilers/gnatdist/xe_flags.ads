@@ -37,8 +37,6 @@
 with GNAT.Table;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with Platform;
-
 package XE_Flags is
 
    Quiet_Mode           : Boolean := False;
