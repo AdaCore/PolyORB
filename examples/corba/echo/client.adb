@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---   echo client.
+--  Echo client
 
 with Ada.Command_Line;
 with Ada.Text_IO;
