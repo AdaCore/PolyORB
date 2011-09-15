@@ -502,6 +502,7 @@ examples/corba/echo/echo.idl
 examples/corba/echo/echo_dynimpl.adb
 examples/corba/echo/echo_dynimpl.ads
 examples/corba/echo/local.gpr
+examples/corba/echo/parallel_client.adb
 examples/corba/echo/server.adb
 examples/corba/random/Makefile.local
 examples/corba/random/client.adb

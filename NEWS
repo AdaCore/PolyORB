@@ -41,6 +41,9 @@ See the features-28 file.
 Bug fixes
 ---------
 
+Several race conditions related to session reuse have been identified and
+corrected. (K915-014, K915-018, K915-019)
+
 Several minor memory leaks have been identified and corrected.
 
 po_gnatdist would not correctly handle "-P" (project file) command line
