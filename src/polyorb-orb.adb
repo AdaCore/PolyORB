@@ -695,29 +695,19 @@ package body PolyORB.ORB is
       --  New_AES is null for output-only endpoints
 
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
+      BO_Acc  : constant Binding_Object_Access :=
+                  Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
    begin
       pragma Debug
         (C, O ("Register_Binding_Object (" & Role'Img & "): enter"));
 
-      declare
-         BO_Acc : constant Binding_Object_Access :=
-                    Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
-      begin
-         Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      --  Set ORB access in all protocol stack components
 
-         --  Register BO in the Binding_Objects list of ORB
-
-         PBOL.Prepend (ORB.Binding_Objects, BO_Acc);
-         Set_Referenced (BO_Acc, Referenced => True);
-
-         Leave_ORB_Critical_Section (ORB.ORB_Controller);
-
-         Emit_No_Reply
-           (Component_Access (TE),
-            Filters.Iface.Set_Server'
-              (Server         => Component_Access (ORB),
-               Binding_Object => BO_Acc));
-      end;
+      Emit_No_Reply
+        (Component_Access (TE),
+         Filters.Iface.Set_Server'
+           (Server         => Component_Access (ORB),
+            Binding_Object => BO_Acc));
 
       if New_AES /= null then
          --  This is not a write only Endpoint
@@ -755,6 +745,16 @@ package body PolyORB.ORB is
                ORB_Acc,
                Active_Connection'(AES => New_AES, TE => TE));
       end case;
+
+      --  Finally register BO in the Binding_Objects list of ORB
+
+      Enter_ORB_Critical_Section (ORB.ORB_Controller);
+      PBOL.Prepend (ORB.Binding_Objects, BO_Acc);
+      Set_Referenced (BO_Acc, Referenced => True);
+      Leave_ORB_Critical_Section (ORB.ORB_Controller);
+
+      --  From this point on, the BO must be fully initialized, as another
+      --  task may reuse it through Find_Reusable_Binding_Object.
 
       pragma Debug (C, O ("Register_Binding_Object: leave"));
    end Register_Binding_Object;
