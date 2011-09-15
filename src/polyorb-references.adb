@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,7 @@ package body PolyORB.References is
    use PolyORB.Binding_Objects;
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references");
@@ -115,6 +116,7 @@ package body PolyORB.References is
          begin
             TRIP.Type_Id  := new String'(Type_Id);
             TRIP.Profiles := new Profile_Array'(Profiles);
+            Create (TRIP.Mutex);
             Set (R, RIP);
          end;
       end if;
@@ -142,6 +144,7 @@ package body PolyORB.References is
       Free (RI.Profiles);
       Binding_Info_Lists.Deallocate (RI.Binding_Info);
       Annotations.Destroy (RI.Notepad);
+      Destroy (RI.Mutex);
 
       pragma Debug (C, O ("Finalize (Reference_Info): leave"));
    end Finalize;
@@ -163,6 +166,7 @@ package body PolyORB.References is
       BO   : Binding_Object_Access;
 
    begin
+      RI.Mutex.Enter;
       while not Last (Iter) loop
          BO := Binding_Object_Access
                  (Entity_Of (Value (Iter).Binding_Object_Ref));
@@ -178,12 +182,14 @@ package body PolyORB.References is
          elsif PolyORB.Binding_Object_QoS.Is_Compatible (BO, QoS) then
             BOC := Get_Component (Value (Iter).Binding_Object_Ref);
             Pro := Value (Iter).all.Binding_Profile;
+            RI.Mutex.Leave;
             return;
 
          else
             Next (Iter);
          end if;
       end loop;
+      RI.Mutex.Leave;
 
       BOC := null;
       Pro := null;
@@ -260,14 +266,23 @@ package body PolyORB.References is
       end if;
    end Is_Exported_Reference;
 
+   -----------------
+   -- Enter_Mutex --
+   -----------------
+
+   procedure Enter_Mutex (R : Ref) is
+      RI : constant Reference_Info_Access := Ref_Info_Of (R);
+   begin
+      if RI /= null then
+         Enter (RI.Mutex);
+      end if;
+   end Enter_Mutex;
+
    ----------------
    -- Notepad_Of --
    ----------------
 
-   function Notepad_Of
-     (R : Ref)
-     return Annotations.Notepad_Access
-   is
+   function Notepad_Of (R : Ref) return Annotations.Notepad_Access is
    begin
       return Ref_Info_Of (R).Notepad'Access;
    end Notepad_Of;
@@ -393,6 +408,10 @@ package body PolyORB.References is
       RS : constant Reference_Info_Access := Ref_Info_Of (Source);
 
    begin
+      --  RD is a previously unbound proxy ref, and we are setting its binding
+      --  info from its continuation RS.
+
+      pragma Assert (Binding_Info_Lists.Is_Empty (RD.Binding_Info));
       RD.Binding_Info := Binding_Info_Lists.Duplicate (RS.Binding_Info);
 
       if RD.Type_Id'Length = 0 then
@@ -453,6 +472,18 @@ package body PolyORB.References is
          null;
       end if;
    end Set_Type_Id;
+
+   -----------------
+   -- Leave_Mutex --
+   -----------------
+
+   procedure Leave_Mutex (R : Ref) is
+      RI : constant Reference_Info_Access := Ref_Info_Of (R);
+   begin
+      if RI /= null then
+         Leave (RI.Mutex);
+      end if;
+   end Leave_Mutex;
 
    -----------
    -- Write --

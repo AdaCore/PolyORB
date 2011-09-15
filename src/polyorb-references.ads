@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,6 +41,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.QoS;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
@@ -72,8 +73,8 @@ package PolyORB.References is
    --  same node.
 
    procedure Create_Reference
-     (Profiles :     Profile_Array;
-      Type_Id  :     String;
+     (Profiles : Profile_Array;
+      Type_Id  : String;
       R        : out Ref);
    --  Create a reference with Profiles as its profiles.
    --  The returned ref R is nil iff Profiles'Length = 0.
@@ -96,6 +97,11 @@ package PolyORB.References is
    --  actual reference.
    --  Note: String_To_Object is a procedure so that it can be inherited
    --  when Ref is derived without requiring overload (Ada 95).
+
+   procedure Enter_Mutex (R : Ref);
+   procedure Leave_Mutex (R : Ref);
+   --  Enter/release critical section associated with access to R's info
+   --  (notepad, binding info).
 
    --------------------------------------
    -- Stream attributes for references --
@@ -171,8 +177,11 @@ private
          --  this component denotes the associated binding object
          --  on the local ORB (= the Session).
 
+         Mutex : Tasking.Mutexes.Mutex_Access;
+         --  Mutex protecting concurrent accesses to ref info
+
          Binding_Info : Binding_Info_Lists.List;
-         --  The list of binding objects used for reference bound.
+         --  The list of binding objects used for reference bound
 
          Notepad : aliased Annotations.Notepad;
          --  Reference_Info's notepad. The user is responsible for ensuring

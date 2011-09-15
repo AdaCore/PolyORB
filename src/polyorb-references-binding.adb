@@ -114,6 +114,7 @@ package body PolyORB.References.Binding is
 
       pragma Debug (C, O ("Bind: Check for already bound reference"));
 
+      Enter_Mutex (R);
       Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
 
       if Existing_Servant /= null then
@@ -126,7 +127,7 @@ package body PolyORB.References.Binding is
             pragma Debug (C, O ("Bind: The reference is already bound"));
          end if;
 
-         return;
+         goto Leave_Mutex_And_Return;
       end if;
 
       --  XXX should probably rework the two-phase preference
@@ -144,7 +145,7 @@ package body PolyORB.References.Binding is
                 System_Exception_Members'(Minor => 0,
                                           Completed => Completed_No));
 
-         return;
+         goto Leave_Mutex_And_Return;
       end if;
 
       --  Determine whether profile designates a local object
@@ -163,10 +164,16 @@ package body PolyORB.References.Binding is
                           (Local_ORB, Selected_Profile, QoS);
 
          if not Smart_Pointers.Is_Nil (Existing_BO) then
-            Pro := Selected_Profile;
+            Pro     := Selected_Profile;
             Servant := Get_Component (Existing_BO);
+
+            --  Reference BO in R's ref info
+
+            Binding_Info_Lists.Append
+              (Ref_Info_Of (R).Binding_Info, (Existing_BO, Selected_Profile));
+
             pragma Debug (C, O ("Bind: Found reusable BO for reference"));
-            return;
+            goto Leave_Mutex_And_Return;
          end if;
       end if;
 
@@ -194,7 +201,7 @@ package body PolyORB.References.Binding is
 
             if Object_Id = null then
                pragma Debug (C, O ("Unable to locate object"));
-               return;
+               goto Leave_Mutex_And_Return;
             end if;
 
             if not Is_Proxy_Oid (OA, Object_Id) then
@@ -204,16 +211,16 @@ package body PolyORB.References.Binding is
                Find_Servant (OA, Object_Id, S, Error);
 
                if Found (Error) then
-                  return;
+                  goto Leave_Mutex_And_Return;
                end if;
 
                Pro := Selected_Profile;
                Servant := Components.Component_Access (S);
-               return;
+               goto Leave_Mutex_And_Return;
             end if;
 
             if Local_Only then
-               return;
+               goto Leave_Mutex_And_Return;
             end if;
 
             declare
@@ -222,7 +229,7 @@ package body PolyORB.References.Binding is
                Proxy_To_Ref (OA, Object_Id, Continuation, Error);
 
                if Found (Error) then
-                  return;
+                  goto Leave_Mutex_And_Return;
                end if;
 
                if not Is_Nil (Continuation) then
@@ -246,7 +253,7 @@ package body PolyORB.References.Binding is
                         Local_Only,
                         Error);
                   if Found (Error) then
-                     return;
+                     goto Leave_Mutex_And_Return;
                   end if;
 
                   pragma Debug (C, O ("Recursed."));
@@ -259,12 +266,12 @@ package body PolyORB.References.Binding is
 
             --  End of processing for local profile case.
 
-            return;
+            goto Leave_Mutex_And_Return;
 
          end if;
 
          if Local_Only then
-            return;
+            goto Leave_Mutex_And_Return;
          end if;
 
          declare
@@ -286,7 +293,7 @@ package body PolyORB.References.Binding is
             --  of the designated object.
 
             if Found (Error) then
-               return;
+               goto Leave_Mutex_And_Return;
             end if;
 
             Binding_Info_Lists.Append
@@ -297,6 +304,9 @@ package body PolyORB.References.Binding is
             pragma Debug (C, O ("... done"));
          end;
       end;
+
+   <<Leave_Mutex_And_Return>>
+      Leave_Mutex (R);
    end Bind;
 
    -------------------------
