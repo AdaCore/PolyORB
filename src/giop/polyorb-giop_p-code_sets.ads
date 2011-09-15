@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -91,7 +91,7 @@ package PolyORB.GIOP_P.Code_Sets is
      SNCS     : Code_Set_Id;
      SCCS     : Code_Set_Id_List;
      Fallback : Code_Set_Id;
-     TCS      :    out Code_Set_Id;
+     TCS      : out Code_Set_Id;
      Error    : in out PolyORB.Errors.Error_Container);
    --  Select transmission code set to use based on:
    --   - CNCS - Client Native Code Set
