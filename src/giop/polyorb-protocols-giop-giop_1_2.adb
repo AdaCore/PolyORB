@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1308,6 +1308,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
         renames GIOP_Session_Context_1_2 (Sess.SCtx.all);
 
    begin
+      Sess.Mutex.Enter;
       if not SCtx.CSN_Complete then
          pragma Debug (C, O ("Negotiate_Code_Set_And_Update_Session"));
 
@@ -1337,6 +1338,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
                if Found (Error) then
                   Release (QoS_Parameter_Access (SCtx.CS_Context));
+                  Sess.Mutex.Leave;
                   return;
                end if;
 
@@ -1351,6 +1353,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
                if Found (Error) then
                   Release (QoS_Parameter_Access (SCtx.CS_Context));
+                  Sess.Mutex.Leave;
                   return;
                end if;
 
@@ -1366,6 +1369,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          end;
          SCtx.CSN_Complete := True;
       end if;
+      Sess.Mutex.Leave;
    end Negotiate_Code_Set_And_Update_Session;
 
    -------------------------
