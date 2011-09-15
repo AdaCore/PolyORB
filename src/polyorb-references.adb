@@ -166,7 +166,6 @@ package body PolyORB.References is
       BO   : Binding_Object_Access;
 
    begin
-      RI.Mutex.Enter;
       while not Last (Iter) loop
          BO := Binding_Object_Access
                  (Entity_Of (Value (Iter).Binding_Object_Ref));
@@ -182,14 +181,12 @@ package body PolyORB.References is
          elsif PolyORB.Binding_Object_QoS.Is_Compatible (BO, QoS) then
             BOC := Get_Component (Value (Iter).Binding_Object_Ref);
             Pro := Value (Iter).all.Binding_Profile;
-            RI.Mutex.Leave;
             return;
 
          else
             Next (Iter);
          end if;
       end loop;
-      RI.Mutex.Leave;
 
       BOC := null;
       Pro := null;

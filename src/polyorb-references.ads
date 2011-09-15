@@ -98,6 +98,15 @@ package PolyORB.References is
    --  Note: String_To_Object is a procedure so that it can be inherited
    --  when Ref is derived without requiring overload (Ada 95).
 
+   procedure Get_Binding_Info
+     (R   :     Ref'Class;
+      QoS :     PolyORB.QoS.QoS_Parameters;
+      BOC : out Components.Component_Access;
+      Pro : out Binding_Data.Profile_Access);
+   --  Retrieve the binding object associated with R, if R is bound.
+   --  Otherwise, return null. The caller is responsible for taking R's
+   --  mutex.
+
    procedure Enter_Mutex (R : Ref);
    procedure Leave_Mutex (R : Ref);
    --  Enter/release critical section associated with access to R's info
@@ -145,14 +154,6 @@ private
 
    package Binding_Info_Lists is
      new Utils.Chained_Lists (Binding_Info, Doubly_Chained => True);
-
-   procedure Get_Binding_Info
-     (R   :     Ref'Class;
-      QoS :     PolyORB.QoS.QoS_Parameters;
-      BOC : out Components.Component_Access;
-      Pro : out Binding_Data.Profile_Access);
-   --  Retrieve the binding object associated with R, if R is bound.
-   --  Otherwise, return null.
 
    procedure Share_Binding_Info
      (Dest   : Ref'Class;
