@@ -2883,6 +2883,7 @@ testsuite/tests/examples/corba-echo/ECHO_4/test.py
 testsuite/tests/examples/corba-echo/ECHO_5/test.py
 testsuite/tests/examples/corba-echo/ECHO_6/test.py
 testsuite/tests/examples/corba-echo/ECHO_7/test.py
+testsuite/tests/examples/corba-echo/PARALLEL_ECHO_0/test.py
 testsuite/tests/examples/corba-random/CORBA_RANDOM_0/test.py
 testsuite/tests/examples/corba-random/CORBA_RANDOM_1/test.opt
 testsuite/tests/examples/corba-random/CORBA_RANDOM_1/test.py
