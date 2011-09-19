@@ -62,12 +62,11 @@ top_builddir	:= @abs_top_builddir@
 install_sh		:= @install_sh@
 MOVEIFCHANGE		:= ${top_builddir}/support/move-if-change
 RM			:= @RM@
-XARGS_I			:= @XARGS_I@
-INSTALL			:= @INSTALL@
-INSTALL_SCRIPT		:= @INSTALL_SCRIPT@
-INSTALL_PROGRAM		:= @INSTALL_PROGRAM@
-INSTALL_STRIP_PROGRAM	:= @INSTALL_STRIP_PROGRAM@
-INSTALL_BIN		:= @INSTALL_BIN@
+PINSTALL		:= @PYTHON@ ${top_srcdir}/bldtools/install.py
+INSTALL_SCRIPT		:= ${PINSTALL} -m 555
+INSTALL_BIN		:= ${PINSTALL} -m 555
+INSTALL_PROGRAM		:= ${INSTALL_BIN}
+INSTALL_STRIP_PROGRAM	:= ${INSTALL_PROGRAM} -s
 LN_S			:= @LN_S@
 SHELL			:= @SHELL@
 
@@ -851,13 +850,13 @@ install: all
 	@echo "Install prefix: ${prefix}"
 	@echo "          Host: ${host}"
 	@echo "        Target: ${target}"
-	${INSTALL} -d ${prefix}/bin ${target_prefix}/bin
+	${PINSTALL} -d ${prefix}/bin ${target_prefix}/bin
 	${RM} -fr "${target_prefix}/lib/gnat/polyorb"
-	${INSTALL} -d ${target_prefix}/lib/gnat/polyorb
-	${INSTALL} -d ${target_prefix}/lib/polyorb
-	${INSTALL} -d ${target_prefix}/lib/polyorb/static
+	${PINSTALL} -d ${target_prefix}/lib/gnat/polyorb
+	${PINSTALL} -d ${target_prefix}/lib/polyorb
+	${PINSTALL} -d ${target_prefix}/lib/polyorb/static
 	${RM} -fr "${target_prefix}/include/polyorb"
-	${INSTALL} -d ${target_prefix}/include/polyorb
+	${PINSTALL} -d ${target_prefix}/include/polyorb
 	for comp in ${COMPILER_EXES}; do \
 	  ${INSTALL_BIN} ${top_builddir}/compilers/$${comp}${HOST_EXE_SUFFIX} ${host_exe_dir}/${host_cmdprefix}`basename $${comp}`${HOST_EXE_SUFFIX}; \
 	done
@@ -865,13 +864,13 @@ install: all
 	for tool in po_cos_naming/po_cos_naming po_cos_naming/po_cos_naming_shell po_cos_naming/ir_ab_names po_ir/po_ir po_catref/po_catref po_createref/po_createref po_names/po_names po_dumpir/po_dumpir; do \
 	  ${INSTALL_BIN} ${top_builddir}/tools/$$tool${TARGET_EXE_SUFFIX} ${target_exe_dir}/`basename $$tool`${TARGET_EXE_SUFFIX}; \
 	done
-	ls ${top_builddir}/lib/*.a | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/polyorb/static
-	ls ${top_builddir}/lib/*.so | ${XARGS_I} ${INSTALL} -m 555 {} ${target_prefix}/lib
-	ls ${top_builddir}/lib/*.dll | ${XARGS_I} ${INSTALL} -m 555 {} ${target_prefix}/lib
-	ls ${top_srcdir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat
-	ls ${top_builddir}/projects-distrib/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat
-	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat/polyorb
-	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/gnat/polyorb
+	ls ${top_builddir}/lib/*.a | ${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb/static
+	ls ${top_builddir}/lib/*.so | ${PINSTALL} -m 555 - ${target_prefix}/lib
+	ls ${top_builddir}/lib/*.dll | ${PINSTALL} -m 555 - ${target_prefix}/lib
+	ls ${top_srcdir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
+	ls ${top_builddir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
+	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat/polyorb
+	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat/polyorb
 	(find \
 	  ${top_builddir}/src \
 	  ${top_builddir}/cos \
@@ -880,14 +879,14 @@ install: all
 	  ${top_srcdir}/cos \
 	  ${top_srcdir}/idls \
 	  -name '*.ads' -o -name '*.adb' -o -name '*.idl') | \
-	${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/include/polyorb
+	${PINSTALL} -m 444 - ${target_prefix}/include/polyorb
 	(find \
 	  ${top_builddir}/ali \
 	  -name '*.ali' \
 	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
 	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
-	${XARGS_I} ${INSTALL} -m 444 {} ${target_prefix}/lib/polyorb
+	${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb
 	# Install documentation only if it has been built locally, or
 	# pre-built and packaged with sources.
 	if [ -r docs/polyorb_ug.html ]; \
