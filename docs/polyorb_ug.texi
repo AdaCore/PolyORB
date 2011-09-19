@@ -76,7 +76,7 @@
 @title PolyORB User's Guide
 @include polyorb_version.texi
 @subtitle Version @value{POLYORB_VERSION}
-@svndate $Date$ 
+@svndate $Date$
 @subtitle @value{SVNDate}
 @author @value{AUTHORS1}
 @author @value{AUTHORS2}
@@ -708,6 +708,8 @@ Ada compiler:
 For builds for cross targets, both a native and a cross compiler are
 required, as some tools (like an IDL-to-Ada compiler) are meant for
 use on the build host.
+
+A Python interpreter is required for installation.
 
 Optional:
 
@@ -5411,7 +5413,7 @@ polyorb/examples/dsa/echo% ../../../tools/po_cos_naming/po_cos_naming&
 polyorb/examples/dsa/echo% POLYORB_CORBA_NAME_SERVICE=''....''
 
 polyorb/examples/dsa/echo% export POLYORB_DSA_NAME_SERVICE=''...''
-polyorb/examples/dsa/echo% ./client 
+polyorb/examples/dsa/echo% ./client
 The client has started!
 Thus spake my server upon me:Hi!
 @end smallexample
