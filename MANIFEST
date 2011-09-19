@@ -10,6 +10,7 @@ README.DSA
 VERSION
 acinclude.m4
 aclocal.m4
+bldtools/install.py
 compilers/common_files/ChangeLog
 compilers/common_files/charset.adb
 compilers/common_files/charset.ads

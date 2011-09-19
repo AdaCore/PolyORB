@@ -12,6 +12,12 @@ This date shows the implementation date of the feature. Any 2.8 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-28-K919-038 Improved installation script (2011-09-19)
+
+   The PolyORB Makefiles do not rely on xargs(1) and install(1). Instead,
+   installation is performed by an equivalent Python script, which avoids
+   spawning a lot of processes.
+
 NF-28-K909-043 Exceptions tracing (2011-09-09)
 
    A new debugging trace is now available that logs a message for every
