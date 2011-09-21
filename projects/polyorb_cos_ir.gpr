@@ -43,7 +43,7 @@ library project PolyORB_cos_ir is
    for Library_Name use "polyorb-corba-cos-ir-impl";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/cos_ir";
-   for Library_Kind use PolyORB_Common.Library_Kind;
+   for Library_Kind use PolyORB_Common.Library_Type;
 
    package Compiler is
 

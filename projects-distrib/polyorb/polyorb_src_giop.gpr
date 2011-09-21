@@ -38,7 +38,7 @@ project PolyORB_src_giop is
    for Source_Files use ();
    for Library_Name use "polyorb-giop";
    for Library_Dir use PolyORB_Common.Library_Dir;
-   for Library_Kind use PolyORB_Common.Library_Kind;
+   for Library_Kind use PolyORB_Common.Library_Type;
    for Externally_Built use "true";
 
 end PolyORB_src_giop;

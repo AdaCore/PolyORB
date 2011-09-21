@@ -43,7 +43,7 @@ library project PolyORB_src_giop_iiop is
    for Library_Name use "polyorb-giop-iiop";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_giop_iiop";
-   for Library_Kind use PolyORB_Common.Library_Kind;
+   for Library_Kind use PolyORB_Common.Library_Type;
 
    package Compiler is
 

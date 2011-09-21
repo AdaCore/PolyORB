@@ -45,7 +45,7 @@ library project PolyORB_src_security_x509 is
    for Library_Name use "polyorb-security-x509";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_security_x509";
-   for Library_Kind use PolyORB_Common.Library_Kind;
+   for Library_Kind use PolyORB_Common.Library_Type;
 
    package Compiler is
 
