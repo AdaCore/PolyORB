@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---           Copyright (C) 2009, Free Software Foundation, Inc.             --
+--         Copyright (C) 2009-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,6 +37,7 @@
 with Ada.Environment_Variables;
 
 with PolyORB.DSA_P.Exceptions;
+with PolyORB.DSA_P.Initialization;
 with PolyORB.Errors;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -46,6 +47,7 @@ with PolyORB.POA;
 with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.References.IOR;
+with PolyORB.Servants;
 with PolyORB.Services.Naming.NamingContext.Servant;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings.Lists;
@@ -53,6 +55,7 @@ with PolyORB.Utils.Strings.Lists;
 package body PolyORB.DSA_P.Name_Server is
 
    use PolyORB.DSA_P.Exceptions;
+   use PolyORB.DSA_P.Initialization;
    use PolyORB.Errors;
    use PolyORB.Initialization;
    use PolyORB.Log;
@@ -80,17 +83,20 @@ package body PolyORB.DSA_P.Name_Server is
    -------------------------------
 
    procedure Initialize_Naming_Context is
-      Root_POA : constant POA.Obj_Adapter_Access :=
-                    POA.Obj_Adapter_Access
-                      (Object_Adapter (PolyORB.Setup.The_ORB));
-      Oid : Object_Id_Access;
-      Error : PolyORB.Errors.Error_Container;
-      Type_Id : constant Standard.String := "dsa:NAMING";
+      use PolyORB.POA;
+
+      Root_POA        : constant Obj_Adapter_Access :=
+                           Obj_Adapter_Access
+                             (Object_Adapter (PolyORB.Setup.The_ORB));
+      Oid             : Object_Id_Access;
+      Error           : Errors.Error_Container;
+      Type_Id         : constant Standard.String := "dsa:NAMING";
+      Root_NC_Servant : PolyORB.Servants.Servant_Access;
    begin
       Root_NC := NC.Create;
+      Root_NC_Servant := To_PolyORB_Servant (Root_NC);
 
-      PolyORB.POA.Export
-        (Root_POA, To_PolyORB_Servant (Root_NC), null, Oid, Error);
+      Export (Root_POA, Root_NC_Servant, null, Oid, Error);
       if Found (Error) then
          Raise_From_Error (Error);
       end if;
@@ -108,7 +114,7 @@ package body PolyORB.DSA_P.Name_Server is
          pragma Debug (C, O ("POLYORB_DSA_NAME_SERVICE=" & Nameserver_Str));
       end;
 
-      --  Initiate_Well_Known_Service ("NameService");
+      Initiate_Well_Known_Service (Root_NC_Servant, "_NameService");
    end Initialize_Naming_Context;
 
    use PolyORB.Utils.Strings;

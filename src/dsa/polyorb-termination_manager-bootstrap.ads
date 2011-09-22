@@ -38,7 +38,6 @@
 with PolyORB.Binding_Objects;
 with PolyORB.Objects;
 with PolyORB.References;
-with PolyORB.Servants;
 
 package PolyORB.Termination_Manager.Bootstrap is
 
@@ -51,7 +50,7 @@ package PolyORB.Termination_Manager.Bootstrap is
    --  Because the termination manager is a singleton in its own partition,
    --  it is legitimate to keep here some references to the TM.
 
-   TM_Name_Space  : constant String := "Termination_Manager";
+   TM_Name_Space  : constant String := "_Termination_Manager";
    --  The name used by the well known service started by the termination
    --  manager.
 
@@ -98,12 +97,5 @@ package PolyORB.Termination_Manager.Bootstrap is
 
    procedure Initialize_Termination_Manager;
    --  Initializes the termination algorithm
-
-private
-
-   procedure Initiate_Well_Known_Service
-     (S    : Servants.Servant_Access; Name : String);
-   --  Initiate a POA reachable by an absolute path of the form: /Name/ and
-   --  which returns always the default servant S.
 
 end PolyORB.Termination_Manager.Bootstrap;

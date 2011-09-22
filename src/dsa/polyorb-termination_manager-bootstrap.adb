@@ -32,32 +32,30 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
+
+with System.Partition_Interface;
+
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.Neighbour;
 with PolyORB.Binding_Data;
-with PolyORB.DSA_P.Exceptions;
+with PolyORB.DSA_P.Initialization;
 with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.POA;
-with PolyORB.POA_Config;
-with PolyORB.POA_Config.RACWs;
-with PolyORB.POA_Manager;
 with PolyORB.QoS.Term_Manager_Info;
-with PolyORB.Setup;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
-with System.Partition_Interface;
 
 package body PolyORB.Termination_Manager.Bootstrap is
+
+   use System.Partition_Interface;
 
    use PolyORB.Binding_Data;
    use PolyORB.Binding_Objects;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.Servants;
-   use PolyORB.Setup;
-   use System.Partition_Interface;
 
    -------------
    -- Logging --
@@ -290,7 +288,7 @@ package body PolyORB.Termination_Manager.Bootstrap is
       --  Start the Well Known Service
 
       pragma Debug (C, O ("Initiating Well Known Service"));
-      Initiate_Well_Known_Service
+      DSA_P.Initialization.Initiate_Well_Known_Service
         (S    => Servants.Servant_Access (S),
          Name => TM_Name_Space);
 
@@ -310,44 +308,6 @@ package body PolyORB.Termination_Manager.Bootstrap is
 
       pragma Debug (C, O ("Initialize_Termination_Manager: leave"));
    end Initialize_Termination_Manager;
-
-   ---------------------------------
-   -- Initiate_Well_Known_Service --
-   ---------------------------------
-
-   procedure Initiate_Well_Known_Service
-     (S    : Servants.Servant_Access;
-      Name : String)
-   is
-      use PolyORB.Errors;
-      use PolyORB.POA;
-      use PolyORB.POA_Config;
-      use PolyORB.POA_Manager;
-      use PolyORB.POA_Config.RACWs;
-
-      POA : Obj_Adapter_Access;
-      Error : Error_Container;
-   begin
-      Create_POA
-        (Self         => Obj_Adapter_Access (Object_Adapter (The_ORB)),
-         Adapter_Name => Name,
-         A_POAManager => null,
-         Policies     => Default_Policies (RACW_POA_Config.all),
-         POA          => POA,
-         Error        => Error);
-
-      if Found (Error) then
-         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      POA.Default_Servant := S;
-
-      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)), Error);
-
-      if Found (Error) then
-         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-   end Initiate_Well_Known_Service;
 
    --------------------------------
    -- Ref_To_Term_Manager_Access --
