@@ -53,6 +53,7 @@ procedure Parallel_Client is
    use type CORBA.String;
 
    myecho : Echo.Ref;
+   pragma Unreferenced (myecho); -- ???
 
    Tasks : constant := 100;
    Calls : constant := 1_000;
