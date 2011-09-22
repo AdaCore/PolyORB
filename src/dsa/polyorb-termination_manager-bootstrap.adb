@@ -39,9 +39,7 @@ with PolyORB.Annotations;
 with PolyORB.Binding_Data.Neighbour;
 with PolyORB.Binding_Data;
 with PolyORB.DSA_P.Initialization;
-with PolyORB.Errors;
 with PolyORB.Log;
-with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.QoS.Term_Manager_Info;
 with PolyORB.Servants;
@@ -54,7 +52,6 @@ package body PolyORB.Termination_Manager.Bootstrap is
    use PolyORB.Binding_Data;
    use PolyORB.Binding_Objects;
    use PolyORB.Log;
-   use PolyORB.ORB;
    use PolyORB.Servants;
 
    -------------
@@ -111,7 +108,6 @@ package body PolyORB.Termination_Manager.Bootstrap is
    is
       use Annotations;
       use Binding_Data.Neighbour;
-      use Errors;
       use QoS.Term_Manager_Info;
       use References;
 
@@ -203,7 +199,6 @@ package body PolyORB.Termination_Manager.Bootstrap is
    ------------------------------------
 
    procedure Initialize_Termination_Manager is
-      use PolyORB.Errors;
       use PolyORB.Objects;
       use PolyORB.Parameters;
 
