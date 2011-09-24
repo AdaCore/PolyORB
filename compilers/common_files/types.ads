@@ -162,8 +162,8 @@ pragma Preelaborate (Types);
    -----------------------------
 
    --  Name_Id values are used to identify entries in the names table. Except
-   --  for the special values No_Name, and Error_Name, they are subscript
-   --  values for the Names table defined in package Namet.
+   --  for the special value No_Name, they are subscript values for the Names
+   --  table defined in package Namet.
 
    --  Note that with only a few exceptions, which are clearly documented, the
    --  type Name_Id should be regarded as a private type. In particular it is

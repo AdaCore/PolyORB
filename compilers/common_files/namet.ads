@@ -72,9 +72,8 @@ package Namet is
 
    procedure Get_Name_String (Id : Name_Id);
    --  Get_Name_String is used to retrieve the string associated with an entry
-   --  in the names table. The resulting string is stored in Name_Buffer
-   --  and Name_Len is set. It is an error to call Get_Name_String with one
-   --  of the special name Id values (No_Name or Error_Name).
+   --  in the names table. The resulting string is stored in Name_Buffer and
+   --  Name_Len is set. It is an error to call Get_Name_String with No_Name.
 
    function Get_Name_String (Id : Name_Id) return String;
    --  This functional form returns the result as a string without affecting
@@ -168,7 +167,7 @@ package Namet is
    --  written, just the characters of the name. On return Name_Buffer and
    --  Name_Len are set as for a call to Get_Name_String. The name is written
    --  in encoded form (i.e. including Uhh, Whhh, Qx, _op as they appear in
-   --  the name table). If Id is Error_Name, or No_Name, no text is output.
+   --  the name table). If Id is No_Name, no text is output.
 
    procedure wn (Id : Name_Id);
 --   pragma Export (Ada, wn);
