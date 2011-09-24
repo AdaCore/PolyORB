@@ -6,7 +6,7 @@
 **                                                                          **
 **                       C   s u p p o r t   f i l e                        **
 **                                                                          **
-**            Copyright (C) 2005 Free Software Foundation, Inc.             **
+**         Copyright (C) 2005-2011, Free Software Foundation, Inc.          **
 **                                                                          **
 ** PolyORB is free software; you  can  redistribute  it and/or modify it    **
 ** under terms of the  GNU General Public License as published by the  Free **
@@ -69,8 +69,8 @@ unsigned int __PolyORB_Get_CRYPTO_LOCK (void) {
 /* __PolyORB_d2i_X509_CHAIN */
 /****************************/
 
-X509_CHAIN *__PolyORB_d2i_X509_CHAIN(unsigned char *buffer, int length) {
-    unsigned char *aux = buffer;
+X509_CHAIN *__PolyORB_d2i_X509_CHAIN(const unsigned char *buffer, int length) {
+    const unsigned char *aux = buffer;
 
     return d2i_X509_CHAIN(NULL, &aux, length);
 }
@@ -79,8 +79,8 @@ X509_CHAIN *__PolyORB_d2i_X509_CHAIN(unsigned char *buffer, int length) {
 /* __PolyORB_d2i_X509_NAME */
 /***************************/
 
-X509_NAME *__PolyORB_d2i_X509_NAME(unsigned char *buffer, int length) {
-    unsigned char *aux = buffer;
+X509_NAME *__PolyORB_d2i_X509_NAME(const unsigned char *buffer, int length) {
+    const unsigned char *aux = buffer;
 
     return d2i_X509_NAME(NULL, &aux, length);
 }

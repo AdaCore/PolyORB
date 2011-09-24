@@ -6,7 +6,7 @@
 **                                                                          **
 **                       C   s u p p o r t   f i l e                        **
 **                                                                          **
-**            Copyright (C) 2005 Free Software Foundation, Inc.             **
+**         Copyright (C) 2005-2011, Free Software Foundation, Inc.          **
 **                                                                          **
 ** PolyORB is free software; you  can  redistribute  it and/or modify it    **
 ** under terms of the  GNU General Public License as published by the  Free **
@@ -82,8 +82,8 @@ void __PolyORB_i2d_ASN1_OBJECT(ASN1_OBJECT *object,
 /* __PolyORB_d2i_ASN1_OBJECT */
 /*****************************/
 
-ASN1_OBJECT *__PolyORB_d2i_ASN1_OBJECT(unsigned char *buf, int length) {
-    unsigned char *aux = buf;
+ASN1_OBJECT *__PolyORB_d2i_ASN1_OBJECT(const unsigned char *buf, int length) {
+    const unsigned char *aux = buf;
 
     return d2i_ASN1_OBJECT(NULL, &aux, length);
 }
@@ -93,7 +93,8 @@ ASN1_OBJECT *__PolyORB_d2i_ASN1_OBJECT(unsigned char *buf, int length) {
 /***************************/
 
 ASN1_OBJECT *__PolyORB_ASN1_OBJECT_dup(ASN1_OBJECT *x) {
-    return (ASN1_OBJECT *)ASN1_dup((int (*)())i2d_ASN1_OBJECT,
-                                   (char *(*)())d2i_ASN1_OBJECT,
-                                   (char *)x);
+    return (ASN1_OBJECT *)ASN1_dup
+        ((int (*)())i2d_ASN1_OBJECT,
+        (void * (*)(void **, const unsigned char **, long int))d2i_ASN1_OBJECT,
+        (char *)x);
 }

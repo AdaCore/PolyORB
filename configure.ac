@@ -42,7 +42,7 @@ AC_SUBST(LIBVERSIONINFO)
 # compilers.
 
 define(DEBUG_OPTIONS, [dnl
-  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O0"; fi
+  if test "${CFLAGS-unset}" = "unset"; then CFLAGS="-g -O0 -Werror"; fi
   BASE_ADAFLAGS="-XBuild=DEBUG $VALIDITY_FLAG"
   BARGS=-E
   ASSERTION_POLICY_DEFAULT=Check
