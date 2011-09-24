@@ -1854,8 +1854,6 @@ begin
       return;
    end if;
 
-   Name_Buffer (Name_Len + 1) := ASCII.NUL;
-
    Source := Open_Source (Source_File_Name, Kind => True_Source);
 
    --  Lexer step
