@@ -224,32 +224,32 @@ procedure Mknodes is
    procedure W_Subprogram_Call
      (I   : Natural;
       F   : String;
-      PN1 : String := No_Str;
-      PN2 : String := No_Str;
-      PN3 : String := No_Str;
-      PN4 : String := No_Str;
-      PN5 : String := No_Str);
+      PN1 : String := "";
+      PN2 : String := "";
+      PN3 : String := "";
+      PN4 : String := "";
+      PN5 : String := "");
    procedure W_Subprogram_Signature
      (I   : Natural;
       F   : String;
       PN1 : Character;
       PT1 : String;
       PN2 : Character := ' ';
-      PT2 : String := No_Str);
+      PT2 : String := "");
    procedure W_Subprogram_Declaration
      (I   : Natural;
       F   : String;
       PN1 : Character;
       PT1 : String;
       PN2 : Character := ' ';
-      PT2 : String := No_Str);
+      PT2 : String := "");
    procedure W_Subprogram_Definition
      (I   : Natural;
       F   : String;
       PN1 : Character;
       PT1 : String;
       PN2 : Character := ' ';
-      PT2 : String := No_Str);
+      PT2 : String := "");
    procedure W_Subprogram_Definition_End
      (I   : Natural;
       F   : String);
@@ -1614,40 +1614,40 @@ procedure Mknodes is
    procedure W_Subprogram_Call
      (I   : Natural;
       F   : String;
-      PN1 : String := No_Str;
-      PN2 : String := No_Str;
-      PN3 : String := No_Str;
-      PN4 : String := No_Str;
-      PN5 : String := No_Str) is
+      PN1 : String := "";
+      PN2 : String := "";
+      PN3 : String := "";
+      PN4 : String := "";
+      PN5 : String := "") is
    begin
       W_Indentation (I);
       Write_Line (F);
 
-      if PN1 /= No_Str then
+      if PN1 /= "" then
          W_Indentation (I);
          Write_Str ("  (");
          Write_Str (PN1);
       end if;
 
-      if PN2 /= No_Str then
+      if PN2 /= "" then
          Write_Line (",");
          W_Indentation (I + 1);
          Write_Str (PN2);
       end if;
 
-      if PN3 /= No_Str then
+      if PN3 /= "" then
          Write_Line (",");
          W_Indentation (I + 1);
          Write_Str (PN3);
       end if;
 
-      if PN4 /= No_Str then
+      if PN4 /= "" then
          Write_Line (",");
          W_Indentation (I + 1);
          Write_Str (PN4);
       end if;
 
-      if PN5 /= No_Str then
+      if PN5 /= "" then
          Write_Line (",");
          W_Indentation (I + 1);
          Write_Str (PN5);
@@ -1666,7 +1666,7 @@ procedure Mknodes is
       PN1 : Character;
       PT1 : String;
       PN2 : Character := ' ';
-      PT2 : String := No_Str) is
+      PT2 : String := "") is
    begin
       W_Subprogram_Signature (I, F, PN1, PT1, PN2, PT2);
       Write_Line (";");
@@ -1682,7 +1682,7 @@ procedure Mknodes is
       PN1 : Character;
       PT1 : String;
       PN2 : Character := ' ';
-      PT2 : String := No_Str) is
+      PT2 : String := "") is
    begin
       W_Subprogram_Signature (I, F, PN1, PT1, PN2, PT2);
       Write_Line (" is");
@@ -1712,11 +1712,11 @@ procedure Mknodes is
       PN1 : Character;
       PT1 : String;
       PN2 : Character := ' ';
-      PT2 : String := No_Str) is
+      PT2 : String := "") is
    begin
       W_Indentation (I);
 
-      if PN2 = ' ' and then PT2 /= No_Str then
+      if PN2 = ' ' and then PT2 /= "" then
          Write_Str  ("function");
       else
          Write_Str  ("procedure");
@@ -1729,7 +1729,7 @@ procedure Mknodes is
       Write_Str  (" : ");
       Write_Str  (PT1);
 
-      if PT2 = No_Str then
+      if PT2 = "" then
          Write_Char (')');
          return;
       end if;

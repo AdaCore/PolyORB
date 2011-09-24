@@ -57,7 +57,7 @@ package body Locations is
       pragma Assert ((Loc.File = No_Name) = (Loc = No_Location));
 
       if Loc.File = No_Name then
-         return No_Str;
+         return "";
       end if;
       declare
          Column : constant Nat := Nat (Loc.Last - Loc.First + 1);

@@ -180,8 +180,6 @@ pragma Preelaborate (Types);
    for Name_Id'Size use 32;
    --  Type used to identify entries in the names table
 
-   No_Str   : constant String := "";
-
    No_Name : constant Name_Id := Names_Low_Bound;
    --  The special Name_Id value No_Name is used in the parser to indicate
    --  a situation where no name is present (e.g. on a loop or block).

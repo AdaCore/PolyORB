@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,7 +64,7 @@ package body Backend.BE_CORBA_Ada.Debug is
    function Image (N : Name_Id) return String is
    begin
       if N = No_Name then
-         return No_Str;
+         return "";
       else
          return Get_Name_String (N);
       end if;

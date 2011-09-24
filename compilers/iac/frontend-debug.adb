@@ -61,7 +61,7 @@ package body Frontend.Debug is
    function Image (N : Name_Id) return String is
    begin
       if N = No_Name then
-         return No_Str;
+         return "";
       else
          return Get_Name_String (N);
       end if;
