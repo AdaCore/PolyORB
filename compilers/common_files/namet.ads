@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Containers;
 
 with GNAT.Table;
 
@@ -156,6 +158,9 @@ package Namet is
    procedure Set_Name_Table_Byte (Id : Name_Id; Val : Byte);
    pragma Inline (Set_Name_Table_Byte);
    --  Sets the Byte value associated with the given name
+
+   function Hash (Id : Name_Id) return Ada.Containers.Hash_Type;
+   --  Hash function suitable for Containers
 
    procedure Write_Name (Id : Name_Id);
    --  Write_Name writes the characters of the specified name using the

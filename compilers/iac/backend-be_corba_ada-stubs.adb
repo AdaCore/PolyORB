@@ -89,6 +89,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
       procedure Visit (E : Node_Id) is
       begin
+         if FEN.Loc (E) /= No_Location then
+            Current_Loc := FEN.Loc (E);
+         end if;
+
          case FEN.Kind (E) is
             when K_Specification =>
                Visit_Specification (E);
@@ -612,7 +616,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
       begin
          if not Map_Particular_CORBA_Parts (E, PK_Stub_Spec) then
-            S := Map_IDL_Unit (E);
+            S := Map_IDL_Unit (E, Include_Source => True);
             Append_To (Packages (Current_Entity), S);
             Push_Entity (S);
             Set_Main_Spec;
@@ -1179,6 +1183,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
 
       procedure Visit (E : Node_Id) is
       begin
+         if FEN.Loc (E) /= No_Location then
+            Current_Loc := FEN.Loc (E);
+         end if;
+
          case FEN.Kind (E) is
             when K_Specification =>
                Visit_Specification (E);

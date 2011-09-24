@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -191,7 +191,7 @@ package body Namet is
    ----------
 
    function Hash return Hash_Index_Type is
-      subtype Int_1_12 is Positive range 1 .. 12;
+      subtype Int_0_12 is Natural range 0 .. 12;
       --  Used to avoid when others on case jump below
 
       Even_Name_Len : Integer;
@@ -229,7 +229,10 @@ package body Namet is
       --  hash. The positioning is randomized, with the bias that characters
       --  later on participate fully (i.e. are added towards the right side).
 
-      case Int_1_12'(Name_Len) is
+      case Int_0_12'(Name_Len) is
+
+         when 0 =>
+            return 0;
 
          when 1 =>
             return
@@ -346,6 +349,17 @@ package body Namet is
               Character'Pos (Name_Buffer (12))) mod Hash_Num;
 
       end case;
+   end Hash;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (Id : Name_Id) return Ada.Containers.Hash_Type is
+      --  The bits of Id itself make a good hash, because the Id's are assigned
+      --  sequentially.
+   begin
+      return Ada.Containers.Hash_Type'Mod (Id);
    end Hash;
 
    ----------------

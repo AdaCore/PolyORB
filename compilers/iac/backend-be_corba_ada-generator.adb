@@ -397,9 +397,6 @@ package body Backend.BE_CORBA_Ada.Generator is
       --    the comment in the source code, the procedure splits the
       --    comment into more than a line.
 
-      --  The comment is assumed to be a sequence of characters,
-      --  beginning and ending with a NON-SPACE character.
-
       --  A word is a space character, or else a sequence of non space
       --  characters located between two spaces.
 

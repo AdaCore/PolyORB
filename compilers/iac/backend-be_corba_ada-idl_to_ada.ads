@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -113,10 +113,12 @@ package Backend.BE_CORBA_Ada.IDL_To_Ada is
    function Map_Get_Members_Spec (Member_Type : Node_Id) return Node_Id;
    --  Create the spec of the Get_Member procedure of an exception
 
-   function Map_IDL_Unit (Entity : Node_Id) return Node_Id;
+   function Map_IDL_Unit
+     (Entity : Node_Id; Include_Source : Boolean := False) return Node_Id;
    --  Create an IDL unit from the Interface, Module or Specification
    --  'Entity' and initialize the packages of the Unit according to
-   --  its kind.
+   --  its kind. Include_Source indicates that the IDL source code should
+   --  be included in the output (commented out).
 
    function Map_Impl_Type_Ancestor (Entity : Node_Id) return Node_Id;
    --  Map an Implementation parent type according to the properties

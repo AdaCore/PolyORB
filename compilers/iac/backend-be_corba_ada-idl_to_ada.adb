@@ -704,7 +704,9 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
    -- Map_IDL_Unit --
    ------------------
 
-   function Map_IDL_Unit (Entity : Node_Id) return Node_Id is
+   function Map_IDL_Unit
+     (Entity : Node_Id; Include_Source : Boolean := False) return Node_Id
+   is
       P : Node_Id;
       N : Node_Id;
       M : Node_Id;
@@ -725,7 +727,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
 
       --  Main package
 
-      M := Make_Package_Declaration (I);
+      M := Make_Package_Declaration (I, Include_Source);
       Set_IDL_Unit (M, P);
       Set_Stubs_Package (P, M);
 

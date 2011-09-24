@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,6 +54,8 @@ package body Locations is
    function Image (Loc : Location) return String
    is
    begin
+      pragma Assert ((Loc.File = No_Name) = (Loc = No_Location));
+
       if Loc.File = No_Name then
          return No_Str;
       end if;

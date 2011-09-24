@@ -38,14 +38,15 @@ with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 with GNAT.Directory_Operations;
 
-with Errors;    use Errors;
-with Flags;     use Flags;
-with Lexer;     use Lexer;
-with Locations; use Locations;
-with Namet;     use Namet;
-with Output;    use Output;
-with Outfiles;  use Outfiles;
-with Types;     use Types;
+with Errors;       use Errors;
+with Flags;        use Flags;
+with Lexer;        use Lexer;
+with Locations;    use Locations;
+with Namet;        use Namet;
+with Output;       use Output;
+with Outfiles;     use Outfiles;
+with Source_Input; use Source_Input;
+with Types;        use Types;
 
 procedure Mknodes is
 
@@ -1794,7 +1795,7 @@ procedure Mknodes is
    end W_With;
 
    Source_File_Name  : Name_Id;
-   Source_File       : File_Descriptor;
+   Source            : Source_File_Ptr;
    Attribute         : Node_Id;
    Definition        : Node_Id;
    pragma Unreferenced (Definition); --  Because never read
@@ -1855,10 +1856,10 @@ begin
 
    Name_Buffer (Name_Len + 1) := ASCII.NUL;
 
-   Source_File := Open_Read (Name_Buffer'Address, Binary);
+   Source := Open_Source (Source_File_Name, Kind => True_Source);
 
    --  Lexer step
-   Lexer.Process (Source_File, Source_File_Name);
+   Lexer.Process (Source);
 
    for T in Base_Types'Range loop
       Base_Types (T) := New_Node (T, Token_Location);

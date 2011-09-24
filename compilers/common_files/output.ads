@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1992-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 1992-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,8 @@ with GNAT.OS_Lib;
 with Types;          use Types;
 
 package Output is
-pragma Elaborate_Body (Output);
+
+   pragma Elaborate_Body (Output);
 
    -----------------
    -- Subprograms --
@@ -100,6 +101,7 @@ pragma Elaborate_Body (Output);
 
    procedure Set_Space_Increment (Value : Natural);
    procedure Write_Indentation (Offset : Integer := 0);
+   pragma Precondition (Column = 1);
    procedure Write_Space;
 
 end Output;

@@ -34,13 +34,13 @@
 with GNAT.Table;
 with GNAT.Case_Util;
 
-with Charset;   use Charset;
-with Flags;     use Flags;
-with Locations; use Locations;
-with Namet;     use Namet;
-with Output;    use Output;
-with Utils;     use Utils;
-with Values;    use Values;
+with Charset;      use Charset;
+with Flags;        use Flags;
+with Namet;        use Namet;
+with Output;       use Output;
+with Source_Input; use Source_Input;
+with Utils;        use Utils;
+with Values;       use Values;
 
 with Frontend.Nutils;
 
@@ -1747,7 +1747,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
    -- Make_Package_Declaration --
    ------------------------------
 
-   function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
+   function Make_Package_Declaration
+     (Identifier : Node_Id; Include_Source : Boolean := False) return Node_Id
+   is
       Pkg         : Node_Id;
       Unit        : Node_Id;
 
@@ -1812,7 +1814,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Adding a comment header
 
-      Make_Comment_Header (Context_Clause (Pkg), Identifier);
+      Make_Comment_Header (Context_Clause (Pkg), Identifier, Include_Source);
 
       Set_Visible_Part (Pkg, New_List);
       Set_Nested_Packages (Pkg, New_List);
@@ -1830,9 +1832,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Append_To (Context_Clause (Pkg), Make_Style_Check_Pragma);
 
-      --  Adding a comment header
+      --  Adding a comment header. We only want to include source in the spec.
 
-      Make_Comment_Header (Context_Clause (Pkg), Identifier);
+      Make_Comment_Header
+        (Context_Clause (Pkg), Identifier, Include_Source => False);
 
       Set_Statements (Pkg, New_List);
       Set_Package_Declaration (Pkg, Unit);
@@ -2252,7 +2255,8 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    procedure Make_Comment_Header
      (Package_Header     : List_Id;
-      Package_Identifier : Node_Id)
+      Package_Identifier : Node_Id;
+      Include_Source : Boolean)
    is
       Separator    : Name_Id;
       --  A line of hyphens
@@ -2261,7 +2265,86 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Internal_Str : constant String := "Internals";
       Editable     : Boolean;
       Internal     : Boolean;
-      N            : Node_Id;
+
+      procedure Comment
+        (Message : Name_Id; Has_Header_Spaces : Boolean := True);
+      procedure Comment
+        (Message : String; Has_Header_Spaces : Boolean := True);
+      --  Append an Ada_Comment node to Package_Header
+
+      procedure Comment_Source_File (Source : Source_File);
+      --  Append the entire Source (an IDL source file), commented out, to the
+      --  Package_Header
+
+      -------------
+      -- Comment --
+      -------------
+
+      procedure Comment
+        (Message : Name_Id; Has_Header_Spaces : Boolean := True)
+      is
+      begin
+         Append_To
+           (Package_Header, Make_Ada_Comment (Message, Has_Header_Spaces));
+      end Comment;
+
+      procedure Comment
+        (Message : String; Has_Header_Spaces : Boolean := True)
+      is
+      begin
+         Set_Str_To_Name_Buffer (Message);
+         Comment (Name_Find, Has_Header_Spaces);
+      end Comment;
+
+      -------------------------
+      -- Comment_Source_File --
+      -------------------------
+
+      procedure Comment_Source_File (Source : Source_File) is
+         Max_Num_Lines : constant Natural := 10_000;
+         --  Avoid generating enormous comments, by limiting the number of
+         --  lines to this
+
+         Num_Lines : Natural := 0;
+         --  Number of comment lines so far
+
+         procedure Append_Comment (Line : String);
+         --  Add a comment line, and keep track of Num_Lines
+
+         procedure Append_Comment (Line : String) is
+         begin
+            Num_Lines := Num_Lines + 1;
+            if Num_Lines > Max_Num_Lines then
+               return;
+            end if;
+
+            Comment (Line);
+         end Append_Comment;
+
+      begin
+         case Source.Kind is
+            when Preprocessed_Source =>
+               null; -- skip it
+
+            when True_Source =>
+               Comment ("");
+               Comment ("Source: " & Get_Name_String (Source.Name));
+               Comment ("");
+
+               Iterate_Lines (Source, Append_Comment'Access);
+
+               if Num_Lines > Max_Num_Lines then
+                  Comment
+                    ("..." & Natural (Num_Lines - Max_Num_Lines)'Img &
+                     " lines elided");
+               end if;
+
+               Comment
+                 ("End source: " & Get_Name_String (Source.Name) &
+                  " --" & Num_Lines'Img & " lines");
+         end case;
+      end Comment_Source_File;
+
    begin
       --  Determine whether this package is intended to be edited by the user
 
@@ -2281,66 +2364,37 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       --  Append the comment header lines to the package header
 
-      N := Make_Ada_Comment (Name_Find, False);
-      Append_To (Package_Header, N);
-
-      Set_Str_To_Name_Buffer
-        ("This file has been generated automatically from");
-      N := Make_Ada_Comment (Name_Find);
-      Append_To (Package_Header, N);
-
-      Get_Name_String (Main_Source);
-      N := Make_Ada_Comment (Name_Find);
-      Append_To (Package_Header, N);
-
-      Set_Str_To_Name_Buffer
-        ("by IAC (IDL to Ada Compiler) " & Platform.Version & ".");
-      N := Make_Ada_Comment (Name_Find);
-      Append_To (Package_Header, N);
+      Comment ("");
+      Comment (Separator, Has_Header_Spaces => False);
+      Comment ("This file has been generated automatically from");
+      Comment (Main_Source);
+      Comment ("by IAC (IDL to Ada Compiler) " & Platform.Version & ".");
 
       if not Editable then
-
-         N := Make_Ada_Comment (Separator, False);
-         Append_To (Package_Header, N);
-
-         Set_Str_To_Name_Buffer
-           ("Do NOT hand-modify this file, as your");
-         N := Make_Ada_Comment (Name_Find);
-         Append_To (Package_Header, N);
-
-         Set_Str_To_Name_Buffer
-           ("changes will be lost when you re-run the");
-         N := Make_Ada_Comment (Name_Find);
-         Append_To (Package_Header, N);
-
-         Set_Str_To_Name_Buffer
-           ("IDL to Ada compiler.");
-         N := Make_Ada_Comment (Name_Find);
-         Append_To (Package_Header, N);
+         Comment (Separator, Has_Header_Spaces => False);
+         Comment ("NOTE: If you modify this file by hand, your");
+         Comment ("changes will be lost when you re-run the");
+         Comment ("IDL to Ada compiler.");
+         Comment (Separator, Has_Header_Spaces => False);
       end if;
 
       if Internal then
-         N := Make_Ada_Comment (Separator, False);
-         Append_To (Package_Header, N);
-
-         Set_Str_To_Name_Buffer
-           ("This package is not part of the standard IDL-to-Ada");
-         N := Make_Ada_Comment (Name_Find);
-         Append_To (Package_Header, N);
-
-         Set_Str_To_Name_Buffer
-           ("mapping. It provides supporting routines used");
-         N := Make_Ada_Comment (Name_Find);
-         Append_To (Package_Header, N);
-
-         Set_Str_To_Name_Buffer
-           ("internally by PolyORB.");
-         N := Make_Ada_Comment (Name_Find);
-         Append_To (Package_Header, N);
+         Comment (Separator, Has_Header_Spaces => False);
+         Comment ("This package is not part of the standard IDL-to-Ada");
+         Comment ("mapping. It provides supporting routines used");
+         Comment ("internally by PolyORB.");
       end if;
 
-      N := Make_Ada_Comment (Separator, False);
-      Append_To (Package_Header, N);
+      if Include_Source then
+         --  Loop through all the source files, and add them as comments
+
+         Iterate_Source_Files (Comment_Source_File'Access);
+
+         Comment ("");
+         Comment (Separator, Has_Header_Spaces => False);
+      end if;
+
+      Comment ("");
    end Make_Comment_Header;
 
    -----------------
@@ -2377,7 +2431,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
          Bind_FE_To_BE (From, N, B_Stub);
          Set_Loc  (N, FEN.Loc (From));
       else
-         Set_Loc  (N, No_Location);
+         Set_Loc  (N, Current_Loc);
       end if;
 
       return N;

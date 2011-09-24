@@ -31,7 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Locations; use Locations;
+
 with Frontend.Nodes;
+
 with Backend.BE_CORBA_Ada.Runtime;  use Backend.BE_CORBA_Ada.Runtime;
 with Backend.BE_CORBA_Ada.Nodes;    use Backend.BE_CORBA_Ada.Nodes;
 
@@ -571,12 +574,17 @@ package Backend.BE_CORBA_Ada.Nutils is
    --  If N is a selected component, return the value of its Prefix
    --  field. Otherwise, return No_Node.
 
+   Current_Loc : Location := No_Location;
+   --  Current source location corresponding to nodes in the Stubs package
+   --  spec. Used to intersperse commented-out IDL source code.
+
    function New_Node
      (Kind : Node_Kind;
       From : Node_Id := No_Node) return Node_Id;
    --  Create a new Ada Node_Id of Kind 'Kind'. If the 'From' node is given,
    --  set the FE_Node of the newly created node to 'From'. 'From' is
-   --  consequently assumed to designate an IDL Node_Id
+   --  consequently assumed to designate an IDL Node_Id. The Pos of the new
+   --  node is set to that of From, or to Current_Loc if From is No_Node.
 
    function Image (T : Token_Type) return String;
    --  Return the lower case image of token T (used to build the
@@ -851,7 +859,10 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Qualified_Expression : Node_Id)
      return Node_Id;
 
-   function Make_Package_Declaration (Identifier : Node_Id) return Node_Id;
+   function Make_Package_Declaration
+     (Identifier : Node_Id; Include_Source : Boolean := False) return Node_Id;
+   --  Include_Source indicates that the IDL source code should be included in
+   --  the output (commented out).
 
    function Make_Package_Instantiation
      (Defining_Identifier : Node_Id;
@@ -952,10 +963,12 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    procedure Make_Comment_Header
      (Package_Header     : List_Id;
-      Package_Identifier : Node_Id);
+      Package_Identifier : Node_Id;
+      Include_Source : Boolean);
    --  This procedure generates a comment header for the generated pacakge.
    --  The comment text depends on the nature of the package (editable by the
-   --  user or not).
+   --  user or not). Include_Source indicates that the IDL source code should
+   --  be included in the output (commented out).
 
    function Next_N_Node (N : Node_Id; Num : Natural) return Node_Id;
    --  This function executes Next_Node 'Num' times

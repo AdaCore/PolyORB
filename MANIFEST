@@ -134,6 +134,8 @@ compilers/iac/parser.adb
 compilers/iac/parser.ads
 compilers/iac/scopes.adb
 compilers/iac/scopes.ads
+compilers/iac/source_input.adb
+compilers/iac/source_input.ads
 compilers/iac/usage.adb
 compilers/iac/usage.ads
 compilers/iac/values.adb

@@ -39,18 +39,19 @@ with GNAT.Directory_Operations;    use GNAT;
 with GNAT.OS_Lib;                  use GNAT.OS_Lib;
 with GNAT.Perfect_Hash_Generators; use GNAT.Perfect_Hash_Generators;
 
-with Analyzer;  use Analyzer;
-with Backend;   use Backend;
-with Errors;    use Errors;
-with Flags;     use Flags;
-with Lexer;     use Lexer;
-with Namet;     use Namet;
-with Output;    use Output;
-with Parser;    use Parser;
+with Analyzer;     use Analyzer;
+with Backend;      use Backend;
+with Errors;       use Errors;
+with Flags;        use Flags;
+with Lexer;
+with Namet;        use Namet;
+with Output;       use Output;
+with Parser;       use Parser;
 with Scopes;
-with Types;     use Types;
+with Source_Input; use Source_Input;
+with Types;        use Types;
 with Usage;
-with Utils;     use Utils;
+with Utils;        use Utils;
 
 with Frontend.Debug;
 
@@ -107,7 +108,7 @@ procedure IAC is
       --  Add the current directory to the search path, it will be added
       --  automatically to the preprocessor search path
 
-      Add_IAC_Search_Path (".");
+      Lexer.Add_IAC_Search_Path (".");
 
       --  The command line parsing in IAC is a bit complicated. The
       --  structure of the command line is as follows :
@@ -205,10 +206,10 @@ procedure IAC is
                --  directory separator
 
                if Is_Dir_Separator (Parameter (Parameter'Last)) then
-                  Add_IAC_Search_Path
+                  Lexer.Add_IAC_Search_Path
                     (Parameter (Parameter'First .. Parameter'Last - 1));
                else
-                  Add_IAC_Search_Path (Parameter);
+                  Lexer.Add_IAC_Search_Path (Parameter);
                end if;
 
             when 'h' =>
@@ -241,7 +242,7 @@ procedure IAC is
                end if;
 
             when 'k' =>
-               Keep_TMP_Files := True;
+               Lexer.Keep_TMP_Files := True;
 
             when 'n' =>
                if Full_Switch = "noir" then
@@ -357,7 +358,7 @@ procedure IAC is
            ("invalid or missing parameter for switch: %", Full_Switch);
    end Scan_Switches;
 
-   Preprocessed_File : File_Descriptor;
+   Preprocessed_File : Source_File_Ptr;
 
 --  Start of processing for IAC
 
@@ -423,16 +424,16 @@ begin
 
    --  Preprocessor step
 
-   Lexer.Preprocess (Main_Source, Preprocessed_File);
+   Preprocessed_File := Lexer.Preprocess (Main_Source);
 
    if Preprocess_Only then
-      Lexer.Output (Preprocessed_File);
+      Copy_To_Standard_Output (Preprocessed_File.all);
       return;
    end if;
 
    --  Lexer step
 
-   Lexer.Process (Preprocessed_File, Main_Source);
+   Lexer.Process (Preprocessed_File);
 
    --  Parser step
 
@@ -444,7 +445,7 @@ begin
 
    --  Cleanup temporary files
 
-   if not Keep_TMP_Files then
+   if not Lexer.Keep_TMP_Files then
       Lexer.Make_Cleanup;
    end if;
 

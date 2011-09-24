@@ -35,13 +35,13 @@ with GNAT.Directory_Operations;
 with GNAT.Table;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
-with Errors;            use Errors;
-with Namet;             use Namet;
+with Errors;       use Errors;
+with Namet;        use Namet;
 with Scopes;
-with Values;            use Values;
+with Values;       use Values;
 
-with Frontend.Nodes;    use Frontend.Nodes;
-with Frontend.Nutils;   use Frontend.Nutils;
+with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils; use Frontend.Nutils;
 
 package body Parser is
 
@@ -1487,10 +1487,9 @@ package body Parser is
       --  will be visible
 
       declare
-         Imported_File      : File_Descriptor;
-         Imported_File_Name : Name_Id;
+         Imported_File_Name : constant Name_Id :=
+           Locate_Imported_File (Imported_Scope);
       begin
-         Imported_File_Name := Locate_Imported_File (Imported_Scope);
          if Imported_File_Name = No_Name then
             Error_Loc (1) := Loc (Imported_Scope);
             Error_Name (1) := IDL_Name (Identifier (Imported_Scope));
@@ -1500,8 +1499,8 @@ package body Parser is
 
          if not Handled (Imported_File_Name) then
             Set_Handled (Imported_File_Name);
-            Lexer.Preprocess (Imported_File_Name, Imported_File);
-            Lexer.Process (Imported_File, Imported_File_Name);
+
+            Lexer.Process (Lexer.Preprocess (Imported_File_Name));
             P_Specification (Imported => True);
             Finalize_Imported;
          end if;

@@ -33,8 +33,9 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-with Locations;   use Locations;
-with Types;       use Types;
+with Locations;    use Locations;
+with Source_Input; use Source_Input;
+with Types;        use Types;
 
 package Lexer is
 pragma Elaborate_Body (Lexer);
@@ -341,17 +342,12 @@ pragma Elaborate_Body (Lexer);
    procedure Add_IAC_Search_Path (S : String);
    --  Add argument S to the search path
 
-   procedure Preprocess
-     (Source : Types.Name_Id;
-      Result : out GNAT.OS_Lib.File_Descriptor);
-   --  Return a file descriptor of the preprocessed Source file
+   function Preprocess (Source_Name : Types.Name_Id) return Source_File_Ptr;
+   --  Return a Source_File representing the preprocessed source file, unless
+   --  preprocessing is disabled, in which case we return the original source
+   --  file.
 
-   procedure Output (Source : GNAT.OS_Lib.File_Descriptor);
-   --  Output the preprocessed file Source
-
-   procedure Process
-     (Source_File : GNAT.OS_Lib.File_Descriptor;
-      Source_Name : Types.Name_Id);
+   procedure Process (Source : Source_File_Ptr);
    --  Load file Source in the lexer
 
    procedure Write (T : Token_Type);

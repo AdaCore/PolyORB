@@ -48,9 +48,13 @@ package body Lexer is
 
    use ASCII;
 
+   Current_Source_File : Source_File_Ptr;
+   --  Current source file being scanned
+
    Buffer : Text_Buffer_Ptr;
-   --  Once preprocessed, the idl file is loaded in Buffer and
-   --  Token_Location.Scan is used to scan the source file.
+   --  Always equal to Current_Source_File.Buffer. Contains the EOF-terminated
+   --  text of the (usually) preprocessed file.  Token_Location.Scan is used to
+   --  scan the text.
 
    ---------------------
    -- Temporary Files --
@@ -64,8 +68,6 @@ package body Lexer is
       Table_Low_Bound      => 1,
       Table_Initial        => 10,
       Table_Increment      => 100);
-
-   CPP_Tmp_File : Name_Id := No_Name;
 
    -------------------
    -- Handled Files --
@@ -84,8 +86,8 @@ package body Lexer is
 
    type Lexer_State is
       record
-         Loc                    : Location;
-         Preprocessed_File_Name : Name_Id;
+         Loc               : Location;
+         Preprocessed_File : Source_File_Ptr;
       end record;
 
    package Lexer_State_Stack is new GNAT.Table
@@ -209,9 +211,6 @@ package body Lexer is
    --  literal is not always well-formed since a character may not be
    --  incorrect. When Fatal is true, the primitive outputs an error
    --  message.
-
-   procedure Load_File (Source_File : File_Descriptor);
-   --  Loads a file in the buffer and then closes it.
 
    procedure Scan_Identifier
      (Fatal        : Boolean;
@@ -394,42 +393,6 @@ package body Lexer is
       return T = T_Identifier or else T = T_Colon_Colon;
    end Is_Scoped_Name;
 
-   ---------------
-   -- Load_File --
-   ---------------
-
-   procedure Load_File (Source_File : File_Descriptor) is
-      Length : Integer;
-      Result : Integer;
-   begin
-      --  Load source file in a buffer
-
-      Length := Integer (File_Length (Source_File));
-      if Buffer /= null then
-         Free (Buffer);
-      end if;
-      Buffer := new Text_Buffer (1 .. Text_Ptr (Length + 1));
-
-      --  Force the last character to be EOF
-
-      Buffer (Text_Ptr (Length + 1)) := EOF;
-
-      Token_Location.Scan := 1;
-      loop
-         Result := Read
-           (Source_File, Buffer (Token_Location.Scan)'Address, Length);
-         exit when Result = Length;
-         if Result <= 0 then
-            DE ("cannot read preprocessor output");
-            raise Fatal_Error;
-         end if;
-         Token_Location.Scan := Token_Location.Scan + Text_Ptr (Result);
-         Length  := Length - Result;
-      end loop;
-      Close (Source_File);
-
-   end Load_File;
-
    ------------------
    -- Make_Ckeanup --
    ------------------
@@ -516,55 +479,33 @@ package body Lexer is
       return Next_Token_Value;
    end Next_Token;
 
-   ------------
-   -- Output --
-   ------------
-
-   procedure Output (Source : File_Descriptor) is
-   begin
-      Copy_To_Standard_Output (Source);
-      Make_Cleanup;
-   end Output;
-
    ----------------
    -- Preprocess --
    ----------------
 
-   procedure Preprocess
-     (Source : Name_Id;
-      Result : out File_Descriptor)
-   is
+   function Preprocess (Source_Name : Types.Name_Id) return Source_File_Ptr is
       Success                     : Boolean;
       Tmp_FDesc                   : File_Descriptor;
       Tmp_FName                   : Temp_File_Name;
+      CPP_Tmp_File                : Name_Id;
       Preprocessor                : String_Access;
       Prep_And_Flags_List : constant Argument_List_Access :=
                               Argument_String_To_List
                                 (Platform.IDL_Preprocessor);
 
-      procedure Open_Original_Source;
-      --  Set Result to an open file descriptor for the original source file
-      --  (not preprocessed).
-
-      --------------------------
-      -- Open_Original_Source --
-      --------------------------
-
-      procedure Open_Original_Source is
-      begin
-         Get_Name_String (Source);
-         Add_Char_To_Name_Buffer (ASCII.NUL);
-         Result := Open_Read (Name_Buffer'Address, Binary);
-      end Open_Original_Source;
+      Result : Source_File_Ptr;
 
    begin
       if Initialized then
          Push_Lexer_State;
       end if;
 
+      Result := Open_Source (Source_Name, Kind => True_Source);
+      --  Result will be overwritten with the output of the preprocessor, if it
+      --  runs successfully below.
+
       if No_Preprocess then
-         Open_Original_Source;
-         return;
+         return Result;
       end if;
 
       --  Reinitialize the CPP arguments
@@ -614,7 +555,7 @@ package body Lexer is
 
       --  The source file to be preprocessed
 
-      Add_CPP_Flag (Get_Name_String (Source));
+      Add_CPP_Flag (Get_Name_String (Source_Name));
 
       --  Locate preprocessor
 
@@ -624,40 +565,45 @@ package body Lexer is
       if Preprocessor = null then
          DE ("?cannot locate %",
              Prep_And_Flags_List (Prep_And_Flags_List'First).all);
-         Open_Original_Source;
-         return;
+         pragma Assert (Result.Name = Source_Name);
+         return Result;
       end if;
 
       Spawn (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
 
       if not Success then
-         Error_Name (1) := Source;
+         Error_Name (1) := Source_Name;
          DE ("fail to preprocess%");
          raise Fatal_Error;
       end if;
 
-      Name_Buffer (1 .. Temp_File_Len) := Tmp_FName;
-      Name_Buffer (Temp_File_Len + 1)  := ASCII.NUL;
+      Result := Open_Source (CPP_Tmp_File, Kind => Preprocessed_Source);
 
-      Result := Open_Read (Name_Buffer'Address, Binary);
-      if Result = Invalid_FD then
-         DE ("cannot open preprocessor output");
-         raise Fatal_Error;
+      --  Now we can delete the preprocessor output file
+
+      if not Keep_TMP_Files then
+         declare
+            Name_String : aliased constant String :=
+              Get_Name_String (CPP_Tmp_File) & ASCII.NUL;
+            Ignore : Boolean;
+         begin
+            Delete_File (Name_String'Address, Ignore);
+         end;
       end if;
 
-   exception when others =>
-      Make_Cleanup;
-      raise;
+      return Result;
+
+   exception
+      when others =>
+         Make_Cleanup;
+         raise;
    end Preprocess;
 
    -------------
    -- Process --
    -------------
 
-   procedure Process
-     (Source_File : File_Descriptor;
-      Source_Name : Name_Id)
-   is
+   procedure Process (Source : Source_File_Ptr) is
    begin
 
       if not Initialized then
@@ -776,9 +722,10 @@ package body Lexer is
          New_Token (T_EOF, "<end of file>");
       end if;
 
-      --  Load source file in a buffer
+      --  Set up current source file
 
-      Load_File (Source_File);
+      Current_Source_File := Source;
+      Buffer := Source.Buffer;
 
       --  Reset at the beginning
 
@@ -787,13 +734,14 @@ package body Lexer is
       Token_Location.Scan  := 1;
       Token_Location.First := 1;
       Token_Location.Last  := 1;
-      Set_New_Location (Token_Location, Source_Name, 1);
+      Set_New_Location (Token_Location, Source.Name, 1);
 
-   exception when others =>
-      if not Keep_TMP_Files then
-         Make_Cleanup;
-      end if;
-      raise;
+   exception
+      when others =>
+         if not Keep_TMP_Files then
+            Make_Cleanup;
+         end if;
+         raise;
    end Process;
 
    ----------------------
@@ -803,8 +751,8 @@ package body Lexer is
    procedure Push_Lexer_State is
    begin
       Lexer_State_Stack.Append
-        ((Loc                    => Token_Location,
-          Preprocessed_File_Name => CPP_Tmp_File));
+        ((Loc               => Token_Location,
+          Preprocessed_File => Current_Source_File));
    end Push_Lexer_State;
 
    ---------------------
@@ -812,22 +760,13 @@ package body Lexer is
    ---------------------
 
    procedure Pop_Lexer_State is
-      Tmp_FDesc : File_Descriptor;
-      S         : constant Lexer_State := Lexer_State_Stack.Table
+      S : constant Lexer_State := Lexer_State_Stack.Table
         (Lexer_State_Stack.Last);
    begin
-      Lexer_State_Stack.Set_Last (Lexer_State_Stack.Last - 1);
+      Lexer_State_Stack.Decrement_Last;
 
-      --  Reload source file in a buffer
-
-      Get_Name_String (S.Preprocessed_File_Name);
-      CPP_Tmp_File := Name_Find;
-      Name_Buffer (Name_Len + 1)  := ASCII.NUL;
-      Tmp_FDesc := Open_Read (Name_Buffer'Address, Binary);
-      Load_File (Tmp_FDesc);
-
-      --  Restore the location
-
+      Current_Source_File := S.Preprocessed_File;
+      Buffer := Current_Source_File.Buffer;
       Token_Location := S.Loc;
    end Pop_Lexer_State;
 
