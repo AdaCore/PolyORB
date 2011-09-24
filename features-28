@@ -12,7 +12,7 @@ This date shows the implementation date of the feature. Any 2.8 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
-NF-28-K919-038 Improved installation script (2011-09-19)
+NF-28-K919-038 Improved installation script (2011-09-24)
 
    The PolyORB Makefiles do not rely on xargs(1) and install(1). Instead,
    installation is performed by an equivalent Python script, which avoids
@@ -54,3 +54,8 @@ NF-28-J121-026 IDLAC is obsoleted (2011-03-28)
 
    The legacy IDL to Ada compiler, idlac, is obsoleted. Users should switch
    to iac, which has been the default since 2008.
+
+NF-28-IA01-037 Source included in iac output (2011-09-19)
+
+   The IAC compiler now includes the IDL source code (commented out) in the Ada
+   stubs package spec, for convenient reference.
