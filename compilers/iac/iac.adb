@@ -443,12 +443,6 @@ begin
 
    Analyze (Scopes.IDL_Spec);
 
-   --  Cleanup temporary files
-
-   if not Lexer.Keep_TMP_Files then
-      Lexer.Make_Cleanup;
-   end if;
-
    if Print_Full_Tree then
       Frontend.Debug.W_Full_Tree;
    end if;

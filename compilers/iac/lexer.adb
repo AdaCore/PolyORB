@@ -56,19 +56,6 @@ package body Lexer is
    --  text of the (usually) preprocessed file.  Token_Location.Scan is used to
    --  scan the text.
 
-   ---------------------
-   -- Temporary Files --
-   ---------------------
-
-   --  We all the temporary file names in order to delete them when needed
-
-   package TMP_File_Table is new GNAT.Table
-     (Table_Component_Type => Name_Id,
-      Table_Index_Type     => Natural,
-      Table_Low_Bound      => 1,
-      Table_Initial        => 10,
-      Table_Increment      => 100);
-
    -------------------
    -- Handled Files --
    -------------------
@@ -393,22 +380,6 @@ package body Lexer is
       return T = T_Identifier or else T = T_Colon_Colon;
    end Is_Scoped_Name;
 
-   ------------------
-   -- Make_Ckeanup --
-   ------------------
-
-   procedure Make_Cleanup is
-      Success : Boolean;
-   begin
-      for Index in 1 .. TMP_File_Table.Last loop
-         if TMP_File_Table.Table (Index) /= No_Name then
-            Get_Name_String (TMP_File_Table.Table (Index));
-            Name_Buffer (Name_Len + 1) := ASCII.NUL;
-            Delete_File (Name_Buffer'Address, Success);
-         end if;
-      end loop;
-   end Make_Cleanup;
-
    --------------
    -- New_Line --
    --------------
@@ -485,15 +456,16 @@ package body Lexer is
 
    function Preprocess (Source_Name : Types.Name_Id) return Source_File_Ptr is
       Success                     : Boolean;
-      Tmp_FDesc                   : File_Descriptor;
-      Tmp_FName                   : Temp_File_Name;
-      CPP_Tmp_File                : Name_Id;
+      Tmp_FDesc                   : File_Descriptor := Invalid_FD;
+      Tmp_FName                   : aliased Temp_File_Name; -- NUL terminated
+      CPP_Tmp_File_Name           : Name_Id;
       Preprocessor                : String_Access;
       Prep_And_Flags_List : constant Argument_List_Access :=
                               Argument_String_To_List
                                 (Platform.IDL_Preprocessor);
 
       Result : Source_File_Ptr;
+      Ignore : Boolean;
 
    begin
       if Initialized then
@@ -550,8 +522,7 @@ package body Lexer is
       Add_Str_To_Name_Buffer (Platform.IDL_Preprocessor_Suffix);
       Add_CPP_Flag (Name_Buffer (1 .. Name_Len));
 
-      CPP_Tmp_File := Name_Find;
-      TMP_File_Table.Append (CPP_Tmp_File);
+      CPP_Tmp_File_Name := Name_Find;
 
       --  The source file to be preprocessed
 
@@ -577,25 +548,23 @@ package body Lexer is
          raise Fatal_Error;
       end if;
 
-      Result := Open_Source (CPP_Tmp_File, Kind => Preprocessed_Source);
+      Result := Open_Source (CPP_Tmp_File_Name, Kind => Preprocessed_Source);
 
       --  Now we can delete the preprocessor output file
 
       if not Keep_TMP_Files then
-         declare
-            Name_String : aliased constant String :=
-              Get_Name_String (CPP_Tmp_File) & ASCII.NUL;
-            Ignore : Boolean;
-         begin
-            Delete_File (Name_String'Address, Ignore);
-         end;
+         Delete_File (Tmp_FName'Address, Ignore);
       end if;
 
       return Result;
 
    exception
       when others =>
-         Make_Cleanup;
+         --  Delete the preprocessor output file if it exists
+
+         if not Keep_TMP_Files and then Tmp_FDesc /= Invalid_FD then
+            Delete_File (Tmp_FName'Address, Ignore);
+         end if;
          raise;
    end Preprocess;
 
@@ -735,13 +704,6 @@ package body Lexer is
       Token_Location.First := 1;
       Token_Location.Last  := 1;
       Set_New_Location (Token_Location, Source.Name, 1);
-
-   exception
-      when others =>
-         if not Keep_TMP_Files then
-            Make_Cleanup;
-         end if;
-         raise;
    end Process;
 
    ----------------------
@@ -815,7 +777,6 @@ package body Lexer is
       Delimiter : Character := ''';
       Wideness  : Boolean := False;
       Length    : Natural := 0;
-      State     : Location;
       Errors    : Natural := 0;
    begin
       if Literal in T_String_Literal .. T_Wide_String_Literal then
@@ -829,8 +790,6 @@ package body Lexer is
 
       Name_Len := 0;
       loop
-         Save_Lexer (State);
-
          C := Buffer (Token_Location.Scan);
          Token_Location.Scan := Token_Location.Scan + 1;
 

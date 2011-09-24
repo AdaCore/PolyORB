@@ -257,9 +257,6 @@ pragma Elaborate_Body (Lexer);
    procedure Set_Handled (File_Name_Id : Name_Id);
    --  Marks the file as handled
 
-   procedure Make_Cleanup;
-   --  Cleanup temporary files when needed
-
    procedure Scan_Token;
    --  Scan token and update global variables Token, Token_Name
    --  (for identifiers and literals) and Token_Location.
