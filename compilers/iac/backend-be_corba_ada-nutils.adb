@@ -34,7 +34,6 @@
 with GNAT.Table;
 with GNAT.Case_Util;
 
-with Charset;      use Charset;
 with Flags;        use Flags;
 with Namet;        use Namet;
 with Output;       use Output;

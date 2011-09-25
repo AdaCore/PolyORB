@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Charset;     use Charset;
 with Locations;   use Locations;
 with Lexer;       use Lexer;
 with Namet;       use Namet;

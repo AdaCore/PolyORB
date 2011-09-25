@@ -31,10 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+
 with GNAT.OS_Lib;    use GNAT.OS_Lib;
 with GNAT.Case_Util;
 
-with Charset; use Charset;
 with Namet;   use Namet;
 with Utils;   use Utils;
 

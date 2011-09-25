@@ -48,7 +48,8 @@ package Utils is
    function Quoted (N : Name_Id; D : Character := '"') return Name_Id; --  "
    --  Embrace string S or name N with character D
 
-   function To_Lower  (N : Name_Id) return Name_Id;
+   procedure To_Lower (S : in out String);
+   function To_Lower (N : Name_Id) return Name_Id;
 
    function Is_Dir_Separator (C : Character) return Boolean;
    --  Returns True if C is a directory separator. Always True for '/', since

@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+
 with GNAT.Command_Line; use GNAT.Command_Line;
 
-with Charset;   use Charset;
 with Errors;    use Errors;
 with Flags;     use Flags;
 with Namet;     use Namet;
@@ -55,6 +56,9 @@ package body Lexer is
    --  Always equal to Current_Source_File.Buffer. Contains the EOF-terminated
    --  text of the (usually) preprocessed file.  Token_Location.Scan is used to
    --  scan the text.
+
+   function Is_Identifier_Character (C : Character) return Boolean;
+   --  Alphabetic character or digit or underscore character
 
    -------------------
    -- Handled Files --
@@ -352,6 +356,15 @@ package body Lexer is
    begin
       return Get_Name_String (Token_Image (T));
    end Image;
+
+   -----------------------------
+   -- Is_Identifier_Character --
+   -----------------------------
+
+   function Is_Identifier_Character (C : Character) return Boolean is
+   begin
+      return C = '_' or else Is_Alphanumeric (C);
+   end Is_Identifier_Character;
 
    ----------------
    -- Is_Literal --
@@ -1047,7 +1060,7 @@ package body Lexer is
       --  Check that identifier is well-formed
 
       if Token = T_Identifier then
-         if not Is_Alphabetic_Character (Name_Buffer (1)) then
+         if not Is_Letter (Name_Buffer (1)) then
             if Escaped then
                if Fatal then
                   Error_Loc (1) := Token_Location;
@@ -1355,7 +1368,7 @@ package body Lexer is
 
       --  Read pragma directive
 
-      if Is_Alphabetic_Character (C) then
+      if Is_Letter (C) then
          Scan_Identifier (False, Is_Directive => True);
          return;
       end if;
@@ -1676,7 +1689,7 @@ package body Lexer is
                Token := T_EOF;
 
             when others =>
-               if Is_Alphabetic_Character (Buffer (Token_Location.Scan)) then
+               if Is_Letter (Buffer (Token_Location.Scan)) then
 
                   --
                   --  Wide Chars : 3.5.2.2
@@ -1717,7 +1730,7 @@ package body Lexer is
                   --  potential token
 
                   Token_Location.Scan := Token_Location.Scan + 1;
-                  while Is_Alphabetic_Character (Buffer (Token_Location.Scan))
+                  while Is_Letter (Buffer (Token_Location.Scan))
                     or else Buffer (Token_Location.Scan) in '0' .. '9'
                     or else Buffer (Token_Location.Scan) = '_'
                   loop

@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Charset;     use Charset;
 with Locations;   use Locations;
 with Namet;       use Namet;
 with Scopes;      use Scopes;

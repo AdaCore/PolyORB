@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+
 with Ada.Command_Line;
 with Ada.Directories;
-with Charset;                   use Charset;
 with GNAT.Directory_Operations; use GNAT;
 with Namet;                     use Namet;
 with Platform;
@@ -140,6 +141,15 @@ package body Utils is
       end if;
       return Name;
    end Simple_Command_Name;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   procedure To_Lower (S : in out String) is
+   begin
+      S := Ada.Characters.Handling.To_Lower (S);
+   end To_Lower;
 
    --------------
    -- To_Lower --

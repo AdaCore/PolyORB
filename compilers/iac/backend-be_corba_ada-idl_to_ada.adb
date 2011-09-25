@@ -34,7 +34,6 @@
 with Namet;     use Namet;
 with Values;    use Values;
 with Locations; use Locations;
-with Charset;   use Charset;
 with Utils;     use Utils;
 
 with Frontend.Nodes;   use Frontend.Nodes;
