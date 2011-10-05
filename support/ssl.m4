@@ -25,6 +25,19 @@ AC_DEFUN([AM_WITH_OPENSSL],
     AC_SEARCH_LIBS([gethostbyname], [nsl])
     AC_SEARCH_LIBS([socket], [socket])
 
+    dnl Libcrypto depends on -lgdi and -lws2_32 on Windows.
+
+    case "$host_os" in
+      cygwin* | mingw*)
+        SSL_WINLIBS="-lgdi32 -lws2_32"
+        LIBS="$LIBS $SSL_WINLIBS"
+        ;;
+
+      *)
+        SSL_WINLIBS=""
+        ;;
+    esac
+
     dnl If ARG is not specified, $withval is "yes", and we do not have any
     dnl additional user defined path to search.
 
@@ -50,7 +63,7 @@ AC_DEFUN([AM_WITH_OPENSSL],
             LDFLAGS="$save_LDFLAGS"
             SSL_LDFLAGS=""
         fi
-        SSL_LDFLAGS="${SSL_LDFLAGS}-lssl -lcrypto ${SSL_LIBDL}"
+        SSL_LDFLAGS="${SSL_LDFLAGS}-lssl -lcrypto ${SSL_LIBDL} ${SSL_WINLIBS}"
         # Note that order is important here (-lssl must come before
         # -lcrypto), since some undefined symbols in libssl are provided
         # by libcrypto.
