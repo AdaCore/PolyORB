@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -26,22 +26,22 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides dynamic perfect hash tables; it implements
---  the Dietzfelbinger algorithm as described in "Dynamic Perfect
---  Hashing: Upper and Lower Bounds", Dietzfelbinger et al.  in SIAM
---  Journal on Computing, 1994, pp 738-761.
+--  This package provides dynamic perfect hash tables; it implements the
+--  Dietzfelbinger algorithm as described in "Dynamic Perfect Hashing: Upper
+--  and Lower Bounds", Dietzfelbinger et al. in SIAM Journal on Computing,
+--  1994, pp 738-761.
 
 --  This algorithm provides dynamic perfect hash table with
---  - O (1) worst-case time for lookups and deletions,
---  - O (1) amortized expected time for insertions.
+--    - O(1) worst-case time for lookups and deletions,
+--    - O(1) amortized expected time for insertions.
 
---  Note: A major hypothesis made by this algorithm is that the class
---  of hashing functions provided during instantiation is universal.
+--  Note: A major hypothesis made by this algorithm is that the class of
+--  hashing functions provided during instantiation is universal.
 
 with PolyORB.Utils.Dynamic_Tables;
 with PolyORB.Utils.Strings;
