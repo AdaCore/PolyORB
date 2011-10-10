@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.HTables.Perfect is
@@ -185,11 +187,12 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Swap_Elements
      (T      : in out Hash_Table;
-      Index1 : Natural;
-      Index2 : Natural)
+      Index1 :        Natural;
+      Index2 :        Natural)
    is
-      Elements : Dynamic_Element_Array.Table_Type renames T.Elements.Table.all;
-      Swap     : Element;
+      Elements : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Swap : Element;
 
    begin
       Swap              := Elements (Index1);
@@ -205,10 +208,10 @@ package body PolyORB.Utils.HTables.Perfect is
      (ST_Index : Natural;
       T        : Hash_Table)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
    begin
       for J in Subtables (ST_Index).First .. Subtables (ST_Index).Last
@@ -236,10 +239,10 @@ package body PolyORB.Utils.HTables.Perfect is
       T        : Hash_Table)
      return Boolean
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
    begin
       for J in Subtables (ST_Index).First .. Subtables (ST_Index).Last - 1
@@ -266,8 +269,8 @@ package body PolyORB.Utils.HTables.Perfect is
      (ST_Index : Natural;
       T        : Hash_Table)
    is
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
    begin
       Subtables (ST_Index).HParam := Default_Hash_Parameters;
@@ -289,14 +292,14 @@ package body PolyORB.Utils.HTables.Perfect is
    -------------------------
 
    procedure Add_Key_To_Subtable
-     (Key      : String;
-      ST_Index : Natural;
+     (Key      :        String;
+      ST_Index :        Natural;
       T        : in out Hash_Table)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       Key_Inserted : Boolean := False;
 
@@ -326,13 +329,13 @@ package body PolyORB.Utils.HTables.Perfect is
    ----------------
 
    procedure Rehash_All
-     (Key : String;
+     (Key :        String;
       T   : in out Hash_Table)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       Max_Sum     : Natural := 0;
       ST_Index    : Natural := 0;
@@ -524,10 +527,10 @@ package body PolyORB.Utils.HTables.Perfect is
      (ST_Index :        Natural;
       T        : in out Hash_Table)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       Offset : Natural;
 
@@ -566,10 +569,10 @@ package body PolyORB.Utils.HTables.Perfect is
       HParam :     Hash_Parameters := Default_Hash_Parameters;
       Max    :     Natural)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
    begin
       --  Initialization of T.Info
@@ -610,7 +613,8 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Finalize (T : in out Hash_Table)
    is
-      Elements : Dynamic_Element_Array.Table_Type renames T.Elements.Table.all;
+      Elements : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
 
    begin
       for J in First (T.Elements) .. Last (T.Elements) loop
@@ -634,10 +638,10 @@ package body PolyORB.Utils.HTables.Perfect is
       ST_Offset : out    Natural;
       To_Do     : out    Next_Action)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       Found       : Boolean;
       Temp_Index  : Natural;
@@ -749,14 +753,14 @@ package body PolyORB.Utils.HTables.Perfect is
 
    procedure Insert
      (T     : in out Hash_Table;
-      Key   : String;
-      Index : out Natural;
-      To_Do : out Next_Action)
+      Key   :        String;
+      Index : out    Natural;
+      To_Do : out    Next_Action)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       ST_Index   : Natural;
       ST_Offset  : Natural;
@@ -772,16 +776,16 @@ package body PolyORB.Utils.HTables.Perfect is
    ------------
 
    procedure Lookup
-     (T         : Hash_Table;
-      Key       : String;
+     (T         :     Hash_Table;
+      Key       :     String;
       ST_Index  : out Natural;
       ST_Offset : out Natural;
       Found     : out Boolean)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       Index : Natural;
 
@@ -808,10 +812,10 @@ package body PolyORB.Utils.HTables.Perfect is
       Index     : out Natural;
       Found     : out Boolean)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       ST_Index   : Natural;
       ST_Offset  : Natural;
@@ -834,10 +838,10 @@ package body PolyORB.Utils.HTables.Perfect is
       Key :        String;
       Index : out Natural)
    is
-      Elements  : Dynamic_Element_Array.Table_Type
-                    renames T.Elements.Table.all;
-      Subtables : Dynamic_Subtable_Array.Table_Type
-                    renames T.Subtables.Table.all;
+      Elements  : access Dynamic_Element_Array.Table_Type
+        renames T.Elements.Table;
+      Subtables : access Dynamic_Subtable_Array.Table_Type
+        renames T.Subtables.Table;
 
       ST_Index  : Natural;
       ST_Offset : Natural;
@@ -897,7 +901,7 @@ package body PolyORB.Utils.HTables.Perfect is
       Key   : String;
       Value : Item)
    is
-      Items : Dynamic_Item_Array.Table_Type renames T.T.Items.Table.all;
+      Items : access Dynamic_Item_Array.Table_Type renames T.T.Items.Table;
 
       To_Do    : Next_Action;
       Index    : Natural;
@@ -938,7 +942,7 @@ package body PolyORB.Utils.HTables.Perfect is
       Error_Value : Item)
      return Item
    is
-      Items : Dynamic_Item_Array.Table_Type renames T.T.Items.Table.all;
+      Items : access Dynamic_Item_Array.Table_Type renames T.T.Items.Table;
 
       Index : Natural;
       Found : Boolean;
@@ -998,10 +1002,10 @@ package body PolyORB.Utils.HTables.Perfect is
    -----------
 
    function Value (I : Iterator) return Item is
-      Elements : Dynamic_Element_Array.Table_Type
-                   renames I.On_Table.T.HTable.Elements.Table.all;
-      Items    : Dynamic_Item_Array.Table_Type
-                   renames I.On_Table.T.Items.Table.all;
+      Elements : access Dynamic_Element_Array.Table_Type
+        renames I.On_Table.T.HTable.Elements.Table;
+      Items    : access Dynamic_Item_Array.Table_Type
+        renames I.On_Table.T.Items.Table;
 
    begin
       return Items (Elements (I.Position).Item_Index).all;
@@ -1012,8 +1016,8 @@ package body PolyORB.Utils.HTables.Perfect is
    ---------
 
    function Key (I : Iterator) return String is
-      Elements : Dynamic_Element_Array.Table_Type
-                   renames I.On_Table.T.HTable.Elements.Table.all;
+      Elements : access Dynamic_Element_Array.Table_Type
+        renames I.On_Table.T.HTable.Elements.Table;
    begin
       return Elements (I.Position).Key.all;
    end Key;
