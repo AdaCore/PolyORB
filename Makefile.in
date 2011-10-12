@@ -844,7 +844,7 @@ else
 endif
 
 .PHONY: install
-install: all
+install:
 	@echo "   Sources dir: ${top_srcdir}"
 	@echo "     Build dir: ${top_builddir}"
 	@echo "Install prefix: ${prefix}"
