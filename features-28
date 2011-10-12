@@ -12,6 +12,12 @@ This date shows the implementation date of the feature. Any 2.8 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-28-KA12-017 Removed dependency of "install" on "all" (2011-10-12)
+
+   The "install" target in the main PolyORB Makefile has no dependency on "all"
+   anymore, which avoids a costly recheck of dependencies. (As a result, the
+   "all" target must now be built explicitly prior to "make install".)
+
 NF-28-K922-016 Well known oid for embedded nameserver (2011-09-22)
 
    When building a DSA application with embedded name server, the name
