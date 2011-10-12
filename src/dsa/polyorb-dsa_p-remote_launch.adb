@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -187,31 +187,36 @@ package body PolyORB.DSA_P.Remote_Launch is
          declare
             Argv : Argument_List_Access :=
               Argument_String_To_List (Host (Host'First + 1 .. Host'Last - 1));
+
             Command   : String renames Argv (Argv'First).all;
             --  First "argument" found by Argument_String_To_List is the name
             --  of the shell script.
+
             Arguments : constant Argument_List (1 .. Argv'Length - 1) :=
               Argv (2 .. Argv'Last);
             --  Get_Command_Output requires a 1-based array, so we need to
             --  slide Arguments.
+
             Status    : aliased Integer;
          begin
             Remote_Host :=
               new String'(GNAT.Expect.Get_Command_Output
                             (Command,
                              Arguments,
-                             Input => "",
+                             Input  => "",
                              Status => Status'Access));
+
             if Status /= 0 then
                raise Program_Error with "Unable to launch " & Command;
             end if;
+
             for J in Argv'Range loop
                Free (Argv (J));
             end loop;
             Free (Argv);
          end;
 
-      --  Otherwise (no back-quote), we can just use Host as is.
+      --  Otherwise (no back-quote), we can just use Host as is
 
       else
          Remote_Host := new String'(Host);
@@ -242,6 +247,10 @@ package body PolyORB.DSA_P.Remote_Launch is
             --  Given a space separated list of environment variable names,
             --  return a space separated list of assigments of the form:
             --  VAR='value'.
+
+            ---------------------
+            -- Expand_Env_Vars --
+            ---------------------
 
             function Expand_Env_Vars (Vars : String) return String is
                use Ada.Environment_Variables;
