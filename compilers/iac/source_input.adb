@@ -93,16 +93,27 @@ package body Source_Input is
       Last  : Text_Ptr := 0;
    begin
       while Last < Buf'Last loop
-         --  Note that the file was opened in Text mode, so we don't have to
-         --  worry about CRLF and the like
-
-         while Buf (Last + 1) /= EOF and then Buf (Last + 1) /= ASCII.LF loop
+         while Buf (Last + 1) /= EOF and then
+           Buf (Last + 1) /= ASCII.CR and then
+           Buf (Last + 1) /= ASCII.LF
+         loop
             Last := Last + 1;
          end loop;
 
          Process (String (Buf (First .. Last)));
 
+         --  Skip end-of-line characters, which could be any of LF, CR, or
+         --  CRLF.  Buf (Last + 1) always exists below, because there's an
+         --  extra EOF at the end.
+
          Last := Last + 1;
+
+         if Buf (Last) = ASCII.CR and then Buf (Last + 1) = ASCII.LF then
+            Last := Last + 1;
+         end if;
+
+         --  Next line starts after end-of-line characters
+
          First := Last + 1;
       end loop;
    end Iterate_Lines;
@@ -148,8 +159,7 @@ package body Source_Input is
    is
       Name_String : aliased constant String :=
         Get_Name_String (Name) & ASCII.NUL;
-      FD : constant File_Descriptor := Open_Read (Name_String'Address, Text);
-      --  Text mode, so Iterate_Lines works
+      FD : constant File_Descriptor := Open_Read (Name_String'Address, Binary);
    begin
       if FD = Invalid_FD then
          case Kind is
