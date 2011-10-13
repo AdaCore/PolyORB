@@ -63,8 +63,9 @@ package Source_Input is
    --  Gives a fatal error if the file is not found.
 
    function Named_File (Name : Name_Id) return Source_File_Ptr;
-   --  The named file must already have been created by Open_Source;
-   --  this returns it. (???Currently not used; see below.)
+   --  The named file must already have been created by Open_Source; this
+   --  returns it, and must be a True_Source. (???Currently not used; see
+   --  below.)
 
    procedure Iterate_Source_Files
      (Process : not null access procedure (Source : Source_File));

@@ -62,8 +62,11 @@ package body Source_Input is
    use Source_File_Maps;
 
    Source_File_Map : Source_File_Maps.Map;
-   --  Contains all source files. Open_Source inserts in this; elements are
-   --  never removed. Used by Named_File.
+   --  Contains all True_Source files. Open_Source inserts in this; elements
+   --  are never removed. Used by Named_File. It is important to avoid putting
+   --  Preprocessed_Source files in this mapping, because on Windows, all the
+   --  temp files get the same name (they are deleted immediately after being
+   --  read). We can't have duplicates.
 
    -----------------------------
    -- Copy_To_Standard_Output --
@@ -189,7 +192,15 @@ package body Source_Input is
          --  Put the Result in the two containers
 
          Append (Source_Files, Result);
-         Insert (Source_File_Map, Name, Result);
+
+         --  Put it in Source_File_Map only if it's a True_Source
+
+         case Kind is
+            when True_Source =>
+               Insert (Source_File_Map, Name, Result);
+            when Preprocessed_Source =>
+               null;
+         end case;
 
          --  Read the entire contents of the file
 
