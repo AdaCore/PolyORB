@@ -55,9 +55,9 @@ def main():
                 print "%s -> %s" % (file, dstfile)
 
             if os.path.exists(dstfile):
-                # Before doing the unlink ensure that we have write access to
-                # the file.
-                os.chmod(dstfile, 0777)
+                # Before doing the unlink, ensure that we have write access to
+                # the file (required on Windows).
+                os.chmod(dstfile, 0600)
                 os.unlink(dstfile)
             shutil.copy2(file, dstfile)
             os.chmod(dstfile, mode)
