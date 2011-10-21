@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -216,6 +216,7 @@ package body XE_Scan is
                   --  Comment
 
                   Scan_Ptr := Scan_Ptr + 2;
+                  Found := False;
                   loop
                      if Buffer (Scan_Ptr) = LF or else
                         Buffer (Scan_Ptr) = FF or else
@@ -223,23 +224,19 @@ package body XE_Scan is
                         Buffer (Scan_Ptr) = VT then
                         New_Line;
                         exit;
+
                      elsif Buffer (Scan_Ptr) = EOF then
                         Token := Tok_EOF;
                         Scan_Ptr := Scan_Ptr + 1;
+                        Found := True;
+
                         exit;
                      end if;
                      Scan_Ptr := Scan_Ptr + 1;
                   end loop;
-                  if Token = Tok_EOF then
-                     Found := True;
-                  else
-                     Found := False;
-                  end if;
 
                else
-
                   Token := Tok_Unknown;
-
                end if;
 
             when '"' => -- "
