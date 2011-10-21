@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -926,16 +926,18 @@ package body XE_Front is
          raise Parsing_Error;
       end Write_Attr_Kind_Error;
 
+   --  Start of processing for Set_Partition_Attribute
+
    begin
-      --  If this attribute applies to partition type itself, it may not
-      --  have a value. No big deal, we use defaults.
+      --  If this attribute applies to partition type itself, it may not have
+      --  a value. No big deal, we use defaults.
 
       --  Apply attribute to a partition.
 
       Attr_Kind := Get_Attribute_Kind (Component_Id (Attribute));
       Attr_Item := Get_Component_Value (Component_Id (Attribute));
 
-      --  No attribute was really assigned.
+      --  No attribute was really assigned
 
       if Attr_Item = Null_Variable then
          return;
@@ -985,7 +987,7 @@ package body XE_Front is
                Write_Attr_Kind_Error ("directory", "a string litteral");
             end if;
 
-            --  Check that it has not already been assigned.
+            --  Check that it has not already been assigned
 
             if Current.Executable_Dir = No_Directory_Name then
                Current.Executable_Dir := Get_Variable_Name (Attr_Item);
