@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -150,5 +150,11 @@ package Backend.BE_CORBA_Ada is
    --  is slightly different from the mapping of standard IDL entities. This
    --  function maps these entities and return True if the E parameter falls
    --  into the special cases.
+
+private
+
+   procedure Kill_Warnings_And_Checks (L : List_Id; N : Node_Id);
+   --  Append to L a pragma Warnings (Off) and a pragma Suppress
+   --  (Validity_Check) for N.
 
 end Backend.BE_CORBA_Ada;

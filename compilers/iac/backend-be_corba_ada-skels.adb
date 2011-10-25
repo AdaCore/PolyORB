@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -541,12 +541,10 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  used.
 
             if not Use_SII then
-               --  Disable warnings on the declared variable
+               --  Disable warnings and checks on the declared variable
 
-               N := Make_Pragma
-                 (Pragma_Warnings,
-                  New_List (RE (RE_Off), Make_Identifier (Arg_Name)));
-               Append_To (Declarative_Part, N);
+               Kill_Warnings_And_Checks
+                 (Declarative_Part, Make_Identifier (Arg_Name));
 
                --  Prepare the actual profile of the Add_Item call
 
@@ -679,13 +677,10 @@ package body Backend.BE_CORBA_Ada.Skels is
             --  handling.
 
             if not Use_SII then
-               --  Disable warnings on the Result_Ü variable
+               --  Disable warnings and checks on the Result variable
 
-               N := Make_Pragma
-                    (Pragma_Warnings,
-                     New_List (RE (RE_Off),
-                                   Make_Identifier (VN (V_Result))));
-               Append_To (Declarative_Part, N);
+               Kill_Warnings_And_Checks
+                 (Declarative_Part, Make_Identifier (VN (V_Result)));
 
                --  Declaration of the `Content' argument variable
 

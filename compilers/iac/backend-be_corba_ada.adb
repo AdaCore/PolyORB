@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -339,5 +339,18 @@ package body Backend.BE_CORBA_Ada is
       end if;
       return Result;
    end Map_Particular_CORBA_Parts;
+
+   ------------------------------
+   -- Kill_Warnings_And_Checks --
+   ------------------------------
+
+   procedure Kill_Warnings_And_Checks (L : List_Id; N : Node_Id) is
+   begin
+      Append_To (L, Make_Pragma (Pragma_Warnings, New_List (RE (RE_Off), N)));
+
+      Append_To (L,
+        Make_Pragma (Pragma_Suppress,
+                     New_List (RE (RE_Validity_Check), Copy_Node (N))));
+   end Kill_Warnings_And_Checks;
 
 end Backend.BE_CORBA_Ada;

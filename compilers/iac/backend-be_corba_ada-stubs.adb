@@ -2240,9 +2240,7 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      N := Make_Identifier (PN (P_Returns));
                   end if;
 
-                  N := Make_Pragma
-                         (Pragma_Warnings, New_List (RE (RE_Off), N));
-                  Append_To (L, N);
+                  Kill_Warnings_And_Checks (L, N);
 
                   --  Declaration of the `Content' argument variable
 
@@ -2362,16 +2360,11 @@ package body Backend.BE_CORBA_Ada.Stubs is
                      Expression          => C);
                   Append_To (L, N);
 
-                  --  If the parameter is OUT, we disable warnings on
-                  --  it.
+                  --  If the parameter is OUT, we disable warnings on it
 
                   if FEN.Parameter_Mode (P) = Mode_Out then
-                     N := Make_Pragma
-                       (Pragma_Warnings,
-                        New_List
-                        (RE (RE_Off),
-                         Make_Identifier (Argument_Name)));
-                     Append_To (L, N);
+                     Kill_Warnings_And_Checks
+                       (L, Make_Identifier (Argument_Name));
                   end if;
 
                   P := Next_Entity (P);
