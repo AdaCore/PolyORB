@@ -346,11 +346,22 @@ package body PolyORB.Transport.Connected.Sockets is
    begin
       pragma Assert (TE.Socket /= No_Socket);
       Set (R_Set, TE.Socket);
+
       Check_Selector (Dummy_Selector, R_Set, W_Set, Status, 0.0);
 
       if Status = Completed and then Is_Set (R_Set, TE.Socket) then
-         Receive_Socket (TE.Socket, Buf, Last, Peek_At_Incoming_Data);
-         if Last = 0 then
+         begin
+            Receive_Socket (TE.Socket, Buf, Last, Peek_At_Incoming_Data);
+         exception
+            when Socket_Error =>
+
+               --  On Windows, Receive_Socket on a closed fd may raise an
+               --  exception rather than returning 0 bytes.
+
+               Last := Buf'First - 1;
+         end;
+
+         if Last < Buf'First then
             --  Connection closed
 
             Close (TE);
