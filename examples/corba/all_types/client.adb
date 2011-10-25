@@ -308,6 +308,11 @@ begin
 
       declare
          X_Color : Color;
+         pragma Suppress (Validity_Check, X_Color);
+         --  Suppress validity checks so that we can test the effect of
+         --  the invalid value within the ORB (we don't want to have it
+         --  caught here in the client).
+
          X_Octet : CORBA.Octet;
          for X_Octet'Address use X_Color'Address;
          pragma Import (Ada, X_Octet);
