@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -176,6 +176,7 @@ package body PolyORB.ORB_Controller.Workers is
             null;
 
          when ORB_Shutdown =>
+            pragma Debug (C1, O1 ("ORB shutdown"));
 
             --  ORB shutdown has been requested
 
