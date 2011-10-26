@@ -2395,6 +2395,40 @@ package body PolyORB.Representations.CDR is
                      --  Unmarshall element into shadow container
 
                      declare
+                        function El_Info return String;
+                        --  Description of member, for debugging
+
+                        -------------
+                        -- El_Info --
+                        -------------
+
+                        function El_Info return String is
+                           El_Name : Types.Identifier;
+                        begin
+                           case TCK is
+                              when Tk_Struct | Tk_Except =>
+                                 El_Name := TypeCode.Member_Name (TC, J);
+
+                              when Tk_Union =>
+                                 if J = 0 then
+                                    El_Name := To_PolyORB_String ("<switch>");
+                                 else
+                                    El_Name := To_PolyORB_String ("<value>");
+                                 end if;
+
+                              when
+                                Tk_Sequence | Tk_Array | Tk_Fixed | Tk_Enum =>
+                                 El_Name := To_PolyORB_String
+                                              ("<element" & J'Img & ">");
+
+                              when others =>
+                                 --  Never happens
+
+                                 raise Program_Error;
+                           end case;
+                           return TCK'Img & " member " & To_String (El_Name);
+                        end El_Info;
+
                         El_C  : Any_Container;
                         El_M  : aliased Mechanism := By_Reference;
                         El_CC : aliased Content'Class :=
@@ -2407,7 +2441,7 @@ package body PolyORB.Representations.CDR is
                         end if;
 
                         pragma Debug (C, O ("Unmarshall_To_Any: about to "
-                          & "unmarshall a member"));
+                          & "unmarshall " & El_Info));
 
                         Unmarshall_To_Any
                           (CDR_Representation'Class (R.all)'Access,
