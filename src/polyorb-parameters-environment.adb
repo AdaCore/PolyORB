@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -129,7 +129,7 @@ begin
       (Name      => +"parameters.environment",
        Conflicts => Empty,
        Depends   => +"parameters.command_line?",
-       Provides  => +"parameters_sources",
+       Provides  => +"parameters_sources" & "parameters_sources.runtime",
        Implicit  => True,
        Init      => Initialize'Access,
        Shutdown  => null));

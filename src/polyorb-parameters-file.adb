@@ -162,7 +162,7 @@ begin
          & "parameters.environment?"
          & "parameters.overrides?"
          & "utils.configuration_file",
-       Provides  => +"parameters_sources",
+       Provides  => +"parameters_sources" & "parameters_sources.runtime",
        Implicit  => True,
        Init      => Initialize'Access,
        Shutdown  => null));

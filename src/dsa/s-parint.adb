@@ -38,6 +38,7 @@ with System.Address_To_Access_Conversions;
 with System.Standard_Library;
 
 with GNAT.HTable;
+with GNAT.Regpat;
 
 with PolyORB.Binding_Data;
 with PolyORB.DSA_P.Exceptions;
@@ -1524,8 +1525,22 @@ package body System.Partition_Interface is
    ---------------------------
 
    procedure Initialize_Parameters is
+
       procedure Set_Conf (Section, Key, Value : String);
       --  Call back to set the given configuration parameter
+
+      procedure Set_Location (Loc : String; Self : Boolean; Boot : Boolean);
+      --  Parse location Loc and set is as the current partition's location
+      --  (if Self is True), and/or as the boot partition location (if Boot is
+      --  True).
+
+      --  Regex matcher for Set_Location
+
+      use GNAT.Regpat;
+
+      Loc_Regex   : constant String := "tcp://(.*):([0-9]*)";
+      Loc_Matcher : constant Pattern_Matcher := Compile (Loc_Regex);
+      subtype Loc_Matches is Match_Array (0 .. Paren_Count (Loc_Matcher));
 
       --------------
       -- Set_Conf --
@@ -1538,27 +1553,86 @@ package body System.Partition_Interface is
          pragma Debug
            (C, O ("Set_Conf: [" & Section & "] " & Key & " = " & Value));
          PUCFCT.Insert (Conf_Table, Make_Global_Key (Section, Key), +Value);
+      end Set_Conf;
 
-         --  Placeholders for future special handling of Self_Location and
-         --  Boot_Location attributes. ???
+      ------------------
+      -- Set_Location --
+      ------------------
 
-         if LS = "dsa" then
-            if LK = "self_location" then
-               null;
+      procedure Set_Location (Loc : String; Self : Boolean; Boot : Boolean) is
+         M : Loc_Matches;
+      begin
+         Match (Loc_Matcher, Loc, M);
+         if M (M'First) = No_Match then
+            return;
+         end if;
 
-            elsif LK = "boot_location" then
-               null;
+         if Self then
+            if Boot then
 
+               --  Setting the main partition's self location using pragma
+               --  Boot_Location: set port only (and bind on all addresses).
+               --  Use Self_Location on main partition to force binding on a
+               --  specific interface.
+
+               Set_Conf ("iiop", "polyorb.protocols.iiop.default_port",
+                         Loc (M (2).First .. M (2).Last));
+            else
+               --  Explicit pragma Self_Location: set full location (host and
+               --  port).
+
+               Set_Conf ("iiop", "polyorb.protocols.iiop.default_addr",
+                         Loc (M (1).First .. M (1).Last)
+                         & ":"
+                         & Loc (M (2).First .. M (2).Last));
             end if;
          end if;
-      end Set_Conf;
+
+         if Boot then
+            Set_Conf ("dsa", "name_service", "corbaloc:iiop:"
+                      & Loc (M (1).First .. M (1).Last)
+                      & ":"
+                      & Loc (M (2).First .. M (2).Last)
+                      & "/_NameService");
+         end if;
+      end Set_Location;
 
    --  Start of processing for Initialize_Parameters
 
    begin
+      --  Set up parameter source for values provided by gnatdist
+
       PUCFCT.Initialize (Conf_Table);
       PolyORB.Partition_Elaboration.Configure (Set_Conf'Access);
       PolyORB.Parameters.Register_Source (The_DSA_Source'Access);
+
+      --  Perform additional automated configuration
+
+      declare
+         use PolyORB.Parameters;
+
+         Is_Main_Partition : constant Boolean :=
+                               Get_Conf ("dsa", "main_partition", False);
+         Has_Embedded_Nameserver : constant Boolean :=
+                                     Ada.Characters.Handling.To_Upper
+                                       (Get_Conf
+                                          ("dsa",
+                                           "name_server_kind", ""))
+                                       = "EMBEDDED";
+         Boot_Loc : constant String := Get_Conf ("dsa", "boot_location", "");
+         Self_Loc : constant String := Get_Conf ("dsa", "self_location", "");
+      begin
+
+         if Boot_Loc /= "" then
+            Set_Location (Boot_Loc,
+              Self => Is_Main_Partition and then Has_Embedded_Nameserver,
+              Boot => True);
+         end if;
+
+         if Self_Loc /= "" then
+            Set_Location (Self_Loc, Self => True, Boot => False);
+         end if;
+      end;
    end Initialize_Parameters;
 
    --------------
@@ -2374,11 +2448,14 @@ package body System.Partition_Interface is
    use PolyORB.Utils.Strings.Lists;
 
 begin
+   --  The DSA runtime parameters depend on parameters_sources.runtime so that
+   --  they can be overridden at run time.
+
    Register_Module
      (Module_Info'
       (Name      => +"parameters.dsa",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"parameters_sources.runtime?",
        Provides  => +"parameters_sources",
        Implicit  => True,
        Init      => Initialize_Parameters'Access,

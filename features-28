@@ -12,6 +12,21 @@ This date shows the implementation date of the feature. Any 2.8 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-28-KA26-015 Support for Self_Location / Boot_Location (2011-10-26)
+
+   Support for pragmas Boot_Location and Self_Location in the po_gnatdist
+   configuration file, and for boot_location and self_location runtime
+   parameters, has been implemented. These allow the specification of the
+   host and port used by a partition (self_location) and by the main
+   partition (boot_location).
+
+   Gnatdist configuration example:
+     pragma Boot_Location ("tcp", "myhost:1234");
+
+   Equivalent polyorb.conf setting:
+     [dsa]
+     boot_location=tcp://myhost:1234
+
 NF-28-KA12-017 Removed dependency of "install" on "all" (2011-10-12)
 
    The "install" target in the main PolyORB Makefile has no dependency on "all"

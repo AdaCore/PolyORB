@@ -61,15 +61,14 @@ package body PolyORB.DSA_P.Name_Service is
    ----------------------------
 
    procedure Initialize_Name_Server is
-      use Ada.Characters.Handling;
       use PolyORB.Binding_Data;
       use PolyORB.References;
 
       Nameservice_Kind : constant String :=
                            Parameters.Get_Conf
                              (Section => "dsa",
-                              Key     => "name_context",
-                              Default => "COS");
+                              Key     => "name_server_kind",
+                              Default => "");
 
       Nameservice_Location : constant String :=
                                Parameters.Get_Conf
@@ -78,7 +77,7 @@ package body PolyORB.DSA_P.Name_Service is
    begin
       pragma Debug (C, O ("Initialize_Name_Server: enter"));
 
-      if To_Upper (Nameservice_Kind) = "MDNS" then
+      if Ada.Characters.Handling.To_Upper (Nameservice_Kind) = "MULTICAST" then
 
          --  mDNS
 
@@ -87,8 +86,7 @@ package body PolyORB.DSA_P.Name_Service is
            (Nameservice_Location, Name_Ctx);
 
       else
-
-         --  CORBA COS Naming
+         --  CORBA COS Naming (either embedded or standalone)
 
          Name_Ctx := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Server;
          PolyORB.References.String_To_Object
@@ -106,8 +104,7 @@ package body PolyORB.DSA_P.Name_Service is
       when others =>
          raise System.RPC.Communication_Error with
            "unable to locate name service "
-           & Nameservice_Location
-           & " (" & Nameservice_Kind & ")";
+           & Nameservice_Location & " (" & Nameservice_Kind & ")";
    end Initialize_Name_Server;
 
    ---------------------

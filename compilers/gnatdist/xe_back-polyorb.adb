@@ -155,7 +155,8 @@ package body XE_Back.PolyORB is
       PE_Termination_Initiator,
       PE_Termination_Policy,
       PE_Partition_Name,
-      PE_Name_Context);
+      PE_Main_Partition,
+      PE_Name_Server_Kind);
 
    PE : array (PE_Id) of Unit_Name_Type;
 
@@ -168,7 +169,8 @@ package body XE_Back.PolyORB is
       PE_Termination_Initiator => PS_DSA,
       PE_Termination_Policy    => PS_DSA,
       PE_Partition_Name        => PS_DSA,
-      PE_Name_Context          => PS_DSA,
+      PE_Main_Partition        => PS_DSA,
+      PE_Name_Server_Kind      => PS_DSA,
       PE_Start_Threads         => PS_Tasking,
       PE_Max_Spare_Threads     => PS_Tasking,
       PE_Max_Threads           => PS_Tasking,
@@ -226,6 +228,7 @@ package body XE_Back.PolyORB is
    --  convert to lowercase, else apply general casing rules.
 
    procedure Set_Conf (Var : PE_Id; Val : Name_Id; Quote : Boolean := True);
+   procedure Set_Conf (Var : PE_Id; Val : Boolean; Quote : Boolean := True);
    --  Add a new entry in the configuration table
 
    procedure Set_Conf
@@ -599,11 +602,11 @@ package body XE_Back.PolyORB is
       --  Set partition name
 
       Set_Conf (PE_Partition_Name, Current.Name);
+      Set_Conf (PE_Main_Partition, P = Main_Partition);
 
       --  Set tasking mode
 
-      Set_Str_To_Name_Buffer (Boolean'Image (Current.Tasking /= No_Tasking));
-      Set_Conf (PE_Tasking_Available, Name_Find);
+      Set_Conf (PE_Tasking_Available, Current.Tasking /= No_Tasking);
 
       --  Add the termination policy to the configuration table, if no
       --  termination policy is set, the default is Global_Termination.
@@ -628,6 +631,10 @@ package body XE_Back.PolyORB is
                      Location_List_Image (Current.First_Network_Loc),
                    Quote => False);
       end if;
+
+      --  Set name server kind
+
+      Set_Conf (PE_Name_Server_Kind, Name_Server_Img (Default_Name_Server));
 
       --  Set task pool parameters
 
@@ -697,14 +704,6 @@ package body XE_Back.PolyORB is
             end if;
          end;
       end loop;
-
-      --  Set the corect Name_Context, depending on the Name_Server
-
-      if Default_Name_Server = Multicast then
-         Set_Conf (PE_Name_Context, XE_Utils.Id ("MDNS"));
-      else
-         Set_Conf (PE_Name_Context, XE_Utils.Id ("COS"));
-      end if;
 
       --  The configuration is done, start generating the code
 
@@ -1276,9 +1275,11 @@ package body XE_Back.PolyORB is
                 Quote   => Quote);
    end Set_Conf;
 
-   --------------
-   -- Set_Conf --
-   --------------
+   procedure Set_Conf (Var : PE_Id; Val : Boolean; Quote : Boolean := True) is
+   begin
+      Set_Str_To_Name_Buffer (Boolean'Image (Val));
+      Set_Conf (Var, Name_Find, Quote);
+   end Set_Conf;
 
    procedure Set_Conf
      (Section : Name_Id;

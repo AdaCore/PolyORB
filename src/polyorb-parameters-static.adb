@@ -118,11 +118,14 @@ package body PolyORB.Parameters.Static is
    use PolyORB.Utils.Strings;
 
 begin
+      --  The static parameters source depends on parameters_sources.runtime
+      --  so that its values can be overridden at run time.
+
       Register_Module
       (Module_Info'
          (Name      => +"parameters.static",
           Conflicts => Empty,
-          Depends   => Empty,
+          Depends   => +"parameters_sources.runtime",
           Provides  => +"parameters_sources",
           Implicit  => True,
           Init      => Initialize'Access,
