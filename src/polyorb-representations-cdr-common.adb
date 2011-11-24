@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -187,8 +187,7 @@ package body PolyORB.Representations.CDR.Common is
    is
    begin
       pragma Debug (C, O ("Marshall (Octet) : enter"));
-      Align_Marshall_Copy (Buffer, (1 => Stream_Element
-                           (PolyORB.Types.Octet'(Data))), Align_1);
+      Align_Marshall_Copy (Buffer, (1 => Stream_Element (Data)), Align_1);
       pragma Debug (C, O ("Marshall (Octet) : end"));
    end Marshall;
 
