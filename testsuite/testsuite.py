@@ -120,7 +120,7 @@ def main():
     else:
         test_glob = None
     test_list = filter_list('./tests/*/*/*/test.py', test_glob)
-    test_list.extend(filter_list('./tests/idl/*/test.sh', test_glob))
+    test_list.extend(filter_list('./tests/idl/*/test.*', test_glob))
 
     collect_result = generate_collect_result(
         m.options.output_dir, results_file, m.options.diffs)
@@ -143,7 +143,7 @@ def filter_list(pattern, run_test=""):
 
     If run_test is not null, run only tests containing run_test
     """
-    test_list = [os.path.dirname(p) for p in glob(pattern)]
+    test_list = list(set(os.path.dirname(p) for p in glob(pattern)))
     if not run_test:
         test_list.append("tests/always_fail")
         return test_list
