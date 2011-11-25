@@ -68,6 +68,13 @@ def main():
     # Always add 'ALL'
     common_discs = Env().discriminants
 
+    # Be backward compatible with the old IDL tests
+    # Set the polyorb discriminant and export the IDLCOMP
+    # environment variable.
+    common_discs.append('PolyORB')
+    common_discs.append('PolyORB_IAC')
+    os.environ['IDLCOMP'] = 'iac'
+
     # Retrieve also the polyorb specific discriminants
     p = Run([which('bash'),
              which('polyorb-config').replace('\\', '/'),
@@ -113,6 +120,7 @@ def main():
     else:
         test_glob = None
     test_list = filter_list('./tests/*/*/*/test.py', test_glob)
+    test_list.extend(filter_list('./tests/idl/*/test.sh', test_glob))
 
     collect_result = generate_collect_result(
         m.options.output_dir, results_file, m.options.diffs)

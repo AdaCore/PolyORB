@@ -4,6 +4,7 @@
 Run a test located in test_dir
 """
 
+from gnatpython.fileutils import get_rlimit
 from gnatpython.main import Main
 from gnatpython.testdriver import TestRunner, add_run_test_options
 
@@ -12,6 +13,14 @@ import sys
 
 
 class TestPolyORB(TestRunner):
+
+    def __init__(self, *args, **kwargs):
+        TestRunner.__init__(self, *args, **kwargs)
+        if not os.path.isfile(self.test + '/test.cmd'):
+            if os.path.isfile(self.test + '/test.py'):
+                self.opt_results['CMD'] = 'test.py'
+            elif os.path.isfile(self.test + '/test.sh'):
+                self.opt_results['CMD'] = 'test.sh'
 
     def compute_cmd_line(self, filesize_limit=36000):
         """Compute command line
@@ -27,7 +36,35 @@ class TestPolyORB(TestRunner):
         # And add 10 more seconds for rlimit
         self.opt_results["RLIMIT"] = str(int(self.opt_results['RLIMIT']) + 10)
 
-        return TestRunner.compute_cmd_line(self, filesize_limit)
+        # Find which script language is used. The default is to consider it
+        # in Windows CMD format.
+        _, ext = os.path.splitext(self.opt_results['CMD'])
+        if ext in ['.cmd', '.sh', '.py']:
+            cmd_type = ext[1:]
+        else:
+            cmd_type = 'cmd'
+
+        # Compute command line
+        rlimit = get_rlimit()
+        assert rlimit, 'rlimit not found'
+        self.cmd_line = [rlimit, self.opt_results['RLIMIT']]
+
+        if cmd_type == 'sh':
+            self.compute_cmd_line_sh(filesize_limit, 'bash')
+        if cmd_type == 'py':
+            self.compute_cmd_line_py(filesize_limit)
+        elif cmd_type == 'cmd':
+            self.compute_cmd_line_cmd(filesize_limit)
+
+    def compute_cmd_line_sh(self, filesize_limit, shell):
+        """Compute self.cmd_line and preprocess the test script
+
+        REMARKS
+          This function is called by compute_cmd_line
+        """
+        self.cmd_line += [shell, self.opt_results['CMD']]
+        if self.test_args:
+            self.cmd_line += self.test_args
 
     def apply_output_filter(self, str_list):
         """Check that at least a server or local test has passed
