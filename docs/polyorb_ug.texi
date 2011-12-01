@@ -1518,7 +1518,7 @@ Import the @command{polyorb.gpr} project by putting @code{with "polyorb";}
 in your project file.
 
 Set the ADA_PROJECT_PATH environment variable to point to the directory
-containing @command{polyorb.cfg}, which is @command{<prefix>/lib/gnat}.
+containing @command{polyorb.gpr}, which is @command{<prefix>/lib/gnat}.
 If SOAP is being used, ADA_PROJECT_PATH must also be set so we can find
 @command{xmlada.gpr}.
 
