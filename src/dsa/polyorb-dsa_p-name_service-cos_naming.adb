@@ -42,6 +42,7 @@ with PolyORB.Tasking.Threads;
 with PolyORB.Initialization;
 
 package body PolyORB.DSA_P.Name_Service.COS_Naming is
+
    use PolyORB.Utils;
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;
@@ -56,7 +57,7 @@ package body PolyORB.DSA_P.Name_Service.COS_Naming is
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
 
    Time_Between_Requests : constant Duration := 1.0;
-   Max_Requests          : constant Natural := 10;
+   Max_Requests          : constant Natural  := 10;
 
    -------------------------
    -- Nameserver_Register --
@@ -146,16 +147,13 @@ package body PolyORB.DSA_P.Name_Service.COS_Naming is
 
       loop
          begin
-            Result := PSNNC.Client.Resolve
-                        (Context, To_Name (LName, Kind));
-
+            Result := PSNNC.Client.Resolve (Context, To_Name (LName, Kind));
             if not Is_Reference_Valid (Result) then
                PolyORB.References.Release (Result);
             end if;
-
          exception
-               --  Catch all exceptions: we will retry resolution, and bail
-               --  out after Max_Requests iterations.
+            --  Catch all exceptions: we will retry resolution, and bail out
+            --  after Max_Requests iterations.
 
             when E : others =>
                pragma Debug (C, O ("retry" & Retry_Count'Img & " got "
@@ -163,9 +161,10 @@ package body PolyORB.DSA_P.Name_Service.COS_Naming is
                PolyORB.References.Release (Result);
          end;
 
-         exit when not (Initial and then Is_Nil (Smart_Pointers.Ref (Result)));
          --  Resolve succeeded, or just trying to refresh a stale ref:
          --  exit loop.
+
+         exit when not (Initial and then Is_Nil (Smart_Pointers.Ref (Result)));
 
          if Retry_Count = Max_Requests then
             raise System.RPC.Communication_Error with
