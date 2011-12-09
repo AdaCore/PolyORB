@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,21 +51,18 @@ package PolyORB.References.Binding is
       Pro        :    out Binding_Data.Profile_Access;
       Local_Only :        Boolean;
       Error      : in out PolyORB.Errors.Error_Container);
-   --  Bind R to a servant, and return that servant (or a surrogate
-   --  thereof) and the object id corresponding to the profile of R
-   --  that was used.
-   --  Local_ORB is the local middleware. It is used to determine
-   --  whether reference profiles are local. Its object adapter
-   --  is queried to resolve local object ids into servants.
+   --  Bind R to a servant, and return that servant (or a surrogate thereof)
+   --  and the object id corresponding to the profile of R that was used.
+   --  Local_ORB is the local middleware. It is used to determine whether
+   --  reference profiles are local. Its object adapter is queried to resolve
+   --  local object ids into servants.
 
-   --  When a remote reference is to be bound, Local_ORB is in
-   --  charge of all the transport and communication aspects
-   --  of the binding operation. It must then return a remote
-   --  surrogate of the object designated by R. If Local_Only
-   --  is set to True, no remote binding is done. In that
-   --  case, only references to local objects can be bound,
-   --  and the returned Servant will be an actual local servant
-   --  (not a surrogate).
+   --  When a remote reference is to be bound, Local_ORB is in charge of all
+   --  the transport and communication aspects of the binding operation. It
+   --  must then return a remote surrogate of the object designated by R. If
+   --  Local_Only is set to True, no remote binding is done. In that case, only
+   --  references to local objects can be bound, and the returned Servant will
+   --  be an actual local servant (not a surrogate).
 
    procedure Unbind (R : Ref'Class);
    --  Dissociate R from its continuation
@@ -75,18 +72,17 @@ package PolyORB.References.Binding is
       Tag       :        Binding_Data.Profile_Tag;
       Pro       :    out Binding_Data.Profile_Access;
       Error     : in out PolyORB.Errors.Error_Container);
-   --  Find a profile in R that matches Tag, and return it.
-   --  If R has no profile with a matching tag, create a
-   --  proxy profile that designates R using this ORB as
-   --  a proxy. If R has no profile matching Tag, and this
-   --  ORB cannot behave as a proxy either, null is returned.
+   --  Find a profile in R that matches Tag, and return it. If R has no profile
+   --  with a matching tag, create a proxy profile that designates R using this
+   --  ORB as a proxy. If R has no profile matching Tag, and this ORB cannot
+   --  behave as a proxy either, null is returned.
 
    function Get_Preferred_Profile
      (R            : Ref'Class;
       Ignore_Local : Boolean)
       return Binding_Data.Profile_Access;
    --  Compute preferred profile which will be used in object binding
-   --  operation. If Ignore_Local is True then ignore local profile even
-   --  if it is a most preferred profile.
+   --  operation. If Ignore_Local is True then ignore local profile even if it
+   --  is a most preferred profile.
 
 end PolyORB.References.Binding;
