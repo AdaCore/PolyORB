@@ -56,9 +56,6 @@ package body PolyORB.DSA_P.Name_Service.COS_Naming is
 
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
 
-   Time_Between_Requests : constant Duration := 1.0;
-   Max_Requests          : constant Natural  := 10;
-
    -------------------------
    -- Nameserver_Register --
    -------------------------
