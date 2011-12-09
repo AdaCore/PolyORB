@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -194,13 +194,25 @@ package body PolyORB.ORB.Thread_Pool is
          New_Spares := Integer'Min
            (Minimum_Spare_Threads - Current_Spares, Max_New_Spares);
       end if;
-      pragma Debug (C, O ("Check_Spares: Cur =" & Current_Spares'Img
+      pragma Debug (C, O ("Check_Spares: " & Image (Current_Task)
+                          & ": Cur =" & Current_Spares'Img
                           & " Max_New =" & Max_New_Spares'Img
                           & " New =" & New_Spares'Img));
 
       for J in 1 .. New_Spares loop
-         pragma Debug (C, O ("Creating new spare task"));
-         Create_Task (Thread_Pool_Main_Loop'Access);
+         pragma Debug
+           (C, O (Image (Current_Task) & " creating new spare task"));
+         begin
+            Create_Task (Thread_Pool_Main_Loop'Access);
+         exception
+            when Tasking_Error =>
+               pragma Debug
+                 (C, O (Image (Current_Task)
+                        & " new spare task creation failed (TASKING_ERROR)"
+                        & " (Shutdown = " & Boolean'Image (Shutting_Down (OC))
+                        & ")"));
+               null;
+         end;
       end loop;
    end Check_Spares;
 
