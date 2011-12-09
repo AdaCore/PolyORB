@@ -826,6 +826,9 @@ package body PolyORB.Utils.HTables.Perfect is
       if Found then
          Index := Elements
            (Subtables (ST_Index).First + ST_Offset).Item_Index;
+
+      else
+         Index := 0;
       end if;
    end Lookup;
 
@@ -834,8 +837,8 @@ package body PolyORB.Utils.HTables.Perfect is
    ------------
 
    procedure Delete
-     (T   : in out Hash_Table;
-      Key :        String;
+     (T     : in out Hash_Table;
+      Key   : String;
       Index : out Natural)
    is
       Elements  : access Dynamic_Element_Array.Table_Type
@@ -863,7 +866,7 @@ package body PolyORB.Utils.HTables.Perfect is
       end if;
    end Delete;
 
-   --  Implementation of the public specification begins here.
+   --  Implementation of the public specification begins here
 
    ----------------
    -- Initialize --
@@ -939,8 +942,7 @@ package body PolyORB.Utils.HTables.Perfect is
    function Lookup
      (T           : Table_Instance;
       Key         : String;
-      Error_Value : Item)
-     return Item
+      Error_Value : Item) return Item
    is
       Items : access Dynamic_Item_Array.Table_Type renames T.T.Items.Table;
 
