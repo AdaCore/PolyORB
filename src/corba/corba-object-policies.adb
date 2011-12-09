@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -320,8 +320,8 @@ package body CORBA.Object.Policies is
             PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
 
          else
-            --  Do not propagate exception if we receive a
-            --  ForwardRequest error.
+            --  Do not propagate exception if we receive a ForwardRequest
+            --  error.
 
             Catch (Error);
             return;
