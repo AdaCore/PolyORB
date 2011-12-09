@@ -93,6 +93,12 @@ package body PolyORB.DSA_P.Name_Service is
             (Nameservice_Location, Name_Ctx.Base_Ref);
       end if;
 
+      Time_Between_Requests :=
+        PolyORB.Parameters.Get_Conf
+          (Section => "dsa",
+           Key     => "delay_between_failed_requests",
+           Default => 1.0);
+
       Max_Requests :=
         PolyORB.Parameters.Get_Conf
           (Section => "dsa",
