@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -85,8 +85,12 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       References.Binding.Bind
         (Target,
          PolyORB.Setup.The_ORB, (others => null),
-         Surrogate, Pro, False, Error);
+         Surrogate, Pro,
+         Local_Only => False,
+         Error      => Error);
       --  XXX Should remove dependency on The_ORB
+      --  We're only interested in determining whether we have a local RT
+      --  servant, why don't we bind with Local_Only => True???
 
       if Found (Error) then
          Catch (Error);
