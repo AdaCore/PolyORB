@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Finalization;
 with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
@@ -54,6 +55,12 @@ package body PolyORB.References.Binding is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+
+   type Ref_Locker (R : access constant Ref'Class) is
+     new Ada.Finalization.Limited_Controlled with null record;
+   procedure Initialize (RL : in out Ref_Locker);
+   procedure Finalize (RL : in out Ref_Locker);
+   --  Scope lock object for R's mutex
 
    function Find_Tagged_Profile
      (R      : Ref;
@@ -111,111 +118,169 @@ package body PolyORB.References.Binding is
       --  First check whether the reference is already bound, if so reuse the
       --  existing binding object.
 
-      pragma Debug (C, O ("Bind: Check for already bound reference"));
-
-      Enter_Mutex (R);
-      Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
-
-      if Existing_Servant /= null then
-         if (not Local_Only)
-           or else Existing_Profile.all in Local_Profile_Type
-           or else Is_Profile_Local (Local_ORB, Existing_Profile)
-         then
-            Servant := Existing_Servant;
-            Pro     := Existing_Profile;
-            pragma Debug (C, O ("Bind: The reference is already bound"));
-         end if;
-
-         goto Leave_Mutex_And_Return;
-      end if;
-
-      --  XXX should probably rework the two-phase preference
-      --  -> bind mechanism, else we could have a case where
-      --  one non-local profile is preferred to a local, but
-      --  less preferred, profile. On the other hand, this
-      --  might be useful because it allows implementation
-      --  of All_Calls_Remote simply through prefs fiddling.
-
-      Selected_Profile := Get_Preferred_Profile (R, False);
-
-      if Selected_Profile = null then
-         Throw (Error,
-                Inv_Objref_E,
-                System_Exception_Members'(Minor => 0,
-                                          Completed => Completed_No));
-
-         goto Leave_Mutex_And_Return;
-      end if;
-
-      --  Determine whether profile designates a local object
-
-      Best_Profile_Is_Local :=
-        Selected_Profile.all in Local_Profile_Type
-          or else (Is_Profile_Local (Local_ORB, Selected_Profile)
-                      and then
-                   not Is_Multicast_Profile (Selected_Profile.all));
-
-      --  Check if there is a binding object which we can reuse (remote case)
-
-      if not Best_Profile_Is_Local then
-         pragma Debug (C, O ("Bind: Check for reusable BO"));
-         Existing_BO := Find_Reusable_Binding_Object
-                          (Local_ORB, Selected_Profile, QoS);
-
-         if not Smart_Pointers.Is_Nil (Existing_BO) then
-            Pro     := Selected_Profile;
-            Servant := Get_Component (Existing_BO);
-
-            --  Reference BO in R's ref info
-
-            Binding_Info_Lists.Append
-              (Ref_Info_Of (R).Binding_Info, (Existing_BO, Selected_Profile));
-
-            pragma Debug (C, O ("Bind: Found reusable BO for reference"));
-            goto Leave_Mutex_And_Return;
-         end if;
-      end if;
-
-      --  No reusable binding object found
-
       declare
-         use PolyORB.Objects;
+         Scope_Lock : Ref_Locker (R'Unchecked_Access);
+         pragma Unreferenced (Scope_Lock);
+         --  Witness object, used for its initialization and finalization only
 
-         OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                       Get_OA (Selected_Profile.all);
-         OA        : constant Obj_Adapter_Access :=
-                       Obj_Adapter_Access (OA_Entity);
-
-         S : PolyORB.Servants.Servant_Access;
       begin
-         pragma Debug
-           (C, O ("Found profile: " & Ada.Tags.External_Tag
-               (Selected_Profile'Tag)));
+         pragma Debug (C, O ("Bind: Check for already bound reference"));
 
-         if Best_Profile_Is_Local then
+         Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
 
-            --  Local profile
-
-            Object_Id := Get_Object_Key (Selected_Profile.all);
-
-            if Object_Id = null then
-               pragma Debug (C, O ("Unable to locate object"));
-               goto Leave_Mutex_And_Return;
+         if Existing_Servant /= null then
+            if (not Local_Only)
+              or else Existing_Profile.all in Local_Profile_Type
+              or else Is_Profile_Local (Local_ORB, Existing_Profile)
+            then
+               Servant := Existing_Servant;
+               Pro     := Existing_Profile;
+               pragma Debug (C, O ("Bind: The reference is already bound"));
             end if;
 
-            if not Is_Proxy_Oid (OA, Object_Id) then
+            goto Leave_Mutex_And_Return;
+         end if;
 
-               --  Real local object
+         --  XXX should probably rework the two-phase preference -> bind
+         --  mechanism, else we could have a case where one non-local profile
+         --  is preferred to a local, but less preferred, profile. On the other
+         --  hand, this might be useful because it allows implementation of
+         --  All_Calls_Remote simply through prefs fiddling.
 
-               Find_Servant (OA, Object_Id, S, Error);
+         Selected_Profile := Get_Preferred_Profile (R, False);
 
-               if Found (Error) then
+         if Selected_Profile = null then
+            Throw (Error,
+              Inv_Objref_E,
+              System_Exception_Members'(Minor     => 0,
+                                        Completed => Completed_No));
+
+            goto Leave_Mutex_And_Return;
+         end if;
+
+         --  Determine whether profile designates a local object
+
+         Best_Profile_Is_Local :=
+           Selected_Profile.all in Local_Profile_Type
+           or else (Is_Profile_Local (Local_ORB, Selected_Profile)
+                    and then
+                      not Is_Multicast_Profile (Selected_Profile.all));
+
+         --  Check if there is a binding object that we can reuse (remote case)
+
+         if not Best_Profile_Is_Local then
+            pragma Debug (C, O ("Bind: Check for reusable BO"));
+            Existing_BO := Find_Reusable_Binding_Object
+              (Local_ORB, Selected_Profile, QoS);
+
+            if not Smart_Pointers.Is_Nil (Existing_BO) then
+               Pro     := Selected_Profile;
+               Servant := Get_Component (Existing_BO);
+
+               --  Reference BO in R's ref info
+
+               Binding_Info_Lists.Append
+                 (Ref_Info_Of (R).Binding_Info,
+                  (Existing_BO, Selected_Profile));
+
+               pragma Debug (C, O ("Bind: Found reusable BO for reference"));
+               goto Leave_Mutex_And_Return;
+            end if;
+         end if;
+
+         --  No reusable binding object found
+
+         declare
+            use PolyORB.Objects;
+
+            OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+              Get_OA (Selected_Profile.all);
+            OA        : constant Obj_Adapter_Access :=
+              Obj_Adapter_Access (OA_Entity);
+
+            S : PolyORB.Servants.Servant_Access;
+         begin
+            pragma Debug
+              (C, O ("Found profile: " & Ada.Tags.External_Tag
+               (Selected_Profile'Tag)));
+
+            if Best_Profile_Is_Local then
+
+               --  Local profile
+
+               Object_Id := Get_Object_Key (Selected_Profile.all);
+
+               if Object_Id = null then
+                  pragma Debug (C, O ("Unable to locate object"));
                   goto Leave_Mutex_And_Return;
                end if;
 
-               Pro := Selected_Profile;
-               Servant := Components.Component_Access (S);
+               if not Is_Proxy_Oid (OA, Object_Id) then
+
+                  --  Real local object
+
+                  Find_Servant (OA, Object_Id, S, Error);
+
+                  if Found (Error) then
+                     goto Leave_Mutex_And_Return;
+                  end if;
+
+                  Pro := Selected_Profile;
+                  Servant := Components.Component_Access (S);
+                  goto Leave_Mutex_And_Return;
+               end if;
+
+               if Local_Only then
+                  goto Leave_Mutex_And_Return;
+               end if;
+
+               declare
+                  Continuation : PolyORB.References.Ref;
+               begin
+                  Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+
+                  if Found (Error) then
+                     goto Leave_Mutex_And_Return;
+                  end if;
+
+                  if not Is_Nil (Continuation) then
+
+                     --  Record a reference to Continuation in
+                     --  Selected_Profile. This is necessary in order to
+                     --  prevent the profiles in Continuation (a ref to the
+                     --  actual object) from being finalized before
+                     --  Selected_Profile (a local profile with proxy oid) is
+                     --  finalized itself.
+
+                     Binding_Data.Set_Continuation
+                       (Selected_Profile,
+                        Smart_Pointers.Ref (Continuation));
+
+                     pragma Debug (C, O ("Bind: recursing on proxy ref"));
+                     Bind (Continuation,
+                           Local_ORB,
+                           QoS,
+                           Servant,
+                           Pro,
+                           Local_Only,
+                           Error);
+                     if Found (Error) then
+                        goto Leave_Mutex_And_Return;
+                     end if;
+
+                     pragma Debug (C, O ("Recursed."));
+
+                     Share_Binding_Info
+                       (Dest => Ref (R), Source => Continuation);
+                     pragma Debug (C, O ("Cached binding data."));
+                  end if;
+                  pragma Debug (C, O ("About to finalize Continuation"));
+               end;
+
+               --  End of processing for local profile case
+
                goto Leave_Mutex_And_Return;
+
             end if;
 
             if Local_Only then
@@ -223,96 +288,58 @@ package body PolyORB.References.Binding is
             end if;
 
             declare
-               Continuation : PolyORB.References.Ref;
+               RI : constant Reference_Info_Access := Ref_Info_Of (R);
+               BO : Smart_Pointers.Ref;
+
             begin
-               Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+               pragma Debug (C, O ("Binding non-local profile"));
+               pragma Debug (C, O ("Creating new binding object"));
+
+               --  Bind_Profile is a blocking operation, should be made
+               --  asynchronous???
+
+               PolyORB.Binding_Data.Bind_Profile
+                 (Selected_Profile,
+                  Components.Component_Access (Local_ORB),
+                  QoS,
+                  BO,
+                  Error);
+
+               --  The Session itself acts as a remote surrogate
+               --  of the designated object.
 
                if Found (Error) then
                   goto Leave_Mutex_And_Return;
                end if;
 
-               if not Is_Nil (Continuation) then
+               Binding_Info_Lists.Append
+                 (RI.Binding_Info, (BO, Selected_Profile));
 
-                  --  Record a reference to Continuation in Selected_Profile.
-                  --  This is necessary in order to prevent the profiles in
-                  --  Continuation (a ref to the actual object) from being
-                  --  finalized before Selected_Profile (a local profile with
-                  --  proxy oid) is finalized itself.
-
-                  Binding_Data.Set_Continuation
-                    (Selected_Profile,
-                     Smart_Pointers.Ref (Continuation));
-
-                  pragma Debug (C, O ("Bind: recursing on proxy ref"));
-                  Bind (Continuation,
-                        Local_ORB,
-                        QoS,
-                        Servant,
-                        Pro,
-                        Local_Only,
-                        Error);
-                  if Found (Error) then
-                     goto Leave_Mutex_And_Return;
-                  end if;
-
-                  pragma Debug (C, O ("Recursed."));
-
-                  Share_Binding_Info (Dest => Ref (R), Source => Continuation);
-                  pragma Debug (C, O ("Cached binding data."));
-               end if;
-               pragma Debug (C, O ("About to finalize Continuation"));
+               Servant := Get_Component (BO);
+               Pro     := Selected_Profile;
+               pragma Debug (C, O ("... done"));
             end;
-
-            --  End of processing for local profile case
-
-            goto Leave_Mutex_And_Return;
-
-         end if;
-
-         if Local_Only then
-            goto Leave_Mutex_And_Return;
-         end if;
-
-         declare
-            RI : constant Reference_Info_Access := Ref_Info_Of (R);
-            BO : Smart_Pointers.Ref;
-
-         begin
-            pragma Debug (C, O ("Binding non-local profile"));
-            pragma Debug (C, O ("Creating new binding object"));
-
-            PolyORB.Binding_Data.Bind_Profile
-              (Selected_Profile,
-               Components.Component_Access (Local_ORB),
-               QoS,
-               BO,
-               Error);
-
-            --  The Session itself acts as a remote surrogate
-            --  of the designated object.
-
-            if Found (Error) then
-               goto Leave_Mutex_And_Return;
-            end if;
-
-            Binding_Info_Lists.Append
-              (RI.Binding_Info, (BO, Selected_Profile));
-
-            Servant := Get_Component (BO);
-            Pro     := Selected_Profile;
-            pragma Debug (C, O ("... done"));
          end;
-      end;
 
-   <<Leave_Mutex_And_Return>>
-      Leave_Mutex (R);
-   exception
-      when E : others =>
-         pragma Debug
-           (C, O ("Bind: raised " & Ada.Exceptions.Exception_Information (E)));
-         Leave_Mutex (R);
-         raise;
+      <<Leave_Mutex_And_Return>>
+         null;
+      exception
+         when E : others =>
+            pragma Debug
+              (C, O ("Bind: raised "
+               & Ada.Exceptions.Exception_Information (E)));
+            raise;
+      end;
    end Bind;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (RL : in out Ref_Locker) is
+   begin
+      RL.R.Leave_Mutex;
+   end Finalize;
 
    -------------------------
    -- Find_Tagged_Profile --
@@ -481,6 +508,15 @@ package body PolyORB.References.Binding is
 
       Pro := Result;
    end Get_Tagged_Profile;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (RL : in out Ref_Locker) is
+   begin
+      RL.R.Enter_Mutex;
+   end Initialize;
 
    ------------
    -- Unbind --
