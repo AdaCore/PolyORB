@@ -57,7 +57,11 @@ package body PolyORB.References.Binding is
      renames L.Enabled;
 
    type Ref_Locker (R : access constant Ref'Class) is
-     new Ada.Finalization.Limited_Controlled with null record;
+     new Ada.Finalization.Limited_Controlled with
+   record
+      Normal_Exit : Boolean := False;
+   end record;
+
    procedure Initialize (RL : in out Ref_Locker);
    procedure Finalize (RL : in out Ref_Locker);
    --  Scope lock object for R's mutex
@@ -121,7 +125,7 @@ package body PolyORB.References.Binding is
       declare
          Scope_Lock : Ref_Locker (R'Unchecked_Access);
          pragma Unreferenced (Scope_Lock);
-         --  Witness object, used for its initialization and finalization only
+         --  Witness object (note: implicit read access in Finalize)
 
       begin
          pragma Debug (C, O ("Bind: Check for already bound reference"));
@@ -322,7 +326,8 @@ package body PolyORB.References.Binding is
          end;
 
       <<Leave_Mutex_And_Return>>
-         null;
+         Scope_Lock.Normal_Exit := True;
+
       exception
          when E : others =>
             pragma Debug
@@ -339,6 +344,8 @@ package body PolyORB.References.Binding is
    procedure Finalize (RL : in out Ref_Locker) is
    begin
       RL.R.Leave_Mutex;
+      pragma Debug
+        (C, O ("Ref_Locker: leave, Normal_Exit = " & RL.Normal_Exit'Img));
    end Finalize;
 
    -------------------------
@@ -515,6 +522,7 @@ package body PolyORB.References.Binding is
 
    procedure Initialize (RL : in out Ref_Locker) is
    begin
+      pragma Debug (C, O ("Ref_Locker: enter"));
       RL.R.Enter_Mutex;
    end Initialize;
 
