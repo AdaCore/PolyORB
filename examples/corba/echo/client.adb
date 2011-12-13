@@ -120,6 +120,7 @@ begin
 
 exception
    when E : CORBA.Transient =>
+      Output ("echo test", False);
       declare
          Memb : CORBA.System_Exception_Members;
       begin

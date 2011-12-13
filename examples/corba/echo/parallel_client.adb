@@ -69,11 +69,12 @@ procedure Parallel_Client is
             CORBA.ORB.String_To_Object
               (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), R);
             if R.echoString (Sent_Msg) /= Sent_Msg then
-               Put_Line ("Bad echo");
+               Output ("echo test", False);
                exit;
             end if;
          exception
             when E : others =>
+               Output ("echo test", False);
                Put_Line ("Exception raised in task" & Index'Img
                          & " at call" & J'Img & ": "
                          & Ada.Exceptions.Exception_Information (E));
