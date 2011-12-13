@@ -73,7 +73,7 @@ class TestPolyORB(TestRunner):
         """
         if str_list and 'TEST FAILED' in str_list:
             return str_list
-        if 'server PASSED' in str_list or 'local PASSED' in str_list:
+        if ('%s PASSED'%(self.test)) in str_list:
             # Test ok
             return []
         else:

@@ -106,18 +106,32 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     try:
         # Run the server command and retrieve the IOR string
         p_cmd_server = ['rlimit', str(RLIMIT), server]
-        server_handle = Popen(p_cmd_server, stdout=PIPE, env=server_env)
+        server_output_name = OUTPUT_FILENAME + '.server'
+        server_handle = Popen(p_cmd_server,
+	                      stdout=open(server_output_name, "wb"),
+			      env=server_env)
         if server_conf:
             print 'RUN server: POLYORB_CONF=%s %s' % \
                 (server_env[POLYORB_CONF], " ".join(p_cmd_server))
         else:
             print 'RUN server: %s' % " ".join(p_cmd_server)
+	server_out = open(server_output_name, "r")
         while True:
-            line = server_handle.stdout.readline()
+	    # Loop on readline() until we have a complete line
+	    line = ""
+	    while len(line) == 0 or not line[-1] in "\n\r":
+                line = line + server_out.readline()
+
             if "IOR:" in line:
-                IOR_str = re.match(r".*(IOR:[a-z0-9]+)['|\n\r]",
+	        try:
+                  IOR_str = re.match(r".*(IOR:[a-z0-9]+)['|\n\r]",
                                    line).groups()[0]
-                break
+                  break
+		except:
+		  print "Malformed IOR line <<%s>>" % (line)
+		  raise
+
+        server_out.close()
         # Remove eol and '
         IOR_str = IOR_str.strip()
         print IOR_str
@@ -135,7 +149,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
             print "RUN client: %s" % " ".join(p_cmd_client)
 
         Run(make_run_cmd([client, IOR_str], Env().options.coverage),
-            output=OUTPUT_FILENAME + 'server', error=STDOUT,
+            output=OUTPUT_FILENAME + '.client', error=STDOUT,
             timeout=RLIMIT, env=client_env)
 
         for elmt in [client, server]:
@@ -147,7 +161,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     finally:
         terminate(server_handle)
 
-    return _check_output(OUTPUT_FILENAME + 'server', 'server')
+    return _check_output(OUTPUT_FILENAME + '.client')
 
 
 def local(cmd, config_file, args=None):
@@ -184,10 +198,10 @@ def local(cmd, config_file, args=None):
         timeout=RLIMIT)
     if Env().options.coverage:
         run_coverage_analysis(command)
-    return _check_output(OUTPUT_FILENAME + 'local', 'local')
+    return _check_output(OUTPUT_FILENAME + 'local')
 
 
-def _check_output(output_file, test_name):
+def _check_output(output_file):
     """Check that END TESTS....... PASSED is contained in the output"""
     if os.path.exists(output_file):
         test_outfile = open(output_file)
@@ -195,9 +209,10 @@ def _check_output(output_file, test_name):
         test_outfile.close()
 
         if re.search(r"END TESTS.*PASSED", test_out):
-            print "%s PASSED" % test_name
+            print "%s PASSED" % TEST_NAME
             return True
         else:
+            print "%s FAILED" % TEST_NAME
             print test_out
             return False
 
