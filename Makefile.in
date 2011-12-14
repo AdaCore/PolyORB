@@ -304,15 +304,15 @@ idlac := ${IDLAC_WRAPPER} --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_include
 .PHONY: perfect-hash
 perfect-hash: build-gnatprfh src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
 
-GNATPRFH = ${top_builddir}/compilers/gnatprfh/gnatprfh
+GNATPRFH = ${top_builddir}/compilers/gnatprfh/gnatprfh$(HOST_EXE_SUFFIX)
 GEN_HTTP_BODY = ${top_srcdir}/src/soap/gen_http_body
 
 #???.exe suffix : gnatprfh.exe?
-src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh 
+src/soap/polyorb-http_methods.adb: ${GEN_HTTP_BODY} ${GNATPRFH} 
 
 # Note that the second gen_http_body command below overwrites perfect_hash.adb
 # with different content.
-src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} compilers/gnatprfh/gnatprfh ${top_srcdir}/src/soap/polyorb-http_methods.ads ${top_srcdir}/src/soap/polyorb-http_headers.ads
+src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap/polyorb-http_methods.ads ${top_srcdir}/src/soap/polyorb-http_headers.ads
 	mkdir -p src/soap
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Method
 	cd src/soap && ${GEN_HTTP_BODY} ${GNATPRFH} ${top_srcdir}/src/soap Header
@@ -321,7 +321,7 @@ src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_
 
 # src/giop, tools/po_catref. gen_codeset.
 
-GEN_CODESET = src/giop/gen_codeset
+GEN_CODESET = src/giop/gen_codeset${HOST_EXE_SUFFIX}
 
 build-gen_codeset:
 	mkdir -p src/giop && cd src/giop && \
