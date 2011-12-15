@@ -120,7 +120,8 @@ def main():
     else:
         test_glob = None
     test_list = filter_list('./tests/*/*/*/test.py', test_glob)
-    test_list.extend(filter_list('./tests/idl/*/test.*', test_glob))
+    if os.path.isdir ('regtests'):
+       test_list.extend(filter_list('./regtests/*/test.*', test_glob))
 
     collect_result = generate_collect_result(
         m.options.output_dir, results_file, m.options.diffs)
