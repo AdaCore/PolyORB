@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2009, Free Software Foundation, Inc.             --
+--         Copyright (C) 2009-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,7 +47,11 @@ package PolyORB.Utils.Ilists is
 
    generic
       type T (<>) is limited private;
+      --  List item type
+
       type T_Acc is access all T;
+      --  Access to list item type
+
       with function Link
         (X : access T; Which : Link_Type) return access T_Acc is <>;
       --  Accessor for the list pointers. For a doubly linked list, Prev and
