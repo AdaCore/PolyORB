@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2007, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with Ada.Exceptions;
+with Ada.Text_IO; use Ada.Text_IO;
 
 with CORBA.Impl;
 with CORBA.Object;
@@ -83,23 +84,31 @@ begin
 
          --  Output IOR
 
-         Ada.Text_IO.Put_Line
+         Put_Line
            ("'"
             & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref))
             & "'");
-         Ada.Text_IO.New_Line;
+         New_Line;
 
          --  Output corbaloc
 
-         Ada.Text_IO.Put_Line
+         Put_Line
            ("'"
             & CORBA.To_Standard_String
             (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref))
             & "'");
 
-         --  Launch the server
+         --  Launch the server. CORBA.ORB.Run is supposed to never return,
+         --  print a message if it does.
 
          CORBA.ORB.Run;
+
+         Put_Line ("ORB main loop terminated!");
       end;
    end;
+exception
+   when E : others =>
+      Put_Line
+        ("Echo server raised " & Ada.Exceptions.Exception_Information (E));
+      raise;
 end Server;
