@@ -899,7 +899,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 ##########################################
 
 for a in support/linker support/adacompiler support/gentexifile \
-  support/move-if-change contrib/idlac_wrapper/idlac_wrapper \
+  support/move-if-change contrib/idlac_wrapper/idlac_wrapper
 do
   echo "==> updating $a"
   if test ! -f $a; then
