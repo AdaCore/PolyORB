@@ -50,20 +50,20 @@ package PolyORB.Asynch_Ev.Sockets is
 
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
-   function Register_Source
+   overriding function Register_Source
      (AEM     : access Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access) return Register_Source_Result;
 
-   procedure Unregister_Source
+   overriding procedure Unregister_Source
      (AEM     : in out Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access;
       Success : out Boolean);
 
-   function Check_Sources
+   overriding function Check_Sources
      (AEM     : access Socket_Event_Monitor;
       Timeout : Duration) return AES_Array;
 
-   procedure Abort_Check_Sources (AEM : Socket_Event_Monitor);
+   overriding procedure Abort_Check_Sources (AEM : Socket_Event_Monitor);
 
    function Create_Event_Source
      (Socket : PolyORB.Sockets.Socket_Type) return Asynch_Ev_Source_Access;
