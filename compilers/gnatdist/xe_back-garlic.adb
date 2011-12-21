@@ -50,11 +50,12 @@ package body XE_Back.GARLIC is
 
    type GARLIC_Backend is new Backend with null record;
 
-   procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend);
-   procedure Initialize (Self : access GARLIC_Backend);
-   procedure Register_Storages (Self : access GARLIC_Backend);
-   procedure Run_Backend (Self : access GARLIC_Backend);
-   function Get_Detach_Flag (Self : access GARLIC_Backend) return Name_Id;
+   overriding procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend);
+   overriding procedure Initialize (Self : access GARLIC_Backend);
+   overriding procedure Register_Storages (Self : access GARLIC_Backend);
+   overriding procedure Run_Backend (Self : access GARLIC_Backend);
+   overriding function Get_Detach_Flag
+     (Self : access GARLIC_Backend) return Name_Id;
 
    Elaboration_File      : File_Name_Type;
    Protocol_Config_File  : File_Name_Type;
@@ -1153,7 +1154,8 @@ package body XE_Back.GARLIC is
    -- Get_Detach_Flag --
    ---------------------
 
-   function Get_Detach_Flag (Self : access GARLIC_Backend) return Name_Id
+   overriding function Get_Detach_Flag
+     (Self : access GARLIC_Backend) return Name_Id
    is
       pragma Unreferenced (Self);
    begin
@@ -1164,7 +1166,7 @@ package body XE_Back.GARLIC is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self : access GARLIC_Backend) is
+   overriding procedure Initialize (Self : access GARLIC_Backend) is
       pragma Unreferenced (Self);
 
       Position : Integer;
@@ -1252,8 +1254,7 @@ package body XE_Back.GARLIC is
    -- Register_Storages --
    -----------------------
 
-   procedure Register_Storages (Self : access GARLIC_Backend)
-   is
+   overriding procedure Register_Storages (Self : access GARLIC_Backend) is
       pragma Unreferenced (Self);
    begin
       Register_Storage
@@ -1276,7 +1277,7 @@ package body XE_Back.GARLIC is
    -- Run_Backend --
    -----------------
 
-   procedure Run_Backend (Self : access GARLIC_Backend)
+   overriding procedure Run_Backend (Self : access GARLIC_Backend)
    is
       type Pass_Type is (Prepare, Build);
       --  We iterate twice over all partitions: a Prepare pass where source
@@ -1344,7 +1345,7 @@ package body XE_Back.GARLIC is
    -- Set_PCS_Dist_Flags --
    ------------------------
 
-   procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend) is
+   overriding procedure Set_PCS_Dist_Flags (Self : access GARLIC_Backend) is
       pragma Unreferenced (Self);
    begin
       if not Is_Directory (DSA_Inc_Dir) then

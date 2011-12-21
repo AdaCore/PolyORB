@@ -51,12 +51,13 @@ package body XE_Back.PolyORB is
 
    type PolyORB_Backend is new Backend with null record;
 
-   procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend);
+   overriding procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend);
 
-   procedure Initialize (Self : access PolyORB_Backend);
-   procedure Register_Storages (Self : access PolyORB_Backend);
-   procedure Run_Backend (Self : access PolyORB_Backend);
-   function Get_Detach_Flag (Self : access PolyORB_Backend) return Name_Id;
+   overriding procedure Initialize (Self : access PolyORB_Backend);
+   overriding procedure Register_Storages (Self : access PolyORB_Backend);
+   overriding procedure Run_Backend (Self : access PolyORB_Backend);
+   overriding function Get_Detach_Flag
+     (Self : access PolyORB_Backend) return Name_Id;
 
    Elaboration_File : File_Name_Type;
    --  Partition elaboration unit
@@ -1049,7 +1050,8 @@ package body XE_Back.PolyORB is
    -- Get_Detach_Flag --
    ---------------------
 
-   function Get_Detach_Flag (Self : access PolyORB_Backend) return Name_Id
+   overriding function Get_Detach_Flag
+     (Self : access PolyORB_Backend) return Name_Id
    is
       pragma Unreferenced (Self);
    begin
@@ -1060,7 +1062,7 @@ package body XE_Back.PolyORB is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self : access PolyORB_Backend) is
+   overriding procedure Initialize (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
 
       Pos : Integer;
@@ -1149,8 +1151,7 @@ package body XE_Back.PolyORB is
    -- Register_Storages --
    -----------------------
 
-   procedure Register_Storages (Self : access PolyORB_Backend)
-   is
+   overriding procedure Register_Storages (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
    begin
       Register_Storage
@@ -1173,7 +1174,7 @@ package body XE_Back.PolyORB is
    -- Run_Backend --
    -----------------
 
-   procedure Run_Backend (Self : access PolyORB_Backend)
+   overriding procedure Run_Backend (Self : access PolyORB_Backend)
    is
       Current                   : Partition_Type;
       Is_Initiator_Set          : Boolean := False;
@@ -1303,7 +1304,7 @@ package body XE_Back.PolyORB is
    -- Set_PCS_Dist_Flags --
    ------------------------
 
-   procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend) is
+   overriding procedure Set_PCS_Dist_Flags (Self : access PolyORB_Backend) is
       pragma Unreferenced (Self);
    begin
       --  We get source, object and ALI paths and linker switches for the
