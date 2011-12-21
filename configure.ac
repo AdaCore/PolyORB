@@ -900,9 +900,6 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 
 for a in support/linker support/adacompiler support/gentexifile \
   support/move-if-change contrib/idlac_wrapper/idlac_wrapper \
-  examples/corba/secure_echo/gssup_example \
-  examples/corba/secure_echo/tls_example \
-  examples/corba/secure_echo/tls_gssup_example
 do
   echo "==> updating $a"
   if test ! -f $a; then
