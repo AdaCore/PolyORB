@@ -371,10 +371,22 @@ AC_DEFUN([AM_HAS_STYLESW_YG],
 AC_MSG_CHECKING([whether GNAT style checks are available])
 AM_TRY_ADA_COMPILER_SWITCH([-gnatyg],
 [AC_MSG_RESULT(yes)
-STYLE_SWITCH="-gnatyg"],
+STYLE_SWITCHES="-gnatyg"],
 [AC_MSG_RESULT(no, falling back to -gnaty)
-STYLE_SWITCH="-gnaty"])
-AC_SUBST(STYLE_SWITCH)])
+STYLE_SWITCHES="-gnaty"])
+AC_SUBST(STYLE_SWITCHES)])
+
+dnl Usage: AM_HAS_STYLESW_YO
+dnl Test whether the style checking switch -gnatyO (check for missing
+dnl OVERRIDING) is supported.
+
+AC_DEFUN([AM_HAS_STYLESW_YO],
+[AC_REQUIRE([AM_HAS_STYLESW_YG])
+AC_MSG_CHECKING([whether style checks for OVERRIDING is available])
+AM_TRY_ADA_COMPILER_SWITCH([-gnatyO],
+[AC_MSG_RESULT(yes)
+STYLE_SWITCHES="$STYLE_SWITCHES -gnatyO"],
+[AC_MSG_RESULT(no)])])
 
 dnl Syntax: AM_HAS_ADA_ATC
 dnl Determines whether the target environment supports Ada Asynchronous
@@ -537,3 +549,17 @@ SYNC_COUNTERS_IMPL="intrinsic"],
 [AC_MSG_RESULT(no)
 SYNC_COUNTERS_IMPL="mutex"])
 AC_SUBST(SYNC_COUNTERS_IMPL)])
+
+dnl Usage: AM_SUBST_GPR(var)
+dnl Given a variable listing command line switches, convert it to a GNAT
+dnl projects list in variable <var>_GPR
+
+AC_DEFUN([AM_SUBST_GPR],
+[for sw in ${$1}; do
+  if test -z "${$1_GPR}"; then
+    $1_GPR="\"$sw\""
+  else
+    $1_GPR="${$1_GPR}, \"$sw\""
+  fi
+done
+AC_SUBST($1_GPR)])

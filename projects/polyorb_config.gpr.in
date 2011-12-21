@@ -42,6 +42,6 @@ project PolyORB_Config is
 
    for Source_Files use ();
 
-   Style_Switch := "@STYLE_SWITCH@";
+   Style_Switches := (@STYLE_SWITCHES_GPR@);
 
 end PolyORB_Config;
