@@ -1,2 +1,24 @@
 ${current_dir}echo.idl-stamp: idlac_flags := -d
 ${test_target}: ${current_dir}echo.idl-stamp
+
+ssl_conf_dir := ${top_srcdir}/${current_dir}
+
+${current_dir}echo.idl-stamp: ${current_dir}polyorb.crt
+
+${current_dir}polyorb.crt: force
+	cd `dirname $@`;					\
+	mkdir -p ca;						\
+	touch ca/index.txt;					\
+	echo "01" > ca/serial;					\
+	openssl genrsa -out root.key 2048;			\
+	openssl req -new -x509 -key root.key -out root.crt	\
+    		-config ${ssl_conf_dir}ca_openssl.conf;		\
+	openssl genrsa -out polyorb.key 2048;			\
+	openssl req -new -key polyorb.key -out polyorb.req	\
+    		-config ${ssl_conf_dir}polyorb_openssl.conf;	\
+	openssl x509 -days 365					\
+		-CA root.crt 					\
+		-CAkey root.key					\
+		-CAserial ca/serial				\
+		-in polyorb.req -req				\
+		-out polyorb.crt

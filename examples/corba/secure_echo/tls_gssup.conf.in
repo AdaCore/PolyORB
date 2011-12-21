@@ -12,9 +12,9 @@ tls.method=tls1
 tls.ciphers=ALL
 tls.verify_peer=true
 tls.verify_fail_if_no_peer_certificate=true
-tls.private_key_file=polyorb.key
-tls.certificate_file=polyorb.crt
-tls.certificate_authority_file=root.crt
+tls.private_key_file=@abs_top_builddir@/examples/corba/secure_echo/polyorb.key
+tls.certificate_file=@abs_top_builddir@/examples/corba/secure_echo/polyorb.crt
+tls.certificate_authority_file=@abs_top_builddir@/examples/corba/secure_echo/root.crt
 gssup.username=user
 gssup.password=password
 gssup.target_name=@domain
@@ -24,7 +24,7 @@ gssup.target_name=@domain
 [gssup_authentication]
 mechanism=gssup
 gssup.target_name=@domain
-gssup.passwd_file=@srcdir@/passwd.pwd
+gssup.passwd_file=@abs_top_srcdir@/examples/corba/secure_echo/passwd.pwd
 
 [My_POA]
 transport_mechanism=tlsiop

@@ -885,11 +885,8 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	src/ravenscar_compatible.adc
 	contrib/idlac_wrapper/idlac_wrapper
 	examples/corba/secure_echo/gssup.conf
-	examples/corba/secure_echo/gssup_example
 	examples/corba/secure_echo/tls.conf
-	examples/corba/secure_echo/tls_example
 	examples/corba/secure_echo/tls_gssup.conf
-	examples/corba/secure_echo/tls_gssup_example
 	tools/po_catref/po_catref_setup.adb
 	tools/po_createref/po_createref_setup.adb
 	support/adacompiler

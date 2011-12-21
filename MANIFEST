@@ -573,16 +573,13 @@ examples/corba/secure_echo/echo-impl.adb
 examples/corba/secure_echo/echo-impl.ads
 examples/corba/secure_echo/echo.idl
 examples/corba/secure_echo/gssup.conf.in
-examples/corba/secure_echo/gssup_example.in
 examples/corba/secure_echo/local.gpr
 examples/corba/secure_echo/passwd.pwd
 examples/corba/secure_echo/polyorb_openssl.conf
 examples/corba/secure_echo/server.adb
 examples/corba/secure_echo/server.ads
 examples/corba/secure_echo/tls.conf.in
-examples/corba/secure_echo/tls_example.in
 examples/corba/secure_echo/tls_gssup.conf.in
-examples/corba/secure_echo/tls_gssup_example.in
 examples/corba/send/Makefile.local
 examples/corba/send/listener.adb
 examples/corba/send/local.gpr

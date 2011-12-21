@@ -31,11 +31,14 @@ Env().restore(os.environ['TEST_CONFIG'])
 # If POLYORB_TEST_VERBOSE is set to true, then output more data
 VERBOSE = Env().options.verbose  # set by testsuite.py
 
-# All executable tests path are relative to PolyORB testsuite dir
+# Main testsuite source dir
+SRC_DIR = Env().options.testsuite_src_dir
+
+# All executable tests path are relative to PolyORB testsuite build dir
 BASE_DIR = os.path.join(Env().options.build_dir, 'testsuite')
 
-# Conf dir are in tests/conf
-CONF_DIR = os.path.join(Env().options.testsuite_src_dir, 'tests', 'confs')
+# Shared configuration files are in tests/conf
+CONF_DIR = os.path.join(SRC_DIR, 'tests', 'confs')
 
 EXE_EXT = Env().target.os.exeext
 
@@ -77,6 +80,20 @@ def terminate(handle):
     else:
         handle.terminate()
 
+def get_conf_path(conf_filename):
+    if not conf_filename:
+        return None
+
+    if os.path.isabs(conf_filename):
+        assert_exists(conf_filename)
+        return conf_filename
+
+    for d in (CONF_DIR, os.path.join(SRC_DIR, TEST_NAME)):
+        p = os.path.join (d, conf_filename)
+        if os.path.exists(p):
+            return p
+
+    assert False, "%s not found" % (conf_filename)
 
 def client_server(client_cmd, client_conf, server_cmd, server_conf):
     """Run a client server testcase
@@ -95,13 +112,9 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     assert_exists(client)
     assert_exists(server)
 
-    for conf_file in (server_conf, client_conf):
-        if conf_file:
-            assert_exists(os.path.join(CONF_DIR, conf_file))
-
     server_env = os.environ.copy()
     if server_conf:
-        server_env[POLYORB_CONF] = os.path.join(CONF_DIR, server_conf)
+        server_env[POLYORB_CONF] = get_conf_path(server_conf)
 
     try:
         # Run the server command and retrieve the IOR string
@@ -116,11 +129,16 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
         else:
             print 'RUN server: %s' % " ".join(p_cmd_server)
 	server_out = open(server_output_name, "r")
-        while True:
+        while server_handle.returncode == None:
 	    # Loop on readline() until we have a complete line
 	    line = ""
-	    while len(line) == 0 or not line[-1] in "\n\r":
+
+	    while server_handle.returncode == None:
+                server_handle.poll()
                 line = line + server_out.readline()
+                if len(line) > 0 and line[-1] in "\n\r":
+                    break
+                sleep(0.1)
 
             if "IOR:" in line:
 	        try:
@@ -130,6 +148,10 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
 		except:
 		  print "Malformed IOR line <<%s>>" % (line)
 		  raise
+
+        if server_handle.returncode != None:
+            print "server died"
+            return
 
         server_out.close()
         # Remove eol and '
@@ -141,7 +163,7 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
 
         if client_conf:
             client_env = os.environ.copy()
-            client_env[POLYORB_CONF] = os.path.join(CONF_DIR, client_conf)
+            client_env[POLYORB_CONF] = get_conf_path(client_conf)
             print 'RUN client: POLYORB_CONF=%s %s' % \
                 (client_env[POLYORB_CONF], " ".join(p_cmd_client))
         else:
