@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -102,17 +102,16 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
    -- Register_Source --
    ---------------------
 
-   procedure Register_Source
+   function Register_Source
      (AEM     : access SSL_Event_Monitor;
-      AES     :        Asynch_Ev_Source_Access;
-      Success :    out Boolean) is
+      AES     : Asynch_Ev_Source_Access) return Register_Source_Result
+   is
    begin
       pragma Debug (C, O ("Register_Source: enter"));
 
-      Success := False;
       if AES.all not in SSL_Event_Source then
          pragma Debug (C, O ("Register_Source: leave"));
-         return;
+         return Unknown_Source_Type;
       end if;
 
       Set (AEM.Monitored_Set, SSL_Event_Source (AES.all).Socket);
@@ -121,8 +120,8 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
                        & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
 
-      Success := True;
       pragma Debug (C, O ("Register_Source: leave"));
+      return Success;
    end Register_Source;
 
    -------------------

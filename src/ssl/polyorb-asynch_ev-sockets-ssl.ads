@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2005 Free Software Foundation, Inc.             --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -16,8 +16,8 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
 -- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
--- Boston, MA 02111-1307, USA.                                              --
+-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
+-- Floor, Boston, MA 02111-1301, USA.                                       --
 --                                                                          --
 -- As a special exception,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
@@ -43,19 +43,16 @@ package PolyORB.Asynch_Ev.Sockets.SSL is
 
    type SSL_Event_Source is new Socket_Event_Source with private;
 
-   procedure Register_Source
+   overriding function Register_Source
      (AEM     : access SSL_Event_Monitor;
-      AES     :        Asynch_Ev_Source_Access;
-      Success :    out Boolean);
+      AES     : Asynch_Ev_Source_Access) return Register_Source_Result;
 
-   function Check_Sources
+   overriding function Check_Sources
      (AEM     : access SSL_Event_Monitor;
-      Timeout :        Duration)
-     return AES_Array;
+      Timeout : Duration) return AES_Array;
 
    function Create_Event_Source
-     (Socket : PolyORB.SSL.SSL_Socket_Type)
-     return Asynch_Ev_Source_Access;
+     (Socket : PolyORB.SSL.SSL_Socket_Type) return Asynch_Ev_Source_Access;
 
    function Create_Event_Source
      (Socket : PolyORB.Sockets.Socket_Type)
