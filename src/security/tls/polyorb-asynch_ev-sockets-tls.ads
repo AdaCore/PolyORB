@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,15 +43,13 @@ package PolyORB.Asynch_Ev.Sockets.TLS is
 
    type TLS_Event_Source is new Socket_Event_Source with private;
 
-   procedure Register_Source
+   overriding function Register_Source
      (AEM     : access TLS_Event_Monitor;
-      AES     :        Asynch_Ev_Source_Access;
-      Success :    out Boolean);
+      AES     : Asynch_Ev_Source_Access) return Register_Source_Result;
 
-   function Check_Sources
+   overriding function Check_Sources
      (AEM     : access TLS_Event_Monitor;
-      Timeout :        Duration)
-     return AES_Array;
+      Timeout : Duration) return AES_Array;
 
    function Create_Event_Source
      (Socket : PolyORB.TLS.TLS_Socket_Type)
