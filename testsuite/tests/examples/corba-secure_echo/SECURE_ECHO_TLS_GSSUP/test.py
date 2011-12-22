@@ -1,7 +1,7 @@
 from test_utils import *
 import sys, os
 
-conf_file = os.path.join(SRC_DIR,
+conf_file = os.path.join(BASE_DIR,
                          '..',
                          'examples', 'corba', 'secure_echo', 'tls_gssup.conf')
 
