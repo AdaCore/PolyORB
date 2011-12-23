@@ -2908,8 +2908,11 @@ testsuite/tests/examples/corba-rtcorba-rtcosscheduling/RTCORBA_RTCOSSCHEDULING_0
 testsuite/tests/examples/corba-rtcorba-rtcosscheduling/RTCORBA_RTCOSSCHEDULING_0/test.py
 testsuite/tests/examples/corba-rtcorba-server_declared/RTCORBA_SERVER_DECLARED_0/test.py
 testsuite/tests/examples/corba-rtcorba-server_declared/RTCORBA_SERVER_DECLARED_1/test.py
+testsuite/tests/examples/corba-secure_echo/SECURE_ECHO_GSSUP/test.opt
 testsuite/tests/examples/corba-secure_echo/SECURE_ECHO_GSSUP/test.py
+testsuite/tests/examples/corba-secure_echo/SECURE_ECHO_TLS/test.opt
 testsuite/tests/examples/corba-secure_echo/SECURE_ECHO_TLS/test.py
+testsuite/tests/examples/corba-secure_echo/SECURE_ECHO_TLS_GSSUP/test.opt
 testsuite/tests/examples/corba-secure_echo/SECURE_ECHO_TLS_GSSUP/test.py
 testsuite/tests/examples/corba-send/CORBA_MIOP_0/test.py
 testsuite/tests/examples/moma/MOMA_0/test.opt
