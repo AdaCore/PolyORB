@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2006, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -697,7 +697,12 @@ package body PolyORB.Sequences.Bounded is
       Right : Element_Array := Null_Element_Array)
    is
    begin
+      pragma Warnings (Off);
+      --  Newer compilers complain, ``warning: writable actual for "Target"
+      --  overlaps with actual for "Left"''. But Run is safe in the presence of
+      --  overlaps.
       Run (Prog, Left.Content, Left.Content (1 .. Left.Length), Right);
+      pragma Warnings (On);
       Left.Length := Prog.Result_Length;
    end Run_In_Place;
 
