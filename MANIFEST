@@ -936,6 +936,11 @@ src/corba/corba-sequences-unbounded.ads
 src/corba/corba-sequences.ads
 src/corba/corba-serverrequest.adb
 src/corba/corba-serverrequest.ads
+src/corba/corba-value-box.adb
+src/corba/corba-value-box.ads
+src/corba/corba-value-box-helper.adb
+src/corba/corba-value-box-helper.ads
+src/corba/corba-value.ads
 src/corba/corba.adb
 src/corba/corba.ads
 src/corba/dynamicany/dynamicany-dynany-impl.adb
