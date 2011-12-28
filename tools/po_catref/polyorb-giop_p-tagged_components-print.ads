@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--          Copyright (C) 2004-2011, Free Software Foundation, Inc.         --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,5 +35,9 @@ package PolyORB.GIOP_P.Tagged_Components.Print is
 
    procedure Output_Tagged_Components
      (TCs : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List);
+
+   type Output_Procedure is access procedure (TC : Tagged_Component'Class);
+
+   procedure Register (Tag : Tag_Value; Output : Output_Procedure);
 
 end PolyORB.GIOP_P.Tagged_Components.Print;

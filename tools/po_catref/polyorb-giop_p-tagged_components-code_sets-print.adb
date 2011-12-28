@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 2004-2008, Free Software Foundation, Inc.         --
+--          Copyright (C) 2004-2011, Free Software Foundation, Inc.         --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,6 +36,9 @@ with Ada.Text_IO;
 with Output;
 with PolyORB.GIOP_P.Code_Sets;
 with PolyORB.GIOP_P.Code_Sets.Description_Data;
+with PolyORB.GIOP_P.Tagged_Components.Print;
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
 
@@ -50,8 +53,14 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
      (List : Code_Set_Id_List;
       Data : Character);
 
+   procedure Output (Item : Tagged_Component'Class);
+
+   procedure Output_TC (TC : TC_Code_Sets);
+
    function Description (Code_Set : Code_Set_Id) return String;
    --  Return code set description.
+
+   procedure Initialize;
 
    -----------------
    -- C_Hex_Image --
@@ -92,6 +101,25 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
       return "Unknown code set";
    end Description;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      PolyORB.GIOP_P.Tagged_Components.Print.Register
+       (Tag_Code_Sets, Output'Access);
+   end Initialize;
+
+   ------------
+   -- Output --
+   ------------
+
+   procedure Output (Item : Tagged_Component'Class) is
+   begin
+      Output_TC (TC_Code_Sets (Item));
+   end Output;
+
    ------------
    -- Output --
    ------------
@@ -124,6 +152,8 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
 
    procedure Output_TC (TC : TC_Code_Sets) is
    begin
+      Put_Line ("Type", "TAG_Code_Sets");
+
       Inc_Indent;
 
       Put_Line
@@ -141,4 +171,18 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
       Dec_Indent;
    end Output_TC;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"tagged_components.code_sets.print",
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => +"tagged_components.code_sets",
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print;

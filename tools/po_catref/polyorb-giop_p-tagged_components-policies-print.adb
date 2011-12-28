@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--          Copyright (C) 2004-2011, Free Software Foundation, Inc.         --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,25 +33,52 @@
 
 with Output;
 
+with PolyORB.GIOP_P.Tagged_Components.Print;
+with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
+
+   procedure Output (Item : Tagged_Component'Class);
+
+   procedure Output_TC (TC : TC_Policies);
+
+   procedure Initialize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      PolyORB.GIOP_P.Tagged_Components.Print.Register
+       (Tag_Policies, Output'Access);
+   end Initialize;
+
+   ------------
+   -- Output --
+   ------------
+
+   procedure Output (Item : Tagged_Component'Class) is
+   begin
+      Output_TC (TC_Policies (Item));
+   end Output;
 
    ---------------
    -- Output_TC --
    ---------------
 
    procedure Output_TC (TC : TC_Policies) is
+      use Standard.Output;
       use Policy_Value_Seq;
-
-      use Output;
-
       use PolyORB.Representations.CDR.Common;
       use PolyORB.Types;
       use PolyORB.Utils;
 
    begin
+      Put_Line ("Type", "TAG_Policies");
       Inc_Indent;
       Put_Line ("Length", Length (TC.Policies)'Img);
 
@@ -103,4 +130,18 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
       Dec_Indent;
    end Output_TC;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"tagged_components.policies.print",
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => +"tagged_components.policies",
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.GIOP_P.Tagged_Components.Policies.Print;

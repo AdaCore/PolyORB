@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
+--          Copyright (C) 2004-2011, Free Software Foundation, Inc.         --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,15 +31,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Output;
+with Ada.Containers.Hashed_Maps;
 
-with PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print;
-with PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print;
-with PolyORB.GIOP_P.Tagged_Components.Policies.Print;
+with Output;
 
 with PolyORB.Types;
 
 package body PolyORB.GIOP_P.Tagged_Components.Print is
+
+   function Hash (Item : Tag_Value) return Ada.Containers.Hash_Type;
+
+   package Tag_Maps is
+     new Ada.Containers.Hashed_Maps (Tag_Value, Output_Procedure, Hash, "=");
+
+   Registry : Tag_Maps.Map;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (Item : Tag_Value) return Ada.Containers.Hash_Type is
+   begin
+      return Ada.Containers.Hash_Type (Item);
+   end Hash;
 
    ------------------------------
    -- Output_Tagged_Components --
@@ -49,13 +63,6 @@ package body PolyORB.GIOP_P.Tagged_Components.Print is
      (TCs : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List)
    is
       use Output;
-
-      use PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print;
-      use PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;
-      use PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print;
-      use PolyORB.GIOP_P.Tagged_Components.Code_Sets;
-      use PolyORB.GIOP_P.Tagged_Components.Policies.Print;
-      use PolyORB.GIOP_P.Tagged_Components.Policies;
 
       use PolyORB.Utils;
       use PolyORB.Types;
@@ -79,28 +86,21 @@ package body PolyORB.GIOP_P.Tagged_Components.Print is
 
          Put_Line ("Tag", TC.Tag'Img);
 
-         case TC.Tag is
-            when Tag_Code_Sets =>
-               Put_Line ("Type", "TAG_Code_Sets");
-               Output_TC (TC_Code_Sets (TC.all));
+         if Registry.Contains (TC.Tag) then
+            Registry.Element (TC.Tag) (TC.all);
 
-            when Tag_Policies =>
-               Put_Line ("Type", "TAG_Policies");
-               Output_TC (TC_Policies (TC.all));
+         else
+            case TC.Tag is
+               when Tag_SSL_Sec_Trans =>
+                  Put_Line ("Type", "TAG_SSL_Sec_Trans");
 
-            when Tag_Alternate_IIOP_Address =>
-               Put_Line ("Type", "TAG_Alternate_IIOP_Address");
-               Output_TC (TC_Alternate_IIOP_Address (TC.all));
+               when Tag_Group =>
+                  Put_Line ("Type", "TAG_Group");
 
-            when Tag_SSL_Sec_Trans =>
-               Put_Line ("Type", "TAG_SSL_Sec_Trans");
-
-            when Tag_Group =>
-               Put_Line ("Type", "TAG_Group");
-
-            when others =>
-               null;
-         end case;
+               when others =>
+                  null;
+            end case;
+         end if;
 
          Dec_Indent;
 
@@ -108,5 +108,14 @@ package body PolyORB.GIOP_P.Tagged_Components.Print is
          Next (It);
       end loop;
    end Output_Tagged_Components;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register (Tag : Tag_Value; Output : Output_Procedure) is
+   begin
+      Registry.Insert (Tag, Output);
+   end Register;
 
 end PolyORB.GIOP_P.Tagged_Components.Print;

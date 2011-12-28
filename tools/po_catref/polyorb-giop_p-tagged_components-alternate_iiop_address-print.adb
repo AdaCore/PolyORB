@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.GIOP_P.Tagged_Components.Print;
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
+
 with Common;
 with Output;
 
@@ -38,6 +42,31 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print is
 
    use Common;
    use Output;
+
+   procedure Output (Item : Tagged_Component'Class);
+
+   procedure Output_TC (TC : TC_Alternate_IIOP_Address);
+
+   procedure Initialize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      PolyORB.GIOP_P.Tagged_Components.Print.Register
+       (Tag_Alternate_IIOP_Address, Output'Access);
+   end Initialize;
+
+   ------------
+   -- Output --
+   ------------
+
+   procedure Output (Item : Tagged_Component'Class) is
+   begin
+      Output_TC (TC_Alternate_IIOP_Address (Item));
+   end Output;
 
    ---------------
    -- Output_TC --
@@ -50,4 +79,18 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print is
       Dec_Indent;
    end Output_TC;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"tagged_components.alternate_iiop_address.print",
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => +"tagged_components.alternate_iiop_address",
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
+       Implicit  => False,
+       Init      => Initialize'Access,
+       Shutdown  => null));
 end PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print;

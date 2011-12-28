@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--          Copyright (C) 2004-2011, Free Software Foundation, Inc.         --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,6 @@
 
 package PolyORB.GIOP_P.Tagged_Components.Policies.Print is
 
-   procedure Output_TC (TC : TC_Policies);
+   pragma Elaborate_Body;
 
 end PolyORB.GIOP_P.Tagged_Components.Policies.Print;
