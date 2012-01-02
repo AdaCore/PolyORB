@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2008, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 with PolyORB.Log;
 with PolyORB.Parameters.File;
@@ -66,7 +68,7 @@ package body MOMA.Configuration is
 
       Section : constant String := "destination" & Natural'Image (Number);
 
-      Pool_S : constant String := Get_Conf (Section, "type");
+      Pool_S       : constant String := Get_Conf (Section, "type");
       Persistent_S : constant String := Get_Conf (Section, "persistent");
 
       Result : Message_Pool;
@@ -85,8 +87,8 @@ package body MOMA.Configuration is
          Set_Type (Result, Topic);
 
       else
-         raise Program_Error;
-         --  XXX should raise something else ...
+         raise Program_Error with "unknown MOMA pool type: " & Pool_S;
+         --  Should raise something else???
       end if;
 
       if Persistent_S = "none" then
@@ -96,8 +98,9 @@ package body MOMA.Configuration is
          Set_Persistence (Result, MOMA.Types.File);
 
       else
-         raise Program_Error;
-         --  XXX should raise something else ...
+         raise Program_Error with "unknown MOMA persistency setting: "
+                 & Persistent_S;
+         --  Should raise something else???
       end if;
 
       return Result;
