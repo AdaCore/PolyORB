@@ -656,6 +656,7 @@ examples/moma/client.adb
 examples/moma/client_call_back.adb
 examples/moma/client_call_back_procedures.adb
 examples/moma/client_call_back_procedures.ads
+examples/moma/destinations.conf
 examples/moma/local.gpr
 examples/moma/router.adb
 examples/moma/server.adb
