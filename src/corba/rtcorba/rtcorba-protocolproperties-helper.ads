@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2012, Free Software Foundation, Inc.             --
+--         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -21,6 +21,10 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License for  more details.                                               --
 --                                                                          --
+-- As a special exception under Section 7 of GPL version 3, you are granted --
+-- additional permissions described in the GCC Runtime Library Exception,   --
+-- version 3.1, as published by the Free Software Foundation.               --
+--                                                                          --
 -- You should have received a copy of the GNU General Public License and    --
 -- a copy of the GCC Runtime Library Exception along with this program;     --
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
@@ -31,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Style_Checks ("NM32766");
-
 with CORBA;
 pragma Elaborate_All (CORBA);
 with CORBA.Object;
@@ -40,10 +42,10 @@ with CORBA.Object;
 package RTCORBA.ProtocolProperties.Helper is
 
    function Unchecked_To_Local_Ref
-     (The_Ref : CORBA.Object.Ref'Class) return RTCORBA.ProtocolProperties.Local_Ref;
+     (The_Ref : CORBA.Object.Ref'Class) return Local_Ref;
 
    function To_Local_Ref
-     (The_Ref : CORBA.Object.Ref'Class) return RTCORBA.ProtocolProperties.Local_Ref;
+     (The_Ref : CORBA.Object.Ref'Class) return Local_Ref;
 
    TC_ProtocolProperties : CORBA.TypeCode.Object;
 
