@@ -1,4 +1,5 @@
-COPYING
+COPYING.RUNTIME
+COPYING3
 FEATURES
 INSTALL
 MANIFEST
@@ -193,7 +194,6 @@ compilers/idlac/idl_fe-utils.adb
 compilers/idlac/idl_fe-utils.ads
 compilers/idlac/idl_fe.ads
 compilers/idlac/idl_fe.opt
-compilers/idlac/idl_fe.types.1.ada
 compilers/idlac/idlac.adb
 compilers/idlac/idlac_errors.adb
 compilers/idlac/idlac_errors.ads
@@ -467,8 +467,6 @@ docs/polyorb_ug_ref.tex
 docs/polyorb_version.texi.in
 docs/svn.texi
 examples/README
-examples/aws/Makefile.local
-examples/aws/local.gpr
 examples/corba/README
 examples/corba/all_functions/Makefile.local
 examples/corba/all_functions/README
@@ -937,10 +935,10 @@ src/corba/corba-sequences-unbounded.ads
 src/corba/corba-sequences.ads
 src/corba/corba-serverrequest.adb
 src/corba/corba-serverrequest.ads
-src/corba/corba-value-box.adb
-src/corba/corba-value-box.ads
 src/corba/corba-value-box-helper.adb
 src/corba/corba-value-box-helper.ads
+src/corba/corba-value-box.adb
+src/corba/corba-value-box.ads
 src/corba/corba-value.ads
 src/corba/corba.adb
 src/corba/corba.ads

@@ -1,44 +1,31 @@
--- IMPDEFE.A
---
---                             Grant of Unlimited Rights
---
---     Under contracts F33600-87-D-0337, F33600-84-D-0280, MDA903-79-C-0687 and
---     F08630-91-C-0015, the U.S. Government obtained unlimited rights in the
---     software and documentation contained herein.  Unlimited rights are 
---     defined in DFAR 252.227-7013(a)(19).  By making this public release, 
---     the Government intends to confer upon all recipients unlimited rights
---     equal to those held by the Government.  These rights include rights to
---     use, duplicate, release or disclose the released technical data and
---     computer software in whole or in part, in any manner and for any purpose
---     whatsoever, and to have or permit others to do so.
---
---                                    DISCLAIMER
---
---     ALL MATERIALS OR INFORMATION HEREIN RELEASED, MADE AVAILABLE OR
---     DISCLOSED ARE AS IS.  THE GOVERNMENT MAKES NO EXPRESS OR IMPLIED 
---     WARRANTY AS TO ANY MATTER WHATSOEVER, INCLUDING THE CONDITIONS OF THE
---     SOFTWARE, DOCUMENTATION OR OTHER INFORMATION RELEASED, MADE AVAILABLE 
---     OR DISCLOSED, OR THE OWNERSHIP, MERCHANTABILITY, OR FITNESS FOR A
---     PARTICULAR PURPOSE OF SAID MATERIAL.
---*
---
--- DESCRIPTION:
---     This package provides tailorable entities for a particular
---     implementation.  Each entity may be modified to suit the needs
---     of the implementation.  Default values are provided to act as
---     a guide.
---
---     The entities in this package are those which are used exclusively
---     in tests for Annex E (Distributed Systems).
--- 
--- APPLICABILITY CRITERIA:
---     This package is only required for implementations validating the
---     Distributed Systems Annex.
--- 
--- CHANGE HISTORY:
---     29 Jan 96   SAIC    Initial version for ACVC 2.1.
---
---!
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                       I M P D E F . A N N E X _ E                        --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--           Copyright (C) 2012, Free Software Foundation, Inc.             --
+--                                                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.                                               --
+--                                                                          --
+-- You should have received a copy of the GNU General Public License and    --
+-- a copy of the GCC Runtime Library Exception along with this program;     --
+-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+-- <http://www.gnu.org/licenses/>.                                          --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
  
 package ImpDef.Annex_E is
  

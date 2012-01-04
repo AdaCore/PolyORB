@@ -1,63 +1,31 @@
--- IMPDEF.A
---
---                             Grant of Unlimited Rights
---
---     Under contracts F33600-87-D-0337, F33600-84-D-0280, MDA903-79-C-0687 and
---     F08630-91-C-0015, the U.S. Government obtained unlimited rights in the
---     software and documentation contained herein.  Unlimited rights are 
---     defined in DFAR 252.227-7013(a)(19).  By making this public release, 
---     the Government intends to confer upon all recipients unlimited rights
---     equal to those held by the Government.  These rights include rights to
---     use, duplicate, release or disclose the released technical data and
---     computer software in whole or in part, in any manner and for any purpose
---     whatsoever, and to have or permit others to do so.
---
---                                    DISCLAIMER
---
---     ALL MATERIALS OR INFORMATION HEREIN RELEASED, MADE AVAILABLE OR
---     DISCLOSED ARE AS IS.  THE GOVERNMENT MAKES NO EXPRESS OR IMPLIED 
---     WARRANTY AS TO ANY MATTER WHATSOEVER, INCLUDING THE CONDITIONS OF THE
---     SOFTWARE, DOCUMENTATION OR OTHER INFORMATION RELEASED, MADE AVAILABLE 
---     OR DISCLOSED, OR THE OWNERSHIP, MERCHANTABILITY, OR FITNESS FOR A
---     PARTICULAR PURPOSE OF SAID MATERIAL.
---*
---
--- DESCRIPTION:
---     This package provides tailorable entities for a particular
---     implementation.  Each entity may be modified to suit the needs
---     of the implementation.  Default values are provided to act as
---     a guide.
---
---     The entities in this package are those which are used in at least
---     one core test. Entities which are used exclusively in tests for
---     annexes C-H are located in annex-specific child units of this package.
---
--- CHANGE HISTORY:
---     12 DEC 93   SAIC    Initial PreRelease version
---     02 DEC 94   SAIC    Second  PreRelease version
---     16 May 95   SAIC    Added constants specific to tests of the random
---                         number generator.
---     16 May 95   SAIC    Added Max_RPC_Call_Time constant.
---     17 Jul 95   SAIC    Added Non_State_String constant.
---     21 Aug 95   SAIC    Created from existing IMPSPEC.ADA and IMPBODY.ADA
---                         files.
---     30 Oct 95   SAIC    Added external name string constants.
---     24 Jan 96   SAIC    Added alignment constants.
---     29 Jan 96   SAIC    Moved entities not used in core tests into annex-
---                         specific child packages. Adjusted commentary.
---                         Renamed Validating_System_Programming_Annex to
---                         Validating_Annex_C. Added similar Validating_Annex_?
---                         constants for the other non-core annexes (D-H).
---     01 Mar 96   SAIC    Added external name string constants.
---     21 Mar 96   SAIC    Added external name string constants.
---     02 May 96   SAIC    Removed constants for draft test CXA5014, which was
---                         removed from the tentative ACVC 2.1 suite.
---                         Added constants for use with FXACA00.
---     06 Jun 96   SAIC    Added constants for wide character test files.
---     11 Dec 96   SAIC    Updated constants for wide character test files.
---     13 Dec 96   SAIC    Added Address_Value_IO
---
---!
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                               I M P D E F                                --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--           Copyright (C) 2012, Free Software Foundation, Inc.             --
+--                                                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.                                               --
+--                                                                          --
+-- You should have received a copy of the GNU General Public License and    --
+-- a copy of the GCC Runtime Library Exception along with this program;     --
+-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+-- <http://www.gnu.org/licenses/>.                                          --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
  
 with Report;
 with Ada.Text_IO;

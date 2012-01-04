@@ -1,3 +1,31 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                                 B A N K                                  --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 1997-2012, Free Software Foundation, Inc.          --
+--                                                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.                                               --
+--                                                                          --
+-- You should have received a copy of the GNU General Public License and    --
+-- a copy of the GCC Runtime Library Exception along with this program;     --
+-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+-- <http://www.gnu.org/licenses/>.                                          --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Text_IO; use Text_IO;
 with Types; use Types;
 with Server; use Server;
@@ -17,7 +45,7 @@ package body Bank is
    Last_ID  : Customer_ID := N_Customer_IDs;
 
    function Find
-     (Customer : in Customer_Type)
+     (Customer : Customer_Type)
       return Customer_ID;
 
    protected type Account_Type is
@@ -26,26 +54,26 @@ package body Bank is
         return Integer;
 
       function Check
-        (Password : in Password_Type)
+        (Password : Password_Type)
          return Boolean;
 
       function Customer
         return Customer_Type;
 
       procedure Deposit
-        (Amount : in Integer);
+        (Amount : Integer);
 
       procedure Initialize
-        (Customer  : in Customer_Type;
-         Password  : in Password_Type;
-         Deposit   : in Positive;
+        (Customer  : Customer_Type;
+         Password  : Password_Type;
+         Deposit   : Positive;
          Available : out Boolean);
 
       function Password
         return Password_Type;
 
       procedure Register
-        (Terminal : in Terminal_Access);
+        (Terminal : Terminal_Access);
 
       function Terminal return Terminal_Access;
 
@@ -70,7 +98,7 @@ package body Bank is
       end Balance;
 
       function Check
-        (Password : in Password_Type)
+        (Password : Password_Type)
          return Boolean is
       begin
          return My_Password /= null and then
@@ -87,15 +115,15 @@ package body Bank is
       end Customer;
 
       procedure Deposit
-        (Amount : in Integer) is
+        (Amount : Integer) is
       begin
          My_Balance := My_Balance + Amount;
       end Deposit;
 
       procedure Initialize
-        (Customer  : in Customer_Type;
-         Password  : in Password_Type;
-         Deposit   : in Positive;
+        (Customer  : Customer_Type;
+         Password  : Password_Type;
+         Deposit   : Positive;
          Available : out Boolean) is
       begin
          if Customer = Null_Customer then
@@ -121,7 +149,7 @@ package body Bank is
       end Password;
 
       procedure Register
-        (Terminal : in Terminal_Access) is
+        (Terminal : Terminal_Access) is
       begin
          My_Terminal := Terminal;
       end Register;
@@ -161,15 +189,15 @@ package body Bank is
    ------------
 
    procedure Create
-     (Customer : in Customer_Type;
-      Password : in Password_Type;
-      Deposit  : in Positive) is
+     (Customer : Customer_Type;
+      Password : Password_Type;
+      Deposit  : Positive) is
       Done     : Boolean;
    begin
       if Find (Customer) /= Null_ID then
          raise Wrong_Customer;
       end if;
-      for N in Accounts'range loop
+      for N in Accounts'Range loop
          Accounts (N).Initialize (Customer, Password, Deposit, Done);
          if Done then
             return;
@@ -183,8 +211,8 @@ package body Bank is
    ---------------
 
    procedure Deposit
-     (Customer : in Customer_Type;
-      Amount   : in Positive) is
+     (Customer : Customer_Type;
+      Amount   : Positive) is
       ID : Customer_ID := Find (Customer);
    begin
       if ID = Null_ID then
@@ -201,7 +229,7 @@ package body Bank is
      (Customer : Customer_Type)
       return Customer_ID is
    begin
-      for N in Accounts'range loop
+      for N in Accounts'Range loop
          if Accounts (N).Customer = Customer then
             return N;
          end if;
@@ -251,9 +279,9 @@ package body Bank is
    --------------
 
    procedure Register
-     (Terminal : in Terminal_Access;
-      Customer : in Customer_Type;
-      Password : in Password_Type) is
+     (Terminal : Terminal_Access;
+      Customer : Customer_Type;
+      Password : Password_Type) is
       ID : Customer_ID := Find (Customer);
    begin
       if ID = Null_ID then
@@ -271,10 +299,10 @@ package body Bank is
    ---------------
 
    procedure Transfer
-     (Donator  : in Customer_Type;
-      Password : in Password_Type;
-      Amount   : in Positive;
-      Customer : in Customer_Type) is
+     (Donator  : Customer_Type;
+      Password : Password_Type;
+      Amount   : Positive;
+      Customer : Customer_Type) is
       ID_1 : Customer_ID := Find (Donator);
       ID_2 : Customer_ID := Find (Customer);
       Term : Terminal_Access;
@@ -313,9 +341,9 @@ package body Bank is
    ----------------
 
    procedure Withdraw
-     (Customer : in Customer_Type;
-      Password : in Password_Type;
-      Amount   : in Positive) is
+     (Customer : Customer_Type;
+      Password : Password_Type;
+      Amount   : Positive) is
       ID : Customer_ID := Find (Customer);
    begin
       if ID = Null_ID then

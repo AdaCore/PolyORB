@@ -6,25 +6,24 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
 --                                                                          --
--- PolyORB is free software; you  can  redistribute  it and/or modify it    --
--- under terms of the  GNU General Public License as published by the  Free --
--- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with PolyORB; see file COPYING. If    --
--- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --
--- Floor, Boston, MA 02111-1301, USA.                                       --
+-- License for  more details.                                               --
 --                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
--- unit, or you link  this unit with other files  to produce an executable, --
--- this  unit  does not  by itself cause  the resulting  executable  to  be --
--- covered  by the  GNU  General  Public  License.  This exception does not --
--- however invalidate  any other reasons why  the executable file  might be --
--- covered by the  GNU Public License.                                      --
+-- As a special exception under Section 7 of GPL version 3, you are granted --
+-- additional permissions described in the GCC Runtime Library Exception,   --
+-- version 3.1, as published by the Free Software Foundation.               --
+--                                                                          --
+-- You should have received a copy of the GNU General Public License and    --
+-- a copy of the GCC Runtime Library Exception along with this program;     --
+-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+-- <http://www.gnu.org/licenses/>.                                          --
 --                                                                          --
 --                  PolyORB is maintained by AdaCore                        --
 --                     (email: sales@adacore.com)                           --
@@ -60,24 +59,21 @@ procedure Update_Headers is
    "--                                                                          --" & ASCII.LF &
    "@COPYRIGHT@" &
    "--                                                                          --" & ASCII.LF &
-   "@SECONDARY_HEADER@" &
-   "-- PolyORB is free software; you  can  redistribute  it and/or modify it    --" & ASCII.LF &
-   "-- under terms of the  GNU General Public License as published by the  Free --" & ASCII.LF &
-   "-- Software Foundation;  either version 2,  or (at your option)  any  later --" & ASCII.LF &
-   "-- version. PolyORB is distributed  in the hope that it will be  useful,    --" & ASCII.LF &
+   "@OMG_HEADER@" &
+
+   "-- This is free software;  you can redistribute it  and/or modify it  under --" & ASCII.LF &
+   "-- terms of the  GNU General Public License as published  by the Free Soft- --" & ASCII.LF &
+   "-- ware  Foundation;  either version 3,  or (at your option) any later ver- --" & ASCII.LF &
+   "-- sion.  This software is distributed in the hope  that it will be useful, --" & ASCII.LF &
    "-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --" & ASCII.LF &
    "-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --" & ASCII.LF &
-   "-- License  for more details.  You should have received  a copy of the GNU  --" & ASCII.LF &
-   "-- General Public License distributed with PolyORB; see file COPYING. If    --" & ASCII.LF &
-   "-- not, write to the Free Software Foundation, 51 Franklin Street, Fifth    --" & ASCII.LF &
-   "-- Floor, Boston, MA 02111-1301, USA.                                       --" & ASCII.LF &
+   "-- License for  more details.                                               --" & ASCII.LF &
    "--                                                                          --" & ASCII.LF &
-   "-- As a special exception,  if other files  instantiate  generics from this --" & ASCII.LF &
-   "-- unit, or you link  this unit with other files  to produce an executable, --" & ASCII.LF &
-   "-- this  unit  does not  by itself cause  the resulting  executable  to  be --" & ASCII.LF &
-   "-- covered  by the  GNU  General  Public  License.  This exception does not --" & ASCII.LF &
-   "-- however invalidate  any other reasons why  the executable file  might be --" & ASCII.LF &
-   "-- covered by the  GNU Public License.                                      --" & ASCII.LF &
+   "@RUNTIME_EXCEPTION@" &
+   "-- You should have received a copy of the GNU General Public License and    --" & ASCII.LF &
+   "-- a copy of the GCC Runtime Library Exception along with this program;     --" & ASCII.LF &
+   "-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --" & ASCII.LF &
+   "-- <http://www.gnu.org/licenses/>.                                          --" & ASCII.LF &
    "--                                                                          --" & ASCII.LF &
    "--                  PolyORB is maintained by AdaCore                        --" & ASCII.LF &
    "--                     (email: sales@adacore.com)                           --" & ASCII.LF &
@@ -89,6 +85,12 @@ procedure Update_Headers is
    "-- for use with PolyORB. The copyright notice above, and the license        --" & ASCII.LF &
    "-- provisions that follow apply solely to the contents neither explicitly   --" & ASCII.LF &
    "-- nor implicitly specified by the CORBA Specification defined by the OMG.  --" & ASCII.LF &
+   "--                                                                          --" & ASCII.LF;
+
+   Runtime_Exception_Template : constant String :=
+   "-- As a special exception under Section 7 of GPL version 3, you are granted --" & ASCII.LF &
+   "-- additional permissions described in the GCC Runtime Library Exception,   --" & ASCII.LF &
+   "-- version 3.1, as published by the Free Software Foundation.               --" & ASCII.LF &
    "--                                                                          --" & ASCII.LF;
 
    -------------------------
@@ -205,12 +207,19 @@ procedure Update_Headers is
       Last_Copyright_Year  : Year_Number := Year (Clock);
       First_Copyright_Year : Year_Number := Last_Copyright_Year;
 
-      Require_OMG_Header : Boolean;
+      type Substs is (Unit_Name, Copyright, OMG_Header, Runtime_Exception);
 
-      type Substs is (Unit_Name, Copyright, Secondary_Header);
+      Enable : array (Substs) of Boolean :=
+        (OMG_Header | Runtime_Exception => False,
+         others                         => True);
+      --  By default empty substitution for OMG_Header and Runtime_Exception
 
       procedure Output_Header (Outf : File_Type);
       --  Output header templates with appropriate substitutions
+
+      -------------------
+      -- Output_Header --
+      -------------------
 
       procedure Output_Header (Outf : File_Type) is
          Pattern : Unbounded_String;
@@ -221,12 +230,14 @@ procedure Update_Headers is
          end "+";
 
          Subst_Strings : array (Substs) of Unbounded_String :=
-           (Unit_Name        =>
+           (Unit_Name         =>
               +Doublespace (To_Upper (To_String (UName))),
-            Copyright        =>
+            Copyright         =>
               +Copyright_Line (First_Copyright_Year, Last_Copyright_Year),
-            Secondary_Header =>
-              To_Unbounded_String (""));
+            OMG_Header        =>
+              To_Unbounded_String (OMG_Header_Template),
+            Runtime_Exception =>
+              To_Unbounded_String (Runtime_Exception_Template));
 
          Kind_Strings : constant array (Unit_Spec .. Unit_Project)
                           of String (1 .. 4) :=
@@ -239,11 +250,6 @@ procedure Update_Headers is
             Append (Subst_Strings (Unit_Name), +"");
             Append (Subst_Strings (Unit_Name),
                     +Doublespace (Kind_Strings (Ukind)));
-         end if;
-
-         if Require_OMG_Header then
-            Subst_Strings (Secondary_Header) :=
-              To_Unbounded_String (OMG_Header_Template);
          end if;
 
          Pattern := To_Unbounded_String ("@(");
@@ -271,14 +277,17 @@ procedure Update_Headers is
                end if;
 
                declare
-                  Loc_Token  : Match_Location renames Matches (1);
+                  Loc_Tok : Match_Location renames Matches (1);
+                  Subst   : constant Substs :=
+                              Substs'Value (Header_Template (Loc_Tok.First
+                                                          .. Loc_Tok.Last));
                begin
-                  Put (Outf, Header_Template (Start .. Loc_Token.First - 2));
-                  Put (Outf,
-                    To_String (Subst_Strings
-                      (Substs'Value (Header_Template (Loc_Token.First
-                                                   .. Loc_Token.Last)))));
-                  Start := Loc_Token.Last + 2;
+                  Put (Outf, Header_Template (Start .. Loc_Tok.First - 2));
+
+                  if Enable (Subst) then
+                     Put (Outf, To_String (Subst_Strings (Subst)));
+                  end if;
+                  Start := Loc_Tok.Last + 2;
                end;
 
             end loop;
@@ -341,7 +350,7 @@ procedure Update_Headers is
             end;
          end if;
 
-         Require_OMG_Header := UKind = Unit_Spec
+         Enable (OMG_Header) := UKind = Unit_Spec
            and then (False
              or else Has_Prefix ("conv_frame", Basename)
              or else Has_Prefix ("corba", Basename)
@@ -367,9 +376,16 @@ procedure Update_Headers is
                     Year_Number'Value (Line (Copyright_Matches (1).First
                                           .. Copyright_Matches (1).Last));
                end if;
+
+               if Match ("As a special exception", Line (1 .. Last)) then
+                  Enable (Runtime_Exception) := True;
+               end if;
+
             else
+               if Length (Buf) > 0 then
+                  Append (Buf, ASCII.LF);
+               end if;
                Append (Buf, Line (1 .. Last));
-               Append (Buf, ASCII.LF);
                Match (Unit_Name_Matcher, Line (1 .. Last), Unit_Name_Matches);
                if Unit_Name_Matches (0) /= No_Match then
                   if Unit_Name_Matches (1).First in Line'Range
@@ -395,7 +411,7 @@ procedure Update_Headers is
          if Slice (Buf, 1, 1) /= (1 => ASCII.LF) then
             New_Line (Outf);
          end if;
-         Put (Outf, To_String (Buf));
+         Put_Line (Outf, To_String (Buf));
 
          while not End_Of_File (F) loop
             Get_Line (F, Line, Last);

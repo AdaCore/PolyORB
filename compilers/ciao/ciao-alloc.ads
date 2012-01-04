@@ -1,5 +1,30 @@
---  The package Alloc is a part of the GNAT compiler.
---  Copyright (C) 1992-1998 Free Software Foundation, Inc.
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                           C I A O . A L L O C                            --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--         Copyright (C) 1992-2012, Free Software Foundation, Inc.          --
+--                                                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.                                               --
+--                                                                          --
+-- You should have received a copy of the GNU General Public License and    --
+-- a copy of the GCC Runtime Library Exception along with this program;     --
+-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+-- <http://www.gnu.org/licenses/>.                                          --
+--                                                                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
+--                                                                          --
+------------------------------------------------------------------------------
 
 --  This modified version is a part of the CIAO project.
 --  Copyright (C) 1999 École nationale supérieure des télécommunications.
@@ -25,7 +50,7 @@
 -- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
--- As a special exception,  if other files  instantiate  generics from this --
+-- XXX,  if other files  instantiate  generics from this --
 -- unit, or you link  this unit with other files  to produce an executable, --
 -- this  unit  does not  by itself cause  the resulting  executable  to  be --
 -- covered  by the  GNU  General  Public  License.  This exception does not --
