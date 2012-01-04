@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -121,19 +121,21 @@ package body XE_Back.PolyORB is
       RE_Shutdown_World,
       RE_The_ORB,
       RE_Set_Default_Servant,
-      RE_Get_MDNS_Servant);
+      RE_Get_MDNS_Servant,
+      RE_Activate_RPC_Receivers);
 
    RE : array (RE_Id) of Unit_Name_Type;
 
    RE_Unit_Table : constant array (RE_Id) of RU_Id :=
-     (RE_Check               => RU_System_Partition_Interface,
-      RE_Launch_Partition    => RU_PolyORB_DSA_P_Remote_Launch,
-      RE_Run                 => RU_PolyORB_ORB,
-      RE_Run_In_Task         => RU_PolyORB_Tasking_Threads,
-      RE_Shutdown_World      => RU_PolyORB_Initialization,
-      RE_The_ORB             => RU_PolyORB_Setup,
-      RE_Set_Default_Servant => RU_PolyORB_Protocols_DNS,
-      RE_Get_MDNS_Servant    => RU_PolyORB_DSA_P_Name_Service_mDNS);
+     (RE_Check                  => RU_System_Partition_Interface,
+      RE_Launch_Partition       => RU_PolyORB_DSA_P_Remote_Launch,
+      RE_Run                    => RU_PolyORB_ORB,
+      RE_Run_In_Task            => RU_PolyORB_Tasking_Threads,
+      RE_Shutdown_World         => RU_PolyORB_Initialization,
+      RE_The_ORB                => RU_PolyORB_Setup,
+      RE_Set_Default_Servant    => RU_PolyORB_Protocols_DNS,
+      RE_Get_MDNS_Servant       => RU_PolyORB_DSA_P_Name_Service_mDNS,
+      RE_Activate_RPC_Receivers => RU_System_Partition_Interface);
 
    ---------------------
    -- Parameter types --
@@ -212,8 +214,10 @@ package body XE_Back.PolyORB is
    --  the package).
 
    procedure Generate_Partition_Main_File (P : Partition_Id);
-   --  Create a procedure which "withes" all the RCI or SP receivers
-   --  of the partition and insert the main procedure if needed.
+   --  Create the main procedure for a partition: include dependencies for all
+   --  RCI and SP units assigned on the partition, and generate a call to
+   --  Activate_RPC_Receivers (after partition elaboration is completed) and to
+   --  the user-specified main procedure, if applicable.
 
    procedure Generate_Storage_Config_File (P : Partition_Id);
    --  Create storage configuration file that includes the storages
@@ -891,6 +895,12 @@ package body XE_Back.PolyORB is
                      RU (RE_Unit_Table (RE_Get_MDNS_Servant)) and
                      RE (RE_Get_MDNS_Servant));
       end if;
+
+      --  Activate RPC receivers. From this point on, remote calls can be
+      --  serviced by this partition.
+
+      Write_Call (RU (RE_Unit_Table (RE_Activate_RPC_Receivers)) and
+                  RE (RE_Activate_RPC_Receivers));
 
       --  Check version consistency of RCI stubs
 

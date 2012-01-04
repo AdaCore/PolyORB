@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -305,10 +305,6 @@ package body System.Partition_Interface is
 
    All_Receiving_Stubs : Receiving_Stub_Lists.List;
 
-   RPC_Receivers_Activated : Boolean := False;
-   --  False until Activate_RPC_Receivers has been called, at which point
-   --  incoming RPCs can be serviced.
-
    procedure Activate_RPC_Receiver (Default_Servant : Servant_Access);
    --  Activate one RPC receiver (i.e. enable the processing of incoming remote
    --  subprogram calls to that servant).
@@ -344,8 +340,6 @@ package body System.Partition_Interface is
       It : Iterator;
    begin
       pragma Debug (C, O ("Activate_RPC_Receivers: enter"));
-      RPC_Receivers_Activated := True;
-
       It := First (All_Receiving_Stubs);
       while not Last (It) loop
          Activate_RPC_Receiver (Value (It).Receiver);
@@ -2237,17 +2231,9 @@ package body System.Partition_Interface is
       Default_Servant.Object_Adapter :=
         PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
 
-      if RPC_Receivers_Activated then
-         Activate_RPC_Receiver (Default_Servant);
+      --  RPC receiver will be activated once the partition is completely
+      --  elaborated.
 
-      else
-         --  If PCS elaboration is not completed yet, activation is deferred
-         --  until Activate_RPC_Receivers is called.
-
-         pragma Debug (C, O ("Setup_Object_RPC_Receiver: "
-           & Name & " activation deferred"));
-         null;
-      end if;
    end Setup_Object_RPC_Receiver;
 
    --------------

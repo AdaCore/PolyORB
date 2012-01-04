@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2010, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -75,10 +75,9 @@ begin
         (RPC.Partition_ID (Allocate_Partition_ID (Get_Local_Partition_Name)));
    end if;
 
-   --  DSA services are now fully initialized, and incoming remote subprogram
-   --  calls can be processed: activate all pending RPC receivers.
-
-   System.Partition_Interface.Activate_RPC_Receivers;
+   --  DSA services are now fully initialized. Incoming remote subprogram calls
+   --  will be processed when RPC receivers are activated, once the partition
+   --  is completely elaborated (E.5(21)).
 
    pragma Debug (C, O ("DSA_Services Initialized"));
 
