@@ -187,8 +187,10 @@ package body PolyORB.ORB.Thread_Per_Session is
       --  Start session task
 
       T := Run_In_Task (Get_Thread_Factory,
-        R => new Session_Runnable'(ORB => ORB,
-                                   A_S => Session_Access (S)));
+                        R    => new Session_Runnable'(ORB => ORB,
+                                                      A_S =>
+                                                        Session_Access (S)),
+                        Name => "Session");
 
       Components.Emit_No_Reply (Component_Access (AC.TE),
          Connect_Indication'(null record));

@@ -202,7 +202,7 @@ package body PolyORB.ORB.Thread_Pool is
          pragma Debug
            (C, O (Image (Current_Task) & " creating new spare task"));
          begin
-            Create_Task (Thread_Pool_Main_Loop'Access);
+            Create_Task (Thread_Pool_Main_Loop'Access, "Pool");
          exception
             when Tasking_Error =>
                pragma Debug
@@ -377,7 +377,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (C, O ("Creating" & Start_Threads'Img & " threads"));
 
       for J in 1 .. Start_Threads loop
-         Create_Task (Thread_Pool_Main_Loop'Access);
+         Create_Task (Thread_Pool_Main_Loop'Access, "Pool");
       end loop;
 
       pragma Debug (C, O ("Create_Threads: leave"));

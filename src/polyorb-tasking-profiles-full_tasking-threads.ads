@@ -69,14 +69,14 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access) return PTT.Thread_Access;
 
    function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure) return PTT.Thread_Access;

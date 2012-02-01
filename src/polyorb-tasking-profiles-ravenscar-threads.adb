@@ -653,7 +653,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : Parameterless_Procedure)
@@ -698,7 +698,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : Runnable_Access) return Thread_Access

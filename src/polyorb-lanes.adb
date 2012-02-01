@@ -168,7 +168,7 @@ package body PolyORB.Lanes is
                T : constant Thread_Access :=
                  Run_In_Task
                  (TF               => Get_Thread_Factory,
-                  Name             => "",
+                  Name             => "Lane",
                   Default_Priority => ORB_Priority,
                   Storage_Size     => Stack_Size,
                   R                => Runnable_Access (New_Runnable));

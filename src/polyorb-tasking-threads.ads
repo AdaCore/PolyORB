@@ -117,14 +117,14 @@ package PolyORB.Tasking.Threads is
 
    type Thread_Factory_Access is access all Thread_Factory_Type'Class;
 
-   procedure Create_Task (Main : Parameterless_Procedure);
+   procedure Create_Task (Main : Parameterless_Procedure; Name : String);
    --  Call Run_In_Task with the Thread_Factory object registered in this
    --  package, to run the code in Main, with other parameters defaulted.
    --  The resulting Thread_Access is discarded.
 
    function Run_In_Task
      (TF               : access Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : Runnable_Access) return Thread_Access
@@ -148,7 +148,7 @@ package PolyORB.Tasking.Threads is
 
    function Run_In_Task
      (TF               : access Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : Parameterless_Procedure) return Thread_Access

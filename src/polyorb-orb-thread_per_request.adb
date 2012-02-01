@@ -135,9 +135,10 @@ package body PolyORB.ORB.Thread_Per_Request is
    begin
       pragma Debug (C, O ("Handle_Request_Execution: enter"));
       T := Run_In_Task (Get_Thread_Factory,
-                        R => new Request_Runnable'
-                          (ORB   => ORB,
-                           A_Job => Job_Access (RJ)));
+                        R    => new Request_Runnable'
+                                      (ORB   => ORB,
+                                       A_Job => Job_Access (RJ)),
+                        Name => "Request");
       pragma Debug (C, O ("Handle_Request_Execution: leave"));
    end Handle_Request_Execution;
 

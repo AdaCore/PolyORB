@@ -65,11 +65,14 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    --  Task type
 
-   task type Generic_Task (P : System.Priority; S : Natural) is
+   task type Generic_Task
+     (P : System.Priority; S : Natural; N : access String)
+   is
       --  All purpose generic task that executes a 'Runnable'
 
       pragma Priority (P);
       pragma Storage_Size (S);
+      pragma Task_Name ("GT-" & N.all);
 
       entry Initialize (T : PTT.Thread_Access);
       --  Initialize the task
@@ -205,7 +208,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access) return PTT.Thread_Access
@@ -214,7 +217,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       pragma Unreferenced (TF);
       pragma Warnings (On);
 
-      T : constant Full_Tasking_Thread_Access := new Full_Tasking_Thread_Type;
+      T  : constant Full_Tasking_Thread_Access := new Full_Tasking_Thread_Type;
       GT : Generic_Task_Access;
 
    begin
@@ -234,7 +237,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          T.Stack_Size := Storage_Size;
       end if;
 
-      GT := new Generic_Task (T.Priority, T.Stack_Size);
+      GT := new Generic_Task
+                  (T.Priority, T.Stack_Size, Name'Unrestricted_Access);
       T.Self := GT;
       GT.Initialize (PTT.Thread_Access (T));
       GT.Start (R);
@@ -243,7 +247,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure) return PTT.Thread_Access
