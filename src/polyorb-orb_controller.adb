@@ -248,11 +248,17 @@ package body PolyORB.ORB_Controller is
      (O                      : access ORB_Controller;
       Expected_Running_Tasks : Natural) return Boolean
    is
+      Actual_Running_Tasks : constant Integer :=
+                               Awake_Count
+                                 - Independent_Count
+                                 - Get_Count (O.Summary, State => Idle)
+                                 - Get_Count (O.Summary, State => Blocked);
       Result : Boolean;
    begin
       pragma Debug
-        (C1, O1 ("Is_Locally_Terminated (exp" & Expected_Running_Tasks'Img
-                   & "R): " & Status (O.all)));
+        (C1, O1 ("Is_Locally_Terminated (expect" & Expected_Running_Tasks'Img
+                   & "R, actual" & Actual_Running_Tasks'Img & "R): "
+                   & Status (O.all)));
 
       if Get_Count (O.Summary, Kind => Transient) > 0
         or else Get_Count (O.Summary, State => Running)
@@ -261,12 +267,9 @@ package body PolyORB.ORB_Controller is
         or else Has_Pending_Job (O)
       then
          Result := False;
+
       else
-         Result := (Awake_Count
-                     - Independent_Count
-                     - Get_Count (O.Summary, State => Idle)
-                     - Get_Count (O.Summary, State => Blocked)
-                     = Expected_Running_Tasks);
+         Result := Actual_Running_Tasks = Expected_Running_Tasks;
       end if;
       pragma Debug (C1, O1 ("-> " & Result'Img));
       return Result;
