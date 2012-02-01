@@ -14,7 +14,7 @@ subsequent releases.
 
 NF-29-L201-028 Process ids in traces (2012-02-01)
 
-   Process ideas can now optionally be included in trace messages logged to
+   Process IDs can now optionally be included in trace messages logged to
    standard error. This feature is enabled by setting "pid=true" in section
    [log] of the PolyORB configuration.
 
