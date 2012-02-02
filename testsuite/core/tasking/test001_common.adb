@@ -107,7 +107,8 @@ package body Test001_Common is
 
             declare
                T : constant Thread_Access :=
-                     Run_In_Task (TF => My_Thread_Factory, R  => R);
+                     Run_In_Task
+                       (TF => My_Thread_Factory, R  => R, Name => "T");
                pragma Unreferenced (T);
             begin
                null;

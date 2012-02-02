@@ -710,7 +710,7 @@ procedure Test_Event is
                            Ensure_Initialization;
                            Enter (Session_Mutex);
                            A_S := O;
-                           Create_Task (Auto_Display'Access);
+                           Create_Task (Auto_Display'Access, "Auto_Display");
                            Wait (Session_Taken, Session_Mutex);
                            Leave (Session_Mutex);
 

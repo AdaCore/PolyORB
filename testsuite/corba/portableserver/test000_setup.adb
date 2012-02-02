@@ -258,7 +258,7 @@ package body Test000_Setup is
               = PortableServer.POAManager.HOLDING);
 
       Test_Job.Global_Obj_Ref := Obj_Ref;
-      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job'Access);
+      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job'Access, "TJ");
 
       delay 0.1;
       --  Delay to provoke a context switch so that invocation
@@ -404,10 +404,10 @@ package body Test000_Setup is
       --  Test multiple calls on the same servant.
 
       Test_Job.Global_Obj_Ref := Obj_Ref;
-      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access);
+      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access, "TJ");
       delay 0.01;
 
-      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access);
+      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access, "TJ");
 
       delay 0.01;
       --  Delay to provoke a context switch so that invocation
@@ -477,10 +477,10 @@ package body Test000_Setup is
       --  Test multiple calls on the same servant.
 
       Test_Job.Global_Obj_Ref := Obj_Ref;
-      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access);
+      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access, "TJ");
       delay 0.01;
 
-      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access);
+      PolyORB.Tasking.Threads.Create_Task (Test_Job.Run_Job_Wait'Access, "TJ");
       delay 0.01;
       --  Delay to provoke a context switch so that invocation
       --  actually begins before executing the next statement.
