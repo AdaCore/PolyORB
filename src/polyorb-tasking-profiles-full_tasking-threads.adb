@@ -329,8 +329,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    ---------------------------
 
    function Get_Current_Thread_Id
-     (TF : access Full_Tasking_Thread_Factory_Type)
-     return PTT.Thread_Id
+     (TF : access Full_Tasking_Thread_Factory_Type) return PTT.Thread_Id
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
@@ -344,8 +343,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -------------------
 
    function Get_Thread_Id
-     (T : access Full_Tasking_Thread_Type)
-     return PTT.Thread_Id is
+     (T : access Full_Tasking_Thread_Type) return PTT.Thread_Id is
    begin
       return T.Id;
    end Get_Thread_Id;
