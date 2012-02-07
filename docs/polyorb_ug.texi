@@ -62,7 +62,7 @@
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
 
-@set COPYRIGHT Copyright @copyright{} 2003-2010, Free Software Foundation
+@set COPYRIGHT Copyright @copyright{} 2003-2012, Free Software Foundation
 @set AUTHORS1 Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
 @set AUTHORS2 Thomas Quinot, Samuel Tardieu
 
@@ -700,7 +700,7 @@ GNU tar is required to unpack PolyORB source packages.
 
 Ada compiler:
 @itemize @bullet
-@item GNAT Pro 6.0 or later
+@item GNAT Pro 6.0.* or later
 @item GNAT GPL 2007 or later
 @item FSF GCC 4.3 or later
 @end itemize
