@@ -44,6 +44,11 @@ Bug fixes
 Abortion of a task blocked trying to bind a reference would leave the
 reference locked, causing further bind attemps to hang. (KC09-001)
 
+Configuration parameters delay_between_failed_requests and max_failed_requests
+from section [dsa], controlling the retry policy for connections to the DSA
+name servers, were not correctly taken into account (hard-coded values were
+used instead). (KC08-002)
+
 DSA RPC receivers were activated too early (before the partition was
 completely elaborated), which could cause access before elaboration
 while servicing remote calls. (KC22-022)
