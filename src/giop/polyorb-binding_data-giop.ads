@@ -34,7 +34,8 @@
 --  This pragma, and the "overriding" keywords below, are commented out because
 --  of a compiler bug. In particular, if a program is compiled in Ada 95 mode,
 --  and imports this package, we get an error on Is_Local_Profile, "not subtype
---  conformant with declaration at line 45", "type of "P" does not match".
+--  conformant with declaration at line ...", "type of "P" does not match". The
+--  "..." is the line declaring type GIOP_Profile_Factory.
 
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.GIOP_P.Transport_Mechanisms;
