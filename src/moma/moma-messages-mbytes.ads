@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MByte message type.
 --
 --  A MByte message's payload is a basic type among: Boolean, Byte, Char,
@@ -44,7 +46,7 @@ package MOMA.Messages.MBytes is
    function Create_Byte_Message return MByte;
    --  Create a MByte message.
 
-   function Image (Self : MByte) return String;
+   overriding function Image (Self : MByte) return String;
    --  Image function for MByte type.
 
    --  Accessors to MByte payload.

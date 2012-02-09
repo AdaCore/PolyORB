@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.ASN1;
@@ -115,7 +117,9 @@ package body PolyORB.QoS.Clients_Security is
       Destroy (Item.Notepad);
    end Release_Contents;
 
-   procedure Release_Contents (QoS : access QoS_Client_Security_Parameter) is
+   overriding procedure Release_Contents
+     (QoS : access QoS_Client_Security_Parameter)
+   is
       use Client_Mechanism_Lists;
 
       Iter : Client_Mechanism_Lists.Iterator := First (QoS.Mechanisms);

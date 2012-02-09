@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
@@ -56,7 +58,7 @@ package body PolyORB.Parameters.File is
 
    type File_Source is new Parameters_Source with null record;
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access File_Source;
       Section, Key : String) return String;
 
@@ -90,7 +92,7 @@ package body PolyORB.Parameters.File is
    -- Get_Conf --
    --------------
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access File_Source;
       Section, Key : String) return String
    is

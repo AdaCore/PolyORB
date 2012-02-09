@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Tags;
@@ -61,8 +63,8 @@ package body PolyORB.References.Binding is
       Normal_Exit : Boolean := False;
    end record;
 
-   procedure Initialize (RL : in out Ref_Locker);
-   procedure Finalize (RL : in out Ref_Locker);
+   overriding procedure Initialize (RL : in out Ref_Locker);
+   overriding procedure Finalize (RL : in out Ref_Locker);
    --  Scope lock object for R's mutex
 
    function Find_Tagged_Profile
@@ -340,7 +342,7 @@ package body PolyORB.References.Binding is
    -- Finalize --
    --------------
 
-   procedure Finalize (RL : in out Ref_Locker) is
+   overriding procedure Finalize (RL : in out Ref_Locker) is
    begin
       RL.R.Leave_Mutex;
       pragma Debug
@@ -519,7 +521,7 @@ package body PolyORB.References.Binding is
    -- Initialize --
    ----------------
 
-   procedure Initialize (RL : in out Ref_Locker) is
+   overriding procedure Initialize (RL : in out Ref_Locker) is
    begin
       pragma Debug (C, O ("Ref_Locker: enter"));
       RL.R.Enter_Mutex;

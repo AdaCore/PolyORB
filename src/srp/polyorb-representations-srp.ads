@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A representation for our own Simple Request Protocol (SRP).
 
 with Ada.Streams;
@@ -185,7 +187,7 @@ package PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   : PolyORB.Any.TypeCode.Local_Ref);
 
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
@@ -195,7 +197,7 @@ package PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Data   : PolyORB.Any.Any_Container'Class);
 
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;

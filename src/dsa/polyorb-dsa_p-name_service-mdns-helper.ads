@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Types;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Sequences.Unbounded.Helper;
@@ -264,37 +266,37 @@ package PolyORB.DSA_P.Name_Service.mDNS.Helper is
             Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
       end record;
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR_Type;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          Mech : not null access PolyORB.Any.Mechanism)
         return PolyORB.Any.Content'Class;
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_RR_Type;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          From_C : in out PolyORB.Any.Any_Container'Class);
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR_Type)
         return PolyORB.Types.Unsigned_Long;
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR_Type;
          Count : PolyORB.Types.Unsigned_Long);
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Type)
         return PolyORB.Types.Address;
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR_Type;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr;
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR_Type);
 
       function Wrap
@@ -311,31 +313,31 @@ package PolyORB.DSA_P.Name_Service.mDNS.Helper is
             V : Ptr_SRV_Data;
       end record;
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_SRV_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          Mech : not null access PolyORB.Any.Mechanism)
         return PolyORB.Any.Content'Class;
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_SRV_Data)
         return PolyORB.Types.Unsigned_Long;
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_SRV_Data;
          Count : PolyORB.Types.Unsigned_Long);
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_SRV_Data)
         return PolyORB.Types.Address;
 
-      function Clone
+      overriding function Clone
         (Acc : Content_SRV_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr;
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_SRV_Data);
 
       function Wrap
@@ -372,37 +374,37 @@ package PolyORB.DSA_P.Name_Service.mDNS.Helper is
             Switch_Cache : aliased RR_Type;
       end record;
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          Mech : not null access PolyORB.Any.Mechanism)
         return PolyORB.Any.Content'Class;
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          From_C : in out PolyORB.Any.Any_Container'Class);
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR_Data)
         return PolyORB.Types.Unsigned_Long;
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR_Data;
          Count : PolyORB.Types.Unsigned_Long);
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Data)
         return PolyORB.Types.Address;
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr;
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR_Data);
 
       function Wrap
@@ -419,31 +421,31 @@ package PolyORB.DSA_P.Name_Service.mDNS.Helper is
             V : Ptr_RR;
       end record;
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          Mech : not null access PolyORB.Any.Mechanism)
         return PolyORB.Any.Content'Class;
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR)
         return PolyORB.Types.Unsigned_Long;
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR;
          Count : PolyORB.Types.Unsigned_Long);
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR)
         return PolyORB.Types.Address;
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr;
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR);
 
       function Wrap
@@ -465,37 +467,37 @@ package PolyORB.DSA_P.Name_Service.mDNS.Helper is
             Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
       end record;
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          Mech : not null access PolyORB.Any.Mechanism)
         return PolyORB.Any.Content'Class;
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
          From_C : in out PolyORB.Any.Any_Container'Class);
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_Rcode)
         return PolyORB.Types.Unsigned_Long;
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_Rcode;
          Count : PolyORB.Types.Unsigned_Long);
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_Rcode)
         return PolyORB.Types.Address;
 
-      function Clone
+      overriding function Clone
         (Acc : Content_Rcode;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr;
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_Rcode);
 
       function Wrap

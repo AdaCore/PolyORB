@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
    type Persistent_Policy is new LifespanPolicy with null record;
@@ -38,21 +40,21 @@ package PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
    function Create return Persistent_Policy_Access;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Persistent_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Persistent_Policy)
      return String;
 
-   function Get_Lifespan_Cookie
+   overriding function Get_Lifespan_Cookie
      (Self : Persistent_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
      return Time_Stamp;
 
-   procedure Ensure_Lifespan
+   overriding procedure Ensure_Lifespan
      (Self  :        Persistent_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid :        Unmarshalled_Oid;

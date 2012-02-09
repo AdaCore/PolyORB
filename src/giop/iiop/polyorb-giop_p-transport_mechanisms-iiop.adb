@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.Slicers;
@@ -70,7 +72,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    IIOP_Factories : constant PolyORB.Filters.Factory_Array :=
                       (0 => Sli'Access, 1 => Pro'Access);
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : IIOP_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -165,7 +167,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (MF  : out IIOP_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access)
    is
@@ -179,7 +181,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Create_Tagged_Components --
    ------------------------------
 
-   function Create_Tagged_Components
+   overriding function Create_Tagged_Components
      (MF : IIOP_Transport_Mechanism_Factory)
       return Tagged_Components.Tagged_Component_List
    is
@@ -291,7 +293,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Is_Local_Mechanism --
    ------------------------
 
-   function Is_Local_Mechanism
+   overriding function Is_Local_Mechanism
      (MF : access IIOP_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
       return Boolean
@@ -344,7 +346,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (M : access IIOP_Transport_Mechanism) is
+   overriding procedure Release_Contents
+     (M : access IIOP_Transport_Mechanism)
+   is
       Iter : Socket_Name_Lists.Iterator := First (M.Addresses);
    begin
       while not Last (Iter) loop
@@ -358,7 +362,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (TMA : IIOP_Transport_Mechanism)
      return IIOP_Transport_Mechanism
    is
@@ -376,7 +380,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : IIOP_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is

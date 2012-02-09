@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 
 package body PolyORB.Binding_Data_QoS is
@@ -38,7 +40,7 @@ package body PolyORB.Binding_Data_QoS is
       QoS : PolyORB.QoS.QoS_Parameters;
    end record;
 
-   procedure Destroy (N : in out Profile_QoS_Note);
+   overriding procedure Destroy (N : in out Profile_QoS_Note);
 
    Empty_Profile_QoS_Note : constant Profile_QoS_Note
      := (Annotations.Note with QoS => (others => null));
@@ -47,7 +49,7 @@ package body PolyORB.Binding_Data_QoS is
    -- Destroy --
    -------------
 
-   procedure Destroy (N : in out Profile_QoS_Note) is
+   overriding procedure Destroy (N : in out Profile_QoS_Note) is
    begin
       for J in PolyORB.QoS.QoS_Kind loop
          PolyORB.QoS.Release (N.QoS (J));

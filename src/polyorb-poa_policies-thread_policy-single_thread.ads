@@ -32,6 +32,8 @@
 
 pragma Ada_2005;
 
+pragma Ada_2005;
+
 --  Implementation of the 'Single thread' POA Policy.
 
 with PolyORB.Components;
@@ -45,12 +47,12 @@ package PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
    function Create return Single_Thread_Policy_Access;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Single_Thread_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Single_Thread_Policy)
      return String;
 

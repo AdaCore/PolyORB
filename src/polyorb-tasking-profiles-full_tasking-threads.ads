@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provide an implementation for base types for tasking
 --  using full Ada tasking, yet it does not allow for dynamic priority
 --  modification of a running thread. For all comments, see
@@ -67,21 +69,21 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access;
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access) return PTT.Thread_Access;
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure) return PTT.Thread_Access;
 
-   function Get_Current_Thread_Id
+   overriding function Get_Current_Thread_Id
      (TF : access Full_Tasking_Thread_Factory_Type)
      return PTT.Thread_Id;
 
@@ -90,28 +92,30 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    pragma Inline (P_To_A_Task_Id);
    --  Convert PolyORB Task_Id to Ada Task_Id.
 
-   function Thread_Id_Image
+   overriding function Thread_Id_Image
      (TF : access Full_Tasking_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String;
 
-   procedure Set_Priority
+   overriding procedure Set_Priority
      (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority);
 
-   function Get_Priority
+   overriding function Get_Priority
      (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
 
-   procedure Relative_Delay
+   overriding procedure Relative_Delay
      (TF : access Full_Tasking_Thread_Factory_Type; D : Duration);
 
-   function Awake_Count (TF : access Full_Tasking_Thread_Factory_Type)
+   overriding function Awake_Count
+     (TF : access Full_Tasking_Thread_Factory_Type)
      return Natural;
 
-   function Independent_Count (TF : access Full_Tasking_Thread_Factory_Type)
+   overriding function Independent_Count
+     (TF : access Full_Tasking_Thread_Factory_Type)
      return Natural;
 
 private

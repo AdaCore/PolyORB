@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.POA;
 with PolyORB.POA_Policies.Servant_Retention_Policy;
 
@@ -53,7 +55,7 @@ is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Use_Servant_Manager_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -72,7 +74,7 @@ is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Use_Servant_Manager_Policy)
      return String
    is
@@ -87,7 +89,7 @@ is
    -- Id_To_Servant --
    -------------------
 
-   procedure Id_To_Servant
+   overriding procedure Id_To_Servant
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
@@ -125,7 +127,7 @@ is
    -- Set_Servant --
    -----------------
 
-   procedure Set_Servant
+   overriding procedure Set_Servant
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :        Servants.Servant_Access;
@@ -145,7 +147,7 @@ is
    -- Get_Servant --
    -----------------
 
-   procedure Get_Servant
+   overriding procedure Get_Servant
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :    out Servants.Servant_Access;
@@ -166,7 +168,7 @@ is
    -- Ensure_Servant_Manager --
    ----------------------------
 
-   procedure Ensure_Servant_Manager
+   overriding procedure Ensure_Servant_Manager
      (Self  :        Use_Servant_Manager_Policy;
       Error : in out PolyORB.Errors.Error_Container)
    is

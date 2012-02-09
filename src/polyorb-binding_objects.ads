@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding objects: protocol stacks seen globally as a reference-counted
 --  entity.
 
@@ -133,6 +135,6 @@ private
       --  proper protection against incorrect concurrent accesses.
    end record;
 
-   procedure Finalize (X : in out Binding_Object);
+   overriding procedure Finalize (X : in out Binding_Object);
 
 end PolyORB.Binding_Objects;

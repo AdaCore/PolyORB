@@ -26,6 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of a dynamic servant, using the Dynamic Skeleton
 --  Interface (DSI).
 
@@ -37,7 +39,7 @@ package Echo_DynImpl is
 
    type Object is new PortableServer.DynamicImplementation with null record;
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self    : access Object;
       Request : CORBA.ServerRequest.Object_Ptr);
 

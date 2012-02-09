@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
@@ -150,7 +152,7 @@ package body CORBA.Fixed_Point is
    -- Clone --
    -----------
 
-   function Clone
+   overriding function Clone
      (ACC  : Fixed_Content;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
@@ -176,7 +178,7 @@ package body CORBA.Fixed_Point is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value (ACC : in out Fixed_Content) is
+   overriding procedure Finalize_Value (ACC : in out Fixed_Content) is
       procedure Free is new Ada.Unchecked_Deallocation (F, F_Ptr);
    begin
       Free (ACC.V);
@@ -186,7 +188,7 @@ package body CORBA.Fixed_Point is
    -- Get_Aggregate_Element --
    ---------------------------
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Fixed_Content;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
@@ -217,7 +219,7 @@ package body CORBA.Fixed_Point is
    -- Set_Aggregate_Element --
    ---------------------------
 
-   procedure Set_Aggregate_Element
+   overriding procedure Set_Aggregate_Element
      (ACC    : in out Fixed_Content;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
@@ -241,7 +243,7 @@ package body CORBA.Fixed_Point is
    -- Get_Aggregate_Count --
    -------------------------
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Fixed_Content) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
@@ -253,7 +255,7 @@ package body CORBA.Fixed_Point is
    -- Set_Aggregate_Count --
    -------------------------
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Fixed_Content;
       Count : PolyORB.Types.Unsigned_Long)
    is

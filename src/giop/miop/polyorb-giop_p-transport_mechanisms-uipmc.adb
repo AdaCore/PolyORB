@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data.GIOP.UIPMC;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.MIOP.MIOP_Out;
@@ -71,7 +73,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    MIOP_Factories : constant PolyORB.Filters.Factory_Array
      := (0 => Mou'Access, 1 => Pro'Access);
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : UIPMC_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -140,7 +142,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (MF  : out UIPMC_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access)
    is
@@ -153,7 +155,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    -- Create_Tagged_Components --
    ------------------------------
 
-   function Create_Tagged_Components
+   overriding function Create_Tagged_Components
      (MF : UIPMC_Transport_Mechanism_Factory)
       return Tagged_Components.Tagged_Component_List
    is
@@ -199,7 +201,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    -- Is_Local_Mechanism --
    ------------------------
 
-   function Is_Local_Mechanism
+   overriding function Is_Local_Mechanism
      (MF : access UIPMC_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
       return Boolean is
@@ -213,7 +215,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (M : access UIPMC_Transport_Mechanism) is
+   overriding procedure Release_Contents
+     (M : access UIPMC_Transport_Mechanism)
+   is
    begin
       Free (M.Address);
    end Release_Contents;
@@ -222,7 +226,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (TMA : UIPMC_Transport_Mechanism)
      return UIPMC_Transport_Mechanism
    is
@@ -235,7 +239,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : UIPMC_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is

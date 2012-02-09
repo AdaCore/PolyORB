@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 with Ada.Text_IO;
 
@@ -52,7 +54,7 @@ package body Ping_Object is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Obj : not null access My_Object;
       Req : PolyORB.Requests.Request_Access) return Boolean
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
 
@@ -106,7 +108,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Create --
    ------------
 
-   procedure Create (OA : access Simple_Obj_Adapter) is
+   overriding procedure Create (OA : access Simple_Obj_Adapter) is
    begin
       Create (OA.Lock);
       Initialize (OA.Object_Map);
@@ -116,7 +118,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Destroy --
    -------------
 
-   procedure Destroy (OA : access Simple_Obj_Adapter) is
+   overriding procedure Destroy (OA : access Simple_Obj_Adapter) is
    begin
       Destroy (OA.Lock);
       Deallocate (OA.Object_Map);
@@ -127,7 +129,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Export --
    ------------
 
-   procedure Export
+   overriding procedure Export
      (OA    : access Simple_Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
@@ -181,7 +183,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Unexport --
    --------------
 
-   procedure Unexport
+   overriding procedure Unexport
      (OA    : access Simple_Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container)
@@ -217,7 +219,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Object_Key --
    ----------------
 
-   procedure Object_Key
+   overriding procedure Object_Key
      (OA      : access Simple_Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
@@ -240,7 +242,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Get_QoS --
    -------------
 
-   procedure Get_QoS
+   overriding procedure Get_QoS
      (OA    : access Simple_Obj_Adapter;
       Id    :        Objects.Object_Id;
       QoS   :    out PolyORB.QoS.QoS_Parameters;
@@ -288,7 +290,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Get_Empty_Arg_List --
    ------------------------
 
-   function Get_Empty_Arg_List
+   overriding function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
@@ -324,7 +326,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Get_Empty_Result --
    ----------------------
 
-   function Get_Empty_Result
+   overriding function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
@@ -360,7 +362,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Find_Servant --
    ------------------
 
-   procedure Find_Servant
+   overriding procedure Find_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant : out Servants.Servant_Access;
@@ -384,7 +386,7 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Release_Servant --
    ---------------------
 
-   procedure Release_Servant
+   overriding procedure Release_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access)

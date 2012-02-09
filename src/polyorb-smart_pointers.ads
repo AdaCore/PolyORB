@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Finalization;
 with Interfaces;
 
@@ -79,8 +81,8 @@ package PolyORB.Smart_Pointers is
    --  The base type of all references. This type is often derived but never
    --  extended. It contains one field, which designates the referenced object.
 
-   procedure Adjust   (The_Ref : in out Ref);
-   procedure Finalize (The_Ref : in out Ref);
+   overriding procedure Adjust   (The_Ref : in out Ref);
+   overriding procedure Finalize (The_Ref : in out Ref);
 
    procedure Set
      (The_Ref    : in out Ref;

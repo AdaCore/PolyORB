@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides the definitions required by the IDL-to-Ada
 --  mapping specification for unbounded sequences. This package is
 --  instantiated for each IDL unbounded sequence type. This package
@@ -127,7 +129,7 @@ package PolyORB.Sequences.Unbounded is
       Low    : Positive;
       High   : Natural) return Element_Array;
 
-   function "="
+   overriding function "="
      (Left  : Sequence;
       Right : Sequence) return Boolean;
 
@@ -263,8 +265,8 @@ private
       Content : Element_Array_Access;
    end record;
 
-   procedure Initialize (X : in out Sequence);
-   procedure Adjust     (X : in out Sequence);
-   procedure Finalize   (X : in out Sequence);
+   overriding procedure Initialize (X : in out Sequence);
+   overriding procedure Adjust     (X : in out Sequence);
+   overriding procedure Finalize   (X : in out Sequence);
 
 end PolyORB.Sequences.Unbounded;

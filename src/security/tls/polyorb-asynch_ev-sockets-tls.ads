@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  An asynchrous event source that is a set of SSL sockets.
 
 with PolyORB.TLS;
@@ -58,7 +60,9 @@ package PolyORB.Asynch_Ev.Sockets.TLS is
      (Socket : PolyORB.Sockets.Socket_Type)
      return Asynch_Ev_Source_Access;
 
-   function AEM_Factory_Of (AES : TLS_Event_Source) return AEM_Factory;
+   overriding function AEM_Factory_Of
+     (AES : TLS_Event_Source)
+     return AEM_Factory;
 
 private
 

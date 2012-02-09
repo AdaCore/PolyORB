@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of CORBA IOR Tagged components
 
 with Ada.Streams;
@@ -214,11 +216,11 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    type TC_Unknown_Component_Access is access all TC_Unknown_Component'Class;
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
@@ -228,9 +230,9 @@ package PolyORB.GIOP_P.Tagged_Components is
       Data        : Octet_Access)
       return Tagged_Component_Access;
 
-   procedure Release_Contents (Comp : access TC_Unknown_Component);
+   overriding procedure Release_Contents (Comp : access TC_Unknown_Component);
 
-   function Duplicate
+   overriding function Duplicate
      (Comp : TC_Unknown_Component) return Tagged_Component_Access;
 
 private

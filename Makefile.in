@@ -99,7 +99,7 @@ BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs -L${top_builddir}/lib ${ADAFLAGS} 
 # Note: if EXTRA_GNATMAKE_FLAGS contains a -%args argument, we add -margs at
 # the end because further builder flags may need to be passed.
 
-COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCHES@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
+COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCHES@ -gnatwa@WARNINGS_MODE@ -gnat2005 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
 # Gnatmake flags for compilation tools mains, built without project files
 
 # Extra flags for target

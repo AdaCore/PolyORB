@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Objects;
 
 package body PolyORB.Binding_Data.Neighbour is
@@ -40,7 +42,7 @@ package body PolyORB.Binding_Data.Neighbour is
    -- Release --
    -------------
 
-   procedure Release (P : in out Neighbour_Profile_Type) is
+   overriding procedure Release (P : in out Neighbour_Profile_Type) is
    begin
       Free (P.Object_Id);
    end Release;
@@ -63,7 +65,7 @@ package body PolyORB.Binding_Data.Neighbour is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile
+   overriding function Duplicate_Profile
      (P : Neighbour_Profile_Type) return Profile_Access
    is
       Result  : constant Profile_Access := new Neighbour_Profile_Type;
@@ -79,7 +81,7 @@ package body PolyORB.Binding_Data.Neighbour is
    -- Bind_Profile --
    ------------------
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access Neighbour_Profile_Type;
       The_ORB : Components.Component_Access;
       QoS     : PolyORB.QoS.QoS_Parameters;
@@ -100,7 +102,7 @@ package body PolyORB.Binding_Data.Neighbour is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : Neighbour_Profile_Type) return Profile_Tag
    is
       pragma Unreferenced (Profile);
@@ -112,7 +114,7 @@ package body PolyORB.Binding_Data.Neighbour is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : Neighbour_Profile_Type) return Profile_Preference
    is
       pragma Unreferenced (Profile);
@@ -130,7 +132,7 @@ package body PolyORB.Binding_Data.Neighbour is
    -- Image --
    -----------
 
-   function Image (Prof : Neighbour_Profile_Type) return String is
+   overriding function Image (Prof : Neighbour_Profile_Type) return String is
       use Binding_Objects;
       BO_Acc : constant Binding_Object_Access :=
                  Binding_Object_Access
@@ -146,7 +148,7 @@ package body PolyORB.Binding_Data.Neighbour is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : Neighbour_Profile_Type;
       Right : Profile_Type'Class) return Boolean
    is

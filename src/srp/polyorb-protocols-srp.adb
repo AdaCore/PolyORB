@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Binding_Data.Local;
@@ -68,7 +70,7 @@ package body PolyORB.Protocols.SRP is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access SRP_Protocol;
       Session : out Filter_Access)
    is
@@ -101,7 +103,7 @@ package body PolyORB.Protocols.SRP is
    -- Invoke_Request --
    --------------------
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (S : access SRP_Session;
       R :  Requests.Request_Access;
       P : access Binding_Data.Profile_Type'Class)
@@ -119,7 +121,7 @@ package body PolyORB.Protocols.SRP is
    -- Abort_Request --
    -------------------
 
-   procedure Abort_Request
+   overriding procedure Abort_Request
      (S : access SRP_Session;
       R :  Requests.Request_Access)
    is
@@ -135,7 +137,7 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Flush --
    ------------------
 
-   procedure Handle_Flush (S : access SRP_Session) is
+   overriding procedure Handle_Flush (S : access SRP_Session) is
       pragma Unreferenced (S);
 
    begin
@@ -232,7 +234,10 @@ package body PolyORB.Protocols.SRP is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply (S : access SRP_Session; R : Request_Access) is
+   overriding procedure Send_Reply
+     (S : access SRP_Session;
+      R : Request_Access)
+   is
       SRP_Info : Split_SRP;
       B : Buffer_Access renames S.Buffer_Out;
    begin
@@ -260,7 +265,7 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Connect_Indication --
    -------------------------------
 
-   procedure Handle_Connect_Indication (S : access SRP_Session) is
+   overriding procedure Handle_Connect_Indication (S : access SRP_Session) is
    begin
       pragma Debug (C, O ("Received new connection to SRP service..."));
 
@@ -292,7 +297,7 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Connect_Confirmation --
    ---------------------------------
 
-   procedure Handle_Connect_Confirmation (S : access SRP_Session) is
+   overriding procedure Handle_Connect_Confirmation (S : access SRP_Session) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (S);
@@ -305,7 +310,7 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Data_Indication --
    ----------------------------
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (S           : access SRP_Session;
       Data_Amount : Stream_Element_Count;
       Error       : in out Errors.Error_Container)
@@ -331,7 +336,7 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (S : access SRP_Session; Error : Errors.Error_Container)
    is
       pragma Unreferenced (Error);
@@ -347,7 +352,7 @@ package body PolyORB.Protocols.SRP is
    -- Handle_Unmarshall_Arguments --
    ---------------------------------
 
-   procedure Handle_Unmarshall_Arguments
+   overriding procedure Handle_Unmarshall_Arguments
      (Ses   : access SRP_Session;
       Args  : in out Any.NVList.Ref;
       Error : in out Errors.Error_Container)

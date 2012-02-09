@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Datagram Socket Access Point and End Point to receive data from network
 
 with Ada.Exceptions;
@@ -93,7 +95,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -- Create_Event_Source --
    -------------------------
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TAP : access Socket_Access_Point) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
@@ -132,7 +134,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -- Create_Event_Source --
    -------------------------
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TE : access Socket_Endpoint) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
@@ -146,7 +148,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count;
@@ -206,7 +208,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
@@ -245,7 +247,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -- Close --
    -----------
 
-   procedure Close (TE : access Socket_Endpoint) is
+   overriding procedure Close (TE : access Socket_Endpoint) is
    begin
       pragma Debug (C, O ("Closing UDP socket"));
       if TE.Closed then
@@ -261,7 +263,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -- Create_Endpoint --
    ---------------------
 
-   function Create_Endpoint
+   overriding function Create_Endpoint
      (TAP : access Socket_Access_Point)
      return Datagram_Transport_Endpoint_Access
    is

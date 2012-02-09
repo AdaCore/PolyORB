@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  The ORB core module: main loop and scheduler.
 --  Role: * to coordinate operation of the various subsystems.
 --        * to gateway asynchronous external events to the
@@ -273,7 +275,7 @@ package PolyORB.ORB is
       Ref : out References.Ref);
    --  Create an object reference that designates object Oid within this ORB
 
-   function Handle_Message
+   overriding function Handle_Message
      (ORB : not null access ORB_Type;
       Msg : Components.Message'Class) return Components.Message'Class;
 
@@ -291,7 +293,7 @@ private
    -- Job type for method execution requests --
    --------------------------------------------
 
-   procedure Run (J : not null access Request_Job);
+   overriding procedure Run (J : not null access Request_Job);
    --  Override the abstract Run primitive for Job:
    --  dispatch through ORB's tasking policy.
 

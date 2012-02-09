@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
@@ -90,7 +92,7 @@ package body PolyORB.Smart_Pointers is
    -- Adjust --
    ------------
 
-   procedure Adjust
+   overriding procedure Adjust
      (The_Ref : in out Ref) is
    begin
       pragma Debug (C, O ("Adjust: enter"));
@@ -199,7 +201,7 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize (The_Ref : in out Ref) is
+   overriding procedure Finalize (The_Ref : in out Ref) is
 
       function Return_Ref_External_Tag return String;
       --  Encapsulate the call to Ref_External_Tag. This function avoids

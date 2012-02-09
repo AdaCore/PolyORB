@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Notes: TLS credentials are usually useful at both accepting and
 --  invocation credentials. But, supported functionality are very
 --  dependent from credentials configuration. Following description
@@ -448,7 +450,7 @@ package body PolyORB.Security.Credentials.TLS is
    -- Finalize --
    --------------
 
-   procedure Finalize (Self : in out TLS_Credentials) is
+   overriding procedure Finalize (Self : in out TLS_Credentials) is
    begin
       Destroy (Self.Certificate);
 
@@ -461,7 +463,7 @@ package body PolyORB.Security.Credentials.TLS is
    -- Get_Accepting_Options_Required --
    ------------------------------------
 
-   function Get_Accepting_Options_Required
+   overriding function Get_Accepting_Options_Required
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options
    is
@@ -473,7 +475,7 @@ package body PolyORB.Security.Credentials.TLS is
    -- Get_Accepting_Options_Supported --
    -------------------------------------
 
-   function Get_Accepting_Options_Supported
+   overriding function Get_Accepting_Options_Supported
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options
    is
@@ -485,7 +487,7 @@ package body PolyORB.Security.Credentials.TLS is
    -- Get_Identity --
    ------------------
 
-   function Get_Identity
+   overriding function Get_Identity
      (Self : access TLS_Credentials)
       return PolyORB.Security.Identities.Identity_Access
    is
@@ -497,7 +499,7 @@ package body PolyORB.Security.Credentials.TLS is
    -- Get_Invocation_Options_Required --
    -------------------------------------
 
-   function Get_Invocation_Options_Required
+   overriding function Get_Invocation_Options_Required
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options
    is
@@ -509,7 +511,7 @@ package body PolyORB.Security.Credentials.TLS is
    -- Get_Invocation_Options_Supported --
    --------------------------------------
 
-   function Get_Invocation_Options_Supported
+   overriding function Get_Invocation_Options_Supported
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options
    is

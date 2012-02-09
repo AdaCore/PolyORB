@@ -32,6 +32,8 @@
 
 pragma Ada_2005;
 
+pragma Ada_2005;
+
 package PolyORB.Smart_Pointers.Controlled_Entities is
 
    pragma Preelaborate;
@@ -42,7 +44,7 @@ package PolyORB.Smart_Pointers.Controlled_Entities is
 
    type Entity is abstract new Non_Controlled_Entity with private;
    procedure Initialize (X : in out Entity) is null;
-   function Is_Controlled (X : Entity) return Boolean;
+   overriding function Is_Controlled (X : Entity) return Boolean;
 
 private
 
@@ -53,8 +55,8 @@ private
    type Entity_Controller (E : access Entity'Class)
       is new Ada.Finalization.Limited_Controlled with null record;
 
-   procedure Initialize (X : in out Entity_Controller);
-   procedure Finalize   (X : in out Entity_Controller);
+   overriding procedure Initialize (X : in out Entity_Controller);
+   overriding procedure Finalize   (X : in out Entity_Controller);
 
    type Entity is abstract new Non_Controlled_Entity with record
       Controller : Entity_Controller (Entity'Access);

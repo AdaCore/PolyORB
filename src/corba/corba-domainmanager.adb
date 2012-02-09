@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -103,7 +105,7 @@ package body CORBA.DomainManager is
    -- Is_A --
    ----------
 
-   function Is_A
+   overriding function Is_A
      (Self            : Ref;
       Logical_Type_Id : Standard.String) return CORBA.Boolean
    is

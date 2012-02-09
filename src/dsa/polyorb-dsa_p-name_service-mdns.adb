@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 
 with System.RPC;
@@ -110,7 +112,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
    -- Nameserver_Register --
    -------------------------
 
-   procedure Nameserver_Register
+   overriding procedure Nameserver_Register
      (Name_Ctx : access MDNS_Name_Server;
       Name : String;
       Kind : String;
@@ -149,7 +151,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
          Obj);
    end Nameserver_Register;
 
-   function Nameserver_Lookup
+   overriding function Nameserver_Lookup
      (Context : access MDNS_Name_Server;
       Name    : String;
       Kind    : String;

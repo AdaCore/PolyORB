@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Jobs;
 with PolyORB.Utils.Chained_Lists;
@@ -56,31 +58,31 @@ package PolyORB.ORB.Thread_Per_Session is
 
    type End_Thread_Job_Access is access all End_Thread_Job;
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Session_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access Thread_Per_Session_Policy;
       TE  :        Transport_Endpoint_Access);
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Session_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access Thread_Per_Session_Policy;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access);
 
-   procedure Run (J : not null access End_Thread_Job);
+   overriding procedure Run (J : not null access End_Thread_Job);
 
 private
 

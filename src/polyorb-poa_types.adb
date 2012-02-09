@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
 
@@ -117,7 +119,10 @@ package body PolyORB.POA_Types is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : Unmarshalled_Oid) return Standard.Boolean is
+   overriding function "="
+     (Left, Right : Unmarshalled_Oid)
+     return Standard.Boolean
+   is
    begin
       return True
         and then Left.Id = Right.Id

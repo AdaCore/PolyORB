@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  The ORB core module
 
 with Ada.Exceptions;
@@ -343,17 +345,17 @@ package body PolyORB.ORB is
       --  block (as opposed to abort or exception).
    end record;
 
-   procedure Initialize (TW : in out Task_Witness);
+   overriding procedure Initialize (TW : in out Task_Witness);
    --  Register TW.This with OC
 
-   procedure Finalize (TW : in out Task_Witness);
+   overriding procedure Finalize (TW : in out Task_Witness);
    --  Unregister TW.This from OC
 
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Initialize (TW : in out Task_Witness) is
+   overriding procedure Initialize (TW : in out Task_Witness) is
    begin
       pragma Debug
         (O ("Initializing task witness for " & PTI.Image (TW.This.all)));
@@ -373,7 +375,7 @@ package body PolyORB.ORB is
    -- Finalize --
    --------------
 
-   procedure Finalize (TW : in out Task_Witness) is
+   overriding procedure Finalize (TW : in out Task_Witness) is
    begin
       pragma Debug
         (O ("Finalizing task witness for " & PTI.Image (TW.This.all)
@@ -940,7 +942,7 @@ package body PolyORB.ORB is
    -- Run --
    ---------
 
-   procedure Run (J : not null access Request_Job) is
+   overriding procedure Run (J : not null access Request_Job) is
       AJ : Job_Access := Job_Access (J);
    begin
       Run_Request (J.ORB, J.Request);
@@ -1170,7 +1172,7 @@ package body PolyORB.ORB is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (ORB : not null access ORB_Type;
       Msg : Components.Message'Class) return Components.Message'Class
    is

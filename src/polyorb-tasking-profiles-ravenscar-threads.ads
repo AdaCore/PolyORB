@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstraction types for Ravenscar tasking.
 
 --  Under the Ravenscar profile, "Threads" are associated with an
@@ -78,7 +80,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    type Ravenscar_Thread_Access is access all Ravenscar_Thread_Type'Class;
 
-   function Get_Thread_Id (T : access Ravenscar_Thread_Type)
+   overriding function Get_Thread_Id (T : access Ravenscar_Thread_Type)
      return Thread_Id;
 
    type Ravenscar_Thread_Factory_Type is
@@ -89,48 +91,49 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    The_Thread_Factory : constant Ravenscar_Thread_Factory_Access;
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : Runnable_Access) return Thread_Access;
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : Parameterless_Procedure) return Thread_Access;
 
-   function Get_Current_Thread_Id
+   overriding function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
      return Thread_Id;
 
-   function Thread_Id_Image
+   overriding function Thread_Id_Image
      (TF : access Ravenscar_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String;
 
-   procedure Set_Priority
+   overriding procedure Set_Priority
      (TF : access Ravenscar_Thread_Factory_Type;
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority);
    pragma No_Return (Set_Priority);
    --  Setting priority has no meaning under this profile, raise Tasking_Error
 
-   function Get_Priority
+   overriding function Get_Priority
      (TF : access Ravenscar_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
 
-   procedure Relative_Delay
+   overriding procedure Relative_Delay
      (TF : access Ravenscar_Thread_Factory_Type; D : Duration);
 
-   function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
+   overriding function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
      return Natural;
 
-   function Independent_Count (TF : access Ravenscar_Thread_Factory_Type)
+   overriding function Independent_Count
+     (TF : access Ravenscar_Thread_Factory_Type)
      return Natural;
 
    -------------------------------------------------

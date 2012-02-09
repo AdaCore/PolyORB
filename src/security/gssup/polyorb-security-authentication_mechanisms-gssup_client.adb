@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
@@ -133,7 +135,7 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
    -- Init_Security_Context --
    ---------------------------
 
-   function Init_Security_Context
+   overriding function Init_Security_Context
      (Mechanism   : access GSSUP_Client_Authentication_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Ada.Streams.Stream_Element_Array
@@ -185,7 +187,7 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
    -- Is_Supports --
    -----------------
 
-   function Is_Supports
+   overriding function Is_Supports
      (Mechanism   : access GSSUP_Client_Authentication_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Boolean

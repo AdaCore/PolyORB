@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Message_Pool servant.
 
 with MOMA.Destinations;
@@ -98,7 +100,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
    -- Invoke --
    ------------
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self : access Object;
       Req  : PolyORB.Requests.Request_Access)
    is

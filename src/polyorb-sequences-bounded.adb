@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Sequences.Bounded is
@@ -153,7 +155,7 @@ package body PolyORB.Sequences.Bounded is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : Sequence) return Boolean is
+   overriding function "=" (Left, Right : Sequence) return Boolean is
       L : Natural renames Left.Length;
    begin
       return L = Right.Length

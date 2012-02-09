@@ -30,11 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.Protocols.GIOP.DIOP is
 
    type DIOP_Protocol is new GIOP_Protocol with private;
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access DIOP_Protocol;
       Session :    out Filter_Access);
 

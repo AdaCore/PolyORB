@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding data concrete implementation for IIOP.
 
 with Ada.Streams;
@@ -141,7 +143,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag (Profile : IIOP_Profile_Type) return Profile_Tag is
+   overriding function Get_Profile_Tag
+     (Profile : IIOP_Profile_Type)
+     return Profile_Tag
+   is
       pragma Unreferenced (Profile);
 
    begin
@@ -152,7 +157,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : IIOP_Profile_Type)
      return Profile_Preference
    is
@@ -180,7 +185,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out IIOP_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access)
@@ -199,7 +204,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access IIOP_Profile_Factory;
       Oid :        Objects.Object_Id)
      return Profile_Access
@@ -318,7 +323,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access is
+   overriding function Duplicate_Profile
+     (P : IIOP_Profile_Type)
+     return Profile_Access
+   is
       use PolyORB.QoS;
       use PolyORB.QoS.Tagged_Components;
 
@@ -397,7 +405,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Image --
    -----------
 
-   function Image (Prof : IIOP_Profile_Type) return String is
+   overriding function Image (Prof : IIOP_Profile_Type) return String is
    begin
       return "Address : "
         & PolyORB.Utils.Sockets.Image (Get_Primary_IIOP_Address (Prof))

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.ASN1;
@@ -62,7 +64,9 @@ package body PolyORB.QoS.Targets_Security is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (QoS : access QoS_Target_Security_Parameter) is
+   overriding procedure Release_Contents
+     (QoS : access QoS_Target_Security_Parameter)
+   is
       use Target_Mechanism_Lists;
 
       procedure Free is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
@@ -73,7 +75,10 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
    -- Duplicate --
    ---------------
 
-   function Duplicate (C : TC_TLS_Sec_Trans) return Tagged_Component_Access is
+   overriding function Duplicate
+     (C : TC_TLS_Sec_Trans)
+     return Tagged_Component_Access
+   is
       TC     : constant Tagged_Component_Access := new TC_TLS_Sec_Trans;
       Result : TC_TLS_Sec_Trans renames TC_TLS_Sec_Trans (TC.all);
       Iter   : Socket_Name_Lists.Iterator := First (C.Addresses);
@@ -111,7 +116,7 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_TLS_Sec_Trans;
       Buffer : access Buffer_Type)
    is
@@ -138,7 +143,7 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (C : access TC_TLS_Sec_Trans) is
+   overriding procedure Release_Contents (C : access TC_TLS_Sec_Trans) is
       Iter : Socket_Name_Lists.Iterator := First (C.Addresses);
    begin
       while not Last (Iter) loop
@@ -203,7 +208,7 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_TLS_Sec_Trans;
       Buffer : access Buffer_Type;
       Error  :    out PolyORB.Errors.Error_Container)

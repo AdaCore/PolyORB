@@ -51,41 +51,41 @@ package PolyORB.POA_Manager.Basic_Manager is
    -- Procedures and functions to implement the POAManager interface --
    --------------------------------------------------------------------
 
-   procedure Activate
+   overriding procedure Activate
      (Self  : access Basic_POA_Manager;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Hold_Requests
+   overriding procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
       Error               : in out PolyORB.Errors.Error_Container);
 
-   procedure Discard_Requests
+   overriding procedure Discard_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
       Error               : in out PolyORB.Errors.Error_Container);
-   procedure Deactivate
+   overriding procedure Deactivate
      (Self                : access Basic_POA_Manager;
       Etherealize_Objects :        Boolean;
       Wait_For_Completion :        Boolean);
 
-   function Get_State (Self : Basic_POA_Manager) return State;
+   overriding function Get_State (Self : Basic_POA_Manager) return State;
 
    -------------------------------------------------------------
    -- Procedures and functions specific to the implementation --
    -------------------------------------------------------------
 
-   procedure Create (M : access Basic_POA_Manager);
+   overriding procedure Create (M : access Basic_POA_Manager);
 
-   procedure Register_POA
+   overriding procedure Register_POA
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access);
 
-   procedure Remove_POA
+   overriding procedure Remove_POA
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access);
 
-   function Get_Hold_Servant
+   overriding function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
      return PolyORB.Servants.Servant_Access;
@@ -139,7 +139,7 @@ private
       --  List of requests held by the POAManager
    end record;
 
-   procedure Finalize (Self : in out Basic_POA_Manager);
+   overriding procedure Finalize (Self : in out Basic_POA_Manager);
 
    type Hold_Servant is new PolyORB.Servants.Servant with record
       PM : Basic_POA_Manager_Access := null;

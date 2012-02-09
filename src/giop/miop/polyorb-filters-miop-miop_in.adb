@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MIOP filter for data which arrive from network to ORB
 --  this filter MUST be under a GIOP Session
 
@@ -55,7 +57,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Fact     : access MIOP_In_Factory;
       MIOP_In :    out Filter_Access)
    is
@@ -74,7 +76,7 @@ package body PolyORB.Filters.MIOP.MIOP_In is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access MIOP_In_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is

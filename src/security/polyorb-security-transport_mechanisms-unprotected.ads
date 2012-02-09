@@ -30,20 +30,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.Security.Transport_Mechanisms.Unprotected is
 
    type Unprotected_Transport_Mechanism is
      new Client_Transport_Mechanism with null record;
 
-   function Target_Supports
+   overriding function Target_Supports
      (Mechanism : access Unprotected_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options;
 
-   function Target_Requires
+   overriding function Target_Requires
      (Mechanism : access Unprotected_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options;
 
-   function Is_Supports
+   overriding function Is_Supports
      (Mechanism   : access Unprotected_Transport_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Boolean;

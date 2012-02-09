@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of synchronisation objects under the ravenscar profile
 
 with PolyORB.Log;
@@ -127,7 +129,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (MF   : access Ravenscar_Mutex_Factory_Type;
       Name : String := "")
      return Mutex_Access
@@ -152,7 +154,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -- Destroy --
    -------------
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access Ravenscar_Mutex_Factory_Type;
       M  : in out Mutex_Access)
    is
@@ -168,7 +170,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -- Enter --
    -----------
 
-   procedure Enter (M : access Ravenscar_Mutex_Type) is
+   overriding procedure Enter (M : access Ravenscar_Mutex_Type) is
       Exit_Condition : Boolean;
       S              : Synchro_Index_Type;
 
@@ -203,7 +205,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -- Leave --
    -----------
 
-   procedure Leave (M : access Ravenscar_Mutex_Type) is
+   overriding procedure Leave (M : access Ravenscar_Mutex_Type) is
       To_Free            : Synchro_Index_Type;
       Someone_Is_Waiting : Boolean;
    begin

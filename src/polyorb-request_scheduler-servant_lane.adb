@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Errors;
@@ -60,7 +62,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
    -- Try_Queue_Request_Job --
    ---------------------------
 
-   function Try_Queue_Request_Job
+   overriding function Try_Queue_Request_Job
      (Self   : access Request_Scheduler_Servant_Lane;
       Job    : PolyORB.Jobs.Job_Access;
       Target : PolyORB.References.Ref) return Boolean
@@ -151,7 +153,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (RCF : access Request_Scheduler_Servant_Lane_Factory)
      return Request_Scheduler_Access
    is

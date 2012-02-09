@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 with PolyORB.Asynch_Ev;
 with PolyORB.Initialization;
@@ -45,7 +47,7 @@ package body PolyORB.ORB_Controller.Workers is
    -- Disable_Polling --
    ---------------------
 
-   procedure Disable_Polling
+   overriding procedure Disable_Polling
      (O : access ORB_Controller_Workers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -77,7 +79,7 @@ package body PolyORB.ORB_Controller.Workers is
    -- Enable_Polling --
    --------------------
 
-   procedure Enable_Polling
+   overriding procedure Enable_Polling
      (O : access ORB_Controller_Workers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -98,7 +100,7 @@ package body PolyORB.ORB_Controller.Workers is
    -- Notify_Event --
    ------------------
 
-   procedure Notify_Event
+   overriding procedure Notify_Event
      (O : access ORB_Controller_Workers;
       E : Event)
    is
@@ -268,7 +270,7 @@ package body PolyORB.ORB_Controller.Workers is
    -- Schedule_Task --
    -------------------
 
-   procedure Schedule_Task
+   overriding procedure Schedule_Task
      (O  : access ORB_Controller_Workers;
       TI : PTI.Task_Info_Access)
    is
@@ -362,7 +364,7 @@ package body PolyORB.ORB_Controller.Workers is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (OCF : ORB_Controller_Workers_Factory) return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 
 with PolyORB.Initialization;
@@ -44,7 +46,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
    -- Disable_Polling --
    ---------------------
 
-   procedure Disable_Polling
+   overriding procedure Disable_Polling
      (O : access ORB_Controller_No_Tasking;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -62,7 +64,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
    --------------------
    -- Enable_Polling --
    --------------------
-   procedure Enable_Polling
+   overriding procedure Enable_Polling
      (O : access ORB_Controller_No_Tasking;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -81,7 +83,10 @@ package body PolyORB.ORB_Controller.No_Tasking is
    -- Notify_Event --
    ------------------
 
-   procedure Notify_Event (O : access ORB_Controller_No_Tasking; E : Event) is
+   overriding procedure Notify_Event
+     (O : access ORB_Controller_No_Tasking;
+      E : Event)
+   is
    begin
       pragma Debug (C1, O1 ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
@@ -187,7 +192,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
    -- Schedule_Task --
    -------------------
 
-   procedure Schedule_Task
+   overriding procedure Schedule_Task
      (O  : access ORB_Controller_No_Tasking;
       TI : PTI.Task_Info_Access)
    is
@@ -251,7 +256,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (OCF : ORB_Controller_No_Tasking_Factory) return ORB_Controller_Access
    is
       pragma Unreferenced (OCF);

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of PolyORB.Tasking.Threads for the No_Tasking profile.
 
 with System;
@@ -50,7 +52,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
    type No_Tasking_Thread_Access is
      access all No_Tasking_Thread_Type'Class;
 
-   function Get_Thread_Id
+   overriding function Get_Thread_Id
      (T : access No_Tasking_Thread_Type)
      return PTT.Thread_Id;
    --  Under No_Tasking profile, this function simply return
@@ -68,7 +70,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
 
    The_Thread_Factory : constant No_Tasking_Thread_Factory_Access;
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
@@ -77,7 +79,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking_Error.
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
@@ -86,40 +88,41 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking_Error.
 
-   function Get_Current_Thread_Id
+   overriding function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)
      return PTT.Thread_Id;
    --  Under No_Tasking profile, this function simply return
    --  Null_Thread_Id.
 
-   function Thread_Id_Image
+   overriding function Thread_Id_Image
      (TF  : access No_Tasking_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String;
    --  Under No_Tasking profile, this function simply return
    --  "main_task".
 
-   procedure Set_Priority
+   overriding procedure Set_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority);
    pragma No_Return (Set_Priority);
    --  Setting priority has no meaning under this profile, raise Tasking_Error
 
-   function Get_Priority
+   overriding function Get_Priority
      (TF : access No_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority;
    --  Getting priority has no meaning under this profile, raise Tasking_Error
 
-   procedure Relative_Delay
+   overriding procedure Relative_Delay
      (TF : access No_Tasking_Thread_Factory_Type; D : Duration);
 
-   function Awake_Count (TF : access No_Tasking_Thread_Factory_Type)
+   overriding function Awake_Count (TF : access No_Tasking_Thread_Factory_Type)
      return Natural;
    --  This function always return 1 under No_Tasking profile
 
-   function Independent_Count (TF : access No_Tasking_Thread_Factory_Type)
+   overriding function Independent_Count
+     (TF : access No_Tasking_Thread_Factory_Type)
      return Natural;
    --  This function always return 0 under No_Tasking profile
 

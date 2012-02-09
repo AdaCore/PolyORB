@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like synchronisation objects under the
 --  No_Tasking profile.
 
@@ -45,7 +47,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    -- Broadcast --
    ---------------
 
-   procedure Broadcast
+   overriding procedure Broadcast
      (C : access No_Tasking_Condition_Type) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
@@ -58,7 +60,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (MF   : access No_Tasking_Condition_Factory_Type;
       Name : String := "")
      return PTCV.Condition_Access is
@@ -74,7 +76,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    -- Destroy --
    -------------
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access No_Tasking_Condition_Factory_Type;
       C  : in out PTCV.Condition_Access)
   is
@@ -99,7 +101,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    -- Signal --
    ------------
 
-   procedure Signal
+   overriding procedure Signal
      (C : access No_Tasking_Condition_Type) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
@@ -112,7 +114,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    -- Wait --
    ----------
 
-   procedure Wait
+   overriding procedure Wait
      (C : access No_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class)
    is

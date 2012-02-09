@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Buffers;
 with PolyORB.ORB;
 with PolyORB.Requests;
@@ -46,41 +48,41 @@ package PolyORB.Protocols.SOAP_Pr is
 
    type SOAP_Session is new Session with private;
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access SOAP_Protocol;
       Session : out Filter_Access);
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (S   : access SOAP_Session;
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class);
 
-   procedure Abort_Request
+   overriding procedure Abort_Request
      (S : access SOAP_Session;
       R : Requests.Request_Access);
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (S : access SOAP_Session;
       R : Requests.Request_Access);
 
-   procedure Handle_Connect_Indication (S : access SOAP_Session);
+   overriding procedure Handle_Connect_Indication (S : access SOAP_Session);
 
-   procedure Handle_Connect_Confirmation (S : access SOAP_Session);
+   overriding procedure Handle_Connect_Confirmation (S : access SOAP_Session);
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (S           : access SOAP_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container);
 
-   procedure Handle_Unmarshall_Arguments
+   overriding procedure Handle_Unmarshall_Arguments
      (S     : access SOAP_Session;
       Args  : in out PolyORB.Any.NVList.Ref;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (S : access SOAP_Session; Error : Errors.Error_Container);
 
-   procedure Handle_Flush (S : access SOAP_Session);
+   overriding procedure Handle_Flush (S : access SOAP_Session);
 
 private
 
@@ -95,7 +97,7 @@ private
       Pending_Rq : PolyORB.Requests.Request_Access;
    end record;
 
-   function Handle_Message
+   overriding function Handle_Message
      (Sess : not null access SOAP_Session;
       S    : Components.Message'Class) return Components.Message'Class;
 

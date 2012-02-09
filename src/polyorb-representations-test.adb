@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A dummy data representation method, just for show.
 
 with Ada.Streams;
@@ -40,7 +42,7 @@ package body PolyORB.Representations.Test is
    use Ada.Streams;
    use PolyORB.Utils.Buffers;
 
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access Rep_Test;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
@@ -50,7 +52,7 @@ package body PolyORB.Representations.Test is
       raise Program_Error;
    end Marshall_From_Any;
 
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access Rep_Test;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;

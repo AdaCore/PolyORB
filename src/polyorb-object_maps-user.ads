@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of an Active Object Map optimized for User defined
 --  Object Identifier.
 
@@ -44,23 +46,23 @@ package PolyORB.Object_Maps.User is
 
    type User_Object_Map is new Object_Map with private;
 
-   procedure Initialize (O_Map : in out User_Object_Map);
+   overriding procedure Initialize (O_Map : in out User_Object_Map);
 
-   procedure Finalize (O_Map : in out User_Object_Map);
+   overriding procedure Finalize (O_Map : in out User_Object_Map);
 
    procedure Add
      (O_Map : access User_Object_Map;
       Obj   : Object_Map_Entry_Access);
    --  Adds a new entry in the map.
 
-   function Get_By_Id
+   overriding function Get_By_Id
      (O_Map : User_Object_Map;
       Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access;
    --  Given an Object_Id, look up the corresponding map entry.
    --  If not found, returns null.
 
-   function Get_By_Servant
+   overriding function Get_By_Servant
      (O_Map  : User_Object_Map;
       Item   : PolyORB.Servants.Servant_Access)
      return Object_Map_Entry_Access;
@@ -68,7 +70,7 @@ package PolyORB.Object_Maps.User is
    --  Doesn't check that the servant is only once in the map
    --  If not found, returns null.
 
-   function Remove_By_Id
+   overriding function Remove_By_Id
      (O_Map : access User_Object_Map;
       Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access;

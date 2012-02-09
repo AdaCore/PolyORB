@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides glue codee between PolyORB's
 --  ServantLocator and CORBA specific ServantLocator.
 
@@ -55,7 +57,7 @@ package PolyORB.CORBA_P.ServantLocator is
      (Self : CORBA_ServantLocator)
      return PortableServer.ServantLocator.Local_Ref'Class;
 
-   procedure Preinvoke
+   overriding procedure Preinvoke
      (Self       : access CORBA_ServantLocator;
       Oid        :        PPT.Object_Id;
       Adapter    : access PPT.Obj_Adapter'Class;
@@ -64,7 +66,7 @@ package PolyORB.CORBA_P.ServantLocator is
       Returns    :    out PolyORB.Servants.Servant_Access;
       Error      : in out PolyORB.Errors.Error_Container);
 
-   procedure Postinvoke
+   overriding procedure Postinvoke
      (Self        : access CORBA_ServantLocator;
       Oid         :        PPT.Object_Id;
       Adapter     : access PPT.Obj_Adapter'Class;

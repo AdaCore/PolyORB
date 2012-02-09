@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
@@ -72,7 +74,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Accept_Connection --
    -----------------------
 
-   procedure Accept_Connection
+   overriding procedure Accept_Connection
      (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
@@ -138,7 +140,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Create_Event_Source --
    -------------------------
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TAP : access Socket_Access_Point) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
@@ -173,7 +175,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Create_Event_Source --
    -------------------------
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TE : access Socket_Endpoint) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
@@ -187,7 +189,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Is_Data_Available --
    -----------------------
 
-   function Is_Data_Available
+   overriding function Is_Data_Available
      (TE : Socket_Endpoint;
       N  : Natural) return Boolean
    is
@@ -202,7 +204,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count;
@@ -264,7 +266,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)
@@ -336,7 +338,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Check_Validity --
    --------------------
 
-   procedure Check_Validity (TE : access Socket_Endpoint) is
+   overriding procedure Check_Validity (TE : access Socket_Endpoint) is
       Buf  : Stream_Element_Array (1 .. 1);
       Last : Stream_Element_Offset;
 
@@ -372,7 +374,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Close --
    -----------
 
-   procedure Close (TE : access Socket_Endpoint) is
+   overriding procedure Close (TE : access Socket_Endpoint) is
    begin
       if TE.Closed then
          return;
@@ -401,7 +403,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Destroy --
    -------------
 
-   procedure Destroy (TE : in out Socket_Endpoint) is
+   overriding procedure Destroy (TE : in out Socket_Endpoint) is
    begin
       Destroy (TE.Mutex);
       Connected.Destroy (Connected_Transport_Endpoint (TE));

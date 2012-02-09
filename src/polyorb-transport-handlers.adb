@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Event handlers associated with all transport access points and endpoints
 
 with PolyORB.Asynch_Ev;
@@ -42,7 +44,7 @@ package body PolyORB.Transport.Handlers is
    -- Handle_Event --
    ------------------
 
-   procedure Handle_Event (H : access TE_AES_Event_Handler) is
+   overriding procedure Handle_Event (H : access TE_AES_Event_Handler) is
       use PolyORB.Components;
       use PolyORB.ORB;
 

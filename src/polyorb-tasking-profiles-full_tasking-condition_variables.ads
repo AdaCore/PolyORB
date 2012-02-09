@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like condition variables with full Ada
 --  tasking. More comments can be found at polyorb-tasking-condition_variables.
 
@@ -48,13 +50,13 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    type Full_Tasking_Condition_Access is
      access all Full_Tasking_Condition_Type'Class;
 
-   procedure Wait
+   overriding procedure Wait
      (Cond : access Full_Tasking_Condition_Type;
       M    : access PTM.Mutex_Type'Class);
 
-   procedure Signal (Cond : access Full_Tasking_Condition_Type);
+   overriding procedure Signal (Cond : access Full_Tasking_Condition_Type);
 
-   procedure Broadcast (Cond : access Full_Tasking_Condition_Type);
+   overriding procedure Broadcast (Cond : access Full_Tasking_Condition_Type);
 
    type Full_Tasking_Condition_Factory_Type is
      new PTCV.Condition_Factory_Type with private;
@@ -64,12 +66,12 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    The_Condition_Factory : constant Full_Tasking_Condition_Factory_Access;
 
-   function Create
+   overriding function Create
      (MF   : access Full_Tasking_Condition_Factory_Type;
       Name : String := "")
      return PTCV.Condition_Access;
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF   : access Full_Tasking_Condition_Factory_Type;
       Cond : in out PTCV.Condition_Access);
 

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Sockets;
 with PolyORB.Utils.Simple_Flags;
 
@@ -77,18 +79,20 @@ package PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans is
    --  specified in the Security specification, par. 3.7.3, use
    --  default value.
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_SSL_Sec_Trans;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_SSL_Sec_Trans;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents (C : access TC_SSL_Sec_Trans);
+   overriding procedure Release_Contents (C : access TC_SSL_Sec_Trans);
 
-   function Duplicate (C : TC_SSL_Sec_Trans) return Tagged_Component_Access;
+   overriding function Duplicate
+     (C : TC_SSL_Sec_Trans)
+     return Tagged_Component_Access;
 
 private
 

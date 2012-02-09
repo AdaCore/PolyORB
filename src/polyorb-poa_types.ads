@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Base types for the Portable Object Adapter.
 
 with Ada.Unchecked_Deallocation;
@@ -144,7 +146,9 @@ package PolyORB.POA_Types is
       --  Object's Lifespan
    end record;
 
-   function "=" (Left, Right : Unmarshalled_Oid) return Standard.Boolean;
+   overriding function "="
+     (Left, Right : Unmarshalled_Oid)
+     return Standard.Boolean;
 
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 

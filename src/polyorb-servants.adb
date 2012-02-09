@@ -32,6 +32,8 @@
 
 pragma Ada_2005;
 
+pragma Ada_2005;
+
 with PolyORB.Servants.Iface;
 with PolyORB.Tasking.Abortables;
 with PolyORB.Tasking.Threads;
@@ -45,13 +47,13 @@ package body PolyORB.Servants is
       Aborted   : Boolean := True;
    end record;
 
-   procedure Run (RR : not null access Req_Runnable);
+   overriding procedure Run (RR : not null access Req_Runnable);
 
    ---------
    -- Run --
    ---------
 
-   procedure Run (RR : not null access Req_Runnable) is
+   overriding procedure Run (RR : not null access Req_Runnable) is
    begin
       RR.Completed := Execute_Servant (RR.Servant, RR.Req);
 
@@ -104,7 +106,7 @@ package body PolyORB.Servants is
    -- Destroy --
    -------------
 
-   procedure Destroy (S : in out Servant) is
+   overriding procedure Destroy (S : in out Servant) is
    begin
       Annotations.Destroy (S.Notepad);
    end Destroy;
@@ -151,7 +153,7 @@ package body PolyORB.Servants is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (S   : not null access Servant;
       Msg : Components.Message'Class) return Components.Message'Class
    is

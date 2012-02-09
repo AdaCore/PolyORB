@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Message_Producer servant
 
 with MOMA.Messages;
@@ -86,7 +88,7 @@ package body PolyORB.MOMA_P.Provider.Message_Producer is
    -- Invoke --
    ------------
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self : access Object;
       Req  : PolyORB.Requests.Request_Access)
    is

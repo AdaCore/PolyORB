@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA;
 
 package body PolyORB.CORBA_P.AdapterActivator is
@@ -70,7 +72,7 @@ package body PolyORB.CORBA_P.AdapterActivator is
    -- Unknown_Adapter --
    ---------------------
 
-   procedure Unknown_Adapter
+   overriding procedure Unknown_Adapter
      (Self   : access CORBA_AdapterActivator;
       Parent : access PPT.Obj_Adapter'Class;
       Name   : String;

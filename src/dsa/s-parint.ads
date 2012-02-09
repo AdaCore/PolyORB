@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This is the version of System.Partition_Interface for PolyORB.
 --  It shares part of its spec with the GLADE version and the GNAT RTL version.
 
@@ -564,12 +566,12 @@ package System.Partition_Interface is
 
    --  A stream based on a PolyORB buffer
 
-   procedure Read
+   overriding procedure Read
      (Stream : in out Buffer_Stream_Type;
       Item   : out Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset);
 
-   procedure Write
+   overriding procedure Write
      (Stream : in out Buffer_Stream_Type;
       Item   : Ada.Streams.Stream_Element_Array);
 

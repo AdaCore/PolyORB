@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Objects;
 with PolyORB.QoS.Clients_Security;
 with PolyORB.Security.Credentials;
@@ -64,6 +66,7 @@ package PolyORB.QoS.Transport_Contexts is
    type QoS_Transport_Context_Parameter_Access is
      access all QoS_Transport_Context_Parameter'Class;
 
-   procedure Release_Contents (QoS : access QoS_Transport_Context_Parameter);
+   overriding procedure Release_Contents
+     (QoS : access QoS_Transport_Context_Parameter);
 
 end PolyORB.QoS.Transport_Contexts;

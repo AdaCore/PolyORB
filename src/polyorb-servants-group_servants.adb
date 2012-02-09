@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 
 with PolyORB.Log;
@@ -234,7 +236,7 @@ package body PolyORB.Servants.Group_Servants is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Group_Servant;
       Req  : Requests.Request_Access) return Boolean
    is
@@ -334,7 +336,7 @@ package body PolyORB.Servants.Group_Servants is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (Self : not null access Group_Servant;
       Msg  : Components.Message'Class) return Components.Message'Class
    is

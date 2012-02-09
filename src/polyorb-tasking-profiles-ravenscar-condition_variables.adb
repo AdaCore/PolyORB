@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of synchronisation objects under the ravenscar profile
 
 with PolyORB.Log;
@@ -117,7 +119,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -- Broadcast --
    ---------------
 
-   procedure Broadcast (Cond : access Ravenscar_Condition_Type) is
+   overriding procedure Broadcast (Cond : access Ravenscar_Condition_Type) is
       To_Free : Thread_Queue;
 
    begin
@@ -134,7 +136,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (MF   : access Ravenscar_Condition_Factory_Type;
       Name : String := "")
      return PTCV.Condition_Access
@@ -162,7 +164,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -- Destroy --
    -------------
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF   : access Ravenscar_Condition_Factory_Type;
       Cond : in out Condition_Access)
    is
@@ -324,7 +326,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -- Signal --
    ------------
 
-   procedure Signal (Cond : access Ravenscar_Condition_Type) is
+   overriding procedure Signal (Cond : access Ravenscar_Condition_Type) is
       Someone_Is_Waiting : Boolean;
       To_Free            : Synchro_Index_Type;
 
@@ -341,7 +343,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -- Wait --
    ----------
 
-   procedure Wait
+   overriding procedure Wait
      (Cond : access Ravenscar_Condition_Type;
       M    : access PTM.Mutex_Type'Class)
    is

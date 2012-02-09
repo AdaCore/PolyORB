@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation Note: this package implements the recommendation of
 --  the OMG issue #3706, that add new primitives to CORBA::Object.
 --  See CORBA.Object package specifications for more details.
@@ -54,7 +56,7 @@ package CORBA.ContextList is
    type Object is new CORBA.Impl.Object with private;
    type Object_Ptr is access all Object;
 
-   procedure Finalize (Obj : in out Object);
+   overriding procedure Finalize (Obj : in out Object);
 
    function Get_Count (Self : Ref) return CORBA.Unsigned_Long;
 

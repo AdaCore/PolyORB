@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Any;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
@@ -90,7 +92,7 @@ private
 
    type Object_Ptr is access all Object;
 
-   procedure Finalize
+   overriding procedure Finalize
      (X : in out Object);
 
 end PolyORB.Any.NVList;

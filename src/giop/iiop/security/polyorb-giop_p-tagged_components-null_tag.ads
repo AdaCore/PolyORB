@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Used only as transport_mech in TAG_CSI_SEC_MECH_LIST tagged component.
 
 package PolyORB.GIOP_P.Tagged_Components.Null_Tag is
@@ -38,17 +40,19 @@ package PolyORB.GIOP_P.Tagged_Components.Null_Tag is
      (Tag => Tag_NULL_Tag, At_Most_Once => False)
      with null record;
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_Null_Tag;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Null_Tag;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents (C : access TC_Null_Tag);
+   overriding procedure Release_Contents (C : access TC_Null_Tag);
 
-   function Duplicate (C : TC_Null_Tag) return Tagged_Component_Access;
+   overriding function Duplicate
+     (C : TC_Null_Tag)
+     return Tagged_Component_Access;
 
 end PolyORB.GIOP_P.Tagged_Components.Null_Tag;

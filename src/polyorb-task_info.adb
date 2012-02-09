@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Task_Info is
 
    procedure Increment (C : in out Natural);
@@ -372,7 +374,7 @@ package body PolyORB.Task_Info is
    -- Is_Empty --
    --------------
 
-   function Is_Empty (List : Task_List) return Boolean is
+   overriding function Is_Empty (List : Task_List) return Boolean is
    begin
       return Task_Lists.Is_Empty (Task_Lists.List (List));
    end Is_Empty;

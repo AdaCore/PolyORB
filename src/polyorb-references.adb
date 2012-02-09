@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Object references.
 
 with Ada.Tags;
@@ -127,7 +129,7 @@ package body PolyORB.References is
    -- Finalize --
    --------------
 
-   procedure Finalize (RI : in out Reference_Info) is
+   overriding procedure Finalize (RI : in out Reference_Info) is
    begin
       pragma Debug (C, O ("Finalize (Reference_Info): enter"));
 

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 with PolyORB.Representations.CDR.Common;
@@ -61,7 +63,9 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (C : access TC_Alternate_IIOP_Address) is
+   overriding procedure Release_Contents
+     (C : access TC_Alternate_IIOP_Address)
+   is
    begin
       Free (C.Address);
    end Release_Contents;
@@ -70,7 +74,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_Alternate_IIOP_Address;
       Buffer : access Buffer_Type)
    is
@@ -87,7 +91,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Alternate_IIOP_Address;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
@@ -118,7 +122,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (C : TC_Alternate_IIOP_Address)
      return Tagged_Component_Access
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
@@ -124,7 +126,7 @@ package body PolyORB.Filters.HTTP is
 
    --  General filter management
 
-   procedure Create
+   overriding procedure Create
      (Fact   : access HTTP_Filter_Factory;
       Filt   : out Filter_Access)
    is
@@ -162,7 +164,7 @@ package body PolyORB.Filters.HTTP is
       --  provides another buffer for message payload.
    end Initialize;
 
-   procedure Destroy (F : in out HTTP_Filter) is
+   overriding procedure Destroy (F : in out HTTP_Filter) is
    begin
       Clear_Message_State (F);
       Buffers.Release (F.In_Buf);
@@ -173,7 +175,7 @@ package body PolyORB.Filters.HTTP is
 
    --  Main filter message processing
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access HTTP_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is

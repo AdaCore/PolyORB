@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Workers ORB Controller for PolyORB ORB main loop.
 
 --  It is an all-purpose ORB Controller implementation, it supports:
@@ -42,26 +44,26 @@ package PolyORB.ORB_Controller.Workers is
    type ORB_Controller_Workers_Access is
      access all ORB_Controller_Workers'Class;
 
-   procedure Notify_Event
+   overriding procedure Notify_Event
      (O : access ORB_Controller_Workers;
       E :        Event);
 
-   procedure Schedule_Task
+   overriding procedure Schedule_Task
      (O  : access ORB_Controller_Workers;
       TI :        PTI.Task_Info_Access);
 
-   procedure Disable_Polling
+   overriding procedure Disable_Polling
      (O : access ORB_Controller_Workers;
       M : PAE.Asynch_Ev_Monitor_Access);
 
-   procedure Enable_Polling
+   overriding procedure Enable_Polling
      (O : access ORB_Controller_Workers;
       M : PAE.Asynch_Ev_Monitor_Access);
 
    type ORB_Controller_Workers_Factory is
      new ORB_Controller_Factory with private;
 
-   function Create
+   overriding function Create
      (OCF : ORB_Controller_Workers_Factory) return ORB_Controller_Access;
 
 private

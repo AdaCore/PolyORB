@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding data concrete implementation for UIPMC
 
 with PolyORB.Buffers;
@@ -45,21 +47,23 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
    type UIPMC_Profile_Type is new GIOP_Profile_Type with private;
    type UIPMC_Profile_Factory is new GIOP_Profile_Factory with private;
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access UIPMC_Profile_Factory;
       Oid :        Objects.Object_Id) return Profile_Access;
 
-   function Duplicate_Profile
+   overriding function Duplicate_Profile
      (P : UIPMC_Profile_Type) return Profile_Access;
 
-   function Get_Profile_Tag (Profile : UIPMC_Profile_Type) return Profile_Tag;
+   overriding function Get_Profile_Tag
+     (Profile : UIPMC_Profile_Type)
+     return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : UIPMC_Profile_Type) return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out UIPMC_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access);
@@ -71,9 +75,9 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
    function Unmarshall_UIPMC_Profile_Body
      (Buffer   : access Buffer_Type) return  Profile_Access;
 
-   function Image (Prof : UIPMC_Profile_Type) return String;
+   overriding function Image (Prof : UIPMC_Profile_Type) return String;
 
-   function Get_OA
+   overriding function Get_OA
      (Profile : UIPMC_Profile_Type) return PolyORB.Smart_Pointers.Entity_Ptr;
    pragma Inline (Get_OA);
 

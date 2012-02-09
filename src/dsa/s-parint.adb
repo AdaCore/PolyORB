@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Characters.Handling;
 with Ada.Unchecked_Conversion;
 
@@ -233,7 +235,7 @@ package body System.Partition_Interface is
    type DSA_Source is
      new PolyORB.Parameters.Parameters_Source with null record;
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access DSA_Source;
       Section, Key : String) return String;
 
@@ -656,7 +658,7 @@ package body System.Partition_Interface is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Servant;
       Req  : PolyORB.Requests.Request_Access) return Boolean
    is
@@ -985,7 +987,7 @@ package body System.Partition_Interface is
    -- Get_Conf --
    --------------
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access DSA_Source;
       Section, Key : String) return String
    is
@@ -1645,7 +1647,7 @@ package body System.Partition_Interface is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (Stream : in out Buffer_Stream_Type;
       Item   : out Stream_Element_Array;
       Last   : out Stream_Element_Offset)
@@ -2397,7 +2399,7 @@ package body System.Partition_Interface is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (Stream : in out Buffer_Stream_Type;
       Item   : Stream_Element_Array)
    is

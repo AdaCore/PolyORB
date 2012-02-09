@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Impl;
 with CORBA.Object;
 
@@ -71,7 +73,7 @@ package body PolyORB.CORBA_P.ServantActivator is
    -- Incarnate --
    ---------------
 
-   procedure Incarnate
+   overriding procedure Incarnate
      (Self    : access CORBA_ServantActivator;
       Oid     :        PPT.Object_Id;
       Adapter : access PPT.Obj_Adapter'Class;
@@ -126,7 +128,7 @@ package body PolyORB.CORBA_P.ServantActivator is
    -- Etherealize --
    -----------------
 
-   procedure Etherealize
+   overriding procedure Etherealize
      (Self                  : access CORBA_ServantActivator;
       Oid                   :        PPT.Object_Id;
       Adapter               : access PPT.Obj_Adapter'Class;

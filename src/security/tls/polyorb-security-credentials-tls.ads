@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Errors;
 with PolyORB.TLS;
 with PolyORB.Types;
@@ -91,28 +93,28 @@ private
 
    --  Derived from Credentials
 
-   function Get_Accepting_Options_Supported
+   overriding function Get_Accepting_Options_Supported
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
-   function Get_Accepting_Options_Required
+   overriding function Get_Accepting_Options_Required
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
-   function Get_Invocation_Options_Supported
+   overriding function Get_Invocation_Options_Supported
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
-   function Get_Invocation_Options_Required
+   overriding function Get_Invocation_Options_Required
      (Self : access TLS_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
-   function Get_Identity
+   overriding function Get_Identity
      (Self : access TLS_Credentials)
       return PolyORB.Security.Identities.Identity_Access;
 
    --  Derived from Entity
 
-   procedure Finalize (Self : in out TLS_Credentials);
+   overriding procedure Finalize (Self : in out TLS_Credentials);
 
 end PolyORB.Security.Credentials.TLS;

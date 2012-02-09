@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PortableServer.ServantManager.Impl;
 
 package PortableServer.ServantLocator.Impl is
@@ -64,7 +66,7 @@ private
    type Object is
      new PortableServer.ServantManager.Impl.Object with null record;
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean;
 

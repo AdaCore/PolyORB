@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Fragmenter filter
 --  Fragment data which comes from endpoint whithout read length control
 --  For example UDP sockets
@@ -45,7 +47,7 @@ package PolyORB.Filters.Fragmenter is
 
    type Fragmenter_Factory is new Factory with private;
 
-   procedure Create
+   overriding procedure Create
      (Fact   : access Fragmenter_Factory;
       Fragmenter : out Filter_Access);
 
@@ -65,7 +67,7 @@ private
       Initial_Data_Expected : Ada.Streams.Stream_Element_Count;
    end record;
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access Fragmenter_Filter;
       S : Components.Message'Class) return Components.Message'Class;
 

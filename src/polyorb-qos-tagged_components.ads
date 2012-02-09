@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
@@ -58,7 +60,7 @@ package PolyORB.QoS.Tagged_Components is
    type QoS_GIOP_Tagged_Components_Parameter_Access is
      access all QoS_GIOP_Tagged_Components_Parameter'Class;
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (QoS : access QoS_GIOP_Tagged_Components_Parameter);
 
 end PolyORB.QoS.Tagged_Components;

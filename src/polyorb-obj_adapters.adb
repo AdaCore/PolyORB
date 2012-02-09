@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Obj_Adapters is
 
    -------------
@@ -45,7 +47,7 @@ package body PolyORB.Obj_Adapters is
    -- Finalize --
    --------------
 
-   procedure Finalize (OA : in out Obj_Adapter) is
+   overriding procedure Finalize (OA : in out Obj_Adapter) is
    begin
       --  Use Unchecked_Access so that passed value can be freely converted
       --  to named access type within the processing for Destroy.

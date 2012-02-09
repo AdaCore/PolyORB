@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Errors;
 
 package body PolyORB.Minimal_Servant is
@@ -38,7 +40,7 @@ package body PolyORB.Minimal_Servant is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Implementation;
       Req  : Requests.Request_Access) return Boolean is
    begin

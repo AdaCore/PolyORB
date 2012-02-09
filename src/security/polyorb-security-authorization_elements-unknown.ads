@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Security.Types;
 
 package PolyORB.Security.Authorization_Elements.Unknown is
@@ -37,19 +39,19 @@ package PolyORB.Security.Authorization_Elements.Unknown is
    type Unknown_Authorization_Element_Type is
      new Authorization_Element_Type with private;
 
-   function Get_Authorization_Element_Type
+   overriding function Get_Authorization_Element_Type
      (Self : access Unknown_Authorization_Element_Type)
       return Element_Type;
 
-   function Is_Holder
+   overriding function Is_Holder
      (Self     : access Unknown_Authorization_Element_Type;
       Identity :        PolyORB.Security.Identities.Identity_Access)
       return Boolean;
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (Self : access Unknown_Authorization_Element_Type);
 
-   function Encode
+   overriding function Encode
      (Self : access Unknown_Authorization_Element_Type)
       return Ada.Streams.Stream_Element_Array;
 

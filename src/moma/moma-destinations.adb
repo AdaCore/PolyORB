@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Any.ObjRef;
 with PolyORB.Initialization;
 
@@ -53,7 +55,7 @@ package body MOMA.Destinations is
    -- "=" --
    ---------
 
-   function "=" (Dest1 : Destination; Dest2 : Destination)
+   overriding function "=" (Dest1 : Destination; Dest2 : Destination)
                 return Boolean is
    begin
       return Get_Name (Dest1) = Get_Name (Dest2);

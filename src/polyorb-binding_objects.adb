@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding object: A protocol stacks considered as a reference-counted entity
 
 with PolyORB.Errors;
@@ -55,7 +57,7 @@ package body PolyORB.Binding_Objects is
    -- Finalize --
    --------------
 
-   procedure Finalize (X : in out Binding_Object) is
+   overriding procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Annotations;
       use PolyORB.Components;
       use PolyORB.Errors;

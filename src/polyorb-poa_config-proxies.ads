@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A POA configuration for the Proxy-objects-subPOA.
 
 package PolyORB.POA_Config.Proxies is
@@ -38,10 +40,10 @@ package PolyORB.POA_Config.Proxies is
 
    type Configuration is new Configuration_Type with private;
 
-   procedure Initialize
+   overriding procedure Initialize
      (C : Configuration);
 
-   function Default_Policies
+   overriding function Default_Policies
      (C : Configuration)
      return PolyORB.POA_Policies.PolicyList;
 

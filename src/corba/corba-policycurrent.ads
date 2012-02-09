@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Local;
 with CORBA.Policy;
 with CORBA.PolicyManager;
@@ -43,12 +45,12 @@ package CORBA.PolicyCurrent is
 
    type Local_Ref is new CORBA.PolicyManager.Local_Ref with null record;
 
-   function Get_Policy_Overrides
+   overriding function Get_Policy_Overrides
      (Self : Local_Ref;
       TS   : CORBA.Policy.PolicyTypeSeq)
      return CORBA.Policy.PolicyList;
 
-   procedure Set_Policy_Overrides
+   overriding procedure Set_Policy_Overrides
      (Self     : Local_Ref;
       Policies : CORBA.Policy.PolicyList;
       Set_Add  : SetOverrideType);
@@ -69,7 +71,7 @@ private
       Policies : CORBA.Policy.PolicyList;
       Set_Add  : CORBA.SetOverrideType);
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean;
 

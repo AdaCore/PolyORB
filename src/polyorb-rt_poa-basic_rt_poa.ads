@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.POA;
@@ -48,7 +50,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
    -- CORBA-like POA interface implementation --
    ---------------------------------------------
 
-   procedure Create_POA
+   overriding procedure Create_POA
      (Self         : access Basic_RT_Obj_Adapter;
       Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
@@ -56,7 +58,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       POA          :    out PolyORB.POA.Obj_Adapter_Access;
       Error        : in out PolyORB.Errors.Error_Container);
 
-   procedure Export
+   overriding procedure Export
      (OA    : access Basic_RT_Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
@@ -67,7 +69,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
    -- CORBA-like RT POA interface implementation --
    ------------------------------------------------
 
-   procedure Create_Object_Identification_With_Priority
+   overriding procedure Create_Object_Identification_With_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
       Hint                     :        Object_Id_Access;
       Server_ORB_Priority      : ORB_Priority;
@@ -75,7 +77,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container);
 
-   procedure Activate_Object_With_Id_And_Priority
+   overriding procedure Activate_Object_With_Id_And_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
       P_Servant                :        Servants.Servant_Access;
       Hint                     :        Object_Id_Access;
@@ -84,7 +86,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       U_Oid                    :    out Unmarshalled_Oid;
       Error                    : in out PolyORB.Errors.Error_Container);
 
-   procedure Get_Scheduling_Parameters
+   overriding procedure Get_Scheduling_Parameters
      (Self                     : access Basic_RT_Obj_Adapter;
       Id                       : Object_Id_Access;
       Model                    :    out Priority_Model;

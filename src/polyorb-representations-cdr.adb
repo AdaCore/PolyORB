@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams;
 
 with System.Address_Image;
@@ -863,7 +865,7 @@ package body PolyORB.Representations.CDR is
    -- Marshall_From_Any --
    -----------------------
 
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access CDR_Representation;
       Buffer : access Buffer_Type;
       CData  : Any.Any_Container'Class;
@@ -1327,7 +1329,7 @@ package body PolyORB.Representations.CDR is
    -- Release --
    -------------
 
-   procedure Release (Representation : in out CDR_Representation) is
+   overriding procedure Release (Representation : in out CDR_Representation) is
       use TC_Maps;
    begin
       Deallocate (Representation.TC_Map);
@@ -2091,7 +2093,7 @@ package body PolyORB.Representations.CDR is
    -- Unmarshall_To_Any --
    -----------------------
 
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access CDR_Representation;
       Buffer : access Buffer_Type;
       CData  : in out Any.Any_Container'Class;

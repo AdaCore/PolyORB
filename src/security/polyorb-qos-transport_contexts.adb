@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.QoS.Transport_Contexts is
 
    ----------------------
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (QoS : access QoS_Transport_Context_Parameter)
    is
       pragma Unreferenced (QoS);

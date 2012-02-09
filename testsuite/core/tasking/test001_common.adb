@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Utils.Report;
 
 with PolyORB.Tasking.Threads;
@@ -46,7 +48,7 @@ package body Test001_Common is
    type Generic_Runnable is new Runnable with record
       P  : Parameterless_Procedure;
    end record;
-   procedure Run (R : not null access Generic_Runnable);
+   overriding procedure Run (R : not null access Generic_Runnable);
 
    procedure Test_Task;
    --  Body of the task
@@ -67,7 +69,7 @@ package body Test001_Common is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Generic_Runnable) is
+   overriding procedure Run (R : not null access Generic_Runnable) is
    begin
       R.P.all;
    end Run;

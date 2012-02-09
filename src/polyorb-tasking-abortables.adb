@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Tasking.Abortables is
 
    Initialized : Boolean      := False;
@@ -71,7 +73,7 @@ package body PolyORB.Tasking.Abortables is
    -- Run --
    ---------
 
-   procedure Run (AR : not null access Abortable) is
+   overriding procedure Run (AR : not null access Abortable) is
    begin
       PTT.Run (AR.R);
    end Run;

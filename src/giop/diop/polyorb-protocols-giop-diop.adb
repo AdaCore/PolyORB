@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 
 with PolyORB.Utils.Strings;
@@ -40,7 +42,7 @@ package body PolyORB.Protocols.GIOP.DIOP is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access DIOP_Protocol;
       Session :    out Filter_Access) is
    begin

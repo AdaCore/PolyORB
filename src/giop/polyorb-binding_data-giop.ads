@@ -30,6 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  ???pragma Ada_2005;
+--  This pragma, and the "overriding" keywords below, are commented out because
+--  of a compiler bug. In particular, if a program is compiled in Ada 95 mode,
+--  and imports this package, we get an error on Is_Local_Profile, "not subtype
+--  conformant with declaration at line 45", "type of "P" does not match".
+
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.GIOP_P.Transport_Mechanisms;
 with PolyORB.Protocols.GIOP;
@@ -42,6 +48,7 @@ package PolyORB.Binding_Data.GIOP is
    type GIOP_Profile_Type is abstract new Profile_Type with private;
    type GIOP_Profile_Factory is abstract new Profile_Factory with private;
 
+   --  ???overriding (see above)
    procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
       The_ORB : Components.Component_Access;
@@ -49,16 +56,19 @@ package PolyORB.Binding_Data.GIOP is
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Errors.Error_Container);
 
+   --  ???overriding (see above)
    procedure Release (P : in out GIOP_Profile_Type);
 
    function Get_Component
      (P : GIOP_Profile_Type;
       C : PGTC.Tag_Value) return PGTC.Tagged_Component_Access;
 
+   --  ???overriding (see above)
    function Is_Colocated
      (Left  : GIOP_Profile_Type;
       Right : Profile_Type'Class) return Boolean;
 
+   --  ???overriding (see above)
    function Is_Local_Profile
      (PF : access GIOP_Profile_Factory;
       P  : access Profile_Type'Class) return Boolean;

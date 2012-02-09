@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Any conversion subprograms for sequences (both bounded and unbounded)
 
 with System;
@@ -82,35 +84,35 @@ private
 
    --  Aggregate container primitives
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Sequence_Content;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism)
       return PolyORB.Any.Content'Class;
 
-   procedure Set_Aggregate_Element
+   overriding procedure Set_Aggregate_Element
      (ACC    : in out Sequence_Content;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Sequence_Content) return PolyORB.Types.Unsigned_Long;
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC : in out Sequence_Content;
       Count : PolyORB.Types.Unsigned_Long);
 
-   function Clone
+   overriding function Clone
      (ACC  : Sequence_Content;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
 
-   function Unchecked_Get_V
+   overriding function Unchecked_Get_V
      (ACC : not null access Sequence_Content) return System.Address;
    --  Return the address of the first stored element
 
-   procedure Finalize_Value
+   overriding procedure Finalize_Value
      (ACC : in out Sequence_Content);
 
 end PolyORB.Sequences.Helper;

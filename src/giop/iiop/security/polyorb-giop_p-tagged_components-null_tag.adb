@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data.GIOP;
 with PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List;
 with PolyORB.GIOP_P.Transport_Mechanisms;
@@ -91,7 +93,10 @@ package body PolyORB.GIOP_P.Tagged_Components.Null_Tag is
    -- Duplicate --
    ---------------
 
-   function Duplicate (C : TC_Null_Tag) return Tagged_Component_Access is
+   overriding function Duplicate
+     (C : TC_Null_Tag)
+     return Tagged_Component_Access
+   is
       pragma Unreferenced (C);
 
    begin
@@ -125,7 +130,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Null_Tag is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_Null_Tag;
       Buffer : access Buffer_Type)
    is
@@ -139,7 +144,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Null_Tag is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (C : access TC_Null_Tag) is
+   overriding procedure Release_Contents (C : access TC_Null_Tag) is
       pragma Unreferenced (C);
    begin
       null;
@@ -182,7 +187,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Null_Tag is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Null_Tag;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.GIOP;
 with PolyORB.Components;
@@ -71,7 +73,7 @@ package body PolyORB.Protocols.GIOP is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access GIOP_Protocol;
       Session :    out Filter_Access)
    is
@@ -160,7 +162,7 @@ package body PolyORB.Protocols.GIOP is
    -- Destroy --
    -------------
 
-   procedure Destroy (S : in out GIOP_Session) is
+   overriding procedure Destroy (S : in out GIOP_Session) is
    begin
       pragma Debug (C, O ("Destroying GIOP session"));
       pragma Assert (S.State = Not_Initialized);
@@ -187,7 +189,7 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Data_Indication --
    ----------------------------
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
       Data_Amount : Stream_Element_Count;
       Error       : in out Errors.Error_Container)
@@ -252,7 +254,7 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Unmarshall_Arguments --
    ---------------------------------
 
-   procedure Handle_Unmarshall_Arguments
+   overriding procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;
       Args  : in out Any.NVList.Ref;
       Error : in out Errors.Error_Container)
@@ -281,14 +283,14 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Flush --
    ------------------
 
-   procedure Handle_Flush (Sess : access GIOP_Session)
+   overriding procedure Handle_Flush (Sess : access GIOP_Session)
      renames Expect_GIOP_Header;
 
    -------------------------------
    -- Handle_Connect_Indication --
    -------------------------------
 
-   procedure Handle_Connect_Indication
+   overriding procedure Handle_Connect_Indication
      (Sess : access GIOP_Session) is
    begin
       pragma Debug (C, O ("Handle_Connect_Indication"));
@@ -302,7 +304,9 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Connect_Confirmation --
    ---------------------------------
 
-   procedure Handle_Connect_Confirmation (Sess : access GIOP_Session) is
+   overriding procedure Handle_Connect_Confirmation
+     (Sess : access GIOP_Session)
+   is
       use PolyORB.Binding_Data.GIOP;
       use PolyORB.Binding_Objects;
    begin
@@ -331,7 +335,7 @@ package body PolyORB.Protocols.GIOP is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (Sess : access GIOP_Session; Error : Errors.Error_Container)
    is
       use Pend_Req_Tables;
@@ -397,7 +401,7 @@ package body PolyORB.Protocols.GIOP is
    -- Invoke_Request --
    --------------------
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (Sess : access GIOP_Session;
       R    :        Request_Access;
       Pro  : access Binding_Data.Profile_Type'Class)
@@ -494,7 +498,7 @@ package body PolyORB.Protocols.GIOP is
    -- Abort_Request --
    -------------------
 
-   procedure Abort_Request
+   overriding procedure Abort_Request
      (Sess : access GIOP_Session;
       R    :        Requests.Request_Access) is
    begin
@@ -505,7 +509,7 @@ package body PolyORB.Protocols.GIOP is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (Sess : access GIOP_Session;
       R    :        Requests.Request_Access) is
    begin

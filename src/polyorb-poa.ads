@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstract interface for the POA Object Adapter
 
 --  This package provides a higher level abstraction (the POA) of a
@@ -254,53 +256,53 @@ package PolyORB.POA is
    -- PolyORB Obj_Adapter interface implementation --
    --------------------------------------------------
 
-   procedure Create
+   overriding procedure Create
      (OA : access Obj_Adapter);
 
-   procedure Destroy
+   overriding procedure Destroy
      (OA : access Obj_Adapter);
 
-   procedure Export
+   overriding procedure Export
      (OA    : access Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Unexport
+   overriding procedure Unexport
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Object_Key
+   overriding procedure Object_Key
      (OA      : access Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Get_QoS
+   overriding procedure Get_QoS
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id;
       QoS   :    out PolyORB.QoS.QoS_Parameters;
       Error : in out PolyORB.Errors.Error_Container);
 
-   function Get_Empty_Arg_List
+   overriding function Get_Empty_Arg_List
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String) return Any.NVList.Ref;
 
-   function Get_Empty_Result
+   overriding function Get_Empty_Result
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String) return Any.Any;
 
-   procedure Find_Servant
+   overriding procedure Find_Servant
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Release_Servant
+   overriding procedure Release_Servant
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access);
@@ -320,14 +322,14 @@ package PolyORB.POA is
    --  Remove a child POA from Self's list of children
    --  Does not lock the list of children
 
-   procedure Oid_To_Rel_URI
+   overriding procedure Oid_To_Rel_URI
      (OA    : access Obj_Adapter;
       Id    : access Object_Id;
       URI   : out Types.String;
       Error : in out PolyORB.Errors.Error_Container);
    --  Convert an object id to its representation as a relative URI
 
-   function Rel_URI_To_Oid
+   overriding function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI :        String) return Object_Id_Access;
    --  Convert an object id from its representation as a relative URI

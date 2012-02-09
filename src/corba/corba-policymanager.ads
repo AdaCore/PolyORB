@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Local;
 with CORBA.Object;
 with CORBA.Policy;
@@ -73,7 +75,7 @@ private
       Policies : CORBA.Policy.PolicyList;
       Set_Add  : CORBA.SetOverrideType);
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean;
 

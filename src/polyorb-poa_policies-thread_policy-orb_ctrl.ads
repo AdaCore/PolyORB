@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of the 'ORB Control' POA Policy.
 
 package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
@@ -39,12 +41,12 @@ package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    function Create return ORB_Ctrl_Policy_Access;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           : ORB_Ctrl_Policy;
       Other_Policies : AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);
 
-   function Policy_Id (Self : ORB_Ctrl_Policy) return String;
+   overriding function Policy_Id (Self : ORB_Ctrl_Policy) return String;
 
 private
 

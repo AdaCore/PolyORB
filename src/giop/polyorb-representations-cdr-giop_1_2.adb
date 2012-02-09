@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
@@ -61,7 +63,7 @@ package body PolyORB.Representations.CDR.GIOP_1_2 is
    -- Set_Converters --
    --------------------
 
-   procedure Set_Converters
+   overriding procedure Set_Converters
      (R : in out GIOP_1_2_CDR_Representation;
       C : PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
       W : PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access)

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    ------------
@@ -46,7 +48,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        No_Activation_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -66,7 +68,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : No_Activation_Policy)
      return String
    is
@@ -82,7 +84,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Implicit_Activate_Servant --
    -------------------------------
 
-   procedure Implicit_Activate_Servant
+   overriding procedure Implicit_Activate_Servant
      (Self      :        No_Activation_Policy;
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;
@@ -110,7 +112,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Ensure_No_Implicit_Activation --
    -----------------------------------
 
-   procedure Ensure_No_Implicit_Activation
+   overriding procedure Ensure_No_Implicit_Activation
      (Self      :        No_Activation_Policy;
       Error     : in out PolyORB.Errors.Error_Container)
    is

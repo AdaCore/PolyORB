@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
@@ -80,7 +82,9 @@ package body PolyORB.QoS.Security_Contexts is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (QoS : access QoS_Security_Context_Parameter) is
+   overriding procedure Release_Contents
+     (QoS : access QoS_Security_Context_Parameter)
+   is
 
       procedure Free is
         new Ada.Unchecked_Deallocation

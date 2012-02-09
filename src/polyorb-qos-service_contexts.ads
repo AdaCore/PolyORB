@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Requests;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
@@ -69,7 +71,7 @@ package PolyORB.QoS.Service_Contexts is
    type QoS_GIOP_Service_Contexts_Parameter_Access is
      access all QoS_GIOP_Service_Contexts_Parameter'Class;
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (QoS : access QoS_GIOP_Service_Contexts_Parameter);
 
    procedure Rebuild_Request_Service_Contexts (Req : in out Requests.Request);

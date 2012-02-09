@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.CORBA_P.Initial_References;
 with PolyORB.CORBA_P.Policy_Management;
@@ -50,7 +52,7 @@ package body CORBA.PolicyManager is
    -- Is_A --
    ----------
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean
    is

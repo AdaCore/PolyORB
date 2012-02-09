@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  As defined by the IDL-to-Ada mapping, this package has the same
 --  specification and semantic as the
 --  Ada.Strings.Bounded.Generic_Bounded_Length package
@@ -164,7 +166,7 @@ package CORBA.Bounded_Strings is
       High   : Natural)
      return   Standard.String;
 
-   function "="  (Left, Right : Bounded_String) return Boolean;
+   overriding function "="  (Left, Right : Bounded_String) return Boolean;
 
    function "="
      (Left  : Bounded_String;

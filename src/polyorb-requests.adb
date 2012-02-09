@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Errors.Helper;
@@ -145,7 +147,7 @@ package body PolyORB.Requests is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Req : in out Request) is
+   overriding procedure Initialize (Req : in out Request) is
    begin
       Tasking.Mutexes.Create (Req.Upcall_Abortable_Mutex);
    end Initialize;
@@ -154,7 +156,7 @@ package body PolyORB.Requests is
    -- Finalize --
    --------------
 
-   procedure Finalize (Req : in out Request) is
+   overriding procedure Finalize (Req : in out Request) is
    begin
       PolyORB.Utils.Strings.Free (Req.Operation);
       Annotations.Destroy (Req.Notepad);
@@ -737,7 +739,9 @@ package body PolyORB.Requests is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Request_Completion_Runnable) is
+   overriding procedure Run
+     (R : not null access Request_Completion_Runnable)
+   is
       use PolyORB.Setup;
    begin
       PolyORB.ORB.Run (The_ORB, R.Req.all'Unchecked_Access, May_Exit => True);

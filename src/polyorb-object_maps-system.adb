@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 with PolyORB.Types;
 
@@ -51,7 +53,7 @@ package body PolyORB.Object_Maps.System is
    -- Initialize --
    ----------------
 
-   procedure Initialize (O_Map : in out System_Object_Map) is
+   overriding procedure Initialize (O_Map : in out System_Object_Map) is
    begin
       Initialize (O_Map.System_Map);
    end Initialize;
@@ -60,7 +62,7 @@ package body PolyORB.Object_Maps.System is
    -- Finalize --
    --------------
 
-   procedure Finalize (O_Map : in out System_Object_Map) is
+   overriding procedure Finalize (O_Map : in out System_Object_Map) is
    begin
       Deallocate (O_Map.System_Map);
    end Finalize;
@@ -143,7 +145,7 @@ package body PolyORB.Object_Maps.System is
    -- Get_By_Id --
    ---------------
 
-   function Get_By_Id
+   overriding function Get_By_Id
      (O_Map : System_Object_Map;
       Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access is
@@ -164,7 +166,7 @@ package body PolyORB.Object_Maps.System is
    -- Get_By_Servant --
    --------------------
 
-   function Get_By_Servant
+   overriding function Get_By_Servant
      (O_Map  : System_Object_Map;
       Item   : PolyORB.Servants.Servant_Access)
      return Object_Map_Entry_Access
@@ -196,7 +198,7 @@ package body PolyORB.Object_Maps.System is
    -- Remove_By_Id --
    ------------------
 
-   function Remove_By_Id
+   overriding function Remove_By_Id
      (O_Map : access System_Object_Map;
       Item  : PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access

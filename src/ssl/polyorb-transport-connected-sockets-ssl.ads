@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  SSL transport service access points and transport endpoints.
 
 with PolyORB.SSL;
@@ -46,11 +48,11 @@ package PolyORB.Transport.Connected.Sockets.SSL is
       Address : in out PolyORB.Sockets.Sock_Addr_Type;
       Context : PolyORB.SSL.SSL_Context_Type);
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TAP : access SSL_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   procedure Accept_Connection
+   overriding procedure Accept_Connection
      (TAP : SSL_Access_Point;
       TE  : out Transport_Endpoint_Access);
 
@@ -64,24 +66,27 @@ package PolyORB.Transport.Connected.Sockets.SSL is
      (TE : in out SSL_Endpoint;
       S  : PolyORB.SSL.SSL_Socket_Type);
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TE : access SSL_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   function Is_Data_Available (TE : SSL_Endpoint; N : Natural) return Boolean;
+   overriding function Is_Data_Available
+     (TE : SSL_Endpoint;
+      N : Natural)
+     return Boolean;
 
-   procedure Read
+   overriding procedure Read
      (TE     : in out SSL_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
       Error  : out Errors.Error_Container);
 
-   procedure Write
+   overriding procedure Write
      (TE     : in out SSL_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Error  : out Errors.Error_Container);
 
-   procedure Close (TE : access SSL_Endpoint);
+   overriding procedure Close (TE : access SSL_Endpoint);
 
 private
 

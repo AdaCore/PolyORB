@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Client Side CORBA CSI Version 2 Compound Mechanism Configuration
 
 with PolyORB.Annotations;
@@ -95,7 +97,8 @@ package PolyORB.QoS.Clients_Security is
    type QoS_Client_Security_Parameter_Access is
      access all QoS_Client_Security_Parameter;
 
-   procedure Release_Contents (QoS : access QoS_Client_Security_Parameter);
+   overriding procedure Release_Contents
+     (QoS : access QoS_Client_Security_Parameter);
 
    procedure Destroy (Mechanism : in out Client_Mechanism_Access);
 

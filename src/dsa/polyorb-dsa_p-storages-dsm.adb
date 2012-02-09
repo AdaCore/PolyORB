@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package body contains the full declaration of the concret type
 --  DSM_Manager. This is convenient because it allows to use non remote
 --  types in DSM_Manager record (Mutexes, Any), so only RACW primitives
@@ -109,62 +111,51 @@ package body PolyORB.DSA_P.Storages.DSM is
 
    --  Remotely called primitives
 
-   overriding
-   procedure Invalidate_Request
+   overriding procedure Invalidate_Request
      (Self      : access DSM_Manager;
       Rqst_Node : DSM_Manager_RACW;
       Version   : Integer);
 
-   overriding
-   procedure Write_Request
+   overriding procedure Write_Request
      (Self        : access DSM_Manager;
       Rqst_Node   : DSM_Manager_RACW);
 
-   overriding
-   procedure Write_Reply
+   overriding procedure Write_Reply
      (Self        : access DSM_Manager;
       Var_Data    : SDT.Any_Container_Ptr;
       Read_Copies : Copy_Set_Type;
       Version     : Integer);
 
-   overriding
-   procedure Read_Request
+   overriding procedure Read_Request
      (Self       : access DSM_Manager;
       Rqst_Node  : DSM_Manager_RACW);
 
-   overriding
-   procedure Read_Reply
+   overriding procedure Read_Reply
      (Self        : access DSM_Manager;
       Var_Data    : SDT.Any_Container_Ptr;
       Reply_Node  : DSM_Manager_RACW;
       Version     : Integer);
 
-   overriding
-   function Get_Initial_Owner
+   overriding function Get_Initial_Owner
      (Self      : access DSM_Manager;
       Var_Name  : String)
       return DSM_Manager_RACW;
 
    --  Locally called primitives
 
-   overriding
-   procedure Read
+   overriding procedure Read
      (Self : access DSM_Manager;
       Var  : SDT.Any_Container_Ptr);
 
-   overriding
-   procedure Write
+   overriding procedure Write
      (Self : access DSM_Manager;
       Var  : SDT.Any_Container_Ptr);
 
-   overriding
-   procedure Lock   (Self : access DSM_Manager);
+   overriding procedure Lock   (Self : access DSM_Manager);
 
-   overriding
-   procedure Unlock (Self : access DSM_Manager);
+   overriding procedure Unlock (Self : access DSM_Manager);
 
-   overriding
-   function Create
+   overriding function Create
      (Manager_Factory : access DSM_Manager;
       Full_Name       : String) return Shared_Data_Manager_RACW;
 
@@ -208,7 +199,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (Manager_Factory : access DSM_Manager;
       Full_Name       : String) return Shared_Data_Manager_RACW
    is
@@ -265,7 +256,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Get_Initial_Owner --
    -----------------------
 
-   function Get_Initial_Owner
+   overriding function Get_Initial_Owner
      (Self      : access DSM_Manager;
       Var_Name  : String) return DSM_Manager_RACW
    is
@@ -281,7 +272,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Invalidate_Request --
    ------------------------
 
-   procedure Invalidate_Request
+   overriding procedure Invalidate_Request
      (Self      : access DSM_Manager;
       Rqst_Node : DSM_Manager_RACW;
       Version   : Integer)
@@ -333,7 +324,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Lock --
    ----------
 
-   procedure Lock (Self : access DSM_Manager) is
+   overriding procedure Lock (Self : access DSM_Manager) is
    begin
       Enter (Self.Synchs.Protected_Object);
       Enter (Self.Synchs.Critical_Section);
@@ -378,7 +369,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (Self : access DSM_Manager;
       Var  : SDT.Any_Container_Ptr) is
    begin
@@ -414,7 +405,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Read_Reply --
    ----------------
 
-   procedure Read_Reply
+   overriding procedure Read_Reply
      (Self        : access DSM_Manager;
       Var_Data    : SDT.Any_Container_Ptr;
       Reply_Node  : DSM_Manager_RACW;
@@ -440,7 +431,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Read_Request --
    ------------------
 
-   procedure Read_Request
+   overriding procedure Read_Request
      (Self       : access DSM_Manager;
       Rqst_Node  : DSM_Manager_RACW)
    is
@@ -519,7 +510,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Unlock --
    ------------
 
-   procedure Unlock (Self : access DSM_Manager) is
+   overriding procedure Unlock (Self : access DSM_Manager) is
    begin
       --  Exit the protected object critical section
 
@@ -530,7 +521,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (Self : access DSM_Manager;
       Var  : SDT.Any_Container_Ptr)
    is
@@ -591,7 +582,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Write_Reply --
    -------------------
 
-   procedure Write_Reply
+   overriding procedure Write_Reply
      (Self        : access DSM_Manager;
       Var_Data    : SDT.Any_Container_Ptr;
       Read_Copies : Copy_Set_Type;
@@ -617,7 +608,7 @@ package body PolyORB.DSA_P.Storages.DSM is
    -- Write_Request --
    -------------------
 
-   procedure Write_Request
+   overriding procedure Write_Request
      (Self      : access DSM_Manager;
       Rqst_Node : DSM_Manager_RACW)
    is

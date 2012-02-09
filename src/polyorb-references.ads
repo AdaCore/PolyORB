@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  References on object exported by the ORB.
 
 with Ada.Streams;
@@ -192,7 +194,7 @@ private
    function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
    --  Obtain the object reference information from R.
 
-   procedure Finalize (RI : in out Reference_Info);
+   overriding procedure Finalize (RI : in out Reference_Info);
    --  When an object reference is bound (i.e. associated at runtime with a
    --  transport service endpoint and a protocol stack), it becomes associated
    --  with a Binding_Object which will remain in existence until all

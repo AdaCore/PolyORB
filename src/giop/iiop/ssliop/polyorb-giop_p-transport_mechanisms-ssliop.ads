@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans;
 with PolyORB.Utils.Sockets;
 
@@ -37,7 +39,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
    type SSLIOP_Transport_Mechanism is new Transport_Mechanism with private;
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : SSLIOP_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -45,29 +47,30 @@ package PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container);
 
-   procedure Release_Contents (M : access SSLIOP_Transport_Mechanism);
+   overriding procedure Release_Contents
+     (M : access SSLIOP_Transport_Mechanism);
 
    type SSLIOP_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with private;
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (MF  : out SSLIOP_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access);
 
-   function Is_Local_Mechanism
+   overriding function Is_Local_Mechanism
      (MF : access SSLIOP_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
       return Boolean;
 
-   function Create_Tagged_Components
+   overriding function Create_Tagged_Components
      (MF : SSLIOP_Transport_Mechanism_Factory)
       return Tagged_Components.Tagged_Component_List;
 
-   function Duplicate
+   overriding function Duplicate
      (TMA : SSLIOP_Transport_Mechanism)
      return SSLIOP_Transport_Mechanism;
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : SSLIOP_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean;
 

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Log;
 
@@ -52,7 +54,7 @@ package body PolyORB.Request_QoS is
       Reply_QoS   : QoS_Parameters;
    end record;
 
-   procedure Destroy (N : in out QoS_Note);
+   overriding procedure Destroy (N : in out QoS_Note);
 
    Empty : constant QoS_Parameters := (others => null);
 
@@ -106,7 +108,7 @@ package body PolyORB.Request_QoS is
    -- Destroy --
    -------------
 
-   procedure Destroy (N : in out QoS_Note) is
+   overriding procedure Destroy (N : in out QoS_Note) is
    begin
       for J in QoS_Kind loop
          Release (N.Request_QoS (J));

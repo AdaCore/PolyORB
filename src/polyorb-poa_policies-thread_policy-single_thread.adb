@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of the POA Policy 'Single Thread'.
 
 --  Under this policy, upcalls made by a POA shall not be made concurrently.
@@ -76,7 +78,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Single_Thread_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -96,7 +98,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Single_Thread_Policy)
       return String
    is
@@ -111,7 +113,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    -- Execute_In_Context --
    ------------------------
 
-   function Execute_In_Context
+   overriding function Execute_In_Context
      (Self      : access Single_Thread_Executor;
       Req       : Requests.Request_Access;
       Requestor : Components.Component_Access) return Boolean

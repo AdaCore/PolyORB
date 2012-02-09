@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.Security.Transport_Mechanisms.TLS is
 
    type Client_TLS_Transport_Mechanism is
@@ -39,15 +41,15 @@ package PolyORB.Security.Transport_Mechanisms.TLS is
       Target_Requires : PolyORB.Security.Types.Association_Options;
    end record;
 
-   function Target_Supports
+   overriding function Target_Supports
      (Mechanism : access Client_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options;
 
-   function Target_Requires
+   overriding function Target_Requires
      (Mechanism : access Client_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options;
 
-   function Is_Supports
+   overriding function Is_Supports
      (Mechanism   : access Client_TLS_Transport_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Boolean;
@@ -58,23 +60,23 @@ package PolyORB.Security.Transport_Mechanisms.TLS is
       Credentials : PolyORB.Security.Credentials.Credentials_Ref;
    end record;
 
-   function Target_Supports
+   overriding function Target_Supports
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options;
 
-   function Target_Requires
+   overriding function Target_Requires
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options;
 
-   function Supported_Identity_Types
+   overriding function Supported_Identity_Types
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Identity_Token_Type;
 
-   function Supported_Naming_Mechanisms
+   overriding function Supported_Naming_Mechanisms
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.OID_Lists.List;
 
-   procedure Set_Accepting_Credentials
+   overriding procedure Set_Accepting_Credentials
      (Mechanism   : access Target_TLS_Transport_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref);
 

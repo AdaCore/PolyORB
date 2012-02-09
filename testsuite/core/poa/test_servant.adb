@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body Test_Servant is
 
    use PolyORB.Types;
@@ -38,7 +40,7 @@ package body Test_Servant is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (S   : not null access My_Servant;
       Req : PolyORB.Requests.Request_Access) return Boolean
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  An XML/Ada input source type based on PolyORB buffers.
 
 with Ada.Streams;
@@ -50,7 +52,7 @@ package body PolyORB.Buffer_Sources is
       S.Buf := B;
    end Set_Buffer;
 
-   procedure Next_Char
+   overriding procedure Next_Char
      (From : in out Input_Source;
       C    : out Unicode.Unicode_Char)
    is
@@ -58,7 +60,7 @@ package body PolyORB.Buffer_Sources is
       C := Unicode.To_Unicode (Unmarshall_Char (From.Buf));
    end Next_Char;
 
-   function Eof (From : Input_Source)
+   overriding function Eof (From : Input_Source)
      return Boolean
    is
    begin

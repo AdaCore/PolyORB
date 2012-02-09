@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Profile type for objects registered with the local ORB
 
 with PolyORB.Objects;
@@ -40,36 +42,36 @@ package PolyORB.Binding_Data.Local is
 
    type Local_Profile_Type is new Profile_Type with private;
 
-   procedure Release (P : in out Local_Profile_Type);
+   overriding procedure Release (P : in out Local_Profile_Type);
 
    procedure Create_Local_Profile
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type);
 
-   function Duplicate_Profile
+   overriding function Duplicate_Profile
      (P : Local_Profile_Type)
      return Profile_Access;
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access Local_Profile_Type;
       The_ORB :        Components.Component_Access;
       QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container);
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : Local_Profile_Type)
      return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : Local_Profile_Type)
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   function Image (Prof : Local_Profile_Type) return String;
+   overriding function Image (Prof : Local_Profile_Type) return String;
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : Local_Profile_Type;
       Right : Profile_Type'Class) return Boolean;
 

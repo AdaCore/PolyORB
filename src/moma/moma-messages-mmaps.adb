@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body MOMA.Messages.MMaps is
 
    --------------
@@ -69,7 +71,7 @@ package body MOMA.Messages.MMaps is
    -- Image --
    -----------
 
-   function Image (Self : MMap) return String is
+   overriding function Image (Self : MMap) return String is
    begin
       return Image (Get_Payload (Self));
    end Image;

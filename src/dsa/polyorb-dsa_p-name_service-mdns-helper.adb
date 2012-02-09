@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  mDNS Helper package containing type declarations and corresponding
 --  marshall/unmarshall primitives
 
@@ -71,7 +73,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR_Type;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -96,7 +98,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_RR_Type;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -118,7 +120,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR_Type)
         return PolyORB.Types.Unsigned_Long
       is
@@ -131,7 +133,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR_Type;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -143,7 +145,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Type)
         return PolyORB.Types.Address
       is
@@ -161,7 +163,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR_Type;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -196,7 +198,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR_Type)
       is
          procedure Free
@@ -313,7 +315,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_SRV_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -352,7 +354,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_SRV_Data)
         return PolyORB.Types.Unsigned_Long
       is
@@ -365,7 +367,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_SRV_Data;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -377,7 +379,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_SRV_Data)
         return PolyORB.Types.Address
       is
@@ -395,7 +397,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_SRV_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -427,7 +429,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_SRV_Data)
       is
          procedure Free
@@ -608,7 +610,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -654,7 +656,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -681,7 +683,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR_Data)
         return PolyORB.Types.Unsigned_Long
       is
@@ -694,7 +696,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR_Data;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -706,7 +708,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Data)
         return PolyORB.Types.Address
       is
@@ -724,7 +726,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -760,7 +762,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR_Data)
       is
          procedure Free
@@ -884,7 +886,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -926,7 +928,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR)
         return PolyORB.Types.Unsigned_Long
       is
@@ -939,7 +941,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -951,7 +953,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR)
         return PolyORB.Types.Address
       is
@@ -969,7 +971,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -1001,7 +1003,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR)
       is
          procedure Free
@@ -1138,7 +1140,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -1163,7 +1165,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -1185,7 +1187,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_Rcode)
         return PolyORB.Types.Unsigned_Long
       is
@@ -1198,7 +1200,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_Rcode;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -1210,7 +1212,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_Rcode)
         return PolyORB.Types.Address
       is
@@ -1228,7 +1230,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_Rcode;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -1263,7 +1265,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_Rcode)
       is
          procedure Free

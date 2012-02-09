@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Definition of the universal container/wrapper type 'Any'
 
 pragma Ada_2005;
@@ -213,7 +215,9 @@ package PolyORB.Any is
       function Equal (Left, Right : Local_Ref) return Boolean;
       --  TypeCode equality
 
-      function "=" (Left, Right : Local_Ref) return Boolean renames Equal;
+      overriding function "="
+        (Left, Right : Local_Ref)
+        return Boolean renames Equal;
 
       function Equivalent (Left, Right : Object_Ptr) return Boolean;
       function Equivalent (Left, Right : Local_Ref) return Boolean;
@@ -375,7 +379,7 @@ package PolyORB.Any is
       procedure Add_Parameter (Self : Local_Ref; Param : Any);
       --  Append Param to Self's parameter list
 
-      procedure Finalize (Self : in out Object);
+      overriding procedure Finalize (Self : in out Object);
       --  Reclaim all storage associated with Self's parameters
 
       --  Standard typecode constants
@@ -578,7 +582,7 @@ package PolyORB.Any is
    ---------
 
    function "=" (Left, Right : Any_Container'Class) return Boolean;
-   function "=" (Left, Right : Any) return Boolean;
+   overriding function "=" (Left, Right : Any) return Boolean;
    --  Equality on stored value
 
    function Get_Container (A : Any) return Any_Container_Ptr;
@@ -993,10 +997,10 @@ private
    type Content is abstract tagged null record;
    type No_Content is new Content with null record;
 
-   function Clone
+   overriding function Clone
      (CC   : No_Content;
       Into : Content_Ptr := null) return Content_Ptr;
-   procedure Finalize_Value (CC : in out No_Content);
+   overriding procedure Finalize_Value (CC : in out No_Content);
    --  These operations should never be called on a No_Content value
 
    ------------------
@@ -1026,7 +1030,7 @@ private
 
       end record;
 
-   procedure Finalize (Self : in out Any_Container);
+   overriding procedure Finalize (Self : in out Any_Container);
    --  Finalize Container, deallocating associated resources if necessary
    --  (this is not Ada finalization, but the Finalize primitive of the
    --  Non_Controlled_Entity type).
@@ -1075,10 +1079,10 @@ private
       type T_Ptr is access all T;
       type T_Content is new Content with private;
 
-      function Clone
+      overriding function Clone
         (CC   : T_Content;
          Into : Content_Ptr := null) return Content_Ptr;
-      procedure Finalize_Value (CC : in out T_Content);
+      overriding procedure Finalize_Value (CC : in out T_Content);
 
       function From_Any (C : Any_Container'Class) return T;
       function From_Any is new From_Any_G (T, From_Any);
@@ -1089,7 +1093,7 @@ private
 
       function Wrap (X : not null access T) return Content'Class;
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (X : not null access T_Content) return System.Address;
       pragma Inline (Unchecked_Get_V);
 

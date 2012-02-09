@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 
 with PolyORB.Annotations;
@@ -59,7 +61,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    -- Register_Task --
    -------------------
 
-   procedure Register_Task
+   overriding procedure Register_Task
      (O  : access ORB_Controller_Leader_Followers;
       TI :        PTI.Task_Info_Access)
    is
@@ -77,7 +79,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    -- Disable_Polling --
    ---------------------
 
-   procedure Disable_Polling
+   overriding procedure Disable_Polling
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -109,7 +111,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    -- Enable_Polling --
    --------------------
 
-   procedure Enable_Polling
+   overriding procedure Enable_Polling
      (O : access ORB_Controller_Leader_Followers;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -130,7 +132,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    -- Notify_Event --
    ------------------
 
-   procedure Notify_Event
+   overriding procedure Notify_Event
      (O : access ORB_Controller_Leader_Followers;
       E :        Event)
    is
@@ -326,7 +328,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    -- Schedule_Task --
    -------------------
 
-   procedure Schedule_Task
+   overriding procedure Schedule_Task
      (O  : access ORB_Controller_Leader_Followers;
       TI : PTI.Task_Info_Access)
    is
@@ -431,7 +433,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (OCF : ORB_Controller_Leader_Followers_Factory)
       return ORB_Controller_Access
    is

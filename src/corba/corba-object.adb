@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
@@ -320,7 +322,7 @@ package body CORBA.Object is
    -- Is_Nil --
    ------------
 
-   function Is_Nil (Self : Ref) return CORBA.Boolean is
+   overriding function Is_Nil (Self : Ref) return CORBA.Boolean is
    begin
       return Is_Nil (PolyORB.Smart_Pointers.Ref (Self));
    end Is_Nil;
@@ -419,7 +421,7 @@ package body CORBA.Object is
    -- Release --
    -------------
 
-   procedure Release (Self : in out Ref) is
+   overriding procedure Release (Self : in out Ref) is
    begin
       Release (PolyORB.Smart_Pointers.Ref (Self));
    end Release;

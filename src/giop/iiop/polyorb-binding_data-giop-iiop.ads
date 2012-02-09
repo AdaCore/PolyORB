@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding data concrete implementation for IIOP.
 
 with PolyORB.Buffers;
@@ -42,21 +44,25 @@ package PolyORB.Binding_Data.GIOP.IIOP is
    type IIOP_Profile_Type is new GIOP_Profile_Type with private;
    type IIOP_Profile_Factory is new GIOP_Profile_Factory with private;
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access IIOP_Profile_Factory;
       Oid : Objects.Object_Id) return Profile_Access;
 
-   function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access;
+   overriding function Duplicate_Profile
+     (P : IIOP_Profile_Type)
+     return Profile_Access;
 
-   function Get_Profile_Tag (Profile : IIOP_Profile_Type) return Profile_Tag;
+   overriding function Get_Profile_Tag
+     (Profile : IIOP_Profile_Type)
+     return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : IIOP_Profile_Type)
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out IIOP_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access);
@@ -69,7 +75,7 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      (Buffer : access Buffer_Type)
      return Profile_Access;
 
-   function Image (Prof : IIOP_Profile_Type) return String;
+   overriding function Image (Prof : IIOP_Profile_Type) return String;
 
    procedure Add_Transport_Mechanism_Factory
      (PF : in out IIOP_Profile_Factory;

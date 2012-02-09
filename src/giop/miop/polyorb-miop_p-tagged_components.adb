@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MIOP specific tagged components
 
 with Ada.Streams;
@@ -69,7 +71,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type)
    is
@@ -95,7 +97,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
@@ -139,7 +141,10 @@ package body PolyORB.MIOP_P.Tagged_Components is
    -- Duplicate --
    ---------------
 
-   function Duplicate (Comp : TC_Group_Info) return Tagged_Component_Access is
+   overriding function Duplicate
+     (Comp : TC_Group_Info)
+     return Tagged_Component_Access
+   is
    begin
       return new TC_Group_Info'(Comp);
    end Duplicate;
@@ -148,7 +153,7 @@ package body PolyORB.MIOP_P.Tagged_Components is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (Comp : access TC_Group_Info) is
+   overriding procedure Release_Contents (Comp : access TC_Group_Info) is
       pragma Unreferenced (Comp);
    begin
       null;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Basic POA implementation.
 
 with Ada.Streams;
@@ -53,7 +55,7 @@ package body PolyORB.POA.Basic_POA is
    -- Create_POA --
    ----------------
 
-   procedure Create_POA
+   overriding procedure Create_POA
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
@@ -90,7 +92,7 @@ package body PolyORB.POA.Basic_POA is
    -- Is_Proxy_Oid --
    ------------------
 
-   function Is_Proxy_Oid
+   overriding function Is_Proxy_Oid
      (OA  : access Basic_Obj_Adapter;
       Oid : access Objects.Object_Id)
      return Boolean is
@@ -122,7 +124,7 @@ package body PolyORB.POA.Basic_POA is
    -- To_Proxy_Oid --
    ------------------
 
-   procedure To_Proxy_Oid
+   overriding procedure To_Proxy_Oid
      (OA    : access Basic_Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Object_Id_Access;
@@ -167,7 +169,7 @@ package body PolyORB.POA.Basic_POA is
    -- Proxy_To_Ref --
    ------------------
 
-   procedure Proxy_To_Ref
+   overriding procedure Proxy_To_Ref
      (OA    : access Basic_Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;

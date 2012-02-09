@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
@@ -47,13 +49,13 @@ package body PolyORB.Parameters.Command_Line is
    -------------------------
 
    type Cmd_Line_Source is new Parameters_Source with null record;
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access Cmd_Line_Source;
       Section, Key : String) return String;
 
    The_Cmd_Line_Source : aliased Cmd_Line_Source;
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access Cmd_Line_Source;
       Section, Key : String) return String
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 
 package body PolyORB.Any.NVList is
@@ -78,7 +80,7 @@ package body PolyORB.Any.NVList is
    -- Finalize --
    --------------
 
-   procedure Finalize
+   overriding procedure Finalize
      (X : in out Object) is
    begin
       Internals.NV_Lists.Deallocate (X.List);

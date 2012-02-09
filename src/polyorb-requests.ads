@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  The Request object
 
 pragma Ada_2005;
@@ -218,8 +220,8 @@ package PolyORB.Requests is
       --  add-on information in a Request.
    end record;
 
-   procedure Initialize (Req : in out Request);
-   procedure Finalize (Req : in out Request);
+   overriding procedure Initialize (Req : in out Request);
+   overriding procedure Finalize (Req : in out Request);
 
    type Request_Access is access all Request;
 

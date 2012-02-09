@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with GNAT.HTable;
 --  XXX Use PolyORB's Hash table ...
 
@@ -141,7 +143,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    -- Invoke --
    ------------
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self    : access Object;
       Request : PolyORB.Requests.Request_Access)
    is

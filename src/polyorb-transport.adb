@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstract transport service access points and communication endpoints
 
 with PolyORB.Filters.Iface;
@@ -54,7 +56,7 @@ package body PolyORB.Transport is
    -- Handle_Mesage --
    -------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (TAP : not null access Transport_Access_Point;
       Msg : Components.Message'Class) return Components.Message'Class
    is
@@ -72,7 +74,7 @@ package body PolyORB.Transport is
       pragma Warnings (On);
    end Handle_Message;
 
-   function Handle_Message
+   overriding function Handle_Message
      (TE  : not null access Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class
    is
@@ -154,7 +156,7 @@ package body PolyORB.Transport is
    -- Destroy --
    -------------
 
-   procedure Destroy
+   overriding procedure Destroy
      (TE : in out Transport_Endpoint)
    is
    begin

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.POA;
 
 package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
@@ -48,7 +50,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Transient_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -68,7 +70,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Transient_Policy)
      return String
    is
@@ -84,7 +86,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -- Get_Lifespan_Cookie --
    -------------------------
 
-   function Get_Lifespan_Cookie
+   overriding function Get_Lifespan_Cookie
      (Self : Transient_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
      return Lifespan_Cookie
@@ -101,7 +103,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -- Ensure_Lifespan --
    ---------------------
 
-   procedure Ensure_Lifespan
+   overriding procedure Ensure_Lifespan
      (Self  :        Transient_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid :        Unmarshalled_Oid;

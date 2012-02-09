@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 pragma Warnings (Off);
 with Ada.Strings.Wide_Superbounded;  --  Internal GNAT unit
 pragma Warnings (On);
@@ -101,7 +103,9 @@ package body CORBA.Bounded_Wide_Strings is
    -- Length --
    ------------
 
-   function Length (Source : Bounded_Wide_String) return Length_Range
+   overriding function Length
+     (Source : Bounded_Wide_String)
+     return Length_Range
    is
       Result : constant CBWS.Length_Range :=
         CBWS.Length (CBWS.Bounded_Wide_String (Source));
@@ -113,7 +117,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- To_Bounded_Wide_String --
    ----------------------------
 
-   function To_Bounded_Wide_String
+   overriding function To_Bounded_Wide_String
      (Source : Standard.Wide_String;
       Drop   : Ada.Strings.Truncation := Ada.Strings.Error)
      return   Bounded_Wide_String
@@ -128,7 +132,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- To_Wide_String --
    --------------------
 
-   function To_Wide_String
+   overriding function To_Wide_String
      (Source : Bounded_Wide_String)
      return Standard.Wide_String
    is
@@ -142,7 +146,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Append --
    ------------
 
-   function Append
+   overriding function Append
      (Left, Right : Bounded_Wide_String;
       Drop        : Ada.Strings.Truncation  := Ada.Strings.Error)
      return  Bounded_Wide_String
@@ -155,7 +159,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Append;
 
-   function Append
+   overriding function Append
      (Left  : Bounded_Wide_String;
       Right : Standard.Wide_String;
       Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
@@ -169,7 +173,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Append;
 
-   function Append
+   overriding function Append
      (Left  : Standard.Wide_String;
       Right : Bounded_Wide_String;
       Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
@@ -183,7 +187,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Append;
 
-   function Append
+   overriding function Append
      (Left  : Bounded_Wide_String;
       Right : Wide_Character;
       Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
@@ -197,7 +201,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Append;
 
-   function Append
+   overriding function Append
      (Left  : Wide_Character;
       Right : Bounded_Wide_String;
       Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
@@ -211,7 +215,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Append;
 
-   procedure Append
+   overriding procedure Append
      (Source   : in out Bounded_Wide_String;
       New_Item : Bounded_Wide_String;
       Drop     : Ada.Strings.Truncation  := Ada.Strings.Error)
@@ -226,7 +230,7 @@ package body CORBA.Bounded_Wide_Strings is
       Source := Bounded_Wide_String (CBWS_Source);
    end Append;
 
-   procedure Append
+   overriding procedure Append
      (Source   : in out Bounded_Wide_String;
       New_Item : Standard.Wide_String;
       Drop     : Ada.Strings.Truncation  := Ada.Strings.Error)
@@ -241,7 +245,7 @@ package body CORBA.Bounded_Wide_Strings is
       Source := Bounded_Wide_String (CBWS_Source);
    end Append;
 
-   procedure Append
+   overriding procedure Append
      (Source   : in out Bounded_Wide_String;
       New_Item : Wide_Character;
       Drop     : Ada.Strings.Truncation  := Ada.Strings.Error)
@@ -260,7 +264,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- "&" --
    ---------
 
-   function "&"
+   overriding function "&"
      (Left, Right : Bounded_Wide_String)
      return        Bounded_Wide_String
    is
@@ -270,7 +274,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end "&";
 
-   function "&"
+   overriding function "&"
      (Left  : Bounded_Wide_String;
       Right : Standard.Wide_String)
      return  Bounded_Wide_String
@@ -281,7 +285,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end "&";
 
-   function "&"
+   overriding function "&"
      (Left  : Standard.Wide_String;
       Right : Bounded_Wide_String)
      return  Bounded_Wide_String
@@ -292,7 +296,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end "&";
 
-   function "&"
+   overriding function "&"
      (Left  : Bounded_Wide_String;
       Right : Wide_Character)
      return  Bounded_Wide_String
@@ -303,7 +307,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end "&";
 
-   function "&"
+   overriding function "&"
      (Left  : Wide_Character;
       Right : Bounded_Wide_String)
      return  Bounded_Wide_String
@@ -318,7 +322,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Element --
    -------------
 
-   function Element
+   overriding function Element
      (Source : Bounded_Wide_String;
       Index  : Positive)
      return   Wide_Character
@@ -333,7 +337,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Replace_Element --
    ---------------------
 
-   procedure Replace_Element
+   overriding procedure Replace_Element
      (Source : in out Bounded_Wide_String;
       Index  : Positive;
       By     : Wide_Character)
@@ -349,7 +353,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Slice --
    -----------
 
-   function Slice
+   overriding function Slice
      (Source : Bounded_Wide_String;
       Low    : Positive;
       High   : Natural)
@@ -365,7 +369,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- "=" --
    ---------
 
-   function "="  (Left, Right : Bounded_Wide_String) return Boolean
+   overriding function "="  (Left, Right : Bounded_Wide_String) return Boolean
    is
       Result : constant Boolean :=
         CBWS.Bounded_Wide_String (Left) = CBWS.Bounded_Wide_String (Right);
@@ -373,7 +377,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end "=";
 
-   function "="
+   overriding function "="
      (Left  : Bounded_Wide_String;
       Right : Standard.Wide_String)
      return  Boolean
@@ -384,7 +388,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end "=";
 
-   function "="
+   overriding function "="
      (Left  : Standard.Wide_String;
       Right : Bounded_Wide_String)
      return  Boolean
@@ -399,7 +403,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- "<" --
    ---------
 
-   function "<"  (Left, Right : Bounded_Wide_String) return Boolean
+   overriding function "<"  (Left, Right : Bounded_Wide_String) return Boolean
    is
       Result : constant Boolean :=
         CBWS.Bounded_Wide_String (Left) < CBWS.Bounded_Wide_String (Right);
@@ -407,7 +411,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end "<";
 
-   function "<"
+   overriding function "<"
      (Left  : Bounded_Wide_String;
       Right : Standard.Wide_String)
      return  Boolean
@@ -418,7 +422,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end "<";
 
-   function "<"
+   overriding function "<"
      (Left  : Standard.Wide_String;
       Right : Bounded_Wide_String)
      return  Boolean
@@ -433,7 +437,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- "<=" --
    ----------
 
-   function "<=" (Left, Right : Bounded_Wide_String) return Boolean
+   overriding function "<=" (Left, Right : Bounded_Wide_String) return Boolean
    is
       Result : constant Boolean :=
         CBWS.Bounded_Wide_String (Left) <= CBWS.Bounded_Wide_String (Right);
@@ -441,7 +445,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end "<=";
 
-   function "<="
+   overriding function "<="
      (Left  : Bounded_Wide_String;
       Right : Standard.Wide_String)
      return  Boolean
@@ -452,7 +456,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end "<=";
 
-   function "<="
+   overriding function "<="
      (Left  : Standard.Wide_String;
       Right : Bounded_Wide_String)
      return  Boolean
@@ -467,7 +471,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- ">" --
    ---------
 
-   function ">"  (Left, Right : Bounded_Wide_String) return Boolean
+   overriding function ">"  (Left, Right : Bounded_Wide_String) return Boolean
    is
       Result : constant Boolean :=
         CBWS.Bounded_Wide_String (Left) > CBWS.Bounded_Wide_String (Right);
@@ -475,7 +479,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end ">";
 
-   function ">"
+   overriding function ">"
      (Left  : Bounded_Wide_String;
       Right : Standard.Wide_String)
      return  Boolean
@@ -486,7 +490,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end ">";
 
-   function ">"
+   overriding function ">"
      (Left  : Standard.Wide_String;
       Right : Bounded_Wide_String)
      return  Boolean
@@ -501,7 +505,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- ">=" --
    ----------
 
-   function ">=" (Left, Right : Bounded_Wide_String) return Boolean
+   overriding function ">=" (Left, Right : Bounded_Wide_String) return Boolean
    is
       Result : constant Boolean :=
         CBWS.Bounded_Wide_String (Left) >= CBWS.Bounded_Wide_String (Right);
@@ -509,7 +513,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end ">=";
 
-   function ">="
+   overriding function ">="
      (Left  : Bounded_Wide_String;
       Right : Standard.Wide_String)
      return  Boolean
@@ -520,7 +524,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end ">=";
 
-   function ">="
+   overriding function ">="
      (Left  : Standard.Wide_String;
       Right : Bounded_Wide_String)
      return  Boolean
@@ -535,7 +539,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Index --
    -----------
 
-   function Index
+   overriding function Index
      (Source  : Bounded_Wide_String;
       Pattern : Standard.Wide_String;
       Going   : Ada.Strings.Direction := Ada.Strings.Forward;
@@ -552,7 +556,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end Index;
 
-   function Index
+   overriding function Index
      (Source  : Bounded_Wide_String;
       Pattern : Standard.Wide_String;
       Going   : Ada.Strings.Direction := Ada.Strings.Forward;
@@ -568,7 +572,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end Index;
 
-   function Index
+   overriding function Index
      (Source : Bounded_Wide_String;
       Set    : Ada.Strings.Wide_Maps.Wide_Character_Set;
       Test   : Ada.Strings.Membership := Ada.Strings.Inside;
@@ -588,7 +592,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Index_Non_Blank --
    ---------------------
 
-   function Index_Non_Blank
+   overriding function Index_Non_Blank
      (Source : Bounded_Wide_String;
       Going  : Ada.Strings.Direction := Ada.Strings.Forward)
      return   Natural
@@ -604,7 +608,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Count --
    -----------
 
-   function Count
+   overriding function Count
      (Source  : Bounded_Wide_String;
       Pattern : Standard.Wide_String;
       Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping
@@ -619,7 +623,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end Count;
 
-   function Count
+   overriding function Count
      (Source  : Bounded_Wide_String;
       Pattern : Standard.Wide_String;
       Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
@@ -633,7 +637,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Result;
    end Count;
 
-   function Count
+   overriding function Count
      (Source : Bounded_Wide_String;
       Set    : Ada.Strings.Wide_Maps.Wide_Character_Set)
      return   Natural
@@ -649,7 +653,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Find_Token --
    ----------------
 
-   procedure Find_Token
+   overriding procedure Find_Token
      (Source : Bounded_Wide_String;
       Set    : Ada.Strings.Wide_Maps.Wide_Character_Set;
       Test   : Ada.Strings.Membership;
@@ -669,7 +673,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Translate --
    ---------------
 
-   function Translate
+   overriding function Translate
      (Source   : Bounded_Wide_String;
       Mapping  : Ada.Strings.Wide_Maps.Wide_Character_Mapping)
      return     Bounded_Wide_String
@@ -681,7 +685,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Translate;
 
-   procedure Translate
+   overriding procedure Translate
      (Source   : in out Bounded_Wide_String;
       Mapping  : Ada.Strings.Wide_Maps.Wide_Character_Mapping)
    is
@@ -692,7 +696,7 @@ package body CORBA.Bounded_Wide_Strings is
       Source := Bounded_Wide_String (CBWS_Source);
    end Translate;
 
-   function Translate
+   overriding function Translate
      (Source  : Bounded_Wide_String;
       Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
      return    Bounded_Wide_String
@@ -704,7 +708,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Translate;
 
-   procedure Translate
+   overriding procedure Translate
      (Source  : in out Bounded_Wide_String;
       Mapping : Ada.Strings.Wide_Maps.Wide_Character_Mapping_Function)
    is
@@ -719,7 +723,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Replace_Slice --
    -------------------
 
-   function Replace_Slice
+   overriding function Replace_Slice
      (Source   : Bounded_Wide_String;
       Low      : Positive;
       High     : Natural;
@@ -737,7 +741,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Replace_Slice;
 
-   procedure Replace_Slice
+   overriding procedure Replace_Slice
      (Source   : in out Bounded_Wide_String;
       Low      : Positive;
       High     : Natural;
@@ -755,7 +759,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Insert --
    ------------
 
-   function Insert
+   overriding function Insert
      (Source   : Bounded_Wide_String;
       Before   : Positive;
       New_Item : Standard.Wide_String;
@@ -771,7 +775,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Insert;
 
-   procedure Insert
+   overriding procedure Insert
      (Source   : in out Bounded_Wide_String;
       Before   : Positive;
       New_Item : Standard.Wide_String;
@@ -788,7 +792,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Overwrite --
    ---------------
 
-   function Overwrite
+   overriding function Overwrite
      (Source    : Bounded_Wide_String;
       Position  : Positive;
       New_Item  : Standard.Wide_String;
@@ -804,7 +808,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Overwrite;
 
-   procedure Overwrite
+   overriding procedure Overwrite
      (Source    : in out Bounded_Wide_String;
       Position  : Positive;
       New_Item  : Standard.Wide_String;
@@ -821,7 +825,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Delete --
    ------------
 
-   function Delete
+   overriding function Delete
      (Source  : Bounded_Wide_String;
       From    : Positive;
       Through : Natural)
@@ -835,7 +839,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Delete;
 
-   procedure Delete
+   overriding procedure Delete
      (Source  : in out Bounded_Wide_String;
       From    : Positive;
       Through : Natural)
@@ -851,7 +855,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Trim --
    ----------
 
-   function Trim
+   overriding function Trim
      (Source : Bounded_Wide_String;
       Side   : Ada.Strings.Trim_End)
      return   Bounded_Wide_String
@@ -862,7 +866,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Trim;
 
-   procedure Trim
+   overriding procedure Trim
      (Source : in out Bounded_Wide_String;
       Side   : Ada.Strings.Trim_End)
    is
@@ -873,7 +877,7 @@ package body CORBA.Bounded_Wide_Strings is
       Source := Bounded_Wide_String (CBWS_Source);
    end Trim;
 
-   function Trim
+   overriding function Trim
      (Source  : Bounded_Wide_String;
       Left   : Ada.Strings.Wide_Maps.Wide_Character_Set;
       Right  : Ada.Strings.Wide_Maps.Wide_Character_Set)
@@ -885,7 +889,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Trim;
 
-   procedure Trim
+   overriding procedure Trim
      (Source : in out Bounded_Wide_String;
       Left   : Ada.Strings.Wide_Maps.Wide_Character_Set;
       Right  : Ada.Strings.Wide_Maps.Wide_Character_Set)
@@ -901,7 +905,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Head --
    ----------
 
-   function Head
+   overriding function Head
      (Source : Bounded_Wide_String;
       Count  : Natural;
       Pad    : Wide_Character := Ada.Strings.Wide_Space;
@@ -914,7 +918,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Head;
 
-   procedure Head
+   overriding procedure Head
      (Source : in out Bounded_Wide_String;
       Count  : Natural;
       Pad    : Wide_Character := Ada.Strings.Wide_Space;
@@ -931,7 +935,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Tail --
    ----------
 
-   function Tail
+   overriding function Tail
      (Source : Bounded_Wide_String;
       Count  : Natural;
       Pad    : Wide_Character  := Ada.Strings.Wide_Space;
@@ -944,7 +948,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Tail;
 
-   procedure Tail
+   overriding procedure Tail
      (Source : in out Bounded_Wide_String;
       Count  : Natural;
       Pad    : Wide_Character  := Ada.Strings.Wide_Space;
@@ -961,7 +965,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- "*" --
    ---------
 
-   function "*"
+   overriding function "*"
      (Left  : Natural;
       Right : Wide_Character)
      return  Bounded_Wide_String
@@ -971,7 +975,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end "*";
 
-   function "*"
+   overriding function "*"
      (Left  : Natural;
       Right : Standard.Wide_String)
      return  Bounded_Wide_String
@@ -981,7 +985,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end "*";
 
-   function "*"
+   overriding function "*"
      (Left  : Natural;
       Right : Bounded_Wide_String)
      return  Bounded_Wide_String
@@ -996,7 +1000,7 @@ package body CORBA.Bounded_Wide_Strings is
    -- Replicate --
    ---------------
 
-   function Replicate
+   overriding function Replicate
      (Count : Natural;
       Item  : Wide_Character;
       Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
@@ -1008,7 +1012,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Replicate;
 
-   function Replicate
+   overriding function Replicate
      (Count : Natural;
       Item  : Standard.Wide_String;
       Drop  : Ada.Strings.Truncation := Ada.Strings.Error)
@@ -1020,7 +1024,7 @@ package body CORBA.Bounded_Wide_Strings is
       return Bounded_Wide_String (Result);
    end Replicate;
 
-   function Replicate
+   overriding function Replicate
      (Count : Natural;
       Item  : Bounded_Wide_String;
       Drop  : Ada.Strings.Truncation := Ada.Strings.Error)

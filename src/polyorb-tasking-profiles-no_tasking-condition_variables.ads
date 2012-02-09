@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like condition variables with no Ada tasking.
 
 with PolyORB.Tasking.Condition_Variables;
@@ -51,16 +53,16 @@ package PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
      access all No_Tasking_Condition_Type'Class;
    --  Type for mutexes with no Ada tasking.
 
-   procedure Wait
+   overriding procedure Wait
      (C : access No_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class);
    --  Have no sense in this profile (would block the only task that can run),
    --  so raise Tasking_Error.
 
-   procedure Signal
+   overriding procedure Signal
      (C : access No_Tasking_Condition_Type);
 
-   procedure Broadcast
+   overriding procedure Broadcast
      (C : access No_Tasking_Condition_Type);
 
    type No_Tasking_Condition_Factory_Type is
@@ -72,7 +74,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
 
    The_Condition_Factory : constant No_Tasking_Condition_Factory_Access;
 
-   function Create
+   overriding function Create
      (MF   : access No_Tasking_Condition_Factory_Type;
       Name : String := "")
      return PTCV.Condition_Access;
@@ -80,7 +82,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    --  Name will be used to get the configuration of this
    --  condition from the configuration module.
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access No_Tasking_Condition_Factory_Type;
       C  : in out PTCV.Condition_Access);
    --  Destroy C.

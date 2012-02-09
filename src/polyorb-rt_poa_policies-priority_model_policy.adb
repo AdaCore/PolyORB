@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 
 package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
@@ -72,7 +74,7 @@ package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id (Self : PriorityModelPolicy) return String is
+   overriding function Policy_Id (Self : PriorityModelPolicy) return String is
    begin
       return "PRIORITY_MODEL_POLICY_" & Priority_Model'Image (Self.Model);
    end Policy_Id;
@@ -81,7 +83,7 @@ package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
    -- Check_Compatiblity --
    ------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        PriorityModelPolicy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)

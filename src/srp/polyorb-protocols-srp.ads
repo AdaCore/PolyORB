@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A protocol similar to the HTTP protocol
 --  SRP : Simple Request Protocol (from M. Friess report)
 
@@ -71,47 +73,51 @@ package PolyORB.Protocols.SRP is
 
    type SRP_Session is new Session with private;
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access SRP_Protocol;
       Session : out Filter_Access);
 
    procedure Connect (S : access SRP_Session);
    --  Do nothing.
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (S : access SRP_Session;
       R : Request_Access;
       P : access Binding_Data.Profile_Type'Class);
    --  Do nothing.
 
-   procedure Abort_Request (S : access SRP_Session; R :  Request_Access);
+   overriding procedure Abort_Request
+     (S : access SRP_Session;
+      R : Request_Access);
    --  Do nothing.
 
-   procedure Send_Reply (S : access SRP_Session; R :  Request_Access);
+   overriding procedure Send_Reply
+     (S : access SRP_Session;
+      R : Request_Access);
    --  Send a reply to the user.
 
-   procedure Handle_Connect_Indication (S : access SRP_Session);
+   overriding procedure Handle_Connect_Indication (S : access SRP_Session);
    --  Send a greeting banner to user.
 
-   procedure Handle_Connect_Confirmation (S : access SRP_Session);
+   overriding procedure Handle_Connect_Confirmation (S : access SRP_Session);
    --  Setup client dialog.
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (S           : access SRP_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container);
    --  Handle data received from user
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (S : access SRP_Session; Error : Errors.Error_Container);
    --  Handle disconnection from user
 
-   procedure Handle_Unmarshall_Arguments
+   overriding procedure Handle_Unmarshall_Arguments
      (Ses   : access SRP_Session;
       Args  : in out Any.NVList.Ref;
       Error : in out Errors.Error_Container);
 
-   procedure Handle_Flush (S : access SRP_Session);
+   overriding procedure Handle_Flush (S : access SRP_Session);
 
    procedure Unmarshall_Request_Message
      (Buffer : access Buffer_Type;

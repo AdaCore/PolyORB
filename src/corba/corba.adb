@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 
@@ -1533,7 +1535,7 @@ package body CORBA is
       -- "=" --
       ---------
 
-      function "=" (Left, Right : Object) return Boolean is
+      overriding function "=" (Left, Right : Object) return Boolean is
       begin
          return PolyORB.Any.TypeCode."="
            (Internals.To_PolyORB_Object (Left),
@@ -1544,7 +1546,7 @@ package body CORBA is
       -- Equivalent --
       ----------------
 
-      function Equivalent (Left, Right : Object) return Boolean
+      overriding function Equivalent (Left, Right : Object) return Boolean
         renames "=";
 
       --------------------------
@@ -1562,7 +1564,7 @@ package body CORBA is
       -- Kind --
       ----------
 
-      function Kind (Self : Object) return TCKind is
+      overriding function Kind (Self : Object) return TCKind is
       begin
          return PolyORB.Any.TypeCode.Kind (Internals.To_PolyORB_Object (Self));
       end Kind;
@@ -1649,7 +1651,7 @@ package body CORBA is
       -- Discriminator_Type --
       ------------------------
 
-      function Discriminator_Type (Self : Object) return Object is
+      overriding function Discriminator_Type (Self : Object) return Object is
       begin
          return Internals.To_CORBA_Object
            (PolyORB.Any.TypeCode.Discriminator_Type
@@ -1682,7 +1684,7 @@ package body CORBA is
       -- Content_Type --
       ------------------
 
-      function Content_Type (Self : Object) return Object is
+      overriding function Content_Type (Self : Object) return Object is
       begin
          return Internals.To_CORBA_Object
            (PolyORB.Any.TypeCode.Content_Type
@@ -1731,7 +1733,7 @@ package body CORBA is
       -- Type_Modifier --
       -------------------
 
-      function Type_Modifier (Self : Object) return ValueModifier is
+      overriding function Type_Modifier (Self : Object) return ValueModifier is
       begin
          return PolyORB.Any.TypeCode.Type_Modifier
            (Internals.To_PolyORB_Object (Self));
@@ -1741,7 +1743,7 @@ package body CORBA is
       -- Concrete_Base_Type --
       ------------------------
 
-      function Concrete_Base_Type (Self : Object) return Object is
+      overriding function Concrete_Base_Type (Self : Object) return Object is
       begin
          return Internals.To_CORBA_Object
            (PolyORB.Any.TypeCode.Concrete_Base_Type

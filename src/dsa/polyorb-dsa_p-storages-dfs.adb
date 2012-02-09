@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.IO_Exceptions;
 with Ada.Unchecked_Conversion;
 
@@ -134,7 +136,7 @@ package body PolyORB.DSA_P.Storages.DFS is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (Manager_Factory : access DFS_Manager_Type;
       Full_Name       : String)
       return Shared_Data_Manager_RACW
@@ -289,7 +291,7 @@ package body PolyORB.DSA_P.Storages.DFS is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (Self : access DFS_Manager_Type;
       Var  : SDT.Any_Container_Ptr)
    is
@@ -368,7 +370,7 @@ package body PolyORB.DSA_P.Storages.DFS is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (Self : access DFS_Manager_Type;
       Var  : SDT.Any_Container_Ptr)
    is
@@ -413,7 +415,7 @@ package body PolyORB.DSA_P.Storages.DFS is
    -- Lock --
    ----------
 
-   procedure Lock   (Self : access DFS_Manager_Type)
+   overriding procedure Lock   (Self : access DFS_Manager_Type)
    is
       Success : Boolean;
       pragma Unreferenced (Success);
@@ -427,7 +429,7 @@ package body PolyORB.DSA_P.Storages.DFS is
    -- Unlock --
    ------------
 
-   procedure Unlock (Self : access DFS_Manager_Type) is
+   overriding procedure Unlock (Self : access DFS_Manager_Type) is
    begin
       Complete_Request (Self);
       Leave (Self.Mutex);

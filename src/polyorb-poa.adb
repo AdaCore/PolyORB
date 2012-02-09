@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstract interface for the POA
 
 with Ada.Streams;
@@ -74,7 +76,7 @@ package body PolyORB.POA is
    -- Oid_To_Rel_URI --
    --------------------
 
-   procedure Oid_To_Rel_URI
+   overriding procedure Oid_To_Rel_URI
      (OA    : access Obj_Adapter;
       Id    : access Object_Id;
       URI   : out Types.String;
@@ -123,7 +125,7 @@ package body PolyORB.POA is
    -- Rel_URI_To_Oid --
    --------------------
 
-   function Rel_URI_To_Oid
+   overriding function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI :        String) return Object_Id_Access
    is
@@ -1327,7 +1329,7 @@ package body PolyORB.POA is
    -- Create --
    ------------
 
-   procedure Create (OA : access Obj_Adapter) is
+   overriding procedure Create (OA : access Obj_Adapter) is
    begin
       Create_Root_POA (OA);
    end Create;
@@ -1336,7 +1338,7 @@ package body PolyORB.POA is
    -- Destroy --
    -------------
 
-   procedure Destroy (OA : access Obj_Adapter) is
+   overriding procedure Destroy (OA : access Obj_Adapter) is
    begin
       Destroy (OA, Etherealize_Objects => True, Wait_For_Completion => True);
       Obj_Adapters.Destroy (Obj_Adapters.Obj_Adapter (OA.all)'Access);
@@ -1346,7 +1348,7 @@ package body PolyORB.POA is
    -- Export --
    ------------
 
-   procedure Export
+   overriding procedure Export
      (OA    : access Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
@@ -1388,7 +1390,7 @@ package body PolyORB.POA is
    -- Unexport --
    --------------
 
-   procedure Unexport
+   overriding procedure Unexport
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container) is
@@ -1400,7 +1402,7 @@ package body PolyORB.POA is
    -- Object_Key --
    ----------------
 
-   procedure Object_Key
+   overriding procedure Object_Key
      (OA      : access Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
@@ -1431,7 +1433,7 @@ package body PolyORB.POA is
    -- Get_QoS --
    -------------
 
-   procedure Get_QoS
+   overriding procedure Get_QoS
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id;
       QoS   :    out PolyORB.QoS.QoS_Parameters;
@@ -1453,7 +1455,7 @@ package body PolyORB.POA is
    -- Get_Empty_Arg_List --
    ------------------------
 
-   function Get_Empty_Arg_List
+   overriding function Get_Empty_Arg_List
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String) return Any.NVList.Ref
@@ -1499,7 +1501,7 @@ package body PolyORB.POA is
    -- Get_Empty_Result --
    ----------------------
 
-   function Get_Empty_Result
+   overriding function Get_Empty_Result
      (OA     : access Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String) return Any.Any
@@ -1523,7 +1525,7 @@ package body PolyORB.POA is
    -- Find_Servant --
    ------------------
 
-   procedure Find_Servant
+   overriding procedure Find_Servant
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
@@ -1676,7 +1678,7 @@ package body PolyORB.POA is
    -- Release_Servant --
    ---------------------
 
-   procedure Release_Servant
+   overriding procedure Release_Servant
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access)

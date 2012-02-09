@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding data concrete implementation for SOAP over HTTP.
 
 with Ada.Streams;
@@ -104,7 +106,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Release --
    -------------
 
-   procedure Release (P : in out SOAP_Profile_Type) is
+   overriding procedure Release (P : in out SOAP_Profile_Type) is
    begin
       Free (P.Address);
       Free (P.Object_Id);
@@ -119,7 +121,7 @@ package body PolyORB.Binding_Data.SOAP is
    SOAP_Factories : constant Filters.Factory_Array
      := (0 => Htt'Access, 1 => Pro'Access);
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access SOAP_Profile_Type;
       The_ORB :        Components.Component_Access;
       QoS     :        PolyORB.QoS.QoS_Parameters;
@@ -167,7 +169,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
      return Profile_Tag
    is
@@ -183,7 +185,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : SOAP_Profile_Type)
      return Profile_Preference
    is
@@ -198,7 +200,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : SOAP_Profile_Type;
       Right : Profile_Type'Class) return Boolean
    is
@@ -223,7 +225,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF : out SOAP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       ORB : PolyORB.Components.Component_Access)
@@ -241,7 +243,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access SOAP_Profile_Factory;
       Oid : Objects.Object_Id)
      return Profile_Access
@@ -315,7 +317,9 @@ package body PolyORB.Binding_Data.SOAP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : SOAP_Profile_Type) return Profile_Access
+   overriding function Duplicate_Profile
+     (P : SOAP_Profile_Type)
+     return Profile_Access
    is
       Result : constant Profile_Access := new SOAP_Profile_Type;
 
@@ -336,7 +340,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Is_Local_Profile --
    ----------------------
 
-   function Is_Local_Profile
+   overriding function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
       P  : access Profile_Type'Class)
       return Boolean
@@ -499,7 +503,7 @@ package body PolyORB.Binding_Data.SOAP is
    -- Image --
    -----------
 
-   function Image (Prof : SOAP_Profile_Type) return String
+   overriding function Image (Prof : SOAP_Profile_Type) return String
    is
       Result : PolyORB.Types.String := To_PolyORB_String
         ("Address: " & Image (Prof.Address.all));

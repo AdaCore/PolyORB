@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 with Ada.Unchecked_Conversion;
 
@@ -113,7 +115,7 @@ package body PortableServer is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access DynamicImplementation;
       Req  : PolyORB.Requests.Request_Access) return Boolean
    is
@@ -199,7 +201,7 @@ package body PortableServer is
    -- Invoke --
    ------------
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self    : access Servant_Base;
       Request : CORBA.ServerRequest.Object_Ptr)
    is

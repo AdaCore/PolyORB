@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
@@ -64,7 +66,7 @@ package body PolyORB.Security.Identities.Distinguished_Name is
    -- Decode --
    ------------
 
-   procedure Decode
+   overriding procedure Decode
      (Self  : access Distinguished_Name_Identity_Type;
       Item  :        Ada.Streams.Stream_Element_Array;
       Error : in out PolyORB.Errors.Error_Container)
@@ -84,7 +86,7 @@ package body PolyORB.Security.Identities.Distinguished_Name is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (Self : access Distinguished_Name_Identity_Type) return Identity_Access
    is
    begin
@@ -96,7 +98,7 @@ package body PolyORB.Security.Identities.Distinguished_Name is
    -- Encode --
    ------------
 
-   function Encode
+   overriding function Encode
      (Self : access Distinguished_Name_Identity_Type)
       return Ada.Streams.Stream_Element_Array
    is
@@ -108,7 +110,7 @@ package body PolyORB.Security.Identities.Distinguished_Name is
    -- Get_Printable_Name --
    ------------------------
 
-   function Get_Printable_Name
+   overriding function Get_Printable_Name
      (Self : access Distinguished_Name_Identity_Type)
       return String
    is
@@ -120,7 +122,7 @@ package body PolyORB.Security.Identities.Distinguished_Name is
    -- Get_Token_Type --
    --------------------
 
-   function Get_Token_Type
+   overriding function Get_Token_Type
      (Self : access Distinguished_Name_Identity_Type)
       return PolyORB.Security.Types.Identity_Token_Type
    is
@@ -145,7 +147,7 @@ package body PolyORB.Security.Identities.Distinguished_Name is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (Self : access Distinguished_Name_Identity_Type)
    is
    begin

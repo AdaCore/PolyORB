@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MText message type.
 --
 --  A MText message's payload is a string.
@@ -43,7 +45,7 @@ package MOMA.Messages.MTexts is
    function Create_Text_Message return Messages.MTexts.MText;
    --  Create a MText message.
 
-   function Image (Self : MText) return String;
+   overriding function Image (Self : MText) return String;
    --  Image function for MText type.
 
    --  Accessors to MText payload.

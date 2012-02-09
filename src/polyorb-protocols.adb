@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Support for object method invocation protocols.
 
 with Ada.Tags;
@@ -75,7 +77,7 @@ package body PolyORB.Protocols is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (Sess : not null access Session;
       S    : Components.Message'Class) return Components.Message'Class
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Any; use PolyORB.Any;
 with PolyORB.Types; use PolyORB.Types;
 
@@ -124,7 +126,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- From --
    ----------
 
-   function From (P : Message.Payload.Object) return Object
+   overriding function From (P : Message.Payload.Object) return Object
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -142,7 +144,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- Is_Error --
    --------------
 
-   function Is_Error (E : Object) return Boolean
+   overriding function Is_Error (E : Object) return Boolean
    is
       pragma Warnings (Off);
       pragma Unreferenced (E);
@@ -182,7 +184,7 @@ package body PolyORB.SOAP_P.Message.Response.Error is
    -- XML_Image --
    ---------------
 
-   function XML_Image (E : Object) return Unbounded_String is
+   overriding function XML_Image (E : Object) return Unbounded_String is
       NL           : constant String := ASCII.CR & ASCII.LF;
       Message_Body : Unbounded_String;
 

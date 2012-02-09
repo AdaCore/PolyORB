@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstract transport service access points and transport endpoints.
 
 with Ada.Streams;
@@ -74,7 +76,7 @@ package PolyORB.Transport is
    --  Create a view of TAP as an asynchronous event source. The Handler
    --  of the newly-created event source is TAP.Handler.
 
-   function Handle_Message
+   overriding function Handle_Message
      (TAP : not null access Transport_Access_Point;
       Msg : Components.Message'Class) return Components.Message'Class;
 
@@ -99,7 +101,7 @@ package PolyORB.Transport is
      (TE : Transport_Endpoint_Access) return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
 
-   function Handle_Message
+   overriding function Handle_Message
      (TE  : not null access Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class;
 
@@ -144,7 +146,7 @@ package PolyORB.Transport is
    procedure Close (TE : access Transport_Endpoint);
    --  Dissociate the transport endpoint from any communication resource
 
-   procedure Destroy (TE : in out Transport_Endpoint);
+   overriding procedure Destroy (TE : in out Transport_Endpoint);
    --  Destroy any resources allocated to TE
 
    procedure Destroy (TE : in out Transport_Endpoint_Access);

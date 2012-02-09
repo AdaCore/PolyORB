@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 
 with PolyORB.Log;
@@ -599,7 +601,7 @@ package body MOMA.Types is
    -- To_Standard_String --
    ------------------------
 
-   function To_Standard_String
+   overriding function To_Standard_String
      (V : MOMA.Types.String)
      return Standard.String
    is

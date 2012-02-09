@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  TAG_CODE_SETS tagged component
 
 with PolyORB.GIOP_P.Code_Sets;
@@ -51,18 +53,20 @@ package PolyORB.GIOP_P.Tagged_Components.Code_Sets is
    --  specified in the CORBA specification, par. 13.10.2.4, use
    --  default value.
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_Code_Sets;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Code_Sets;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (C : access TC_Code_Sets);
 
-   function Duplicate (C : TC_Code_Sets) return Tagged_Component_Access;
+   overriding function Duplicate
+     (C : TC_Code_Sets)
+     return Tagged_Component_Access;
 
 end PolyORB.GIOP_P.Tagged_Components.Code_Sets;

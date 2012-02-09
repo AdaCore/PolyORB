@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Object;
 
 with PolyORB.Annotations;
@@ -50,7 +52,7 @@ package body CORBA.PolicyCurrent is
    -- Is_A --
    ----------
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean
    is
@@ -74,7 +76,7 @@ package body CORBA.PolicyCurrent is
    -- Get_Policy_Overrides --
    --------------------------
 
-   function Get_Policy_Overrides
+   overriding function Get_Policy_Overrides
      (Self : Local_Ref;
       TS   : CORBA.Policy.PolicyTypeSeq) return CORBA.Policy.PolicyList
    is
@@ -108,7 +110,7 @@ package body CORBA.PolicyCurrent is
    -- Set_Policy_Overrides --
    --------------------------
 
-   procedure Set_Policy_Overrides
+   overriding procedure Set_Policy_Overrides
      (Self     : Local_Ref;
       Policies : CORBA.Policy.PolicyList;
       Set_Add  : SetOverrideType)

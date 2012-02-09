@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A servant used for routing topic messages.
 
 with MOMA.Destinations;
@@ -71,7 +73,7 @@ package PolyORB.MOMA_P.Provider.Routers is
    --  Router_Ref is a reference to another router on the network (it can be
    --  Nil_Ref) the router will register with.
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self : access Router;
       Req  :        PolyORB.Requests.Request_Access);
    --  Router servant skeleton.

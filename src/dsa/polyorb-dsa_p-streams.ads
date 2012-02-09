@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams;
 use  Ada.Streams;
 
@@ -39,7 +41,7 @@ package PolyORB.DSA_P.Streams is
       new Root_Stream_Type with private;
    --  A stream type that holds the stream elements in memory
 
-   procedure Read (This : in out Memory_Resident_Stream;
+   overriding procedure Read (This : in out Memory_Resident_Stream;
                    Item :    out Stream_Element_Array;
                    Last :    out Stream_Element_Offset);
    --  Reads the entire value of Item from the stream This,
@@ -48,7 +50,7 @@ package PolyORB.DSA_P.Streams is
    --  elements in the stream, reading stops and Last will not
    --  be equal to Item'Last.
 
-   procedure Write (This : in out Memory_Resident_Stream;
+   overriding procedure Write (This : in out Memory_Resident_Stream;
                     Item : Stream_Element_Array);
    --  Writes the elements in Item to the stream.
 

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of CORBA IOR Tagged components
 
 with Ada.Unchecked_Deallocation;
@@ -480,7 +482,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type) is
    begin
@@ -495,7 +497,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (Comp   : access TC_Unknown_Component;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
@@ -513,7 +515,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (Comp : TC_Unknown_Component) return Tagged_Component_Access
    is
       Result : constant Tagged_Component_Access := new TC_Unknown_Component;
@@ -531,7 +533,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
    procedure Free is new
      Ada.Unchecked_Deallocation (Stream_Element_Array, Octet_Access);
 
-   procedure Release_Contents (Comp : access TC_Unknown_Component) is
+   overriding procedure Release_Contents
+     (Comp : access TC_Unknown_Component)
+   is
    begin
       Free (Comp.Data);
    end Release_Contents;

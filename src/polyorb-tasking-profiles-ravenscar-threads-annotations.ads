@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Initialization;
 with PolyORB.Tasking.Threads.Annotations;
@@ -43,7 +45,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads.Annotations is
 
    type Ravenscar_TAF_Access is access all Ravenscar_TAF;
 
-   function Get_Current_Thread_Notepad
+   overriding function Get_Current_Thread_Notepad
      (TAF : access Ravenscar_TAF)
      return PolyORB.Annotations.Notepad_Access;
 

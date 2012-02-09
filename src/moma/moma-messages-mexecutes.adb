@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with MOMA.Types;
 
 package body MOMA.Messages.MExecutes is
@@ -71,7 +73,7 @@ package body MOMA.Messages.MExecutes is
    -- Image --
    -----------
 
-   function Image (Self : MExecute) return String is
+   overriding function Image (Self : MExecute) return String is
    begin
       return Image (Get_Payload (Self));
    end Image;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Impl;
 
 package body CORBA.Value.Box.Helper is
@@ -46,7 +48,7 @@ package body CORBA.Value.Box.Helper is
    -- Clone --
    -----------
 
-   function Clone
+   overriding function Clone
      (ACC  : Box_Ref_Content;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
@@ -70,7 +72,7 @@ package body CORBA.Value.Box.Helper is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value (ACC : in out Box_Ref_Content) is
+   overriding procedure Finalize_Value (ACC : in out Box_Ref_Content) is
       procedure Free is new Ada.Unchecked_Deallocation (Box_Ref, Box_Ref_Ptr);
    begin
       Free (ACC.V);
@@ -99,7 +101,7 @@ package body CORBA.Value.Box.Helper is
    -- Get_Aggregate_Count --
    -------------------------
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Box_Ref_Content) return PolyORB.Types.Unsigned_Long is
    begin
       if Is_Null (ACC.V.all) then
@@ -114,7 +116,7 @@ package body CORBA.Value.Box.Helper is
    -- Get_Aggregate_Element --
    ---------------------------
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Box_Ref_Content;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
@@ -147,7 +149,7 @@ package body CORBA.Value.Box.Helper is
    -- Set_Aggregate_Count --
    -------------------------
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Box_Ref_Content;
       Count : PolyORB.Types.Unsigned_Long)
    is

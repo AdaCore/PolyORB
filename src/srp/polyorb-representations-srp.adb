@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Conversion;
 
@@ -1335,7 +1337,7 @@ package body PolyORB.Representations.SRP is
    -- Marshall_From_Any --
    -----------------------
 
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
@@ -1666,7 +1668,7 @@ package body PolyORB.Representations.SRP is
    -- Unmarshall_To_Any --
    -----------------------
 
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;

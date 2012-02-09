@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  TAG_ALTERNATE_IIOP_ADDRESS tagged component
 
 with PolyORB.Utils.Sockets;
@@ -43,18 +45,19 @@ package PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
         Address : Utils.Sockets.Socket_Name_Ptr;
      end record;
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_Alternate_IIOP_Address;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Alternate_IIOP_Address;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents (C : access TC_Alternate_IIOP_Address);
+   overriding procedure Release_Contents
+     (C : access TC_Alternate_IIOP_Address);
 
-   function Duplicate
+   overriding function Duplicate
      (C : TC_Alternate_IIOP_Address) return Tagged_Component_Access;
 
 end PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address;

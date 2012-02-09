@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Root type for concrete object implementations (servants)
 
 pragma Ada_2005;
@@ -51,7 +53,7 @@ package PolyORB.Servants is
    type Servant is abstract new PolyORB.Components.Component with private;
    type Servant_Access is access all Servant'Class;
 
-   function Handle_Message
+   overriding function Handle_Message
      (S   : not null access Servant;
       Msg : Components.Message'Class) return Components.Message'Class;
 

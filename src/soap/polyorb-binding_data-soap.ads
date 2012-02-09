@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding data concrete implementation for SOAP over HTTP.
 
 with PolyORB.Types;
@@ -43,30 +45,30 @@ package PolyORB.Binding_Data.SOAP is
    --  A profile that designates an object accessible through
    --  SOAP RPC over HTTP.
 
-   procedure Release    (P : in out SOAP_Profile_Type);
+   overriding procedure Release    (P : in out SOAP_Profile_Type);
 
    ----------------------------------------------------
    -- Overloaded abstract operations of Profile_Type --
    ----------------------------------------------------
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access SOAP_Profile_Type;
       The_ORB :        Components.Component_Access;
       QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container);
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : SOAP_Profile_Type)
      return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : SOAP_Profile_Type)
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : SOAP_Profile_Type;
       Right : Profile_Type'Class) return Boolean;
 
@@ -83,7 +85,7 @@ package PolyORB.Binding_Data.SOAP is
    function Create_Profile (URI : Types.String) return Profile_Access;
    --  Create a SOAP RPC/HTTP profile from an absolute URI.
 
-   function Image (Prof : SOAP_Profile_Type) return String;
+   overriding function Image (Prof : SOAP_Profile_Type) return String;
    --  Represent Prof as a string, for debugging purposes.
 
    ----------------------------
@@ -92,21 +94,21 @@ package PolyORB.Binding_Data.SOAP is
 
    type SOAP_Profile_Factory is new Profile_Factory with private;
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out SOAP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       ORB : Components.Component_Access);
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access SOAP_Profile_Factory;
       Oid : Objects.Object_Id)
      return Profile_Access;
 
-   function Duplicate_Profile
+   overriding function Duplicate_Profile
      (P : SOAP_Profile_Type)
      return Profile_Access;
 
-   function Is_Local_Profile
+   overriding function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
       P  : access Profile_Type'Class)
       return Boolean;

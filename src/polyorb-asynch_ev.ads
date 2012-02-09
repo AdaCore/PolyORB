@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstract data type for an asynchrous event source
 
 pragma Ada_2005;
@@ -160,7 +162,7 @@ package PolyORB.Asynch_Ev is
    --  between an event source and its event handler is made using an
    --  Annotation on the event source.
 
-   procedure Run (AEH : not null access AES_Event_Handler);
+   overriding procedure Run (AEH : not null access AES_Event_Handler);
    --  Call Handle_Event
 
 private

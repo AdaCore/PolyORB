@@ -26,6 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  The CORBA personality IDL mapping.
 
 with Idlac_Errors;                  use Idlac_Errors;
@@ -160,7 +162,7 @@ package body Ada_Be.Mappings.CORBA is
    -- Library_Unit_Name --
    -----------------------
 
-   function Library_Unit_Name
+   overriding function Library_Unit_Name
      (Self : access CORBA_Mapping_Type;
       Node : Node_Id)
      return String
@@ -226,7 +228,7 @@ package body Ada_Be.Mappings.CORBA is
       return "";
    end Library_Unit_Name;
 
-   function Client_Stubs_Unit_Name
+   overriding function Client_Stubs_Unit_Name
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String is
@@ -234,7 +236,7 @@ package body Ada_Be.Mappings.CORBA is
       return Library_Unit_Name (Self, Node);
    end Client_Stubs_Unit_Name;
 
-   function Server_Skel_Unit_Name
+   overriding function Server_Skel_Unit_Name
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String is
@@ -242,7 +244,7 @@ package body Ada_Be.Mappings.CORBA is
       return Client_Stubs_Unit_Name (Self, Node) & Skel_Suffix;
    end Server_Skel_Unit_Name;
 
-   function Self_For_Operation
+   overriding function Self_For_Operation
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String
@@ -311,7 +313,7 @@ package body Ada_Be.Mappings.CORBA is
    -- Map_Type_Name --
    -------------------
 
-   procedure Map_Type_Name
+   overriding procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
       Node : Node_Id;
       Unit : out ASU.Unbounded_String;
@@ -421,7 +423,7 @@ package body Ada_Be.Mappings.CORBA is
       end case;
    end Map_Type_Name;
 
-   function Calling_Stubs_Type
+   overriding function Calling_Stubs_Type
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id) return String
    is
@@ -443,7 +445,7 @@ package body Ada_Be.Mappings.CORBA is
       end if;
    end Calling_Stubs_Type;
 
-   function Generate_Scope_In_Child_Package
+   overriding function Generate_Scope_In_Child_Package
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return Boolean

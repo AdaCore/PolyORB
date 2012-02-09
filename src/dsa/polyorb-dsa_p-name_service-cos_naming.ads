@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package represents the CORBA COS Naming context, that uses the
 --  concept of a centralized name server.
 
@@ -40,7 +42,7 @@ package PolyORB.DSA_P.Name_Service.COS_Naming is
 
    type COS_Name_Server is new Name_Server with null record;
 
-   procedure Nameserver_Register
+   overriding procedure Nameserver_Register
      (Name_Ctx : access COS_Name_Server;
       Name : String;
       Kind : String;
@@ -48,7 +50,7 @@ package PolyORB.DSA_P.Name_Service.COS_Naming is
    --  Register object with the specified (Name, Kind) pair into the
    --  DSA naming context.
 
-   function Nameserver_Lookup
+   overriding function Nameserver_Lookup
      (Name_Ctx : access COS_Name_Server;
       Name     : String;
       Kind     : String;

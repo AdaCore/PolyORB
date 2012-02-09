@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager is
 
    type Use_Servant_Manager_Policy is
@@ -41,35 +43,35 @@ package PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager is
    function Create
      return Use_Servant_Manager_Policy_Access;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Use_Servant_Manager_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Use_Servant_Manager_Policy)
      return String;
 
-   procedure Id_To_Servant
+   overriding procedure Id_To_Servant
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Set_Servant
+   overriding procedure Set_Servant
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :        Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Get_Servant
+   overriding procedure Get_Servant
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Ensure_Servant_Manager
+   overriding procedure Ensure_Servant_Manager
      (Self  :        Use_Servant_Manager_Policy;
       Error : in out PolyORB.Errors.Error_Container);
 

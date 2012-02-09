@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Utils.Report;
 
 with PolyORB.Tasking.Threads;
@@ -56,7 +58,7 @@ package body Test002_Common is
       P  : Parameterless_Procedure;
    end record;
 
-   procedure Run (R : not null access Generic_Runnable);
+   overriding procedure Run (R : not null access Generic_Runnable);
 
    type Generic_Runnable_Arr is array (Task_Index) of Runnable_Access;
    R  : Generic_Runnable_Arr;
@@ -82,7 +84,7 @@ package body Test002_Common is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Generic_Runnable) is
+   overriding procedure Run (R : not null access Generic_Runnable) is
    begin
       R.P.all;
    end Run;

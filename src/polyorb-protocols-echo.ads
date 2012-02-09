@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A dummy protocol, just for testing.
 
 with PolyORB.Buffers;
@@ -44,39 +46,43 @@ package PolyORB.Protocols.Echo is
 
    type Echo_Protocol is new Protocol with private;
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access Echo_Protocol;
       Session : out Filter_Access);
 
    type Echo_Session is new Session with private;
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (S : access Echo_Session;
       R : Request_Access;
       P : access Binding_Data.Profile_Type'Class);
 
-   procedure Abort_Request (S : access Echo_Session; R : Request_Access);
+   overriding procedure Abort_Request
+     (S : access Echo_Session;
+      R : Request_Access);
    --  These are just for show and do nothing
 
-   procedure Send_Reply (S : access Echo_Session; R : Request_Access);
+   overriding procedure Send_Reply
+     (S : access Echo_Session;
+      R : Request_Access);
    --  Send a reply to the user
 
-   procedure Handle_Flush (S : access Echo_Session);
+   overriding procedure Handle_Flush (S : access Echo_Session);
    --  ???
 
-   procedure Handle_Connect_Indication (S : access Echo_Session);
+   overriding procedure Handle_Connect_Indication (S : access Echo_Session);
    --  Send a greeting banner to user
 
-   procedure Handle_Connect_Confirmation (S : access Echo_Session);
+   overriding procedure Handle_Connect_Confirmation (S : access Echo_Session);
    --  Setup client dialog
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (S           : access Echo_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container);
    --  Handle data received from user
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (S : access Echo_Session; Error : Errors.Error_Container);
    --  Handle disconnection from user
 

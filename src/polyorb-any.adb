@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Strings.Fixed;
 with Ada.Unchecked_Deallocation;
 
@@ -81,7 +83,7 @@ package body PolyORB.Any is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (CC   : T_Content;
          Into : Content_Ptr := null) return Content_Ptr
       is
@@ -97,7 +99,7 @@ package body PolyORB.Any is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value (CC : in out T_Content) is
+      overriding procedure Finalize_Value (CC : in out T_Content) is
       begin
          Free (CC.V);
       end Finalize_Value;
@@ -188,7 +190,7 @@ package body PolyORB.Any is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (X : not null access T_Content) return System.Address
       is
       begin
@@ -340,33 +342,33 @@ package body PolyORB.Any is
 
    --  Content primitives
 
-   function Clone
+   overriding function Clone
      (CC   : Default_Aggregate_Content;
       Into : Content_Ptr := null) return Content_Ptr;
-   procedure Finalize_Value (CC : in out Default_Aggregate_Content);
+   overriding procedure Finalize_Value (CC : in out Default_Aggregate_Content);
 
    --  Aggregate_Content primitives
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Default_Aggregate_Content) return Types.Unsigned_Long;
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long);
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Default_Aggregate_Content;
       TC    : TypeCode.Object_Ptr;
       Index : Types.Unsigned_Long;
       Mech  : not null access Mechanism) return Content'Class;
 
-   procedure Set_Aggregate_Element
+   overriding procedure Set_Aggregate_Element
      (ACC    : in out Default_Aggregate_Content;
       TC     : TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class);
 
-   procedure Add_Aggregate_Element
+   overriding procedure Add_Aggregate_Element
      (ACC : in out Default_Aggregate_Content;
       El  : Any_Container_Ptr);
 
@@ -382,7 +384,7 @@ package body PolyORB.Any is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : Any) return Boolean is
+   overriding function "=" (Left, Right : Any) return Boolean is
       Res : Boolean;
    begin
       pragma Debug (C, O ("Equal (Any): enter, "
@@ -805,7 +807,7 @@ package body PolyORB.Any is
    -- Add_Aggregate_Element --
    ---------------------------
 
-   procedure Add_Aggregate_Element
+   overriding procedure Add_Aggregate_Element
      (ACC : in out Default_Aggregate_Content;
       El  : Any_Container_Ptr)
    is
@@ -849,7 +851,7 @@ package body PolyORB.Any is
    -- Clone --
    -----------
 
-   function Clone
+   overriding function Clone
      (CC   : No_Content;
       Into : Content_Ptr := null) return Content_Ptr is
    begin
@@ -863,7 +865,7 @@ package body PolyORB.Any is
    --  the contents of the original element. It is *extremely* costly! Also,
    --  it never supports direct in-place assignment.
 
-   function Clone
+   overriding function Clone
      (CC   : Default_Aggregate_Content;
       Into : Content_Ptr := null) return Content_Ptr
    is
@@ -1206,7 +1208,7 @@ package body PolyORB.Any is
    -- Finalize --
    --------------
 
-   procedure Finalize (Self : in out Any_Container) is
+   overriding procedure Finalize (Self : in out Any_Container) is
    begin
       pragma Debug (C, O ("Finalizing Any_Container: enter"));
 
@@ -1233,7 +1235,7 @@ package body PolyORB.Any is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value (CC : in out No_Content) is
+   overriding procedure Finalize_Value (CC : in out No_Content) is
    begin
       raise Program_Error;
    end Finalize_Value;
@@ -1242,7 +1244,9 @@ package body PolyORB.Any is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value (CC : in out Default_Aggregate_Content) is
+   overriding procedure Finalize_Value
+     (CC : in out Default_Aggregate_Content)
+   is
    begin
       Deep_Deallocate (CC.V);
    end Finalize_Value;
@@ -1399,7 +1403,7 @@ package body PolyORB.Any is
       return Get_Aggregate_Count (CA_Ptr.all);
    end Get_Aggregate_Count;
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Default_Aggregate_Content) return Unsigned_Long
    is
    begin
@@ -1421,7 +1425,7 @@ package body PolyORB.Any is
       return Get_Aggregate_Element (ACC, TypeCode.Object_Of (TC), Index, Mech);
    end Get_Aggregate_Element;
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Default_Aggregate_Content;
       TC    : TypeCode.Object_Ptr;
       Index : Unsigned_Long;
@@ -1891,7 +1895,7 @@ package body PolyORB.Any is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self : in out Any) is
+   overriding procedure Initialize (Self : in out Any) is
       use type PolyORB.Smart_Pointers.Entity_Ptr;
 
       Container : constant Any_Container_Ptr := new Any_Container;
@@ -1971,7 +1975,7 @@ package body PolyORB.Any is
    -- Set_Aggregate_Count --
    -------------------------
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long)
    is
@@ -2021,7 +2025,7 @@ package body PolyORB.Any is
    -- Set_Aggregate_Element --
    ---------------------------
 
-   procedure Set_Aggregate_Element
+   overriding procedure Set_Aggregate_Element
      (ACC    : in out Default_Aggregate_Content;
       TC     : TypeCode.Object_Ptr;
       Index  : Unsigned_Long;
@@ -3002,7 +3006,7 @@ package body PolyORB.Any is
       -- Finalize --
       --------------
 
-      procedure Finalize (Self : in out Object) is
+      overriding procedure Finalize (Self : in out Object) is
       begin
          pragma Debug (C, O ("Finalize (TypeCode.Object): enter"));
 
@@ -3162,7 +3166,7 @@ package body PolyORB.Any is
       -- Is_Nil --
       ------------
 
-      function Is_Nil (Self : Local_Ref) return Boolean is
+      overriding function Is_Nil (Self : Local_Ref) return Boolean is
       begin
          return Smart_Pointers.Is_Nil (Smart_Pointers.Ref (Self));
       end Is_Nil;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  No Tasking ORB Controller for PolyORB ORB main loop.
 
 --  This ORB Controller is dedicated to partition WITHOUT tasking, it
@@ -42,26 +44,26 @@ package PolyORB.ORB_Controller.No_Tasking is
    type ORB_Controller_No_Tasking_Access is
      access all ORB_Controller_No_Tasking'Class;
 
-   procedure Notify_Event
+   overriding procedure Notify_Event
      (O : access ORB_Controller_No_Tasking;
       E :        Event);
 
-   procedure Schedule_Task
+   overriding procedure Schedule_Task
      (O  : access ORB_Controller_No_Tasking;
       TI :        PTI.Task_Info_Access);
 
-   procedure Disable_Polling
+   overriding procedure Disable_Polling
      (O : access ORB_Controller_No_Tasking;
       M : PAE.Asynch_Ev_Monitor_Access);
 
-   procedure Enable_Polling
+   overriding procedure Enable_Polling
      (O : access ORB_Controller_No_Tasking;
       M : PAE.Asynch_Ev_Monitor_Access);
 
    type ORB_Controller_No_Tasking_Factory is
      new ORB_Controller_Factory with private;
 
-   function Create
+   overriding function Create
      (OCF : ORB_Controller_No_Tasking_Factory) return ORB_Controller_Access;
 
 private

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Event handlers associated with all transport access points and
 --  transport endpoints.
 
@@ -76,6 +78,6 @@ package PolyORB.Transport.Handlers is
          --  Back pointer to the corresponding endpoint.
       end record;
 
-   procedure Handle_Event (H : access TE_AES_Event_Handler);
+   overriding procedure Handle_Event (H : access TE_AES_Event_Handler);
 
 end PolyORB.Transport.Handlers;

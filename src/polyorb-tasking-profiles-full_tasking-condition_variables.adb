@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of condition variables under the Full_Tasking profile.
 
 with Ada.Unchecked_Deallocation;
@@ -131,7 +133,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    -- Broadcast --
    ---------------
 
-   procedure Broadcast
+   overriding procedure Broadcast
      (Cond : access Full_Tasking_Condition_Type) is
    begin
       Cond.The_PO.Broadcast;
@@ -141,7 +143,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (MF   : access Full_Tasking_Condition_Factory_Type;
       Name : String := "") return PTCV.Condition_Access
    is
@@ -170,7 +172,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    procedure Free is new Ada.Unchecked_Deallocation
      (Condition_PO, Condition_PO_Access);
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF   : access Full_Tasking_Condition_Factory_Type;
       Cond : in out PTCV.Condition_Access)
    is
@@ -188,7 +190,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    -- Signal --
    ------------
 
-   procedure Signal (Cond : access Full_Tasking_Condition_Type) is
+   overriding procedure Signal (Cond : access Full_Tasking_Condition_Type) is
    begin
       Cond.The_PO.Signal;
    end Signal;
@@ -197,7 +199,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    -- Wait --
    ----------
 
-   procedure Wait
+   overriding procedure Wait
      (Cond : access Full_Tasking_Condition_Type;
       M    : access PTM.Mutex_Type'Class)
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
@@ -39,7 +41,7 @@ package body PolyORB.Protocols.GIOP.UIPMC is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access UIPMC_Protocol;
       Session :    out Filter_Access) is
    begin

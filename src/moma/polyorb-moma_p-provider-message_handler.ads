@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Actual implementation of the Message_Handler object.
 --  It is derived from PolyORB's Minimal_Servant.
 --  The call-back purpose of a Message Handler is to receive a Request from
@@ -49,7 +51,7 @@ package PolyORB.MOMA_P.Provider.Message_Handler is
 
    type Object_Acc is access Object;
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self : access Object;
       Req  : PolyORB.Requests.Request_Access);
    --  Message_Handler servant skeleton.

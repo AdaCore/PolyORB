@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Support package for CDR representation of char and strings for GIOP 1.0
 
 package PolyORB.Representations.CDR.GIOP_1_0 is
@@ -45,13 +47,13 @@ package PolyORB.Representations.CDR.GIOP_1_0 is
 
    --  'char' type
 
-   procedure Marshall
+   overriding procedure Marshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : PolyORB.Types.Char;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Char;
@@ -59,13 +61,13 @@ package PolyORB.Representations.CDR.GIOP_1_0 is
 
    --  'wchar' type
 
-   procedure Marshall
+   overriding procedure Marshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : PolyORB.Types.Wchar;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wchar;
@@ -73,13 +75,13 @@ package PolyORB.Representations.CDR.GIOP_1_0 is
 
    --  'string' type
 
-   procedure Marshall
+   overriding procedure Marshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : PolyORB.Types.String;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.String;
@@ -87,13 +89,13 @@ package PolyORB.Representations.CDR.GIOP_1_0 is
 
    --  'wstring' type
 
-   procedure Marshall
+   overriding procedure Marshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : PolyORB.Types.Wide_String;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (R      : GIOP_1_0_CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out PolyORB.Types.Wide_String;

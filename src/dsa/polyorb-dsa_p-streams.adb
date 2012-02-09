@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.DSA_P.Streams is
 
    -----------
@@ -47,7 +49,7 @@ package body PolyORB.DSA_P.Streams is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
       (This : in out Memory_Resident_Stream;
        Item : Stream_Element_Array)
    is
@@ -63,7 +65,7 @@ package body PolyORB.DSA_P.Streams is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
       (This : in out Memory_Resident_Stream;
        Item :    out Stream_Element_Array;
        Last :    out Stream_Element_Offset)

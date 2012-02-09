@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
@@ -118,7 +120,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem (Implem : access GIOP_Implem_1_1) is
+   overriding procedure Initialize_Implem (Implem : access GIOP_Implem_1_1) is
    begin
       Implem.Data_Alignment        := Data_Alignment_1_1;
       Implem.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
@@ -128,7 +130,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Initialize_Session --
    ------------------------
 
-   procedure Initialize_Session
+   overriding procedure Initialize_Session
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class)
    is
@@ -150,7 +152,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Finalize_Session --
    ----------------------
 
-   procedure Finalize_Session
+   overriding procedure Finalize_Session
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class)
    is
@@ -173,7 +175,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Process_Message --
    ---------------------
 
-   procedure Process_Message
+   overriding procedure Process_Message
      (Implem     : access GIOP_Implem_1_1;
       S          : access Session'Class)
    is
@@ -377,7 +379,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
       Request :        Requests.Request_Access)
@@ -461,7 +463,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Locate Object --
    -------------------
 
-   procedure Locate_Object
+   overriding procedure Locate_Object
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
       R      :        Pending_Request_Access;
@@ -512,7 +514,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Send_Request --
    ------------------
 
-   procedure Send_Request
+   overriding procedure Send_Request
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
       R      : Pending_Request_Access;
@@ -596,7 +598,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Send_Cancel_Request --
    -------------------------
 
-   procedure Send_Cancel_Request
+   overriding procedure Send_Cancel_Request
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
       R      : Request_Access)
@@ -628,7 +630,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Marshall_Argument_List --
    ----------------------------
 
-   procedure Marshall_Argument_List
+   overriding procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem_1_1;
       Buffer              :        Buffers.Buffer_Access;
       Representation      : access CDR_Representation'Class;
@@ -681,7 +683,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Unmarshall_GIOP_Header --
    ----------------------------
 
-   procedure Unmarshall_GIOP_Header
+   overriding procedure Unmarshall_GIOP_Header
      (Implem  : access GIOP_Implem_1_1;
       MCtx    : access GIOP_Message_Context'Class;
       Buffer  : access Buffers.Buffer_Type)
@@ -729,7 +731,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Marshall_GIOP_Header --
    --------------------------
 
-   procedure Marshall_GIOP_Header
+   overriding procedure Marshall_GIOP_Header
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
       MCtx   : access GIOP_Message_Context'Class;
@@ -805,7 +807,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    -- Marshall_GIOP_Header_Reply --
    --------------------------------
 
-   procedure Marshall_GIOP_Header_Reply
+   overriding procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
       R       : Request_Access;

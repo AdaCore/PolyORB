@@ -26,6 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 with Ada.Text_IO;
 
@@ -95,7 +97,7 @@ package body PolyORB.Test_Object_SOA is
    -- "Middleware glue" that should be generated automatically --
    --------------------------------------------------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Obj : not null access My_Object;
       Req : Requests.Request_Access) return Boolean
    is

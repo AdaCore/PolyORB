@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A filter that slices a stream into a set of known-length messages.
 
 with Ada.Streams;
@@ -43,7 +45,7 @@ package PolyORB.Filters.Slicers is
 
    type Slicer_Factory is new Factory with private;
 
-   procedure Create
+   overriding procedure Create
      (Fact   : access Slicer_Factory;
       Slicer :    out Filter_Access);
 
@@ -58,7 +60,7 @@ private
       Buffer_Length : Ada.Streams.Stream_Element_Count;
    end record;
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access Slicer_Filter;
       S : Components.Message'Class) return Components.Message'Class;
 

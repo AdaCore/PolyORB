@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides definition of all MOMA types.
 
 with Ada.Strings.Unbounded;
@@ -99,7 +101,9 @@ package MOMA.Types is
    -- String conversion fonctions --
    ---------------------------------
 
-   function To_Standard_String (V : MOMA.Types.String) return Standard.String;
+   overriding function To_Standard_String
+     (V : MOMA.Types.String)
+     return Standard.String;
 
    function To_MOMA_String (V : Standard.String) return MOMA.Types.String;
 

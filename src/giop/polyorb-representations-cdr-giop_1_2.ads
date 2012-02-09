@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Support package for CDR representation of char and strings for GIOP 1.2
 
 with PolyORB.GIOP_P.Code_Sets.Converters;
@@ -47,7 +49,7 @@ package PolyORB.Representations.CDR.GIOP_1_2 is
 
    --  XXX Encapsulation is also GIOP version dependent.
 
-   procedure Set_Converters
+   overriding procedure Set_Converters
      (R : in out GIOP_1_2_CDR_Representation;
       C : PolyORB.GIOP_P.Code_Sets.Converters.Converter_Access;
       W : PolyORB.GIOP_P.Code_Sets.Converters.Wide_Converter_Access);

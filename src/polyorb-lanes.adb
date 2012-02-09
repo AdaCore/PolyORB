@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.QoS.Priority;
@@ -51,7 +53,7 @@ package body PolyORB.Lanes is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Lane_Runnable) is
+   overriding procedure Run (R : not null access Lane_Runnable) is
    begin
       pragma Debug (C, O ("Entering lane's main loop"));
 
@@ -186,14 +188,14 @@ package body PolyORB.Lanes is
    -- Destroy --
    -------------
 
-   procedure Destroy (L : access Lane) is
+   overriding procedure Destroy (L : access Lane) is
    begin
       L.Clean_Up_In_Progress := True;
 
       Broadcast (L.CV);
    end Destroy;
 
-   procedure Destroy (L : access Lanes_Set) is
+   overriding procedure Destroy (L : access Lanes_Set) is
    begin
       for J in L.Set'Range loop
          Destroy (L.Set (J));
@@ -204,7 +206,7 @@ package body PolyORB.Lanes is
    -- Queue_Job --
    ---------------
 
-   procedure Queue_Job
+   overriding procedure Queue_Job
      (L             : access Lane;
       J             :        Job_Access;
       Hint_Priority :        External_Priority := Invalid_Priority)
@@ -279,7 +281,7 @@ package body PolyORB.Lanes is
       end if;
    end Queue_Job;
 
-   procedure Queue_Job
+   overriding procedure Queue_Job
      (L             : access Lanes_Set;
       J             :        Job_Access;
       Hint_Priority :        External_Priority := Invalid_Priority)
@@ -337,7 +339,7 @@ package body PolyORB.Lanes is
    -- Is_Valid_Priority --
    -----------------------
 
-   function Is_Valid_Priority
+   overriding function Is_Valid_Priority
      (L        : access Lane;
       Priority :        External_Priority)
      return Boolean
@@ -346,7 +348,7 @@ package body PolyORB.Lanes is
       return L.Ext_Priority = Priority;
    end Is_Valid_Priority;
 
-   function Is_Valid_Priority
+   overriding function Is_Valid_Priority
      (L        : access Lanes_Set;
       Priority :        External_Priority)
      return Boolean

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
@@ -67,7 +69,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       A_S : Session_Access;
    end record;
 
-   procedure Run (R : not null access Session_Runnable);
+   overriding procedure Run (R : not null access Session_Runnable);
 
    procedure Initialize;
 
@@ -101,7 +103,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Handle_Close_Connection --
    -----------------------------
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access Thread_Per_Session_Policy;
       TE  :        Transport_Endpoint_Access)
    is
@@ -142,7 +144,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Handle_New_Client_Connection --
    ----------------------------------
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Session_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection)
@@ -159,7 +161,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Handle_New_Server_Connection --
    ----------------------------------
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Session_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection)
@@ -200,7 +202,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Handle_Request_Execution --
    ------------------------------
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
       ORB : ORB_Access;
       RJ  : access Request_Job'Class)
@@ -223,7 +225,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Idle --
    ----------
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access Thread_Per_Session_Policy;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access)
@@ -261,7 +263,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Run --
    ---------
 
-   procedure Run (J : not null access End_Thread_Job) is
+   overriding procedure Run (J : not null access End_Thread_Job) is
       pragma Unreferenced (J);
    begin
       null;
@@ -271,7 +273,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Session_Runnable) is
+   overriding procedure Run (R : not null access Session_Runnable) is
       M   : Mutex_Access;
       CV  : Condition_Access;
       L   : Request_Queue_Access;

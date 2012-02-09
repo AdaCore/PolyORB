@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with CORBA.Impl;
@@ -73,7 +75,7 @@ package body CORBA.Value.Box is
    --  Release  --
    ---------------
 
-   procedure Release (The_Ref : in out Box_Ref) is
+   overriding procedure Release (The_Ref : in out Box_Ref) is
    begin
       if Is_Nil (The_Ref) then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);

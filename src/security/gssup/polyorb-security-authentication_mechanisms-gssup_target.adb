@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 
@@ -69,7 +71,7 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Target is
    -- Accept_Security_Context --
    -----------------------------
 
-   procedure Accept_Security_Context
+   overriding procedure Accept_Security_Context
      (Mechanism    : access GSSUP_Target_Authentication_Mechanism;
       Token        :        PolyORB.Security.Types.Stream_Element_Array_Access;
       Success      : out    Boolean;
