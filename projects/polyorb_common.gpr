@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2011, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,7 @@ project PolyORB_Common is
    package Compiler is
 
       Base_Ada_Compiler_Switches :=
-        ("-gnat2005",         --  Ada 2005 mode
+        ("-gnat05",           --  Ada 2005 mode
          "-gnati1",           --  Full ISO 8859-1 character set allowed in
                               --  source code (for generated CORBA stubs)
          "-gnatf",            --  Full compiler error messages
