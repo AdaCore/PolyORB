@@ -41,6 +41,9 @@ See the features-29 file.
 Bug fixes
 ---------
 
+Abortion of a task blocked trying to bind a reference would leave the
+reference locked, causing further bind attemps to hang. (KC09-001)
+
 DSA RPC receivers were activated too early (before the partition was
 completely elaborated), which could cause access before elaboration
 while servicing remote calls. (KC22-022)
