@@ -723,9 +723,9 @@ GNU tar is required to unpack PolyORB source packages.
 
 Ada compiler:
 @itemize @bullet
-@item GNAT Pro 6.0.* or later
-@item GNAT GPL 2007 or later
-@item FSF GCC 4.3 or later
+@item GNAT Pro 6.2.* or later
+@item GNAT GPL 2009 or later
+@item FSF GCC 4.4 or later
 @end itemize
 
 For builds for cross targets, both a native and a cross compiler are
