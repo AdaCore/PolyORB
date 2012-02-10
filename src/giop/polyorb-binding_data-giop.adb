@@ -141,7 +141,7 @@ package body PolyORB.Binding_Data.GIOP is
 
    overriding function Is_Local_Profile
      (PF : access GIOP_Profile_Factory;
-      P  : access Profile_Type'Class)
+      P  : not null access Profile_Type'Class)
       return Boolean
    is
       use Transport_Mechanism_Lists;

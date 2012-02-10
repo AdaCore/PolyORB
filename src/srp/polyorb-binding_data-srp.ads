@@ -80,7 +80,7 @@ package PolyORB.Binding_Data.SRP is
 
    overriding function Is_Local_Profile
      (PF : access SRP_Profile_Factory;
-      P  : access Profile_Type'Class)
+      P  : not null access Profile_Type'Class)
      return Boolean;
 
    overriding function Image (Prof : SRP_Profile_Type) return String;

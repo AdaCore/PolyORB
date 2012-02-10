@@ -110,7 +110,7 @@ package PolyORB.Binding_Data.SOAP is
 
    overriding function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
-      P  : access Profile_Type'Class)
+      P  : not null access Profile_Type'Class)
       return Boolean;
 
 private
