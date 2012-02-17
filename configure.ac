@@ -837,14 +837,16 @@ AC_SUBST_FILE(PO_CREATEREF_WITHS)
 
 LOCAL_MAKEFILES=config.local.makefiles
 
+(
+echo "test_targets :="
 (cd ${srcdir} && find . -name Makefile.local) | sed "s,^\./,," | \
 while read mklocal; do
   testdir="`dirname ${mklocal}`/"
   echo "current_dir  := ${testdir}"
   echo "test_target  := ${testdir}build-test"
-  echo "test_targets += ${testdir}build-test"
   echo "include \$(top_srcdir)/${mklocal}"
-done > ${LOCAL_MAKEFILES}
+  echo "test_targets += \${test_target}"
+done) > ${LOCAL_MAKEFILES}
 AC_SUBST_FILE(LOCAL_MAKEFILES)
 
 # GNATDIST version

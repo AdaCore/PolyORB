@@ -109,6 +109,7 @@ GNATMAKE_FLAGS_FOR_TARGET := -cargs ${ADAFLAGS_FOR_TARGET}
 
 HAVE_ADA_DYNAMIC_PRIORITIES := @HAVE_ADA_DYNAMIC_PRIORITIES@
 HAVE_SSL := @HAVE_SSL@
+OPENSSL := @OPENSSL@
 
 include ${top_builddir}/Makefile.common.project
 
@@ -677,10 +678,6 @@ ${test_targets}: %/build-test:
 # with ssl support.
 
 active_tests := ${test_targets}
-
-ifneq (${HAVE_SSL},yes)
-  active_tests := ${filter-out examples/corba/secure_echo/%,${active_tests}}
-endif
 
 ifneq "${filter corba, ${APPLI_LIST}}" "corba"
   active_tests := ${filter-out examples/corba/%,${active_tests}}

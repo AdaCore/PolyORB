@@ -39,7 +39,9 @@ AC_DEFUN([AM_WITH_OPENSSL],
     esac
 
     dnl If ARG is not specified, $withval is "yes", and we do not have any
-    dnl additional user defined path to search.
+    dnl additional user defined path to search. Special case if the user
+    dnl specified --without-openssl: in this case $withval is "no" and we'll
+    dnl exit early from the loop below.
 
     if test "$withval" != "yes"; then
         ssl_user_dir="$withval"
@@ -48,6 +50,12 @@ AC_DEFUN([AM_WITH_OPENSSL],
     # dir="-" corresponds to the default system locations
 
     for dir in $ssl_user_dir - /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
+
+        # Handle case of --without-openssl
+
+        if test "$dir" = "no"; then
+            break
+        fi
 
         # Set candidate options for this location
 
@@ -85,6 +93,13 @@ AC_DEFUN([AM_WITH_OPENSSL],
             unset ac_cv_lib_ssl_SSL_CTX_new
             AC_CHECK_LIB(ssl, SSL_CTX_new, [], [ssl_fail="yes"],
               [$SSL_LIBDL])
+        fi
+
+        # Check for openssl(1)
+
+        AC_PATH_PROG([OPENSSL], [openssl], [false], [$dir/bin:$PATH])
+        if test "$OPENSSL" = "false"; then
+            ssl_fail="yes"
         fi
 
         if test "$ssl_fail" = "no"; then
@@ -144,4 +159,5 @@ AC_SUBST(NO_SSL_LINKER_OPTIONS)
 
 AC_SUBST(HAVE_SSL)
 AC_SUBST(NO_SSL)
+AC_SUBST(OPENSSL)
 ])dnl
