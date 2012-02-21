@@ -222,7 +222,6 @@ AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
 AM_CROSS_PROG_CC
 AM_PROG_IDLCPP
-AM_PROG_XARGS_I
 
 ##########################################
 # Check Ada environment features
