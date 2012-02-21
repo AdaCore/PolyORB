@@ -586,7 +586,7 @@ AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
 
 #
-# If ATC or dynamic priritoes are not supported, remove corresponding units.
+# If ATC or dynamic priorities are not supported, remove corresponding units.
 # Note: can't use a multi-line value for an AC_SUBST variable, this works only
 # with recent versions of autoconf (which use awk(1) for all substitutions).
 # Older versions that rely on sed(1) don't handle multi-line substitutions
