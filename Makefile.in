@@ -296,7 +296,11 @@ idlac_include_flags := \
 	-I.
 
 # Command used to run idlac:
+ifeq (@USE_IDLAC_WRAPPER@,yes)
 idlac := ${IDLAC_WRAPPER} --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_include_flags}
+else
+idlac := ${top_builddir}/${IDLAC_bin} ${idlac_include_flags}
+endif
 
 ################################################################
 

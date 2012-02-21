@@ -347,6 +347,16 @@ AS_HELP_STRING([--with-idl-compiler=X], [Select IDL compiler]),
   IDLAC=iac
 ])
 AC_SUBST(IDLAC)
+
+AC_ARG_ENABLE(idlac-wrapper,
+AS_HELP_STRING([--disable-idlac-wrapper], [Do not use idlac_wrapper for build]),
+[case "$enableval" in
+   yes|no) USE_IDLAC_WRAPPER=$enableval ;;
+   *)      AC_ERROR([invalid argument to --enable-idlac-wrapper: $enableval]) ;;
+esac],
+[USE_IDLAC_WRAPPER=yes])
+AC_SUBST(USE_IDLAC_WRAPPER)
+
 AM_IDLCPP_NEEDS_DOT
 
 ##########################################
