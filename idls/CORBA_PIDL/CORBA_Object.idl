@@ -9,7 +9,7 @@
         Flags           arg_modes;  // argument mode flags
     };
 
-    enum SetOverrideType {SET_OVERRIDE, ADD_OVERRIDE};
+    interface ORB;   // PIDL Forward Declaration
 
     interface Object {                  // PIDL
 
@@ -40,7 +40,7 @@
             in    Identifier        operation,
             in    NVList            arg_list,
             inout NamedValue        result,
-            out   Request           request,
+            out   Request           req,
             in    Flags             req_flag
         );
 
@@ -66,6 +66,10 @@
 //PolyORB:IL:        boolean validate_connection(
 //PolyORB:IL:            out PolicyList          inconsistent_policies
 //PolyORB:IL:        );
-
-//PolyORB:NI:        Object get_component ();
+//PolyORB:IL:
+//PolyORB:IL:        string repository_id();
+//PolyORB:IL:
+//PolyORB:IL:        Object get_component ();
+//PolyORB:IL:
+//PolyORB:IL:        ORB get_ORB ();
     };
