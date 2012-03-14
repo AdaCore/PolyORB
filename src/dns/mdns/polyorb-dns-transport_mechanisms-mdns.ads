@@ -36,7 +36,7 @@ package PolyORB.DNS.Transport_Mechanisms.MDNS is
 
    type MDNS_Transport_Mechanism is new Transport_Mechanism with private;
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : MDNS_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -47,11 +47,11 @@ package PolyORB.DNS.Transport_Mechanisms.MDNS is
    type MDNS_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with private;
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (MF  : out MDNS_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access);
 
-   function Is_Local_Mechanism
+   overriding function Is_Local_Mechanism
      (MF : access MDNS_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class) return Boolean;
 
@@ -61,11 +61,10 @@ package PolyORB.DNS.Transport_Mechanisms.MDNS is
    --  Create transport mechanism
 
    function Create_Transport_Mechanism
-     (Address : Utils.Sockets.Socket_Name)
-      return Transport_Mechanism_Access;
+     (Address : Utils.Sockets.Socket_Name) return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : MDNS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean;
 

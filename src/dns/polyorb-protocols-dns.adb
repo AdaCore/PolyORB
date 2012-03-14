@@ -88,7 +88,7 @@ package body PolyORB.Protocols.DNS is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access DNS_Protocol;
       Session :    out Filter_Access)
    is
@@ -105,7 +105,7 @@ package body PolyORB.Protocols.DNS is
    -- Invoke_Request --
    --------------------
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (Sess : access DNS_Session;
       R    : Requests.Request_Access;
       Pro  : access Binding_Data.Profile_Type'Class)
@@ -180,7 +180,7 @@ package body PolyORB.Protocols.DNS is
    -- Abort_Request --
    -------------------
 
-   procedure Abort_Request
+   overriding procedure Abort_Request
      (S : access DNS_Session;
       R    :        Requests.Request_Access) is
    begin
@@ -191,7 +191,7 @@ package body PolyORB.Protocols.DNS is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (S       : access DNS_Session;
       Request : Requests.Request_Access)
    is
@@ -266,7 +266,7 @@ package body PolyORB.Protocols.DNS is
    -- Handle_Connect_Indication --
    -------------------------------
 
-   procedure Handle_Connect_Indication
+   overriding procedure Handle_Connect_Indication
      (S : access DNS_Session) is
    begin
       pragma Debug (C, O ("Handle_Connect_Indication"));
@@ -279,7 +279,7 @@ package body PolyORB.Protocols.DNS is
    -- Handle_Connect_Confirmation --
    ---------------------------------
 
-   procedure Handle_Connect_Confirmation (S : access DNS_Session) is
+   overriding procedure Handle_Connect_Confirmation (S : access DNS_Session) is
    begin
       pragma Debug (C, O ("Handle_Connect_Confirmation"));
       S.Role := Client;
@@ -291,7 +291,7 @@ package body PolyORB.Protocols.DNS is
    -- Handle_Data_Indication --
    ----------------------------
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (Sess       : access DNS_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container)
@@ -321,8 +321,9 @@ package body PolyORB.Protocols.DNS is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect
-     (Sess : access DNS_Session; Error : Errors.Error_Container)
+   overriding procedure Handle_Disconnect
+     (Sess  : access DNS_Session;
+      Error : Errors.Error_Container)
    is
       use Pend_Req_Tables;
       P     : Pending_Request_Access;
@@ -367,16 +368,14 @@ package body PolyORB.Protocols.DNS is
    -- Handle_Flush --
    ------------------
 
-   procedure Handle_Flush (S : access DNS_Session)
-     renames Expect_DNS_Header;
+   overriding procedure Handle_Flush
+     (S : access DNS_Session) renames Expect_DNS_Header;
 
    ------------------------
    -- Expect_DNS_Header --
    ------------------------
 
-   --  called to wait another DNS message
-   procedure Expect_DNS_Header
-     (Sess : access DNS_Session) is
+   procedure Expect_DNS_Header (Sess : access DNS_Session) is
    begin
 
       --  Check if buffer has been totally read

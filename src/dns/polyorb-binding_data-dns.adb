@@ -45,7 +45,7 @@ package body PolyORB.Binding_Data.DNS is
    -- Bind_Profile --
    ------------------
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access DNS_Profile_Type;
       The_ORB : Components.Component_Access;
       QoS     : PolyORB.QoS.QoS_Parameters;
@@ -61,7 +61,7 @@ package body PolyORB.Binding_Data.DNS is
    -- Image --
    -----------
 
-   function Image (Prof : DNS_Profile_Type) return String is
+   overriding function Image (Prof : DNS_Profile_Type) return String is
    begin
       return Ada.Tags.External_Tag (DNS_Profile_Type'Class (Prof)'Tag)
         & " Address : " & Utils.Sockets.Image (Address_Of (Prof.Mechanism.all))
@@ -72,7 +72,7 @@ package body PolyORB.Binding_Data.DNS is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : DNS_Profile_Type;
       Right : Profile_Type'Class) return Boolean
    is
@@ -88,9 +88,9 @@ package body PolyORB.Binding_Data.DNS is
    -- Is_Local_Profile --
    ----------------------
 
-   function Is_Local_Profile
+   overriding function Is_Local_Profile
      (PF : access DNS_Profile_Factory;
-      P  : access Profile_Type'Class)
+      P  : not null access Profile_Type'Class)
       return Boolean
    is
    begin
@@ -135,11 +135,14 @@ package body PolyORB.Binding_Data.DNS is
    -- Release --
    -------------
 
-   procedure Release (P : in out DNS_Profile_Type) is
+   overriding procedure Release (P : in out DNS_Profile_Type) is
    begin
       Free (P.Object_Id);
       PolyORB.Annotations.Destroy (P.Notepad);
+
       --  XXX This is a temporary fix
+      --  Does this mean we have a memory leak/incorrectly shared mechanisms???
+
       --  Release_Contents (P.Mechanisms);
    end Release;
 

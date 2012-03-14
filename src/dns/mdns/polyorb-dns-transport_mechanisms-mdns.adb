@@ -58,7 +58,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    -- Bind_Mechanism --
    --------------------
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : MDNS_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -126,7 +126,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (MF  : out MDNS_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access)
    is
@@ -139,7 +139,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    -- Create_Transport_Mechanism --
    --------------------------------
 
-   function Create_Transport_Mechanism
+   overriding function Create_Transport_Mechanism
      (MF : MDNS_Transport_Mechanism_Factory)
       return Transport_Mechanism_Access
    is
@@ -171,10 +171,10 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    -- Is_Local_Mechanism --
    ------------------------
 
-   function Is_Local_Mechanism
+   overriding function Is_Local_Mechanism
      (MF : access MDNS_Transport_Mechanism_Factory;
-      M  : access Transport_Mechanism'Class)
-      return Boolean is
+      M  : access Transport_Mechanism'Class) return Boolean
+   is
    begin
       return M.all in MDNS_Transport_Mechanism
                and then
@@ -185,7 +185,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : MDNS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is

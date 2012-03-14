@@ -67,11 +67,11 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
-        (Acc : not null access Content_RR_Type;
-         Tc : PolyORB.Any.TypeCode.Object_Ptr;
+      overriding function Get_Aggregate_Element
+        (Acc   : not null access Content_RR_Type;
+         Tc    : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
-         Mech : not null access PolyORB.Any.Mechanism)
+         Mech  : not null access PolyORB.Any.Mechanism)
         return PolyORB.Any.Content'Class
       is
          use type PolyORB.Types.Unsigned_Long;
@@ -92,15 +92,14 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
-        (Acc : in out Content_RR_Type;
-         Tc : PolyORB.Any.TypeCode.Object_Ptr;
-         Index : PolyORB.Types.Unsigned_Long;
+      overriding procedure Set_Aggregate_Element
+        (Acc    : in out Content_RR_Type;
+         Tc     : PolyORB.Any.TypeCode.Object_Ptr;
+         Index  : PolyORB.Types.Unsigned_Long;
          From_C : in out PolyORB.Any.Any_Container'Class)
       is
          use type PolyORB.Types.Unsigned_Long;
-         pragma Assert ((Index
-            = 0));
+         pragma Assert ((Index = 0));
          pragma Unreferenced (Tc);
       begin
          Acc.V.all :=
@@ -114,9 +113,8 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
-        (Acc : Content_RR_Type)
-        return PolyORB.Types.Unsigned_Long
+      overriding function Get_Aggregate_Count
+        (Acc : Content_RR_Type) return PolyORB.Types.Unsigned_Long
       is
          pragma Unreferenced (Acc);
       begin
@@ -127,8 +125,8 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
-        (Acc : in out Content_RR_Type;
+      overriding procedure Set_Aggregate_Count
+        (Acc   : in out Content_RR_Type;
          Count : PolyORB.Types.Unsigned_Long)
       is
       begin
@@ -139,7 +137,7 @@ package body PolyORB.DNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Type)
         return PolyORB.Types.Address
       is
@@ -157,8 +155,8 @@ package body PolyORB.DNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
-        (Acc : Content_RR_Type;
+      overriding function Clone
+        (Acc  : Content_RR_Type;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
       is
@@ -192,9 +190,7 @@ package body PolyORB.DNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
-        (Acc : in out Content_RR_Type)
-      is
+      overriding procedure Finalize_Value (Acc : in out Content_RR_Type) is
          procedure Free
            is new Ada.Unchecked_Deallocation
               (RR_Type,
@@ -210,8 +206,7 @@ package body PolyORB.DNS.Helper is
       ----------
 
       function Wrap
-        (X : access RR_Type)
-        return PolyORB.Any.Content'Class
+        (X : access RR_Type) return PolyORB.Any.Content'Class
       is
       begin
          return Content_RR_Type'
@@ -309,7 +304,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_SRV_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -348,7 +343,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_SRV_Data)
         return PolyORB.Types.Unsigned_Long
       is
@@ -361,7 +356,7 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_SRV_Data;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -373,7 +368,7 @@ package body PolyORB.DNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_SRV_Data)
         return PolyORB.Types.Address
       is
@@ -391,7 +386,7 @@ package body PolyORB.DNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_SRV_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -423,7 +418,7 @@ package body PolyORB.DNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_SRV_Data)
       is
          procedure Free
@@ -604,7 +599,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -650,7 +645,7 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -677,7 +672,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR_Data)
         return PolyORB.Types.Unsigned_Long
       is
@@ -690,7 +685,7 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR_Data;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -702,7 +697,7 @@ package body PolyORB.DNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Data)
         return PolyORB.Types.Address
       is
@@ -720,7 +715,7 @@ package body PolyORB.DNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -756,7 +751,7 @@ package body PolyORB.DNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR_Data)
       is
          procedure Free
@@ -880,7 +875,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -922,7 +917,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR)
         return PolyORB.Types.Unsigned_Long
       is
@@ -935,7 +930,7 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -947,7 +942,7 @@ package body PolyORB.DNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR)
         return PolyORB.Types.Address
       is
@@ -965,7 +960,7 @@ package body PolyORB.DNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -997,7 +992,7 @@ package body PolyORB.DNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR)
       is
          procedure Free
@@ -1134,7 +1129,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -1159,7 +1154,7 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -1181,7 +1176,7 @@ package body PolyORB.DNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_Rcode)
         return PolyORB.Types.Unsigned_Long
       is
@@ -1194,7 +1189,7 @@ package body PolyORB.DNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_Rcode;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -1206,7 +1201,7 @@ package body PolyORB.DNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_Rcode)
         return PolyORB.Types.Address
       is
@@ -1224,7 +1219,7 @@ package body PolyORB.DNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_Rcode;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -1259,7 +1254,7 @@ package body PolyORB.DNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_Rcode)
       is
          procedure Free
