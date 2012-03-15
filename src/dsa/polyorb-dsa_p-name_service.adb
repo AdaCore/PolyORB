@@ -159,7 +159,6 @@ package body PolyORB.DSA_P.Name_Service is
       Pro          : PolyORB.Binding_Data.Profile_Access;
       Error        : PolyORB.Errors.Error_Container;
    begin
-
       --  Bind the reference to ensure validity
 
       Bind (R          => R,
