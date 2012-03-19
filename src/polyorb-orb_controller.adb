@@ -33,7 +33,6 @@
 with PolyORB.Constants;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Utils.Backtrace;
 
 package body PolyORB.ORB_Controller is
 
@@ -43,13 +42,14 @@ package body PolyORB.ORB_Controller is
 
    My_Factory : ORB_Controller_Factory_Access;
 
-   type Tracked_Mutex is new Mutex_Type with record
+   type Reentrant_Mutex is new Mutex_Type with record
       Mutex : Mutex_Access;
       Owner : Thread_Id := Null_Thread_Id;
+      Count : Natural := 0;
    end record;
 
-   overriding procedure Enter (M : access Tracked_Mutex);
-   overriding procedure Leave (M : access Tracked_Mutex);
+   overriding procedure Enter (M : access Reentrant_Mutex);
+   overriding procedure Leave (M : access Reentrant_Mutex);
 
    ------------
    -- Create --
@@ -64,33 +64,45 @@ package body PolyORB.ORB_Controller is
    -- Enter --
    -----------
 
-   overriding procedure Enter (M : access Tracked_Mutex) is
+   overriding procedure Enter (M : access Reentrant_Mutex) is
       Self : constant Thread_Id := Current_Task;
    begin
       pragma Abort_Defer;
-      pragma Debug (C1, O1 ("Enter Tracked_Mutex: " & Image (Self)
+      pragma Debug (C1, O1 ("Enter Reentrant_Mutex: " & Image (Self)
                             & ", current owner " & Image (M.Owner)));
 
       if M.Owner = Self then
-         O1 ("attempt to re-enter critical section at "
-             & Utils.Backtrace.Backtrace, Warning);
+         --  Mutex is reentrant
+
+         null;
 
       else
          M.Mutex.Enter;
          M.Owner := Self;
       end if;
+
+      M.Count := M.Count + 1;
+
+      pragma Debug (C1, O1 ("Acquired Reentrant_Mutex: " & Image (Self)
+                            & ", Count =" & M.Count'Img));
    end Enter;
 
    -----------
    -- Leave --
    -----------
 
-   overriding procedure Leave (M : access Tracked_Mutex) is
+   overriding procedure Leave (M : access Reentrant_Mutex) is
    begin
       pragma Abort_Defer;
-      pragma Debug (C1, O1 ("Leave Tracked_Mutex " & Image (Current_Task)));
-      M.Owner := Null_Thread_Id;
-      M.Mutex.Leave;
+      pragma Debug
+        (C1, O1 ("Leave Reentrant_Mutex: " & Image (Current_Task)
+                 & ", Count =" & M.Count'Img));
+
+      M.Count := M.Count - 1;
+      if M.Count = 0 then
+         M.Owner := Null_Thread_Id;
+         M.Mutex.Leave;
+      end if;
    end Leave;
 
    --------------------
@@ -224,8 +236,8 @@ package body PolyORB.ORB_Controller is
                      PolyORB.Constants.Forever);
 
    begin
-      OC.ORB_Lock := new Tracked_Mutex;
-      PTM.Create (Tracked_Mutex (OC.ORB_Lock.all).Mutex);
+      OC.ORB_Lock := new Reentrant_Mutex;
+      PTM.Create (Reentrant_Mutex (OC.ORB_Lock.all).Mutex);
 
       for J in OC.AEM_Infos'Range loop
          PTCV.Create (OC.AEM_Infos (J).Polling_Completed);

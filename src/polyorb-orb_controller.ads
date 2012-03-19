@@ -152,6 +152,11 @@ package PolyORB.ORB_Controller is
 
    type ORB_Controller_Access is access all ORB_Controller'Class;
 
+   --  The ORB critical section is a reetrant mutex: when a task is in critical
+   --  section, it can call Enter_ORB_Critical_Section again; other tasks
+   --  waiting to enter the critical section can do so only after as many
+   --  calls to Leave_ORB_Critical_Section have been made.
+
    procedure Enter_ORB_Critical_Section (O : access ORB_Controller);
    pragma Inline (Enter_ORB_Critical_Section);
    --  Enter ORB critical section
