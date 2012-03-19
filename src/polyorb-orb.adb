@@ -1333,6 +1333,10 @@ package body PolyORB.ORB is
             BO_Acc : Binding_Object_Access renames Value (It);
             Ref    : Smart_Pointers.Ref;
          begin
+            --  Note: the call to Valid here may cause a TE to be detected as
+            --  invalid and unregistered from the ORB. The call to Unregister_
+            --  Endpoint will enter the ORB critical section again.
+
             if not Valid (BO_Acc) then
 
                --  Mark binding object as not referenced anymore and purge.
