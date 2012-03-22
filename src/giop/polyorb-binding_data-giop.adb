@@ -141,22 +141,21 @@ package body PolyORB.Binding_Data.GIOP is
 
    overriding function Is_Local_Profile
      (PF : access GIOP_Profile_Factory;
-      P  : not null access Profile_Type'Class)
-      return Boolean
+      P  : not null access Profile_Type'Class) return Boolean
    is
       use Transport_Mechanism_Lists;
       use Transport_Mechanism_Factory_Lists;
 
-      F_Iter : Transport_Mechanism_Factory_Lists.Iterator
-        := First (PF.Mechanisms);
+      F_Iter : Transport_Mechanism_Factory_Lists.Iterator :=
+                 First (PF.Mechanisms);
 
    begin
       if P.all not in GIOP_Profile_Type'Class then
          return False;
       end if;
 
-      --  Profile designates a local object if at least one of its
-      --  transport mechanism is local.
+      --  Profile designates a local object if at least one of its transport
+      --  mechanisms is local.
 
       while not Last (F_Iter) loop
          declare
