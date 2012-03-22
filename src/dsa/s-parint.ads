@@ -64,6 +64,7 @@ with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+with PolyORB.Utils.Ilists;
 with PolyORB.Utils.Strings;
 
 package System.Partition_Interface is
@@ -187,7 +188,7 @@ package System.Partition_Interface is
       Version : String;
       RCI     : Boolean := True);
    --  Use by the main subprogram to check that a remote receiver unit has has
-   --  the same version than the caller's one.
+   --  the same version as the caller's one.
 
    --------------------------
    -- RPC receiver objects --
@@ -252,6 +253,16 @@ package System.Partition_Interface is
    -- Remote Access to Class Wide --
    ---------------------------------
 
+   --  RACW_Stub_Type is used by the expansion to implement remote objects.
+   --  Do not change its definition or its layout without updating Exp_Dist
+   --  accordingly.
+
+   type RACW_Stub_Type;
+   type RACW_Stub_Type_Access is access all RACW_Stub_Type'Class;
+
+   type RACW_Stub_Links is array (PolyORB.Utils.Ilists.Link_Type)
+     of aliased RACW_Stub_Type_Access;
+
    type RACW_Stub_Type is tagged limited record
       Target       : Entity_Ptr;
       --  Target cannot be a References.Ref (a controlled type) because that
@@ -260,18 +271,26 @@ package System.Partition_Interface is
       --  pointer to References.Reference_Info.
 
       Asynchronous : Boolean;
+
+      Notification_Links : RACW_Stub_Links;
+      --  Chaining pointers allowing stubs to be linked on a notification list
    end record;
 
-   type RACW_Stub_Type_Access is access all RACW_Stub_Type;
-   --  This type is used by the expansion to implement distributed objects.
-   --  Do not change its definition or its layout without updating Exp_Dist
-   --  accordingly.
+   --  Note: all RACW_Stub_Type operations must be classwide (not primitives)
+   --  so that we do not generate unwanted entries in the RACW_Stub_Type
+   --  dispatch table.
 
    function Same_Partition
-     (Left  : access RACW_Stub_Type;
-      Right : access RACW_Stub_Type) return Boolean;
+     (Left  : access RACW_Stub_Type'Class;
+      Right : access RACW_Stub_Type'Class) return Boolean;
    --  Determine whether Left and Right correspond to objects instantiated
    --  on the same partition, for enforcement of E.4(19).
+
+   function Link
+     (X     : access RACW_Stub_Type'Class;
+      Which : PolyORB.Utils.Ilists.Link_Type)
+      return access RACW_Stub_Type_Access;
+   --  Chaining pointers accessor
 
    --------------------------------------------
    -- Support for RACWs as object references --
@@ -294,6 +313,9 @@ package System.Partition_Interface is
      (R : PolyORB.References.Ref) return PolyORB.Smart_Pointers.Entity_Ptr
      renames PolyORB.References.Entity_Of;
    --  Conversion from Entity_Ptr to Ref and reverse
+
+   procedure Free_Stub (RACW : in out RACW_Stub_Type_Access);
+   --  Deallocate the stub designated by RACW
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
@@ -659,7 +681,7 @@ package System.Partition_Interface is
       Kind     : String;
       Stub_Tag : Ada.Tags.Tag;
       Addr     : out System.Address);
-   --  Retreive a RACW from name server.
+   --  Retrieve a RACW from name server
 
 private
 

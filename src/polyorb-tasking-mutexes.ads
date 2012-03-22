@@ -35,6 +35,10 @@
 --  A complete implementation of this package is provided for all
 --  tasking profiles.
 
+pragma Ada_2005;
+
+with Ada.Finalization;
+
 package PolyORB.Tasking.Mutexes is
 
    pragma Preelaborate;
@@ -100,8 +104,23 @@ package PolyORB.Tasking.Mutexes is
    procedure Create (M : out Mutex_Access; Name : String := "");
    procedure Destroy (M : in out Mutex_Access);
 
+   type Scope_Lock (M : access Mutex_Type'Class) is
+     new Ada.Finalization.Limited_Controlled with private;
+   --  Scope lock: Initialize enters M, Finalize leaves M. Using a Scope_Lock
+   --  ensures that a given critical section is held for the duration of
+   --  a given scope, and that it is exited when the scope is left, whether
+   --  because it has completed, or an exception was raised, or the task was
+   --  aborted.
+
+   overriding procedure Initialize (SL : in out Scope_Lock);
+   overriding procedure Finalize (SL : in out Scope_Lock);
+   --  Enter/leave SL.M
+
 private
 
    type Mutex_Type is abstract tagged limited null record;
+
+   type Scope_Lock (M : access Mutex_Type'Class) is
+     new Ada.Finalization.Limited_Controlled with null record;
 
 end PolyORB.Tasking.Mutexes;

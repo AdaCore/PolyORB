@@ -34,6 +34,7 @@ pragma Ada_2005;
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 
 with System.Address_To_Access_Conversions;
 with System.Standard_Library;
@@ -74,7 +75,6 @@ with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
 with PolyORB.Utils.Configuration_File;
-with PolyORB.Utils.Ilists;
 with PolyORB.Utils.Strings.Lists;
 
 package body System.Partition_Interface is
@@ -908,6 +908,41 @@ package body System.Partition_Interface is
         (PolyORB.Types.String'(From_Any (Item)));
    end FA_String;
 
+   ---------------
+   -- Free_Stub --
+   ---------------
+
+   procedure Free_Stub (RACW : in out RACW_Stub_Type_Access) is
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+              (RACW_Stub_Type'Class, RACW_Stub_Type_Access);
+      H_Entry : RACW_Stub_Type_Access;
+   begin
+      if RACW = null then
+         return;
+      end if;
+
+      PTM.Enter (Critical_Section);
+
+      --  Check that this RACW value is properly recorded in Objects_HTable
+
+      H_Entry := Objects_HTable.Get (RACW);
+      if H_Entry /= RACW then
+         PTM.Leave (Critical_Section);
+         raise Constraint_Error with "invalid RACW";
+      end if;
+
+      --  Proceed to remove it
+
+      Objects_HTable.Remove (RACW);
+      PTM.Leave (Critical_Section);
+
+      --  We can now safely deallocate the stub
+
+      PolyORB.Smart_Pointers.Dec_Usage (RACW.Target);
+      Free (RACW);
+   end Free_Stub;
+
    ---------------------------
    -- Get_Aggregate_Element --
    ---------------------------
@@ -1090,6 +1125,15 @@ package body System.Partition_Interface is
    ----------
    -- Link --
    ----------
+
+   function Link
+     (X     : access RACW_Stub_Type'Class;
+      Which : PolyORB.Utils.Ilists.Link_Type)
+      return access RACW_Stub_Type_Access
+   is
+   begin
+      return X.Notification_Links (Which)'Unchecked_Access;
+   end Link;
 
    function Link
      (S     : access Private_Info;
@@ -2173,8 +2217,8 @@ package body System.Partition_Interface is
    --------------------
 
    function Same_Partition
-     (Left  : access RACW_Stub_Type;
-      Right : access RACW_Stub_Type) return Boolean
+     (Left  : access RACW_Stub_Type'Class;
+      Right : access RACW_Stub_Type'Class) return Boolean
    is
    begin
       return Same_Node (Make_Ref (Left.Target), Make_Ref (Right.Target));

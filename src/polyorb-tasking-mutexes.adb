@@ -33,6 +33,8 @@
 --  A complete implementation of this package is provided for all
 --  tasking profiles.
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 
 package body PolyORB.Tasking.Mutexes is
@@ -75,6 +77,24 @@ package body PolyORB.Tasking.Mutexes is
 
       Destroy (My_Factory, M);
    end Destroy;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   overriding procedure Finalize (SL : in out Scope_Lock) is
+   begin
+      Leave (SL.M);
+   end Finalize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   overriding procedure Initialize (SL : in out Scope_Lock) is
+   begin
+      Enter (SL.M);
+   end Initialize;
 
    ----------------------------
    -- Register_Mutex_Factory --

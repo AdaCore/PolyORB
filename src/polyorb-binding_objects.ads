@@ -30,10 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
---  Binding objects: protocol stacks seen globally as a reference-counted
---  entity.
+--  Binding object: protocol stack seen globally as a reference-counted entity
 
 pragma Ada_2005;
 
@@ -42,10 +39,13 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Transport;
 with PolyORB.Utils.Ilists;
 
 package PolyORB.Binding_Objects is
+
+   subtype Ref is Smart_Pointers.Ref;
 
    type Binding_Object is
      new Smart_Pointers.Non_Controlled_Entity with private;
@@ -62,13 +62,11 @@ package PolyORB.Binding_Objects is
 
    function Get_Component
      (X : Smart_Pointers.Ref) return Components.Component_Access;
-   --  Return the top component of the Binding_Object
-   --  designated by reference X.
+   --  Return the top component of the Binding_Object designated by X
 
    function Get_Endpoint
      (X : Smart_Pointers.Ref) return Transport.Transport_Endpoint_Access;
-   --  Return the transport endpoint of the Binding_Object
-   --  designated by reference X.
+   --  Return the transport endpoint of the Binding_Object designated by X
 
    function Get_Profile
      (BO : Binding_Object_Access) return Binding_Data.Profile_Access;
@@ -99,10 +97,15 @@ package PolyORB.Binding_Objects is
      (BO : Binding_Object_Access) return Annotations.Notepad_Access;
    --  Returns the notepad of given Binding Object
 
+   function Mutex_Of
+     (BO : access Binding_Object'Class) return Tasking.Mutexes.Mutex_Access;
+   --  Return a mutex protecting concurrent accesses to the BO's notepad
+
    function Valid (BO : Binding_Object_Access) return Boolean;
    --  True if BO can be used to forward requests to an object
 
 private
+
    type Links_Type is
      array (Utils.Ilists.Link_Type) of aliased Binding_Object_Access;
 
@@ -131,10 +134,14 @@ private
       --  True when attached to the ORB's BO list
 
       Notepad : aliased Annotations.Notepad;
-      --  Binding_Object's notepad. The user is responsible for ensuring
-      --  proper protection against incorrect concurrent accesses.
+      --  Binding_Object's notepad. The user is responsible for asserting the
+      --  below mutex while accessing the notepad.
+
+      Mutex : Tasking.Mutexes.Mutex_Access;
+      --  Mutex protecting Notepad
    end record;
 
+   procedure Initialize (X : in out Binding_Object);
    overriding procedure Finalize (X : in out Binding_Object);
 
 end PolyORB.Binding_Objects;

@@ -33,7 +33,6 @@
 pragma Ada_2005;
 
 with Ada.Exceptions;
-with Ada.Finalization;
 with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
@@ -56,16 +55,6 @@ package body PolyORB.References.Binding is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
-
-   type Ref_Locker (R : access constant Ref'Class) is
-     new Ada.Finalization.Limited_Controlled with
-   record
-      Normal_Exit : Boolean := False;
-   end record;
-
-   overriding procedure Initialize (RL : in out Ref_Locker);
-   overriding procedure Finalize (RL : in out Ref_Locker);
-   --  Scope lock object for R's mutex
 
    function Find_Tagged_Profile
      (R      : Ref;
@@ -98,7 +87,6 @@ package body PolyORB.References.Binding is
 
       Object_Id : PolyORB.Objects.Object_Id_Access;
 
-      Existing_Servant : Components.Component_Access;
       Existing_Profile : Binding_Data.Profile_Access;
       Existing_BO      : PolyORB.Smart_Pointers.Ref;
 
@@ -124,21 +112,21 @@ package body PolyORB.References.Binding is
       --  existing binding object.
 
       declare
-         Scope_Lock : Ref_Locker (R'Unchecked_Access);
+         Scope_Lock : Tasking.Mutexes.Scope_Lock (Mutex_Of (R));
          pragma Unreferenced (Scope_Lock);
          --  Witness object (note: implicit read access in Finalize)
 
       begin
          pragma Debug (C, O ("Bind: Check for already bound reference"));
 
-         Get_Binding_Info (R, QoS, Existing_Servant, Existing_Profile);
+         Get_Binding_Info (R, QoS, Existing_BO, Existing_Profile);
 
-         if Existing_Servant /= null then
+         if not Smart_Pointers.Is_Nil (Existing_BO) then
             if (not Local_Only)
               or else Existing_Profile.all in Local_Profile_Type
               or else Is_Profile_Local (Local_ORB, Existing_Profile)
             then
-               Servant := Existing_Servant;
+               Servant := Get_Component (Existing_BO);
                Pro     := Existing_Profile;
                pragma Debug (C, O ("Bind: The reference is already bound"));
             end if;
@@ -327,7 +315,7 @@ package body PolyORB.References.Binding is
          end;
 
       <<Leave_Mutex_And_Return>>
-         Scope_Lock.Normal_Exit := True;
+         null;
 
       exception
          when E : others =>
@@ -337,17 +325,6 @@ package body PolyORB.References.Binding is
             raise;
       end;
    end Bind;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   overriding procedure Finalize (RL : in out Ref_Locker) is
-   begin
-      RL.R.Leave_Mutex;
-      pragma Debug
-        (C, O ("Ref_Locker: leave, Normal_Exit = " & RL.Normal_Exit'Img));
-   end Finalize;
 
    -------------------------
    -- Find_Tagged_Profile --
@@ -516,16 +493,6 @@ package body PolyORB.References.Binding is
 
       Pro := Result;
    end Get_Tagged_Profile;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   overriding procedure Initialize (RL : in out Ref_Locker) is
-   begin
-      pragma Debug (C, O ("Ref_Locker: enter"));
-      RL.R.Enter_Mutex;
-   end Initialize;
 
    ------------
    -- Unbind --
