@@ -142,8 +142,30 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Target is
       begin
          Decapsulate (Data'Access, Buffer'Access);
 
-         User_Name := Unmarshall_Latin_1_String (Buffer'Access);
-         Password  := Unmarshall_Latin_1_String (Buffer'Access);
+         --  User name and password are encoded as sequence<octet> in the
+         --  token, but stored as strings internally.
+
+         declare
+            Binary : constant Stream_Element_Array
+              := Unmarshall (Buffer'Access);
+            Image  : String (1 .. Binary'Length);
+            for Image'Address use Binary'Address;
+            pragma Import (Ada, Image);
+
+         begin
+            User_Name := To_PolyORB_String (Image);
+         end;
+
+         declare
+            Binary : constant Stream_Element_Array
+              := Unmarshall (Buffer'Access);
+            Image  : String (1 .. Binary'Length);
+            for Image'Address use Binary'Address;
+            pragma Import (Ada, Image);
+
+         begin
+            Password := To_PolyORB_String (Image);
+         end;
 
          declare
             use PolyORB.Errors;

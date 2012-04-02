@@ -149,8 +149,29 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
    begin
       Start_Encapsulation (Buffer);
 
-      Marshall_Latin_1_String (Buffer, Get_User_Name (Creds));
-      Marshall_Latin_1_String (Buffer, Get_Password (Creds));
+      --  User name and password are encoded as sequence<octet>, but stored as
+      --  strings internally.
+
+      declare
+         Image  : constant String := Get_User_Name (Creds);
+         Binary : constant Stream_Element_Array (1 .. Image'Length);
+         for Binary'Address use Image'Address;
+         pragma Import (Ada, Binary);
+
+      begin
+         Marshall (Buffer, Binary);
+      end;
+
+      declare
+         Image  : constant String := Get_Password (Creds);
+         Binary : constant Stream_Element_Array (1 .. Image'Length);
+         for Binary'Address use Image'Address;
+         pragma Import (Ada, Binary);
+
+      begin
+         Marshall (Buffer, Binary);
+      end;
+
       Marshall (Buffer, Encode (Get_Target_Name (Creds)));
 
       declare
