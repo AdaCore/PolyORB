@@ -113,19 +113,22 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
         := Credentials_Access (Entity_Of (Credentials));
 
    begin
-      if Creds /= null then
+      if Creds /= null
+        and then Creds.all in Compound_Credentials'Class
+      then
+         --  Get authentication credentials from compound credentials.
+
          Creds :=
            Credentials_Access
            (Entity_Of
             (Get_Authentication_Credentials
              (Compound_Credentials_Access (Creds))));
+      end if;
 
-         if Creds /= null
-           and then Creds.all in GSSUP_Credentials'Class
-         then
-            return GSSUP_Credentials_Access (Creds);
-         end if;
-
+      if Creds /= null
+        and then Creds.all in GSSUP_Credentials'Class
+      then
+         return GSSUP_Credentials_Access (Creds);
       end if;
 
       return null;
