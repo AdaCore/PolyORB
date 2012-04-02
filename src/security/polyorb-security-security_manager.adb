@@ -65,7 +65,7 @@ package body PolyORB.Security.Security_Manager is
 
    Creds    : Creds_Lists.List;
    Mechs    : Transport_Mechanism_Lists.List;
-   Requires : PolyORB.Security.Types.Association_Options;
+   Requires : PolyORB.Security.Types.Association_Options := 0;
 
    ---------------------
    -- Client_Requires --
