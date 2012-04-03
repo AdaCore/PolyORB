@@ -67,6 +67,10 @@ See the features-28 file.
 Bug fixes
 ---------
 
+Bug in initialization of default set of security features was fixed.
+
+Format of GSSUP authentication token was fixed. (L327-004)
+
 Several race conditions related to session reuse have been identified and
 corrected. (K915-014, K915-018, K915-019)
 
