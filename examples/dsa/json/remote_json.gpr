@@ -1,0 +1,4 @@
+with "gnatcoll";
+project Remote_JSON is
+   for Source_Dirs use (".");
+end Remote_JSON;

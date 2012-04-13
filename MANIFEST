@@ -639,6 +639,17 @@ examples/dsa/echo/client.adb
 examples/dsa/echo/echo.cfg
 examples/dsa/echo/server.adb
 examples/dsa/echo/server.ads
+examples/dsa/json/build.sh
+examples/dsa/json/cli.adb
+examples/dsa/json/echo_json.cfg
+examples/dsa/json/giop.cap
+examples/dsa/json/normal_json.adb
+examples/dsa/json/normal_json.ads
+examples/dsa/json/rci.adb
+examples/dsa/json/rci.ads
+examples/dsa/json/remote_json.gpr
+examples/dsa/json/rt_json.adb
+examples/dsa/json/rt_json.ads
 examples/dsa/mailboxes/client.adb
 examples/dsa/mailboxes/hub.adb
 examples/dsa/mailboxes/hub.ads
