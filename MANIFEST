@@ -642,7 +642,6 @@ examples/dsa/echo/server.ads
 examples/dsa/json/build.sh
 examples/dsa/json/cli.adb
 examples/dsa/json/echo_json.cfg
-examples/dsa/json/giop.cap
 examples/dsa/json/normal_json.adb
 examples/dsa/json/normal_json.ads
 examples/dsa/json/rci.adb
