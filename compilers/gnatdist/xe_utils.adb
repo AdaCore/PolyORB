@@ -204,10 +204,10 @@ package body XE_Utils is
    -----------
 
    procedure Build
-     (Library    : File_Name_Type;
-      Arguments  : Argument_List;
-      Fatal      : Boolean := True;
-      Progress   : Boolean := False)
+     (Library   : File_Name_Type;
+      Arguments : Argument_List;
+      Fatal     : Boolean := True;
+      Progress  : Boolean := False)
    is
       Length            : constant Positive :=
                             Arguments'Length + 5
