@@ -53,6 +53,11 @@ DSA RPC receivers were activated too early (before the partition was
 completely elaborated), which could cause access before elaboration
 while servicing remote calls. (KC22-022)
 
+The activation of RPC receivers is now part of the elaboration of the
+partition, instead of a generated main subprogram, which allows correct
+partition operation even if no main subprogram is actually called (case
+of a partition built as a standalone library). (L405-023)
+
 * PolyORB 2.8 (branched on 2011-10-31)
 ======================================
 
