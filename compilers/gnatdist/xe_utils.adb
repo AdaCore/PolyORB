@@ -276,8 +276,8 @@ package body XE_Utils is
       Index := Make_Switches.First;
       while Index <= Make_Switches.Last loop
 
-         --  If there is a project file among the arguments then any
-         --  project file from the Make switches is ignored.
+         --  If there is a project file among the arguments then any project
+         --  file from the Make switches is ignored.
 
          if Has_Prj
            and then Is_Project_Switch (Make_Switches.Table (Index).all)
