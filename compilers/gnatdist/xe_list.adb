@@ -843,10 +843,7 @@ package body XE_List is
    -------------------------------
 
    procedure Load_All_Registered_Units is
-      Comp_Flags : constant Argument_List :=
-                     (Semantic_Only_Flag,
-                      Object_Dir_Flag,
-                      new String'(Get_Name_String (Monolithic_Obj_Dir)));
+      Comp_Flags : Argument_List := (Semantic_Only_Flag, null, null);
 
       List_Args : constant Argument_List :=
                     (GLADE_List_Flag,
@@ -872,9 +869,16 @@ package body XE_List is
       if Project_File_Name /= null then
          List_Args_Length := 3;
          Make_Args_Length := 3;
+
+         Comp_Flags (2) := Project_File_Flag;
+         Comp_Flags (3) := Project_File_Name;
+
       else
          List_Args_Length := 1;
          Make_Args_Length := 1;
+
+         Comp_Flags (2) := Object_Dir_Flag;
+         Comp_Flags (3) := new String'(Get_Name_String (Monolithic_Obj_Dir));
       end if;
 
       declare
