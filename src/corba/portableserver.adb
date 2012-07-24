@@ -85,7 +85,7 @@ package body PortableServer is
    end record;
 
    Null_Dispatcher_Note : constant Dispatcher_Note :=
-                            (PolyORB.Annotations.Note with Skeleton => null);
+     (PolyORB.Annotations.Note with Skeleton => null);
 
    procedure Default_Invoke
      (Servant : access PSPCE.Entity'Class;
@@ -138,8 +138,8 @@ package body PortableServer is
             Notepad   : constant Notepad_Access := Get_Current_Thread_Notepad;
             Save_Note : PortableServer_Current_Note;
             Note      : constant PortableServer_Current_Note :=
-                          (PolyORB.Annotations.Note with Request => R,
-                           Profile                               => P);
+              (PolyORB.Annotations.Note with Request => R,
+               Profile                               => P);
 
          begin
             --  Save POA Current note
@@ -208,11 +208,11 @@ package body PortableServer is
       use type Internals.Request_Dispatcher;
 
       P_Servant : constant PolyORB.Servants.Servant_Access :=
-                    CORBA.Impl.To_PolyORB_Servant
-                      (CORBA.Impl.Object (Servant (Self).all)'Access);
+        CORBA.Impl.To_PolyORB_Servant
+          (CORBA.Impl.Object (Servant (Self).all)'Access);
 
       Notepad : constant PolyORB.Annotations.Notepad_Access :=
-                  PolyORB.Servants.Notepad_Of (P_Servant);
+        PolyORB.Servants.Notepad_Of (P_Servant);
 
       Dispatcher : Dispatcher_Note;
 

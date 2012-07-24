@@ -85,8 +85,8 @@ package body PolyORB.DSA_P.Name_Server is
       use PolyORB.POA;
 
       Root_POA        : constant Obj_Adapter_Access :=
-                           Obj_Adapter_Access
-                             (Object_Adapter (PolyORB.Setup.The_ORB));
+        Obj_Adapter_Access
+          (Object_Adapter (PolyORB.Setup.The_ORB));
       Oid             : Object_Id_Access;
       Error           : Errors.Error_Container;
       Type_Id         : constant Standard.String := "dsa:NAMING";

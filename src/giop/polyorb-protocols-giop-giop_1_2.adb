@@ -88,10 +88,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      renames L.Enabled;
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
-                             Sync_None
-                          or Sync_With_Transport
-                          or Sync_With_Server
-                          or Sync_With_Target;
+     Sync_None or Sync_With_Transport or Sync_With_Server or Sync_With_Target;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (GIOP_1_2_CDR_Representation, GIOP_1_2_CDR_Representation_Access);
@@ -155,10 +152,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Parameters;
 
       Max : constant Types.Unsigned_Long :=
-              Types.Unsigned_Long (Get_Conf
-                (To_Standard_String (Implem.Section),
-                 Get_Conf_Chain (Implem) & ".max_message_size",
-                 Default_Max_GIOP_Message_Size_1_2));
+        Types.Unsigned_Long (Get_Conf
+          (To_Standard_String (Implem.Section),
+           Get_Conf_Chain (Implem) & ".max_message_size",
+           Default_Max_GIOP_Message_Size_1_2));
    begin
       Implem.Data_Alignment        := Data_Alignment_1_2;
       Implem.Max_GIOP_Message_Size := Max - (Max mod 8);
@@ -703,7 +700,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Context for fragments
 
       Message_Size : Types.Unsigned_Long :=
-                       Types.Unsigned_Long (Length (Buffer.all));
+        Types.Unsigned_Long (Length (Buffer.all));
    begin
       if Message_Size > Implem.Max_GIOP_Message_Size then
 
@@ -1239,7 +1236,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          declare
             Data            : PolyORB.Opaque.Opaque_Pointer;
             Data_To_Process : Stream_Element_Count :=
-                                Length (Static_Buffer.Buffer.all);
+              Length (Static_Buffer.Buffer.all);
             Data_Processed  : Stream_Element_Count := Data_To_Process;
             Position        : Ada.Streams.Stream_Element_Offset := 0;
          begin

@@ -147,7 +147,7 @@ package body PolyORB.Binding_Data.GIOP is
       use Transport_Mechanism_Factory_Lists;
 
       F_Iter : Transport_Mechanism_Factory_Lists.Iterator :=
-                 First (PF.Mechanisms);
+        First (PF.Mechanisms);
 
    begin
       if P.all not in GIOP_Profile_Type'Class then

@@ -70,7 +70,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    Sli            : aliased PolyORB.Filters.Slicers.Slicer_Factory;
    Pro            : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
    IIOP_Factories : constant PolyORB.Filters.Factory_Array :=
-                      (0 => Sli'Access, 1 => Pro'Access);
+     (0 => Sli'Access, 1 => Pro'Access);
 
    overriding procedure Bind_Mechanism
      (Mechanism : IIOP_Transport_Mechanism;
@@ -102,7 +102,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
             Sock        : Socket_Type;
             Remote_Addr : Socket_Name renames Value (Iter).all.all;
             TE          : constant Transport.Transport_Endpoint_Access :=
-                            new Socket_Endpoint;
+              new Socket_Endpoint;
 
          begin
             Create_Socket (Sock);
@@ -205,7 +205,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       while not Last (Iter) loop
          declare
             TC : constant Tagged_Component_Access :=
-                   new TC_Alternate_IIOP_Address;
+              new TC_Alternate_IIOP_Address;
          begin
             TC_Alternate_IIOP_Address (TC.all).Address :=
               new Socket_Name'(Value (Iter).all.all);
@@ -227,9 +227,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access :=
-                  new IIOP_Transport_Mechanism;
+        new IIOP_Transport_Mechanism;
       TResult : IIOP_Transport_Mechanism
-                  renames IIOP_Transport_Mechanism (Result.all);
+        renames IIOP_Transport_Mechanism (Result.all);
       Iter    : Iterator := First (MF.Addresses);
 
    begin
@@ -260,7 +260,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
       return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access :=
-                  new IIOP_Transport_Mechanism;
+        new IIOP_Transport_Mechanism;
       TResult : IIOP_Transport_Mechanism
         renames IIOP_Transport_Mechanism (Result.all);
 

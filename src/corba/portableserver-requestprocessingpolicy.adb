@@ -117,11 +117,11 @@ package body PortableServer.RequestProcessingPolicy is
 
       declare
          Position : constant CORBA.Unsigned_Long :=
-                      CORBA.From_Any
-                        (CORBA.Internals.Get_Aggregate_Element
-                          (Value,
-                           CORBA.TC_Unsigned_Long,
-                           CORBA.Unsigned_Long (0)));
+           CORBA.From_Any
+             (CORBA.Internals.Get_Aggregate_Element
+                (Value,
+                 CORBA.TC_Unsigned_Long,
+                 CORBA.Unsigned_Long (0)));
       begin
          if Position > RequestProcessingPolicyValue'Pos
                          (RequestProcessingPolicyValue'Last)
@@ -133,7 +133,7 @@ package body PortableServer.RequestProcessingPolicy is
       declare
          Result : CORBA.Policy.Ref;
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                    new Policy_Object_Type;
+           new Policy_Object_Type;
       begin
          Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
          Set_Policy_Value (Policy_Object_Type (Entity.all), Value);

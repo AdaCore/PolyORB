@@ -1734,7 +1734,7 @@ package body Table_Of_Static_Keys_And_Dynamic_Values_G is
          Free_List.Count := Free_List.Count - Nb_Of_Cells_For_System;
       end if;
       Table_Of_Static_Keys_And_Dynamic_Values_G.Max_Free_List_Size :=
-                                                      Max_Free_List_Size;
+        Max_Free_List_Size;
    end Set_Max_Free_List_Size;
 
    function Free_List_Size return Natural is

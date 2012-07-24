@@ -89,8 +89,8 @@ package body PolyORB.QoS.Term_Manager_Info is
 
       Note : BO_Note;
       BO : constant Binding_Object_Access :=
-             Binding_Object_Access (
-               Smart_Pointers.Entity_Of (R.Dependent_Binding_Object));
+        Binding_Object_Access (
+          Smart_Pointers.Entity_Of (R.Dependent_Binding_Object));
       QoS_Acc : QoS_Parameter_Access;
    begin
 

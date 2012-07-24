@@ -168,7 +168,7 @@ package body PolyORB.References is
          declare
             BOR : Binding_Objects.Ref renames Value (Iter).Binding_Object_Ref;
             BOA : constant Binding_Object_Access :=
-                    Binding_Object_Access (Entity_Of (BOR));
+              Binding_Object_Access (Entity_Of (BOR));
          begin
             --  If the binding object has become invalid, forget about it
 

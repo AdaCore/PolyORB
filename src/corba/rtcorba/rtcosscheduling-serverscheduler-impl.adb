@@ -111,12 +111,12 @@ package body RTCosScheduling.ServerScheduler.Impl is
       declare
          Priority_Model : constant String :=
            PolyORB.Utils.To_Upper
-           (PolyORB.Parameters.Get_Conf
-            ("poa " & CORBA.To_String (Adapter_Name), "priority_model"));
+             (PolyORB.Parameters.Get_Conf
+                ("poa " & CORBA.To_String (Adapter_Name), "priority_model"));
 
          Default_Priority : constant Integer :=
            PolyORB.Parameters.Get_Conf
-           ("poa " & CORBA.To_String (Adapter_Name), "default_priority");
+             ("poa " & CORBA.To_String (Adapter_Name), "default_priority");
 
       begin
          if Priority_Model = "CLIENT_PROPAGATED" then
@@ -155,7 +155,7 @@ package body RTCosScheduling.ServerScheduler.Impl is
       declare
          Threadpool_Id : constant Integer :=
            PolyORB.Parameters.Get_Conf
-           ("poa " & CORBA.To_String (Adapter_Name), "threadpool_id", -1);
+             ("poa " & CORBA.To_String (Adapter_Name), "threadpool_id", -1);
       begin
          if Threadpool_Id /= -1 then
             pragma Debug (C, O ("Create Threadpool policy"));

@@ -253,7 +253,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       declare
          use PolyORB.Binding_Data.Local;
          LP : constant PolyORB.Binding_Data.Profile_Access :=
-                new Local_Profile_Type;
+           new Local_Profile_Type;
       begin
          Create_Local_Profile (Oid.all, Local_Profile_Type (LP.all));
          PolyORB.References.Create_Reference

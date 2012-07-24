@@ -46,8 +46,7 @@ package body PolyORB.Binding_Object_QoS is
    overriding procedure Destroy (N : in out Binding_Object_QoS_Note);
 
    Empty_Binding_Object_QoS_Note : constant Binding_Object_QoS_Note :=
-                                     (Annotations.Note with
-                                        QoS => (others => null));
+     (Annotations.Note with QoS => (others => null));
 
    Registry : array (QoS.QoS_Kind) of QoS_Compatibility_Check_Proc;
 
@@ -92,7 +91,7 @@ package body PolyORB.Binding_Object_QoS is
       QoS : PolyORB.QoS.QoS_Parameters) return Boolean
    is
       BO_QoS : constant PolyORB.QoS.QoS_Parameters :=
-                 Get_Binding_Object_QoS (BO);
+        Get_Binding_Object_QoS (BO);
 
    begin
       for J in PolyORB.QoS.QoS_Kind loop

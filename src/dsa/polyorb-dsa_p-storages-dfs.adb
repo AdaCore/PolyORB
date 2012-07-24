@@ -400,7 +400,7 @@ package body PolyORB.DSA_P.Storages.DFS is
 
       declare
          Stream : constant Stream_Element_Array :=
-                    To_Stream_Element_Array (Buffer.all);
+           To_Stream_Element_Array (Buffer.all);
       begin
          SIO.Write (Self.File, Stream);
       end;

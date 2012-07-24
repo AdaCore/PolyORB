@@ -80,7 +80,7 @@ package body PolyORB.Servants is
       pragma Warnings (Off); --  WAG:FSF-4.5.0
       --  Hide warning "A is not referenced"
       A : aliased Abortable'Class :=
-            Make_Abortable (Abortable_Tag, R'Unchecked_Access);
+        Make_Abortable (Abortable_Tag, R'Unchecked_Access);
       pragma Warnings (On);
 
    begin
@@ -163,7 +163,7 @@ package body PolyORB.Servants is
       if Msg in Execute_Request then
          declare
             Req : constant Requests.Request_Access :=
-                    Execute_Request (Msg).Req;
+              Execute_Request (Msg).Req;
          begin
             if Execute_In_Context
               (S.Exec, Req, PolyORB.Components.Component_Access (S))

@@ -140,7 +140,7 @@ package body PolyORB.Binding_Data.SOAP is
 
       Sock : Socket_Type;
       TE   : constant Transport.Transport_Endpoint_Access :=
-               new Socket_Endpoint;
+        new Socket_Endpoint;
 
    begin
       Create_Socket (Sock);
@@ -417,7 +417,7 @@ package body PolyORB.Binding_Data.SOAP is
 
       declare
          Str  : aliased constant Stream_Element_Array :=
-                  Unmarshall (Profile_Buffer);
+           Unmarshall (Profile_Buffer);
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));
       end;

@@ -99,7 +99,7 @@ package body PolyORB.Parameters.File is
       pragma Unreferenced (Source);
 
       V : constant String_Ptr :=
-            Lookup (Configuration_Table, Make_Global_Key (Section, Key), null);
+        Lookup (Configuration_Table, Make_Global_Key (Section, Key), null);
 
    begin
       if V /= null then

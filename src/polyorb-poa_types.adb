@@ -59,7 +59,7 @@ package body PolyORB.POA_Types is
    --  the size of an unsigned long integer.
 
    ULongs_In_Time_Stamp : constant :=
-                            Time_Stamp'Size / Types.Unsigned_Long'Size;
+     Time_Stamp'Size / Types.Unsigned_Long'Size;
    type Time_Stamp_As_ULongs is array (1 .. ULongs_In_Time_Stamp)
      of Types.Unsigned_Long;
 
@@ -219,29 +219,29 @@ package body PolyORB.POA_Types is
    ---------------
 
    Hex_Val : constant array (Stream_Element) of Types.Unsigned_Long :=
-               (Character'Pos ('0') => 0,
-                Character'Pos ('1') => 1,
-                Character'Pos ('2') => 2,
-                Character'Pos ('3') => 3,
-                Character'Pos ('4') => 4,
-                Character'Pos ('5') => 5,
-                Character'Pos ('6') => 6,
-                Character'Pos ('7') => 7,
-                Character'Pos ('8') => 8,
-                Character'Pos ('9') => 9,
-                Character'Pos ('A') => 10,
-                Character'Pos ('a') => 10,
-                Character'Pos ('B') => 11,
-                Character'Pos ('b') => 11,
-                Character'Pos ('C') => 12,
-                Character'Pos ('c') => 12,
-                Character'Pos ('D') => 13,
-                Character'Pos ('d') => 13,
-                Character'Pos ('E') => 14,
-                Character'Pos ('e') => 14,
-                Character'Pos ('F') => 15,
-                Character'Pos ('f') => 15,
-                others => 0);
+     (Character'Pos ('0') => 0,
+      Character'Pos ('1') => 1,
+      Character'Pos ('2') => 2,
+      Character'Pos ('3') => 3,
+      Character'Pos ('4') => 4,
+      Character'Pos ('5') => 5,
+      Character'Pos ('6') => 6,
+      Character'Pos ('7') => 7,
+      Character'Pos ('8') => 8,
+      Character'Pos ('9') => 9,
+      Character'Pos ('A') => 10,
+      Character'Pos ('a') => 10,
+      Character'Pos ('B') => 11,
+      Character'Pos ('b') => 11,
+      Character'Pos ('C') => 12,
+      Character'Pos ('c') => 12,
+      Character'Pos ('D') => 13,
+      Character'Pos ('d') => 13,
+      Character'Pos ('E') => 14,
+      Character'Pos ('e') => 14,
+      Character'Pos ('F') => 15,
+      Character'Pos ('f') => 15,
+      others => 0);
 
    procedure Get_ULong
      (SEA   : Object_Id;

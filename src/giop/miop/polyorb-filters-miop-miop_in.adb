@@ -98,8 +98,8 @@ package body PolyORB.Filters.MIOP.MIOP_In is
 
                declare
                   N : Stream_Element_Count :=
-                        Stream_Element_Count (F.Header.Unique_Id_Size +
-                          Types.Unsigned_Long (MIOP_Header_Size));
+                    Stream_Element_Count (F.Header.Unique_Id_Size +
+                      Types.Unsigned_Long (MIOP_Header_Size));
                begin
                   --  Round up N to nearest greater multiple of 8
 

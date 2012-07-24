@@ -63,9 +63,9 @@ package body PolyORB.QoS.Exception_Informations is
      (R : Requests.Request) return String
    is
       QoS : constant QoS_Ada_Exception_Information_Parameter_Access :=
-              QoS_Ada_Exception_Information_Parameter_Access
-                 (PolyORB.Request_QoS.Extract_Reply_Parameter
-                   (PolyORB.QoS.Ada_Exception_Information, R));
+        QoS_Ada_Exception_Information_Parameter_Access
+          (PolyORB.Request_QoS.Extract_Reply_Parameter
+             (PolyORB.QoS.Ada_Exception_Information, R));
    begin
       if QoS /= null then
          return Types.To_Standard_String (QoS.Exception_Information);
@@ -82,10 +82,9 @@ package body PolyORB.QoS.Exception_Informations is
      (R : Requests.Request) return String
    is
       Exception_Information    : constant String :=
-                                   Get_Exception_Information (R);
+        Get_Exception_Information (R);
 
-      Exception_Message_Marker : constant String :=
-                                   ASCII.LF & "Message: ";
+      Exception_Message_Marker : constant String := ASCII.LF & "Message: ";
       First, Last : Integer;
    begin
       --  The expected format of the exception information is:

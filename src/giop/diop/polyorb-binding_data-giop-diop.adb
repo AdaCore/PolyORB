@@ -194,11 +194,11 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    is
       Result  : constant Profile_Access := new DIOP_Profile_Type;
       Address : constant Utils.Sockets.Socket_Name :=
-                  Common_Unmarshall_Profile_Body
-                    (Buffer,
-                     Result,
-                     Unmarshall_Object_Id         => True,
-                     Unmarshall_Tagged_Components => False);
+        Common_Unmarshall_Profile_Body
+          (Buffer,
+           Result,
+           Unmarshall_Object_Id         => True,
+           Unmarshall_Tagged_Components => False);
    begin
       --  Create transport mechanism
 
@@ -246,10 +246,10 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
       Result  : aliased Profile_Access := new DIOP_Profile_Type;
       Address : constant Utils.Sockets.Socket_Name :=
-                  Common_IIOP_DIOP_Corbaloc_To_Profile
-                    (Str,
-                     DIOP_Version_Major, DIOP_Version_Minor,
-                     Result'Access);
+        Common_IIOP_DIOP_Corbaloc_To_Profile
+          (Str,
+           DIOP_Version_Major, DIOP_Version_Minor,
+           Result'Access);
    begin
       --  Create transport mechanism
 

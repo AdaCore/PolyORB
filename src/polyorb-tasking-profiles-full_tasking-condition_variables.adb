@@ -154,7 +154,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       pragma Warnings (On);
 
       Cond : constant Full_Tasking_Condition_Access :=
-               new Full_Tasking_Condition_Type;
+        new Full_Tasking_Condition_Type;
 
    begin
       pragma Debug (C, O ("Create"));

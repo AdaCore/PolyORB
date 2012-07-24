@@ -66,7 +66,7 @@ package body PolyORB.CORBA_P.Security_Policy is
       use PolyORB.Security.Types;
 
       Target   : constant CORBA.Object.Ref :=
-                   CORBA.Object.Internals.To_CORBA_Ref (Object);
+        CORBA.Object.Internals.To_CORBA_Ref (Object);
       Creds    : Credentials_List_Access := null;
       Requires : PolyORB.Security.Types.Association_Options := 0;
 

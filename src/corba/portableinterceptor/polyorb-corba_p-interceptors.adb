@@ -524,7 +524,7 @@ package body PolyORB.CORBA_P.Interceptors is
       Req_Id  : constant CORBA.Unsigned_Long := Allocate_Request_Id;
 
       Target  : constant CORBA.Object.Ref :=
-                  CORBA.Object.Internals.To_CORBA_Ref (Request.Target);
+        CORBA.Object.Internals.To_CORBA_Ref (Request.Target);
       TSC     : Slots_Note;
       Index   : Natural;
 

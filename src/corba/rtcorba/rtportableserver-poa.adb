@@ -120,7 +120,7 @@ package body RTPortableServer.POA is
 
       declare
          Oid : aliased PolyORB.POA_Types.Object_Id :=
-                 PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+           PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
          Result : PolyORB.References.Ref;
       begin
          --  Obtain object reference
@@ -152,7 +152,7 @@ package body RTPortableServer.POA is
       Error : PolyORB.Errors.Error_Container;
 
       RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access :=
-                 To_RT_POA (Self);
+        To_RT_POA (Self);
 
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
@@ -177,7 +177,7 @@ package body RTPortableServer.POA is
 
       declare
          A_Oid : aliased PolyORB.POA_Types.Object_Id :=
-                   PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+           PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
          Result : PolyORB.References.Ref;
       begin
          --  Obtain object reference
@@ -228,7 +228,7 @@ package body RTPortableServer.POA is
 
       declare
          Oid : constant PolyORB.POA_Types.Object_Id :=
-                 PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+           PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
       begin
          return PortableServer.Internals.To_PortableServer_ObjectId (Oid);
       end;
@@ -255,7 +255,7 @@ package body RTPortableServer.POA is
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
       A_Oid : aliased PolyORB.POA_Types.Object_Id :=
-                PortableServer.Internals.To_PolyORB_Object_Id (Oid);
+        PortableServer.Internals.To_PolyORB_Object_Id (Oid);
 
    begin
       PolyORB.RT_POA.Activate_Object_With_Id_And_Priority

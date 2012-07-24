@@ -385,7 +385,7 @@ package body PolyORB.References.IOR is
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type)
    is
       Elt : constant Profile_Record :=
-              (Profile, Marshall_Profile_Body, Unmarshall_Profile_Body);
+        (Profile, Marshall_Profile_Body, Unmarshall_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;

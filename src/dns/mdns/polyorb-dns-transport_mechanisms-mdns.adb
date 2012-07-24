@@ -52,7 +52,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
 
    Pro : aliased PolyORB.Protocols.DNS.DNS_Protocol;
    MDNS_Factories : constant PolyORB.Filters.Factory_Array :=
-                      (0 => Pro'Access);
+     (0 => Pro'Access);
 
    --------------------
    -- Bind_Mechanism --
@@ -74,7 +74,7 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
       Sock        : Socket_Type;
       TE          : Transport.Transport_Endpoint_Access;
       TTL         : constant Natural :=
-                      Natural (Get_Conf ("dns", "polyorb.dns.ttl",
+        Natural (Get_Conf ("dns", "polyorb.dns.ttl",
                                          Default_TTL));
 
    begin

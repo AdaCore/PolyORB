@@ -55,7 +55,7 @@ package body PolyORB.Errors.Helper is
       Result         : PolyORB.Any.Any;
       Error_Name     : constant String := Error_Id'Image (Error.Kind);
       Exception_Name : constant String :=
-                         Error_Name (Error_Name'First .. Error_Name'Last - 2);
+        Error_Name (Error_Name'First .. Error_Name'Last - 2);
       --  Strip "_E" suffix
 
    begin

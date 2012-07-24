@@ -104,8 +104,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
             use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
 
             To_Lane : constant Lane_Root_Access :=
-                        Get_Servant_Lane
-                          (PolyORB.Servants.Servant_Access (Surrogate));
+              Get_Servant_Lane (PolyORB.Servants.Servant_Access (Surrogate));
 
          begin
             if To_Lane /= null then

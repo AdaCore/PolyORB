@@ -240,7 +240,7 @@ package body RTCORBA.Helper is
    function To_Any
      (Item : RTCORBA.ThreadpoolLane) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ThreadpoolLane);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ThreadpoolLane);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result, RTCORBA.Helper.To_Any (Item.lane_priority));
@@ -404,9 +404,9 @@ package body RTCORBA.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -422,7 +422,7 @@ package body RTCORBA.Helper is
    function To_Any
      (Item : RTCORBA.PriorityModel) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_PriorityModel);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_PriorityModel);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -672,7 +672,7 @@ package body RTCORBA.Helper is
    function To_Any
      (Item : RTCORBA.PriorityBand) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_PriorityBand);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_PriorityBand);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result, RTCORBA.Helper.To_Any (Item.low));

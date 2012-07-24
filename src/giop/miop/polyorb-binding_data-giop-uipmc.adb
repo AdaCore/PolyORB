@@ -257,11 +257,11 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       Result   : Profile_Access := new UIPMC_Profile_Type;
       TResult  : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
       Address  : constant Utils.Sockets.Socket_Name :=
-                   Common_Unmarshall_Profile_Body
-                     (Buffer,
-                      Result,
-                      Unmarshall_Object_Id => False,
-                      Unmarshall_Tagged_Components => True);
+        Common_Unmarshall_Profile_Body
+          (Buffer,
+           Result,
+           Unmarshall_Object_Id => False,
+           Unmarshall_Tagged_Components => True);
 
       Temp_Ref : Tagged_Component_Access;
 
@@ -311,7 +311,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       UIPMC_Profile : UIPMC_Profile_Type renames UIPMC_Profile_Type (P.all);
 
       TC_G_I : constant Tagged_Component_Access :=
-                 Get_Component (UIPMC_Profile.Components, Tag_Group);
+        Get_Component (UIPMC_Profile.Components, Tag_Group);
 
    begin
       pragma Debug (C, O ("UIPMC Profile to corbaloc"));

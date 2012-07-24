@@ -72,7 +72,7 @@ package body PortableServer.Current is
    is
       Result  : Local_Ref;
       Current : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                  new Current_Object;
+        new Current_Object;
 
    begin
       Set (Result, Current);

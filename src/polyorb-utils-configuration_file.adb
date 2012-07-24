@@ -187,7 +187,7 @@ package body PolyORB.Utils.Configuration_File is
                   declare
                      Bra : constant Integer := Line'First;
                      Ket : constant Integer :=
-                        Find (Line (Line'First .. Last), Bra, ']');
+                       Find (Line (Line'First .. Last), Bra, ']');
                   begin
                      if False
                        or else Ket > Last
@@ -207,7 +207,7 @@ package body PolyORB.Utils.Configuration_File is
                when others =>
                   declare
                      Eq : constant Integer :=
-                        Find (Line (Line'First .. Last), Line'First, '=');
+                       Find (Line (Line'First .. Last), Line'First, '=');
                   begin
                      if Current_Section = null then
                         O ("Assignment out of any section on line" &
@@ -225,11 +225,11 @@ package body PolyORB.Utils.Configuration_File is
 
                      declare
                         K : constant String :=
-                              Make_Global_Key
-                                (Section => Current_Section.all,
-                                 Key     => Line (Line'First .. Eq - 1));
+                          Make_Global_Key
+                            (Section => Current_Section.all,
+                             Key     => Line (Line'First .. Eq - 1));
                         V : String_Ptr      :=
-                              Configuration_Table.Lookup (Table, K, null);
+                          Configuration_Table.Lookup (Table, K, null);
                      begin
                         if V /= null then
                            Free (V);
@@ -357,7 +357,7 @@ package body PolyORB.Utils.Configuration_File is
 
                   declare
                      Iter2 : Section_Entries.Iterator :=
-                        Section_Entries.First (Sections.Value (Iter).Entries);
+                       Section_Entries.First (Sections.Value (Iter).Entries);
                   begin
                      while not Section_Entries.Last (Iter2) loop
                         if Section_Entries.Value (Iter2).Name.all =
@@ -432,7 +432,7 @@ package body PolyORB.Utils.Configuration_File is
             Put_Line ("[" & Sections.Value (Iter).Section.all & "]");
             declare
                Iter2 : Section_Entries.Iterator :=
-                  Section_Entries.First (Sections.Value (Iter).Entries);
+                 Section_Entries.First (Sections.Value (Iter).Entries);
             begin
                while not Section_Entries.Last (Iter2) loop
                   Put_Line
@@ -470,7 +470,7 @@ package body PolyORB.Utils.Configuration_File is
             Put_Line (Fd, "[" & Sections.Value (Iter).Section.all & "]");
             declare
                Iter2 : Section_Entries.Iterator :=
-                  Section_Entries.First (Sections.Value (Iter).Entries);
+                 Section_Entries.First (Sections.Value (Iter).Entries);
             begin
                while not Section_Entries.Last (Iter2) loop
                   Put_Line

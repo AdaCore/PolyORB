@@ -323,7 +323,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          when Task_Unregistered =>
             declare
                Index : constant Integer :=
-                         AEM_Index_Of_Task (O, E.Unregistered_Task);
+                 AEM_Index_Of_Task (O, E.Unregistered_Task);
             begin
                if Index in O.AEM_Infos'Range then
                   --  Unregistering one of the designated monitoring tasks

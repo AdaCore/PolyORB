@@ -49,9 +49,9 @@ package body PolyORB.Log.Stderr is
    --  an empty string.
 
    Failed_Message      : constant String :=
-                           "polyorb.log.stderr: write failed" & ASCII.LF;
+     "polyorb.log.stderr: write failed" & ASCII.LF;
    Interrupted_Message : constant String :=
-                           "polyorb.log.stderr: write interrupted" & ASCII.LF;
+     "polyorb.log.stderr: write interrupted" & ASCII.LF;
 
    type Write_Status is (Success, Interrupted, Failed);
 

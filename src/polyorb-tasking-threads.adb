@@ -52,10 +52,10 @@ package body PolyORB.Tasking.Threads is
 
    procedure Create_Task (Main : Parameterless_Procedure; Name : String) is
       T : constant Thread_Access :=
-            Run_In_Task
-              (TF   => My_Thread_Factory,
-               P    => Main,
-               Name => Name);
+        Run_In_Task
+          (TF   => My_Thread_Factory,
+           P    => Main,
+           Name => Name);
       pragma Warnings (Off);
       pragma Unreferenced (T);
       pragma Warnings (On);

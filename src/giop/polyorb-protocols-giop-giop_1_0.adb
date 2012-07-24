@@ -77,9 +77,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      (GIOP_1_0_CDR_Representation, GIOP_1_0_CDR_Representation_Access);
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
-                             Sync_None
-                          or Sync_With_Transport
-                          or Sync_With_Target;
+     Sync_None or Sync_With_Transport or Sync_With_Target;
 
    --  Msg_Type
 
@@ -439,7 +437,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Sess    : GIOP_Session renames GIOP_Session (S);
       MCtx    : aliased GIOP_Message_Context_1_0 :=
-                  GIOP_Message_Context_1_0 (Sess.MCtx.all);
+        GIOP_Message_Context_1_0 (Sess.MCtx.all);
       Buffer  : Buffer_Access renames Sess.Buffer_In;
 
       Request_Id   : constant Types.Unsigned_Long := Unmarshall (Buffer);
@@ -541,11 +539,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
       Resp_Exp      : constant Boolean :=
-                        Is_Set (Sync_With_Target, R.Req.Req_Flags)
-                          or else
-                        Is_Set (Sync_Call_Back, R.Req.Req_Flags);
+        Is_Set (Sync_With_Target, R.Req.Req_Flags)
+          or else Is_Set (Sync_Call_Back, R.Req.Req_Flags);
       Oid           : constant Object_Id_Access :=
-                        Binding_Data.Get_Object_Key (R.Target_Profile.all);
+        Binding_Data.Get_Object_Key (R.Target_Profile.all);
    begin
       pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 

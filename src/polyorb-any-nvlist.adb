@@ -152,7 +152,7 @@ package body PolyORB.Any.NVList is
       is
          use type PolyORB.Smart_Pointers.Entity_Ptr;
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                    Entity_Of (NVList);
+           Entity_Of (NVList);
       begin
          if Entity /= null then
             return Object_Ptr (Entity_Of (NVList)).List'Access;

@@ -98,7 +98,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.AdapterAlreadyExists_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_AdapterAlreadyExists);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_AdapterAlreadyExists);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -144,7 +144,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.AdapterNonExistent_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_AdapterNonExistent);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_AdapterNonExistent);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -193,7 +193,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.InvalidPolicy_Members) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidPolicy);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidPolicy);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result, CORBA.To_Any (Item.index));
@@ -238,7 +238,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.NoServant_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_NoServant);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_NoServant);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -284,7 +284,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.ObjectAlreadyActive_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ObjectAlreadyActive);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ObjectAlreadyActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -330,7 +330,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.ObjectNotActive_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ObjectNotActive);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ObjectNotActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -376,7 +376,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.ServantAlreadyActive_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantAlreadyActive);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantAlreadyActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -422,7 +422,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.ServantNotActive_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantNotActive);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantNotActive);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -468,7 +468,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.WrongAdapter_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_WrongAdapter);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_WrongAdapter);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -514,7 +514,7 @@ package body PortableServer.POA.Helper is
    function To_Any
      (Item : PortableServer.POA.WrongPolicy_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_WrongPolicy);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_WrongPolicy);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);

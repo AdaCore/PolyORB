@@ -82,7 +82,7 @@ package body CORBA.Bounded_Wide_Strings is
 
    function From_Any (From : CORBA.Any) return Bounded_Wide_String is
       Super : constant Ada.Strings.Wide_Superbounded.Super_String :=
-                From_Any (From);
+        From_Any (From);
    begin
       if Super.Max_Length /= Max_Length then
          raise Constraint_Error;

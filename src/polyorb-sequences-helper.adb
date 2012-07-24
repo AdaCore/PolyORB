@@ -93,7 +93,7 @@ package body PolyORB.Sequences.Helper is
       pragma Suppress (Discriminant_Check);
 
       Len : constant Integer :=
-              Integer (Types.Unsigned_Long'(Get_Aggregate_Element (Item, 0)));
+        Integer (Types.Unsigned_Long'(Get_Aggregate_Element (Item, 0)));
 
       Result : aliased Sequence := New_Sequence (Len);
 

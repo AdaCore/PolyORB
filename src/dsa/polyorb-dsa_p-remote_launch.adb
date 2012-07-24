@@ -164,9 +164,9 @@ package body PolyORB.DSA_P.Remote_Launch is
      (Host : String; Command : String; Env_Vars : String)
    is
       U_Command : constant String :=
-                    Escape_Spaces (Windows_To_Unix (Command))
-                                     & " --polyorb-dsa-name_service="
-                                     & Get_Conf ("dsa", "name_service", "");
+        Escape_Spaces (Windows_To_Unix (Command))
+                       & " --polyorb-dsa-name_service="
+                       & Get_Conf ("dsa", "name_service", "");
       Pid       : Process_Id;
       pragma Unreferenced (Pid);
 
@@ -229,7 +229,7 @@ package body PolyORB.DSA_P.Remote_Launch is
 
          declare
             Args : Argument_List :=
-                     (new String'("-c"), new String'(U_Command));
+              (new String'("-c"), new String'(U_Command));
          begin
             pragma Debug (C, O ("Enter Spawn (local): " & U_Command));
             Pid := Non_Blocking_Spawn (Sh_Command.all, Args);
@@ -297,9 +297,9 @@ package body PolyORB.DSA_P.Remote_Launch is
             end Expand_Env_Vars;
 
             Remote_Command : String_Access :=
-                               new String'(Expand_Env_Vars (Env_Vars)
-                                             & U_Command
-                                             & " --polyorb-dsa-detach");
+              new String'(Expand_Env_Vars (Env_Vars)
+                          & U_Command
+                          & " --polyorb-dsa-detach");
 
          --  Start of processing for Remote_Spawn
 

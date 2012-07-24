@@ -286,8 +286,7 @@ package body PolyORB.ORB is
 
       declare
          Events : constant AES_Array :=
-                    Check_Sources
-                      (Selector (This_Task), Task_Info.Timeout (This_Task));
+           Check_Sources (Selector (This_Task), Task_Info.Timeout (This_Task));
          --  This_Task will block on this action until an event occurs on a
          --  source monitored by A_Monitor, or Abort_Check_Sources is called
          --  on A_Monitor.
@@ -425,7 +424,7 @@ package body PolyORB.ORB is
       use PTI;
 
       Task_Kinds : constant array (Boolean) of Task_Kind :=
-                     (False => Transient, True => Permanent);
+        (False => Transient, True => Permanent);
       This_Task  : aliased PTI.Task_Info (Task_Kinds (Request = null));
       TI_Ref     : access Task_Info_Access := null;
    begin
@@ -615,7 +614,7 @@ package body PolyORB.ORB is
 
       declare
          H     : constant access AES_Event_Handler'Class :=
-                   Handler (New_AES.all);
+           Handler (New_AES.all);
          TAP_H : TAP_AES_Event_Handler renames TAP_AES_Event_Handler (H.all);
       begin
          H.AES                      := New_AES;
@@ -690,14 +689,14 @@ package body PolyORB.ORB is
       Role : Endpoint_Role)
    is
       TE         : constant Transport.Transport_Endpoint_Access :=
-                     Binding_Objects.Get_Endpoint (BO);
+        Binding_Objects.Get_Endpoint (BO);
       New_AES    : constant Asynch_Ev_Source_Access :=
-                     Create_Event_Source (TE);
+        Create_Event_Source (TE);
       --  New_AES is null for output-only endpoints
 
       ORB_Acc : constant ORB_Access := ORB_Access (ORB);
       BO_Acc  : constant Binding_Object_Access :=
-                  Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
+        Binding_Object_Access (Smart_Pointers.Entity_Of (BO));
    begin
       pragma Debug
         (C, O ("Register_Binding_Object (" & Role'Img & "): enter"));
@@ -715,7 +714,7 @@ package body PolyORB.ORB is
 
          declare
             H    : constant access AES_Event_Handler'Class :=
-                     Handler (New_AES.all);
+              Handler (New_AES.all);
             TE_H : TE_AES_Event_Handler renames TE_AES_Event_Handler (H.all);
          begin
             --  Register link from AES to TE
@@ -834,7 +833,7 @@ package body PolyORB.ORB is
 
       declare
          Monitors : constant Monitor_Array :=
-                      Get_Monitors (ORB.ORB_Controller);
+           Get_Monitors (ORB.ORB_Controller);
          AEM      : Asynch_Ev_Monitor_Access;
          RSR      : Register_Source_Result := Unknown_Source_Type;
       begin
@@ -1065,9 +1064,9 @@ package body PolyORB.ORB is
 
          declare
             Result : constant Components.Message'Class :=
-                       Emit (Req.Surrogate, Servants.Iface.Execute_Request'
-                                              (Req => Req,
-                                               Pro => Req.Profile));
+              Emit (Req.Surrogate,
+                    Servants.Iface.Execute_Request'
+                      (Req => Req, Pro => Req.Profile));
          begin
             --  Unsetup_Environment ();
             --  Unbind (J.Req.Target, J.ORB, Servant);
@@ -1131,7 +1130,7 @@ package body PolyORB.ORB is
          while not Last (It) loop
             declare
                PF : constant Profile_Factory_Access :=
-                      Profile_Factory_Of (Value (It).all);
+                 Profile_Factory_Of (Value (It).all);
 
             begin
                if PF /= null then
@@ -1141,7 +1140,7 @@ package body PolyORB.ORB is
 
                   declare
                      P : constant Profile_Access :=
-                           Create_Profile (PF, Oid.all);
+                       Create_Profile (PF, Oid.all);
                   begin
                      if P /= null then
                         Last_Profile := Last_Profile + 1;
@@ -1204,9 +1203,9 @@ package body PolyORB.ORB is
                Req.Requesting_Component := QR.Requestor;
                declare
                   J : constant Job_Access :=
-                        new Request_Job'(Job with
-                                         ORB       => ORB_Access (ORB),
-                                         Request   => Req);
+                    new Request_Job'(Job with
+                                     ORB       => ORB_Access (ORB),
+                                     Request   => Req);
                begin
                   Handle_Request_Execution
                     (ORB.Tasking_Policy,
@@ -1259,7 +1258,7 @@ package body PolyORB.ORB is
       elsif Msg in Iface.Monitor_Endpoint then
          declare
             TE : constant Transport_Endpoint_Access :=
-                            Iface.Monitor_Endpoint (Msg).TE;
+              Iface.Monitor_Endpoint (Msg).TE;
             Note : TE_Note;
          begin
             Get_Note (Notepad_Of (TE).all, Note);
@@ -1276,7 +1275,7 @@ package body PolyORB.ORB is
       elsif Msg in Iface.Monitor_Access_Point then
          declare
             TAP : constant Transport_Access_Point_Access :=
-                    Iface.Monitor_Access_Point (Msg).TAP;
+              Iface.Monitor_Access_Point (Msg).TAP;
             Note : TAP_Note;
          begin
             Get_Note (Notepad_Of (TAP).all, Note);

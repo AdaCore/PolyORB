@@ -1129,9 +1129,9 @@ package body PolyORB.POA is
 
       declare
          Full_POA_Name : constant String :=
-                           Self.Absolute_Address.all
-                             & POA_Path_Separator
-                             & Name;
+           Self.Absolute_Address.all
+           & POA_Path_Separator
+           & Name;
       begin
          pragma Debug (C, O ("Find_POA: enter, Name = "
                           & Full_POA_Name));
@@ -1630,7 +1630,7 @@ package body PolyORB.POA is
 
          declare
             Activator : aliased ServantActivator'Class :=
-                          ServantActivator (Obj_OA.Servant_Manager.all);
+              ServantActivator (Obj_OA.Servant_Manager.all);
             Oid       : Objects.Object_Id_Access;
 
          begin

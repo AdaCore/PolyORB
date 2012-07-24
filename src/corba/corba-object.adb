@@ -55,11 +55,11 @@ package body CORBA.Object is
    --  operations.
 
    RPC_Result_Name : constant PolyORB.Types.Identifier :=
-                       To_PolyORB_String ("Result");
+     To_PolyORB_String ("Result");
 
    RPC_Is_A_Op_Name  : constant Standard.String := "_is_a";
    RPC_Is_A_Arg_Name : constant PolyORB.Types.Identifier :=
-                         To_PolyORB_String ("Type_Id");
+     To_PolyORB_String ("Type_Id");
 
    function RPC_Is_A
      (Self            : Ref;

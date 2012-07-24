@@ -56,16 +56,16 @@ package body CORBA.DomainManager is
       Operation_Name : constant Standard.String := "get_domain_policy";
 
       Arg_Name_Policy_Type : constant PolyORB.Types.Identifier :=
-                               PolyORB.Types.To_PolyORB_String ("policy_type");
+        PolyORB.Types.To_PolyORB_String ("policy_type");
       Argument_Policy_Type : constant CORBA.Any :=
-                               CORBA.Helper.To_Any (Policy_Type);
+        CORBA.Helper.To_Any (Policy_Type);
       Self_Ref             : constant CORBA.Object.Ref :=
-                               CORBA.Object.Ref (Self);
+        CORBA.Object.Ref (Self);
       Request              : aliased PolyORB.Requests.Request;
       Arg_List             : PolyORB.Any.NVList.Ref;
       Result               : PolyORB.Any.NamedValue;
       Result_Name          : constant CORBA.String :=
-                               To_CORBA_String ("Result");
+        To_CORBA_String ("Result");
 
    begin
       if CORBA.Object.Is_Nil (Self_Ref) then

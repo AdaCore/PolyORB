@@ -220,7 +220,7 @@ package body PolyORB.Filters.HTTP is
          declare
             Buf : Buffer_Access := new Buffer_Type;
             RD  : constant PolyORB.SOAP_P.Response.Data :=
-                    AWS_Response_Out (S).Data;
+              AWS_Response_Out (S).Data;
          begin
             case PolyORB.SOAP_P.Response.Mode (RD) is
                when PolyORB.SOAP_P.Response.Header =>
@@ -308,7 +308,7 @@ package body PolyORB.Filters.HTTP is
 
       New_Data : PolyORB.Opaque.Opaque_Pointer;
       New_Data_Position : Stream_Element_Offset :=
-                            Length (F.In_Buf.all) - Data_Received;
+        Length (F.In_Buf.all) - Data_Received;
    begin
 
       ---------------------------

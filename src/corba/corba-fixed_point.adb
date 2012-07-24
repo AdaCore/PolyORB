@@ -81,7 +81,7 @@ package body CORBA.Fixed_Point is
    function To_Any (Item : F) return CORBA.Any is
       Result : Any := CORBA.Internals.Get_Empty_Any_Aggregate (TC);
       Octets : constant Ada.Streams.Stream_Element_Array :=
-                 CDR_Fixed_F.Fixed_To_Octets (Item);
+        CDR_Fixed_F.Fixed_To_Octets (Item);
    begin
       for I in Octets'Range loop
          CORBA.Internals.Add_Aggregate_Element

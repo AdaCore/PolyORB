@@ -323,7 +323,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       for J in Profs'Range loop
          declare
             OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                          Get_OA (Profs (J).all);
+              Get_OA (Profs (J).all);
          begin
             if OA_Entity /= null
               and then OA_Entity.all in Group_Object_Adapter'Class

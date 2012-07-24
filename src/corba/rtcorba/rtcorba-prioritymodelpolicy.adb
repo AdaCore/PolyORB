@@ -127,7 +127,7 @@ package body RTCORBA.PriorityModelPolicy is
       declare
          Result : CORBA.Policy.Ref;
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                    new Policy_Object_Type;
+           new Policy_Object_Type;
 
       begin
          Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);

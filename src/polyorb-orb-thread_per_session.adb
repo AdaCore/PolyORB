@@ -211,7 +211,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Unreferenced (ORB);
 
       S   : constant Session_Access :=
-              Session_Access (RJ.Request.Requesting_Component);
+        Session_Access (RJ.Request.Requesting_Component);
       N   : constant Notepad_Access := Get_Task_Info (S);
       STI : Session_Thread_Info;
    begin

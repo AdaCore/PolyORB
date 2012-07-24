@@ -32,7 +32,7 @@
 
 pragma Ada_2005;
 
---  An asynchrous event source that is a set of socket descriptors.
+--  An asynchronous event source that is a set of socket descriptors.
 
 with Ada.Exceptions;
 
@@ -113,7 +113,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
       declare
          S_AES : Socket_Event_Source'Class
-                   renames Socket_Event_Source'Class (AES.all);
+           renames Socket_Event_Source'Class (AES.all);
       begin
          pragma Debug
            (C, O ("Register_Source: socket =" & Image (S_AES.Socket)));
@@ -147,7 +147,7 @@ package body PolyORB.Asynch_Ev.Sockets is
       Success : out Boolean)
    is
       S_AES : Socket_Event_Source'Class
-                renames Socket_Event_Source'Class (AES.all);
+        renames Socket_Event_Source'Class (AES.all);
    begin
       pragma Debug
         (C, O ("Unregister_Source: enter, socket =" & Image (S_AES.Socket)));

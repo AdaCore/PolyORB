@@ -163,7 +163,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
      (TAP : access TLS_Access_Point) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TAP.Socket);
+        Create_Event_Source (TAP.Socket);
 
    begin
       Set_Handler (Ev_Src.all, TAP.Handler'Access);
@@ -176,7 +176,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
       use PolyORB.Annotations;
 
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TE.TLS_Socket);
+        Create_Event_Source (TE.TLS_Socket);
 
    begin
       Set_Handler (Ev_Src.all, TE.Handler'Access);

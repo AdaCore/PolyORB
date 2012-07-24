@@ -1352,7 +1352,7 @@ package body PolyORB.Representations.SRP is
       Data   :        PolyORB.Any.Any_Container'Class)
    is
       Data_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
-                    Unwind_Typedefs (Get_Type (Data));
+        Unwind_Typedefs (Get_Type (Data));
    begin
       pragma Debug (C, O ("Marshall_From_Any: enter"));
       --  pragma Debug
@@ -1688,8 +1688,8 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Result : in out PolyORB.Any.Any_Container'Class)
    is
-      Tc       : constant PolyORB.Any.TypeCode.Local_Ref :=
-                   Unwind_Typedefs (Get_Type (Result));
+      Tc : constant PolyORB.Any.TypeCode.Local_Ref :=
+        Unwind_Typedefs (Get_Type (Result));
 
    begin
       pragma Debug (C, O ("Unmarshall_To_Any: enter"));

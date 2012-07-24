@@ -73,9 +73,9 @@ package body PolyORB.Setup.Access_Points.MDNS is
       use PolyORB.Parameters;
 
       Addr : constant String :=
-               Get_Conf ("mdns", "polyorb.mdns.multicast_addr", "");
+        Get_Conf ("mdns", "polyorb.mdns.multicast_addr", "");
       Port : constant Port_Type :=
-               Port_Type (Get_Conf ("mdns", "polyorb.mdns.multicast_port", 0));
+        Port_Type (Get_Conf ("mdns", "polyorb.mdns.multicast_port", 0));
    begin
       if Get_Conf ("access_points", "mdns", True) then
 

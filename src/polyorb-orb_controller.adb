@@ -261,10 +261,10 @@ package body PolyORB.ORB_Controller is
       Expected_Running_Tasks : Natural) return Boolean
    is
       Actual_Running_Tasks : constant Integer :=
-                               Awake_Count
-                                 - Independent_Count
-                                 - Get_Count (O.Summary, State => Idle)
-                                 - Get_Count (O.Summary, State => Blocked);
+        Awake_Count
+          - Independent_Count
+          - Get_Count (O.Summary, State => Idle)
+          - Get_Count (O.Summary, State => Blocked);
       Result : Boolean;
    begin
       pragma Debug
@@ -470,7 +470,7 @@ package body PolyORB.ORB_Controller is
          function Counter_For_Kind (K : Task_Kind) return String is
             Kind_Name : constant String := K'Img;
             Count     : constant String :=
-                          Natural'Image (Get_Count (O.Summary, K, S));
+              Natural'Image (Get_Count (O.Summary, K, S));
          begin
             pragma Assert (Count (1) = ' ');
             return Count (2 .. Count'Last) & Kind_Name (1);

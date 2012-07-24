@@ -178,10 +178,9 @@ procedure Gen_Codeset is
          declare
             Info   : Code_Set_Info renames Code_Set_Table.Table (J);
             Length : constant Natural :=
-                       Info.Character_Set_Last - Info.Character_Set_First + 1;
+              Info.Character_Set_Last - Info.Character_Set_First + 1;
             Index  : constant Natural :=
-                       Find
-                         (Info.Character_Set_First, Info.Character_Set_Last);
+              Find (Info.Character_Set_First, Info.Character_Set_Last);
             First  : constant Natural := Aux_Table.Last + 1;
          begin
             if Index = 0 then

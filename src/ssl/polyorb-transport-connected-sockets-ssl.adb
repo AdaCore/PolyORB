@@ -136,7 +136,7 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
      (TAP : access SSL_Access_Point) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TAP.Socket);
+        Create_Event_Source (TAP.Socket);
    begin
       Set_Handler (Ev_Src.all, TAP.Handler'Access);
       return Ev_Src;
@@ -150,7 +150,7 @@ package body PolyORB.Transport.Connected.Sockets.SSL is
      (TE : access SSL_Endpoint) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TE.SSL_Socket);
+        Create_Event_Source (TE.SSL_Socket);
    begin
       Set_Handler (Ev_Src.all, TE.Handler'Access);
       return Ev_Src;

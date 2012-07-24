@@ -144,7 +144,7 @@ package body PolyORB.Transport.Connected.Sockets is
      (TAP : access Socket_Access_Point) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TAP.Socket);
+        Create_Event_Source (TAP.Socket);
    begin
       Set_Handler (Ev_Src.all, TAP.Handler'Access);
       return Ev_Src;
@@ -179,7 +179,7 @@ package body PolyORB.Transport.Connected.Sockets is
      (TE : access Socket_Endpoint) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TE.Socket);
+        Create_Event_Source (TE.Socket);
    begin
       Set_Handler (Ev_Src.all, TE.Handler'Access);
       return Ev_Src;

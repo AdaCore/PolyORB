@@ -60,7 +60,7 @@ package body RTCORBA.Current is
    function Create return CORBA.Object.Ref is
       Result : Local_Ref;
       Current : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                  new Current_Object;
+        new Current_Object;
    begin
       Set (Result, Current);
       return CORBA.Object.Ref (Result);

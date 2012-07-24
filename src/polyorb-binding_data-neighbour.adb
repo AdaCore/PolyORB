@@ -70,7 +70,7 @@ package body PolyORB.Binding_Data.Neighbour is
    is
       Result  : constant Profile_Access := new Neighbour_Profile_Type;
       TResult : Neighbour_Profile_Type renames
-                  Neighbour_Profile_Type (Result.all);
+        Neighbour_Profile_Type (Result.all);
    begin
       TResult.Object_Id := new Object_Id'(P.Object_Id.all);
       TResult.Target_Binding_Object := P.Target_Binding_Object;
@@ -135,8 +135,8 @@ package body PolyORB.Binding_Data.Neighbour is
    overriding function Image (Prof : Neighbour_Profile_Type) return String is
       use Binding_Objects;
       BO_Acc : constant Binding_Object_Access :=
-                 Binding_Object_Access
-                   (Smart_Pointers.Entity_Of (Prof.Target_Binding_Object));
+        Binding_Object_Access
+          (Smart_Pointers.Entity_Of (Prof.Target_Binding_Object));
    begin
       return "Neighbour (from "
         & Image (Get_Profile (BO_Acc).all)
@@ -156,8 +156,8 @@ package body PolyORB.Binding_Data.Neighbour is
       use PolyORB.Smart_Pointers;
 
       BO_Acc : constant Binding_Object_Access :=
-                 Binding_Object_Access
-                   (Entity_Of (Left.Target_Binding_Object));
+        Binding_Object_Access
+          (Entity_Of (Left.Target_Binding_Object));
    begin
 
       --  The profile of the target binding object is the real profile that was

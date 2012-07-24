@@ -145,7 +145,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
       declare
          Res : constant Boolean :=
-                 Abortable_Execute_Servant (Servant_Access (Requestor), Req);
+           Abortable_Execute_Servant (Servant_Access (Requestor), Req);
       begin
          Leave (Main_Thread_Lock);
          pragma Debug (C, O ("Execute_In_Context: Leave"));

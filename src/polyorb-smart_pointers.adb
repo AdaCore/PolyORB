@@ -64,9 +64,9 @@ package body PolyORB.Smart_Pointers is
    --  (before complete ORB initialization).
 
    Entity_External_Tag : Entity_External_Tag_Hook :=
-                           Dummy_Entity_External_Tag'Access;
+     Dummy_Entity_External_Tag'Access;
    Ref_External_Tag    : Ref_External_Tag_Hook    :=
-                           Dummy_Ref_External_Tag'Access;
+     Dummy_Ref_External_Tag'Access;
    --  Debugging hooks, set at initialization
 
    Default_Trace : Boolean := True;
@@ -375,7 +375,7 @@ package body PolyORB.Smart_Pointers is
    is
       Entity_Kind : constant String := Entity_External_Tag (Obj.all);
       Event_Values : constant array (Event_Kind_Type) of Integer_32 :=
-                       (Inc_Usage => +1, Dec_Usage => -1);
+        (Inc_Usage => +1, Dec_Usage => -1);
    begin
       if Get_Trace (Entity_Kind) then
          O (Event_Kind'Img & ": "

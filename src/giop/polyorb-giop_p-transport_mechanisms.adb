@@ -61,7 +61,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
       while not Last (Iter) loop
          declare
             SC : constant Tagged_Component_Array :=
-                   Get_Components (TC, Value (Iter).Tag);
+              Get_Components (TC, Value (Iter).Tag);
          begin
             for J in SC'Range loop
                Value (Iter).Constructor (SC (J), Profile, Mechs);

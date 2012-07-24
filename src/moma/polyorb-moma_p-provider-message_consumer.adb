@@ -111,7 +111,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
      return PolyORB.Any.Any
    is
       Argument_Mesg : constant PolyORB.Any.Any :=
-                        PolyORB.Any.To_Any (PolyORB.Types.String (Message_Id));
+        PolyORB.Any.To_Any (PolyORB.Types.String (Message_Id));
 
       Operation_Name : constant Standard.String := "Get";
 
@@ -305,7 +305,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
       Result       : PolyORB.Any.NamedValue;
       Handler_Dest : constant MOMA.Destinations.Destination :=
         MOMA.Destinations.Create_Destination
-        (To_PolyORB_String (""), Handler_Ref);
+          (To_PolyORB_String (""), Handler_Ref);
    begin
       pragma Debug (C, O ("Registering Message_Handler with " &
                        Call_Back_Behavior'Image (Behavior) & " behavior"));

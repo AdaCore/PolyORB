@@ -331,7 +331,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
          Buf    : Buffer_Access            := new Buffer_Type;
          Length : Unsigned_Long            := 0;
          Equiv  : constant Standard.String :=
-                    To_String (Data) & Character'Val (16#00#);
+           To_String (Data) & Character'Val (16#00#);
 
       begin
          for J in Equiv'Range loop

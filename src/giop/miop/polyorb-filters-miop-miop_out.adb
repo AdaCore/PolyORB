@@ -123,7 +123,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
             D : Data_Out renames Data_Out (S);
             --  Length of GIOP packet
             L : constant Types.Unsigned_Short :=
-                  Types.Unsigned_Short (Length (D.Out_Buf.all));
+              Types.Unsigned_Short (Length (D.Out_Buf.all));
             H : MIOP_Header;
          begin
             pragma Debug (C, O ("Encapsulate GIOP data in a MIOP Packet,"

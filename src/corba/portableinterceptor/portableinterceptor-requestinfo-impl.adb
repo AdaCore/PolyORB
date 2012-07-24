@@ -130,8 +130,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       declare
          Members : constant PolyORB.Errors.ForwardRequest_Members :=
-                     PolyORB.Errors.Helper.From_Any
-                       (Self.Request.Exception_Info);
+           PolyORB.Errors.Helper.From_Any (Self.Request.Exception_Info);
          Ref     : PolyORB.References.Ref;
       begin
          PolyORB.References.Set
@@ -178,9 +177,9 @@ package body PortableInterceptor.RequestInfo.Impl is
       use type Service_Id;
 
       SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access :=
-               QoS_GIOP_Service_Contexts_Parameter_Access
-                 (Extract_Reply_Parameter
-                   (GIOP_Service_Contexts, Self.Request.all));
+        QoS_GIOP_Service_Contexts_Parameter_Access
+          (Extract_Reply_Parameter
+             (GIOP_Service_Contexts, Self.Request.all));
       Iter : Iterator;
    begin
       if SCP /= null then
@@ -264,9 +263,9 @@ package body PortableInterceptor.RequestInfo.Impl is
       use type Service_Id;
 
       SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access :=
-               QoS_GIOP_Service_Contexts_Parameter_Access
-                 (Extract_Request_Parameter
-                   (GIOP_Service_Contexts, Self.Request.all));
+        QoS_GIOP_Service_Contexts_Parameter_Access
+          (Extract_Request_Parameter
+             (GIOP_Service_Contexts, Self.Request.all));
       Iter : Iterator;
    begin
       if SCP /= null then

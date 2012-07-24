@@ -105,7 +105,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
       pragma Unreferenced (ORB);
 
       MF : constant Transport_Mechanism_Factory_Access :=
-             new MDNS_Transport_Mechanism_Factory;
+        new MDNS_Transport_Mechanism_Factory;
 
    begin
       Create_Factory (MF.all, TAP);
@@ -261,7 +261,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
 
       declare
          Address : constant Utils.Sockets.Socket_Name :=
-                     S (Host_First .. Host_Last) + Port;
+           S (Host_First .. Host_Last) + Port;
       begin
          DNS_Profile_Type (Profile.all).Mechanism :=
            Create_Transport_Mechanism (Address);

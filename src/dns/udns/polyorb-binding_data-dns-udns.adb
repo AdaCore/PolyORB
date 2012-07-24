@@ -104,7 +104,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
    is
       pragma Unreferenced (ORB);
       MF : constant Transport_Mechanism_Factory_Access :=
-             new UDNS_Transport_Mechanism_Factory;
+        new UDNS_Transport_Mechanism_Factory;
    begin
       Create_Factory (MF.all, TAP);
       PF.Mechanism := MF;
@@ -248,7 +248,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
       pragma Debug (C, O ("Oid = " & Image (TResult.Object_Id.all)));
       declare
          Address : constant Utils.Sockets.Socket_Name :=
-                     S (Host_First .. Host_Last) + Port;
+           S (Host_First .. Host_Last) + Port;
       begin
          UDNS_Profile_Type (Profile.all).Mechanism :=
            Create_Transport_Mechanism (Address);

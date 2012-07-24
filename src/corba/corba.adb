@@ -907,7 +907,7 @@ package body CORBA is
    function To_Any (Item : Completion_Status) return CORBA.Any
    is
       Result : CORBA.Any :=
-                 Internals.Get_Empty_Any_Aggregate (TC_Completion_Status);
+        Internals.Get_Empty_Any_Aggregate (TC_Completion_Status);
    begin
       CORBA.Internals.Add_Aggregate_Element
         (Result, To_Any (Unsigned_Long (Completion_Status'Pos (Item))));
@@ -1771,7 +1771,7 @@ package body CORBA is
             Parent   : Object) return Object
          is
             Res : constant PolyORB.Any.TypeCode.Local_Ref :=
-                    PolyORB.Any.TypeCode.TC_Alias;
+              PolyORB.Any.TypeCode.TC_Alias;
          begin
             PolyORB.Any.TypeCode.Add_Parameter (Res, PolyORB.Any.Any
               (To_Any (Name)));

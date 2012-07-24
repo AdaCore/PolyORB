@@ -516,11 +516,11 @@ package body PolyORB.Sequences is
          Target_Bounds : Bounds)
       is
          Source_Len_Minus_1 : constant Natural :=
-                                Source_Bounds.Hi - Source_Bounds.Lo;
+           Source_Bounds.Hi - Source_Bounds.Lo;
 
          Target_Lo : Integer := Target_Bounds.Lo;
          Target_Lo_Last : constant Integer :=
-                            Target_Bounds.Hi - Source_Len_Minus_1;
+           Target_Bounds.Hi - Source_Len_Minus_1;
       begin
          --  Check that we do not leave any element of the target unassigned
 

@@ -50,7 +50,7 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
 
    Pro : aliased PolyORB.Protocols.DNS.DNS_Protocol;
    UDNS_Factories : constant PolyORB.Filters.Factory_Array :=
-                      (0 => Pro'Access);
+     (0 => Pro'Access);
 
    --------------------
    -- Bind_Mechanism --
@@ -134,9 +134,9 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
      (MF : UDNS_Transport_Mechanism_Factory) return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access :=
-                  new UDNS_Transport_Mechanism;
+        new UDNS_Transport_Mechanism;
       TResult : UDNS_Transport_Mechanism
-                  renames UDNS_Transport_Mechanism (Result.all);
+        renames UDNS_Transport_Mechanism (Result.all);
 
    begin
       TResult.Address := new Socket_Name'(MF.Address.all);
@@ -147,9 +147,9 @@ package body PolyORB.DNS.Transport_Mechanisms.UDNS is
      (Address : Utils.Sockets.Socket_Name) return Transport_Mechanism_Access
    is
       Result  : constant Transport_Mechanism_Access :=
-                  new UDNS_Transport_Mechanism;
+        new UDNS_Transport_Mechanism;
       TResult : UDNS_Transport_Mechanism
-                  renames UDNS_Transport_Mechanism (Result.all);
+        renames UDNS_Transport_Mechanism (Result.all);
    begin
       TResult.Address := new Socket_Name'(Address);
       return Result;

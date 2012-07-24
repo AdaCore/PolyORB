@@ -216,8 +216,7 @@ package body PolyORB.DNS.Helper is
             Repr_Cache => 0);
       end Wrap;
 
-      RR_Type_Initialized : PolyORB.Types.Boolean :=
-        False;
+      RR_Type_Initialized : PolyORB.Types.Boolean := False;
 
       ------------------------
       -- Initialize_RR_Type --
@@ -446,8 +445,7 @@ package body PolyORB.DNS.Helper is
               (X));
       end Wrap;
 
-      SRV_Data_Initialized : PolyORB.Types.Boolean :=
-        False;
+      SRV_Data_Initialized : PolyORB.Types.Boolean := False;
 
       -------------------------
       -- Initialize_SRV_Data --
@@ -563,8 +561,7 @@ package body PolyORB.DNS.Helper is
          end if;
       end Initialize_IDL_SEQUENCE_4_octet;
 
-      IDL_AT_Sequence_4_octet_Initialized : PolyORB.Types.Boolean :=
-        False;
+      IDL_AT_Sequence_4_octet_Initialized : PolyORB.Types.Boolean := False;
 
       ----------------------------------------
       -- Initialize_IDL_AT_Sequence_4_octet --
@@ -780,8 +777,7 @@ package body PolyORB.DNS.Helper is
             Switch_Cache => X.Switch);
       end Wrap;
 
-      RR_Data_Initialized : PolyORB.Types.Boolean :=
-        False;
+      RR_Data_Initialized : PolyORB.Types.Boolean := False;
 
       ------------------------
       -- Initialize_RR_Data --
@@ -1020,8 +1016,7 @@ package body PolyORB.DNS.Helper is
               (X));
       end Wrap;
 
-      RR_Initialized : PolyORB.Types.Boolean :=
-        False;
+      RR_Initialized : PolyORB.Types.Boolean := False;
 
       -------------------
       -- Initialize_RR --
@@ -1283,8 +1278,7 @@ package body PolyORB.DNS.Helper is
             Repr_Cache => 0);
       end Wrap;
 
-      Rcode_Initialized : PolyORB.Types.Boolean :=
-        False;
+      Rcode_Initialized : PolyORB.Types.Boolean := False;
 
       ----------------------
       -- Initialize_Rcode --
@@ -1410,8 +1404,7 @@ package body PolyORB.DNS.Helper is
         return PolyORB.Any.Content'Class
         renames IDL_SEQUENCE_DNS_RR_Helper.Wrap;
 
-      IDL_SEQUENCE_DNS_RR_Initialized : PolyORB.Types.Boolean :=
-        False;
+      IDL_SEQUENCE_DNS_RR_Initialized : PolyORB.Types.Boolean := False;
 
       ------------------------------------
       -- Initialize_IDL_SEQUENCE_DNS_RR --
@@ -1435,8 +1428,7 @@ package body PolyORB.DNS.Helper is
          end if;
       end Initialize_IDL_SEQUENCE_DNS_RR;
 
-      rrSequence_Initialized : PolyORB.Types.Boolean :=
-        False;
+      rrSequence_Initialized : PolyORB.Types.Boolean := False;
 
       ---------------------------
       -- Initialize_rrSequence --

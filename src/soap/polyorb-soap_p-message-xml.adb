@@ -482,7 +482,7 @@ package body PolyORB.SOAP_P.Message.XML is
    begin
       declare
          TC : constant PolyORB.Any.TypeCode.Object_Ptr :=
-                Get_Unwound_Type (NV.Argument);
+           Get_Unwound_Type (NV.Argument);
          A : PolyORB.Any.Any := Get_Empty_Any_Aggregate
                                   (Get_Type (NV.Argument));
 
@@ -490,7 +490,7 @@ package body PolyORB.SOAP_P.Message.XML is
          Value : constant DOM.Core.Node := First_Child (N);
 
          Enumerator_Id_Node : constant DOM.Core.Node :=
-                                Get_Named_Item (Atts, "id");
+           Get_Named_Item (Atts, "id");
          Enumerator_Literal : constant String := Node_Value (Value);
       begin
          if Enumerator_Id_Node /= null then
@@ -534,16 +534,16 @@ package body PolyORB.SOAP_P.Message.XML is
         (Expected_Type);
 
       Unwound_Expected_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
-                                Unwind_Typedefs (Expected_Type);
+        Unwind_Typedefs (Expected_Type);
 
       Content_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
-                       TypeCode.Content_Type (Unwound_Expected_Type);
+        TypeCode.Content_Type (Unwound_Expected_Type);
 
       Values : constant DOM.Core.Node_List := Child_Nodes (N);
       Length : constant Unsigned_Long :=
-                 Unsigned_Long (DOM.Core.Nodes.Length (Values));
+        Unsigned_Long (DOM.Core.Nodes.Length (Values));
       Bound  : constant Unsigned_Long :=
-                 PolyORB.Any.TypeCode.Length (Unwound_Expected_Type);
+        PolyORB.Any.TypeCode.Length (Unwound_Expected_Type);
       Child : DOM.Core.Node := First_Child (N);
    begin
       if Bound > 0 and then Length > Bound then
@@ -707,7 +707,7 @@ package body PolyORB.SOAP_P.Message.XML is
 
       Value : DOM.Core.Node;
       Bound : constant PolyORB.Types.Unsigned_Long :=
-                TypeCode.Length (Get_Unwound_Type (NV.Argument));
+        TypeCode.Length (Get_Unwound_Type (NV.Argument));
    begin
       Normalize (N);
       Value := First_Child (N);

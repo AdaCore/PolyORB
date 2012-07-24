@@ -88,8 +88,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
       Sock        : Socket_Type;
       TTL         : constant Natural :=
-                      Natural (Get_Conf ("miop", "polyorb.miop.ttl",
-                                         Default_TTL));
+        Natural (Get_Conf ("miop", "polyorb.miop.ttl", Default_TTL));
 
       TE          : Transport.Transport_Endpoint_Access;
 

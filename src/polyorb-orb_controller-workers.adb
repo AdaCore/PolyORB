@@ -316,7 +316,7 @@ package body PolyORB.ORB_Controller.Workers is
       declare
          use type PJ.Job_Access;
          Job : constant PJ.Job_Access :=
-                 PJ.Fetch_Job (O.Job_Queue, Is_Schedulable'Access);
+           PJ.Fetch_Job (O.Job_Queue, Is_Schedulable'Access);
       begin
          if Job /= null then
             Set_State_Running (O.Summary, TI.all, Job);

@@ -90,7 +90,7 @@ package body PolyORB.Buffers is
       Alignment : Alignment_Type)
    is
       Padding : constant Stream_Element_Count :=
-                  Padding_Size (Buffer.CDR_Position, Alignment);
+        Padding_Size (Buffer.CDR_Position, Alignment);
    begin
       pragma Debug
         (C, O ("Align_Position: pos = "
@@ -291,8 +291,7 @@ package body PolyORB.Buffers is
    ---------------
 
    Null_Data : aliased Stream_Element_Array
-                 (1 .. 2 ** Alignment_Type'Pos (Alignment_Type'Last)) :=
-                 (others => 0);
+     (1 .. 2 ** Alignment_Type'Pos (Alignment_Type'Last)) := (others => 0);
    --  Null data used for padding
 
    procedure Pad_Align
@@ -300,7 +299,7 @@ package body PolyORB.Buffers is
       Alignment : Alignment_Type)
    is
       Padding : constant Stream_Element_Count :=
-                  Padding_Size (Buffer.CDR_Position, Alignment);
+        Padding_Size (Buffer.CDR_Position, Alignment);
       Padding_Space : Opaque_Pointer;
    begin
       pragma Debug
@@ -326,8 +325,8 @@ package body PolyORB.Buffers is
 
          declare
             Padding_Iovec : constant Iovec :=
-                              (Iov_Base => Null_Data'Address,
-                               Iov_Len  => Storage_Offset (Padding));
+              (Iov_Base => Null_Data'Address,
+               Iov_Len  => Storage_Offset (Padding));
          begin
             Append (Iovec_Pool => Buffer.Contents, An_Iovec => Padding_Iovec);
          end;
@@ -359,9 +358,9 @@ package body PolyORB.Buffers is
       subtype Alignment_Modular is System.Unsigned_Types.Long_Unsigned;
 
       Alignment_Mask : constant Alignment_Modular :=
-                         Shift_Left (1, Alignment_Type'Pos (Alignment)) - 1;
+        Shift_Left (1, Alignment_Type'Pos (Alignment)) - 1;
       Padding : constant Alignment_Modular :=
-                  (-Alignment_Modular (Pos)) and Alignment_Mask;
+        (-Alignment_Modular (Pos)) and Alignment_Mask;
    begin
       return Stream_Element_Count (Padding);
    end Padding_Size;
@@ -427,7 +426,7 @@ package body PolyORB.Buffers is
    is
       V                  : aliased Iovec;
       Saved_CDR_Position : constant Stream_Element_Offset :=
-                             Buffer.CDR_Position;
+        Buffer.CDR_Position;
 
    begin
       pragma Debug (C, O ("Receive_Buffer: Max =" & Max'Img));
@@ -496,7 +495,7 @@ package body PolyORB.Buffers is
    is
       Copy_Address     : Opaque_Pointer;
       Initial_Position : constant Stream_Element_Offset :=
-                           Buffer.CDR_Position;
+        Buffer.CDR_Position;
    begin
       Allocate_And_Insert_Cooked_Data
         (Buffer, Amount, Copy_Address);
@@ -747,7 +746,7 @@ package body PolyORB.Buffers is
 
          declare
             Pool_Iovecs_Address : constant System.Address :=
-                                    Iovecs_Address (Iovec_Pool);
+              Iovecs_Address (Iovec_Pool);
             Pool_Iovecs : Iovec_Array (1 .. Iovec_Pool.Length);
             for Pool_Iovecs'Address use Pool_Iovecs_Address;
             pragma Import (Ada, Pool_Iovecs);
@@ -769,7 +768,7 @@ package body PolyORB.Buffers is
          for J in Iovecs'Range loop
             declare
                L : constant Stream_Element_Offset :=
-                     Stream_Element_Offset (Iovecs (J).Iov_Len);
+                 Stream_Element_Offset (Iovecs (J).Iov_Len);
 
                S_Addr : constant System.Address := Iovecs (J).Iov_Base;
                S : Stream_Element_Array (0 .. L - 1);
@@ -818,10 +817,10 @@ package body PolyORB.Buffers is
          if Require > Iovec_Pool.Length then
             declare
                New_Array : constant Iovec_Array_Access :=
-                             new Iovec_Array (1 .. Allocate);
+                 new Iovec_Array (1 .. Allocate);
 
                Old_Array_Address : constant System.Address :=
-                                     Iovecs_Address (Iovec_Pool);
+                 Iovecs_Address (Iovec_Pool);
                Old_Array : Iovec_Array (1 .. Iovec_Pool.Length);
                for Old_Array'Address use Old_Array_Address;
                pragma Import (Ada, Old_Array);
@@ -1067,7 +1066,7 @@ package body PolyORB.Buffers is
 
          declare
             Prefix_Iovecs_Address : constant System.Address :=
-                                      Iovecs_Address (Prefix);
+              Iovecs_Address (Prefix);
             Prefix_Iovecs : Iovec_Array (1 .. Prefix.Length);
             for Prefix_Iovecs'Address use Prefix_Iovecs_Address;
             pragma Import (Ada, Prefix_Iovecs);

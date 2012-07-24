@@ -113,7 +113,7 @@ package body PolyORB.CORBA_P.Exceptions is
       Message    : String := "")
    is
       Repository_Id : constant PolyORB.Types.RepositoryId :=
-                        Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
+        Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
 
       EId : constant String := To_Standard_String (Repository_Id);
 
@@ -259,8 +259,8 @@ package body PolyORB.CORBA_P.Exceptions is
          declare
             Exception_Occurrence  : constant Any.Any := R.Exception_Info;
             Exception_Information : constant String :=
-                                      PolyORB.QoS.Exception_Informations.
-                                        Get_Exception_Information (R);
+              PolyORB.QoS.Exception_Informations.
+                Get_Exception_Information (R);
             Last : Integer;
          begin
             --  Truncate exception information to first 150 characters

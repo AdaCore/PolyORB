@@ -176,7 +176,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
       declare
          Res : constant Boolean :=
-                 Abortable_Execute_Servant (Servant_Access (Requestor), Req);
+           Abortable_Execute_Servant (Servant_Access (Requestor), Req);
       begin
          Leave (N.Lock);
          return Res;

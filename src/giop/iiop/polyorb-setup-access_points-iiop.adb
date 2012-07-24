@@ -102,14 +102,14 @@ package body PolyORB.Setup.Access_Points.IIOP is
             --  default_addr is <host>[:<port-interval>]
 
             Primary_Addr_Str : constant String :=
-                                 Get_Conf
-                                      ("iiop",
-                                       "polyorb.protocols.iiop.default_addr",
-                                       Image (No_Inet_Addr));
+              Get_Conf
+                ("iiop",
+                 "polyorb.protocols.iiop.default_addr",
+                 Image (No_Inet_Addr));
             Primary_Addr_Sep : constant Natural :=
-                                 Find (Primary_Addr_Str,
-                                       Start => Primary_Addr_Str'First,
-                                       What  => ':');
+              Find (Primary_Addr_Str,
+                    Start => Primary_Addr_Str'First,
+                    What  => ':');
 
             --  default_port is <port-interval>
             --  If present, it overrides any <port-interval> from default_addr
@@ -121,9 +121,9 @@ package body PolyORB.Setup.Access_Points.IIOP is
                             (Integer (Any_Port), Integer (Any_Port))));
 
             Primary_Addr : constant Inet_Addr_Type :=
-                             Inet_Addr (Primary_Addr_Str
-                                          (Primary_Addr_Str'First ..
-                                           Primary_Addr_Sep - 1));
+              Inet_Addr (Primary_Addr_Str
+                           (Primary_Addr_Str'First ..
+                            Primary_Addr_Sep - 1));
 
             Alternate_Listen_Addresses : constant String
               := Get_Conf ("iiop",
@@ -206,15 +206,14 @@ package body PolyORB.Setup.Access_Points.IIOP is
 
                      declare
                         Alternate_IIOP_Access_Point : Access_Point_Info :=
-                             (Socket  => No_Socket,
-                              Address => No_Sock_Addr,
-                              SAP     => new Socket_Access_Point,
-                              PF      => null);
+                          (Socket  => No_Socket,
+                           Address => No_Sock_Addr,
+                           SAP     => new Socket_Access_Point,
+                           PF      => null);
 
                         Alternate_Addr : constant Inet_Addr_Type :=
-                                           Inet_Addr
-                                             (Alternate_Listen_Addresses
-                                               (First .. Delim - 1));
+                          Inet_Addr
+                            (Alternate_Listen_Addresses (First .. Delim - 1));
 
                         Alternate_Port : Port_Interval := (Any_Port, Any_Port);
 

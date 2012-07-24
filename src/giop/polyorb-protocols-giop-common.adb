@@ -162,7 +162,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Buffer_Out      : Buffer_Access := new Buffer_Type;
       Header_Buffer   : Buffer_Access := new Buffer_Type;
       Header_Space    : constant Reservation :=
-                          Reserve (Buffer_Out, GIOP_Header_Size);
+        Reserve (Buffer_Out, GIOP_Header_Size);
       Reply_Status    : Reply_Status_Type;
       N               : Request_Note;
       Request_Id      : Types.Unsigned_Long renames N.Id;
@@ -348,7 +348,7 @@ package body PolyORB.Protocols.GIOP.Common is
                   declare
                      Data            : PolyORB.Opaque.Opaque_Pointer;
                      Data_To_Process : Stream_Element_Count :=
-                                         Length (Static_Buffer.Buffer.all);
+                       Length (Static_Buffer.Buffer.all);
                      Data_Processed  : Stream_Element_Count := Data_To_Process;
                      Position        : Ada.Streams.Stream_Element_Offset := 0;
                   begin
@@ -459,7 +459,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Buffer        : Buffer_Access := new Buffer_Type;
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation :=
-                        Reserve (Buffer, GIOP_Header_Size);
+        Reserve (Buffer, GIOP_Header_Size);
 
    begin
       pragma Debug (C, O ("Sending Locate Reply, Request Id :"
@@ -765,7 +765,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
       Arguments_Alignment : Buffers.Alignment_Type :=
-                              Sess.Implem.Data_Alignment;
+        Sess.Implem.Data_Alignment;
       Error        : Errors.Error_Container;
 
       Static_Buffer : QoS_GIOP_Static_Buffer_Parameter_Access;

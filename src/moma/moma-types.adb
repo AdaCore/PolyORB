@@ -79,8 +79,8 @@ package body MOMA.Types is
    is
       use IDL_SEQUENCE_Map_Element;
       Nb_Any : constant Any :=
-                 Get_Aggregate_Element (Item,
-                   TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0));
+        Get_Aggregate_Element (Item,
+          TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0));
 
       Nb_Long : constant Unsigned_Long := From_Any (Nb_Any);
       Nb      : constant Integer := Integer (Nb_Long);
@@ -110,8 +110,8 @@ package body MOMA.Types is
    function From_Any (Item : MOMA.Types.Any) return Destination_Type
    is
       Index : constant Any :=
-                 Get_Aggregate_Element (Item,
-                   TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0));
+        Get_Aggregate_Element (Item,
+          TC_Unsigned_Long, PolyORB.Types.Unsigned_Long (0));
       Position : constant Unsigned_Long := From_Any (Index);
    begin
       return Destination_Type'Val (Position);
@@ -697,10 +697,9 @@ package body MOMA.Types is
 
       declare
          Name           : constant String :=
-                            To_PolyORB_String ("Destination_Type");
+           To_PolyORB_String ("Destination_Type");
          Id             : constant String :=
-                            To_PolyORB_String
-                              ("MOMA:types/destination_type:1.0");
+           To_PolyORB_String ("MOMA:types/destination_type:1.0");
          Unknown_Name   : constant String := To_PolyORB_String ("Unknown");
          Pool_Name      : constant String := To_PolyORB_String ("Pool");
          Router_Name    : constant String := To_PolyORB_String ("Router");

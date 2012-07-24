@@ -49,9 +49,9 @@ package body PolyORB.Transport.Handlers is
       use PolyORB.ORB;
 
       Reply : Message'Class :=
-                Emit
-                  (Component_Access (H.TE),
-                   Filters.Iface.Data_Indication'(Data_Amount => 0));
+        Emit
+          (Component_Access (H.TE),
+           Filters.Iface.Data_Indication'(Data_Amount => 0));
       --  The size of the data received is not known yet
 
    begin

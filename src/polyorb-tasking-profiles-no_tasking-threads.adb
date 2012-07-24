@@ -49,7 +49,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
    function To_Thread_Id is
      new Ada.Unchecked_Conversion (System.Address, PTT.Thread_Id);
    Main_Thread_Id : constant PTT.Thread_Id :=
-                      To_Thread_Id (The_Thread_Factory'Address);
+     To_Thread_Id (The_Thread_Factory'Address);
 
    ---------------------------
    -- Get_Current_Thread_Id --

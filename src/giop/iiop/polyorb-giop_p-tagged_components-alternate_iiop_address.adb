@@ -127,7 +127,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address is
      return Tagged_Component_Access
    is
       Result : constant Tagged_Component_Access :=
-                 new TC_Alternate_IIOP_Address;
+        new TC_Alternate_IIOP_Address;
    begin
       TC_Alternate_IIOP_Address (Result.all).Address :=
         new Socket_Name'(C.Address.all);

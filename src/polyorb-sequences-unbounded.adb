@@ -40,7 +40,7 @@ package body PolyORB.Sequences.Unbounded is
    --  Element that is preelaborable (but is never actually evaluated).
 
    Empty_Element_Array : aliased Element_Array :=
-                           (1 .. 0 => Dummy_Element_Ptr.all);
+     (1 .. 0 => Dummy_Element_Ptr.all);
    Empty : constant Element_Array_Access := Empty_Element_Array'Access;
 
    ------------------------------------------------

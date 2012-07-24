@@ -530,7 +530,7 @@ package body PolyORB.Protocols.SOAP_Pr is
          PolyORB.SOAP_P.Message.Set_Parameters (RO, RP);
          declare
             RD : constant PolyORB.SOAP_P.Response.Data :=
-                   PolyORB.SOAP_P.Message.Response.Build (RO);
+              PolyORB.SOAP_P.Message.Response.Build (RO);
             --  Here we depend on a violation of abstraction: we construct an
             --  AWS response object, and AWS is HTTP-specific. This is a
             --  shortcoming of the AWS SOAP engine. It is unknown yet whether

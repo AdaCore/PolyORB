@@ -235,7 +235,7 @@ package body CORBA.Helper is
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("Visibility");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
+           CORBA.To_CORBA_String ("IDL:omg.org/CORBA/Visibility:1.0");
       begin
          TC_Visibility_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Short);
@@ -246,7 +246,7 @@ package body CORBA.Helper is
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("PolicyType");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
+           CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
       begin
          TC_PolicyType_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Unsigned_Long);

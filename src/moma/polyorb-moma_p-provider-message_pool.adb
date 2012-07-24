@@ -274,9 +274,9 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
       --  Dummy Key construction, should be analyzed from message
 
       Rcvd_Message : constant MOMA.Messages.Message'Class :=
-                       From_Any (Message);
+        From_Any (Message);
       Id : constant String :=
-             MOMA.Types.To_Standard_String (Get_Message_Id (Rcvd_Message));
+        MOMA.Types.To_Standard_String (Get_Message_Id (Rcvd_Message));
 
    begin
       if Self.Behavior = Handle

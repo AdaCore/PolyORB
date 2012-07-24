@@ -99,7 +99,7 @@ package body RTCORBA.RTORB.Helper is
    function To_Any
      (Item : RTCORBA.RTORB.InvalidThreadpool_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidThreadpool);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidThreadpool);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);

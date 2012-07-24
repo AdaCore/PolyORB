@@ -266,7 +266,7 @@ package body PolyORB.Binding_Objects is
       use Filters.Iface;
 
       Reply : constant Message'Class :=
-                Emit (Component_Access (BO.Top), Check_Validity'(null record));
+        Emit (Component_Access (BO.Top), Check_Validity'(null record));
    begin
       return Reply in Components.Null_Message;
    end Valid;

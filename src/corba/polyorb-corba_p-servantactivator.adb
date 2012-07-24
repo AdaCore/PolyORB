@@ -87,7 +87,7 @@ package body PolyORB.CORBA_P.ServantActivator is
       CORBA_Servant : PortableServer.Servant;
 
       Activator : constant PortableServer.ServantActivator.Local_Ref'Class :=
-                    Get_Servant_Manager (Self.all);
+        Get_Servant_Manager (Self.all);
 
    begin
       PortableServer.POA_Forward.Set
@@ -142,7 +142,7 @@ package body PolyORB.CORBA_P.ServantActivator is
         PortableServer.Servant (CORBA.Impl.Internals.To_CORBA_Servant (Serv));
 
       Activator : constant PortableServer.ServantActivator.Local_Ref'Class :=
-                    Get_Servant_Manager (Self.all);
+        Get_Servant_Manager (Self.all);
 
    begin
       PortableServer.POA_Forward.Set

@@ -123,14 +123,14 @@ package body PolyORB.Any is
          Index : Unsigned_Long) return T
       is
          CA_Ptr : constant Aggregate_Content_Ptr :=
-                    Aggregate_Content_Ptr (Value.The_Value);
+           Aggregate_Content_Ptr (Value.The_Value);
          M : aliased Mechanism := By_Value;
 
          PTC : aliased TypeCode.Object (Kind);
          CC  : constant T_Content :=
-                 T_Content
-                   (Get_Aggregate_Element
-                    (CA_Ptr, PTC'Unchecked_Access, Index, M'Access));
+           T_Content
+             (Get_Aggregate_Element
+                (CA_Ptr, PTC'Unchecked_Access, Index, M'Access));
       begin
          return CC.V.all;
       end Get_Aggregate_Element;
@@ -641,9 +641,8 @@ package body PolyORB.Any is
                declare
                   Label_Mech : aliased Mechanism := By_Value;
                   Label_CC : aliased Content'Class :=
-                               Get_Aggregate_Element
-                                 (L_ACC'Access, Switch_Type, 0,
-                                  Label_Mech'Access);
+                    Get_Aggregate_Element
+                      (L_ACC'Access, Switch_Type, 0, Label_Mech'Access);
                   Label_C : Any_Container;
                   Res : Boolean;
                begin
@@ -665,9 +664,9 @@ package body PolyORB.Any is
             --  compares the only element of both aggregate : an unsigned long
             declare
                L_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Left.The_Value.all);
+                 Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Right.The_Value.all);
+                 Aggregate_Content'Class (Right.The_Value.all);
             begin
                return Agg_Elements_Equal
                  (TypeCode.PTC_Unsigned_Long'Access,
@@ -678,15 +677,15 @@ package body PolyORB.Any is
            | Tk_Array =>
             declare
                List_Type : constant TypeCode.Object_Ptr :=
-                             Unwind_Typedefs (L_Type);
+                 Unwind_Typedefs (L_Type);
 
                Member_Type : constant TypeCode.Object_Ptr :=
-                               TypeCode.Content_Type (List_Type);
+                 TypeCode.Content_Type (List_Type);
 
                L_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Left.The_Value.all);
+                 Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Right.The_Value.all);
+                 Aggregate_Content'Class (Right.The_Value.all);
             begin
                --  for each member in the aggregate, compare both values
 
@@ -826,7 +825,7 @@ package body PolyORB.Any is
 
    procedure Add_Aggregate_Element (Value : in out Any; Element : Any) is
       CA_Ptr : constant Aggregate_Content_Ptr :=
-                 Aggregate_Content_Ptr (Get_Container (Value).The_Value);
+        Aggregate_Content_Ptr (Get_Container (Value).The_Value);
    begin
       pragma Debug (C, O ("Add_Aggregate_Element: enter"));
       Add_Aggregate_Element (CA_Ptr.all, Get_Container (Element));
@@ -841,7 +840,7 @@ package body PolyORB.Any is
      (Kind : TCKind) return Content_Ptr
    is
       Result : constant Aggregate_Content_Ptr :=
-                 new Default_Aggregate_Content (Kind => Kind);
+        new Default_Aggregate_Content (Kind => Kind);
    begin
       Content_Tables.Initialize (Default_Aggregate_Content (Result.all).V);
       return Content_Ptr (Result);
@@ -930,11 +929,12 @@ package body PolyORB.Any is
       Src_C : Any_Container'Class)
    is
       TC  : constant TypeCode.Object_Ptr :=
-              Unwind_Typedefs (Get_Type_Obj (Src_C));
+        Unwind_Typedefs (Get_Type_Obj (Src_C));
+
       TCK : constant TCKind := TypeCode.Kind (TC);
 
       Dst_TCK : constant TCKind :=
-                  TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Dst_C)));
+        TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Dst_C)));
    begin
       if Src_C'Address = Dst_C'Address then
          return;
@@ -1048,13 +1048,11 @@ package body PolyORB.Any is
                declare
                   El_TC : TypeCode.Object_Ptr;
                   Dst_ACC : Aggregate_Content'Class
-                              renames Aggregate_Content'Class
-                                (Dst_C.The_Value.all);
+                    renames Aggregate_Content'Class (Dst_C.The_Value.all);
                   Src_ACC : Aggregate_Content'Class
-                              renames Aggregate_Content'Class
-                                (Src_C.The_Value.all);
+                    renames Aggregate_Content'Class (Src_C.The_Value.all);
                   Src_Count : constant Types.Unsigned_Long :=
-                                Get_Aggregate_Count (Src_ACC);
+                    Get_Aggregate_Count (Src_ACC);
                begin
                   Set_Aggregate_Count (Dst_ACC, Src_Count);
 
@@ -1088,15 +1086,13 @@ package body PolyORB.Any is
 
                         Dst_El_M  : aliased Mechanism := By_Reference;
                         Dst_El_CC : aliased Content'Class :=
-                                      Get_Aggregate_Element
-                                        (Dst_ACC'Access, El_TC, J,
-                                         Dst_El_M'Access);
+                          Get_Aggregate_Element
+                            (Dst_ACC'Access, El_TC, J, Dst_El_M'Access);
 
                         Src_El_M  : aliased Mechanism := By_Value;
                         Src_El_CC : aliased Content'Class :=
-                                      Get_Aggregate_Element
-                                        (Src_ACC'Access, El_TC, J,
-                                         Src_El_M'Access);
+                          Get_Aggregate_Element
+                            (Src_ACC'Access, El_TC, J, Src_El_M'Access);
 
                      begin
                         Set_Type (Src_El_C, El_TC);
@@ -1337,7 +1333,7 @@ package body PolyORB.Any is
 
    function From_Any (C : Any_Container'Class) return Standard.String is
       Bound : constant Types.Unsigned_Long :=
-                TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
+        TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
    begin
       if Bound = 0 then
 
@@ -1360,7 +1356,7 @@ package body PolyORB.Any is
 
    function From_Any (C : Any_Container'Class) return Standard.Wide_String is
       Bound : constant Types.Unsigned_Long :=
-                TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
+        TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
    begin
       if Bound = 0 then
 
@@ -1398,7 +1394,7 @@ package body PolyORB.Any is
    function Get_Aggregate_Count (Value : Any) return Unsigned_Long
    is
       CA_Ptr : constant Aggregate_Content_Ptr :=
-                 Aggregate_Content_Ptr (Get_Value (Get_Container (Value).all));
+        Aggregate_Content_Ptr (Get_Value (Get_Container (Value).all));
    begin
       return Get_Aggregate_Count (CA_Ptr.all);
    end Get_Aggregate_Count;
@@ -1435,7 +1431,7 @@ package body PolyORB.Any is
       use Content_Tables;
 
       El_C_Ptr : Any_Container_Ptr renames
-                   ACC.V.Table (First (ACC.V) + Natural (Index));
+        ACC.V.Table (First (ACC.V) + Natural (Index));
    begin
       pragma Debug (C, O ("Get_Aggregate_Element: enter"));
 
@@ -1499,12 +1495,13 @@ package body PolyORB.Any is
 
       pragma Unsuppress (Tag_Check);
       CA_Ptr : constant Aggregate_Content_Ptr :=
-                 Aggregate_Content_Ptr (Get_Container (Value).The_Value);
+        Aggregate_Content_Ptr (Get_Container (Value).The_Value);
 
       A : Any;
       M : aliased Mechanism := By_Value;
       CC : constant Content'Class :=
-             Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
+        Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
+
       New_CC : Content_Ptr;
       use PolyORB.Smart_Pointers;
    begin
@@ -1857,12 +1854,13 @@ package body PolyORB.Any is
                Index_C : Any_Container;
                Val_M   : aliased Mechanism := By_Value;
                CA_Ptr  : constant Aggregate_Content_Ptr :=
-                           Aggregate_Content_Ptr (C.The_Value);
+                 Aggregate_Content_Ptr (C.The_Value);
 
                Val_CC  : aliased Content'Class :=
-                           Get_Aggregate_Element (CA_Ptr,
-                             TypeCode.PTC_Unsigned_Long'Access, 0,
-                             Val_M'Access);
+                 Get_Aggregate_Element (CA_Ptr,
+                   TypeCode.PTC_Unsigned_Long'Access, 0,
+                   Val_M'Access);
+
             begin
                Set_Type  (Index_C, TC_Unsigned_Long);
                Set_Value (Index_C, Val_CC'Unchecked_Access, Foreign => True);
@@ -2034,7 +2032,7 @@ package body PolyORB.Any is
       use Content_Tables;
       V_First : constant Natural := First (ACC.V);
       El_C : Any_Container'Class
-               renames ACC.V.Table (V_First + Natural (Index)).all;
+        renames ACC.V.Table (V_First + Natural (Index)).all;
    begin
       if ACC.Kind = Tk_Union
         and then Index = 0
@@ -2069,7 +2067,7 @@ package body PolyORB.Any is
    procedure Set_Any_Aggregate_Value (Agg_C : in out Any_Container'Class) is
       use TypeCode;
       Kind : constant TCKind :=
-               TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Agg_C)));
+        TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Agg_C)));
    begin
       pragma Debug (C, O ("Set_Any_Aggregate_Value: enter"));
       if Kind not in Aggregate_TCKind then
@@ -2825,7 +2823,7 @@ package body PolyORB.Any is
                   Id_Left  : constant RepositoryId := Id (Left);
                   Id_Right : constant RepositoryId := Id (Right);
                   Null_RepositoryId : constant RepositoryId :=
-                                        RepositoryId'(To_PolyORB_String (""));
+                    RepositoryId'(To_PolyORB_String (""));
                begin
                   if Id_Left /= Null_RepositoryId
                     and then Id_Right /= Null_RepositoryId
@@ -3078,7 +3076,7 @@ package body PolyORB.Any is
         (Self : Object_Ptr; Index : Unsigned_Long) return Object_Ptr
       is
          TC_Container : constant Any_Container_Ptr :=
-                          Get_Parameter (Self, Index);
+           Get_Parameter (Self, Index);
       begin
          --  Here we have an Any that contains a TypeCode. We extract the
          --  inner TypeCode.Object_Ptr directly rather than doing a From_Any

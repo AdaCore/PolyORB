@@ -190,9 +190,8 @@ package body PolyORB.POA.Basic_POA is
       declare
          use Ada.Streams;
          Oid_Data : aliased Stream_Element_Array :=
-                      Stream_Element_Array (
-                        Objects.Hex_String_To_Oid (
-                          To_Standard_String (U_Oid.Id)));
+           Stream_Element_Array (
+             Objects.Hex_String_To_Oid (To_Standard_String (U_Oid.Id)));
       begin
          pragma Debug (C, O ("PTR: Oid data length:"
                           & Integer'Image (Oid_Data'Length)));

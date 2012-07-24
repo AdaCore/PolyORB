@@ -64,15 +64,15 @@ package body PolyORB.DSA_P.Name_Service is
       use PolyORB.References;
 
       Nameservice_Kind : constant String :=
-                           Parameters.Get_Conf
-                             (Section => "dsa",
-                              Key     => "name_server_kind",
-                              Default => "");
+        Parameters.Get_Conf
+          (Section => "dsa",
+           Key     => "name_server_kind",
+           Default => "");
 
       Nameservice_Location : constant String :=
-                               Parameters.Get_Conf
-                                 (Section => "dsa",
-                                  Key     => "name_service");
+        Parameters.Get_Conf
+          (Section => "dsa",
+           Key     => "name_service");
    begin
       pragma Debug (C, O ("Initialize_Name_Server: enter"));
 

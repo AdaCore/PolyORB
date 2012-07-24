@@ -83,7 +83,7 @@ package body System.Shared_Storage is
       --  assign variable V of limited type Typ.
 
       S : constant SIO.Stream_Access :=
-            new Memory_Resident_Stream (16384);
+        new Memory_Resident_Stream (16384);
       --  XXX stream used to copy value of variable V
       --  of limited type Typ in Read routine.
 
@@ -95,7 +95,7 @@ package body System.Shared_Storage is
          SDM      : Shared_Data_Manager_RACW;
          Data     : constant Any := Typ'To_Any (V);
          Data_Ptr : constant SDT.Any_Container_Ptr :=
-                      AC_To_DAC (Get_Container (Data));
+           AC_To_DAC (Get_Container (Data));
 
       begin
          Lookup_Variable (Full_Name, SDM);

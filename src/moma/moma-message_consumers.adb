@@ -171,14 +171,14 @@ package body MOMA.Message_Consumers is
       use type PolyORB.Tasking.Priorities.External_Priority;
 
       Argument_Mesg : constant PolyORB.Any.Any :=
-                        PolyORB.Any.To_Any (To_PolyORB_String (""));
+        PolyORB.Any.To_Any (To_PolyORB_String (""));
       --  XXX Temporary hack, should pass message filter ... or not ?
 
       Request        : PolyORB.Requests.Request_Access;
       Arg_List       : PolyORB.Any.NVList.Ref;
       Result         : PolyORB.Any.NamedValue;
       Result_Name    : constant PolyORB.Types.String :=
-                         To_PolyORB_String ("Result");
+        To_PolyORB_String ("Result");
    begin
       PolyORB.Any.NVList.Create (Arg_List);
 

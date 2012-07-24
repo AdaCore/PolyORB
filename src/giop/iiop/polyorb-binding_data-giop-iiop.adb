@@ -193,7 +193,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       pragma Unreferenced (ORB);
 
       MF : constant Transport_Mechanism_Factory_Access :=
-             new IIOP_Transport_Mechanism_Factory;
+        new IIOP_Transport_Mechanism_Factory;
 
    begin
       Create_Factory (MF.all, TAP);
@@ -287,7 +287,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          if Security_Fetch_Tagged_Component /= null then
             declare
                Sec_TC : constant Tagged_Component_Access :=
-                          Security_Fetch_Tagged_Component (Oid);
+                 Security_Fetch_Tagged_Component (Oid);
 
             begin
                if Sec_TC /= null then
@@ -385,11 +385,11 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       Result  : constant Profile_Access := new IIOP_Profile_Type;
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
       Address : constant Utils.Sockets.Socket_Name :=
-                  Common_Unmarshall_Profile_Body
-                    (Buffer,
-                     Result,
-                     Unmarshall_Object_Id         => True,
-                     Unmarshall_Tagged_Components => False);
+        Common_Unmarshall_Profile_Body
+          (Buffer,
+           Result,
+           Unmarshall_Object_Id         => True,
+           Unmarshall_Tagged_Components => False);
    begin
       --  Create primary transport mechanism
 
@@ -434,8 +434,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       use Utils.Sockets;
       Result  : aliased Profile_Access := new IIOP_Profile_Type;
       Address : constant Socket_Name :=
-                  Common_IIOP_DIOP_Corbaloc_To_Profile (Str,
-                    IIOP_Version_Major, IIOP_Version_Minor, Result'Access);
+        Common_IIOP_DIOP_Corbaloc_To_Profile (Str,
+          IIOP_Version_Major, IIOP_Version_Minor, Result'Access);
    begin
       if Result /= null then
          --  Create primary transport mechanism

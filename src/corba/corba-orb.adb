@@ -151,7 +151,7 @@ package body CORBA.ORB is
       while Pos <= Length (Argv) loop
          declare
             Suffix : constant Standard.String :=
-                                To_Standard_String (Get_Element (Argv, Pos));
+              To_Standard_String (Get_Element (Argv, Pos));
 
             Initialized : Boolean := False;
             Space_Index : Positive;
@@ -187,8 +187,8 @@ package body CORBA.ORB is
                elsif Pos < Length (Argv) then
                   declare
                      Value : constant Standard.String :=
-                               To_Standard_String
-                                 (Get_Element (Argv, Pos + 1));
+                       To_Standard_String
+                         (Get_Element (Argv, Pos + 1));
 
                   begin
                      pragma Debug
