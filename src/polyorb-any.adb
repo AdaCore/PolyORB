@@ -591,9 +591,9 @@ package body PolyORB.Any is
                M_Type    : TypeCode.Object_Ptr;
 
                L_ACC : Aggregate_Content'Class
-                         renames Aggregate_Content'Class (Left.The_Value.all);
+                 renames Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class
-                         renames Aggregate_Content'Class (Right.The_Value.all);
+                 renames Aggregate_Content'Class (Right.The_Value.all);
             begin
                --  Note: Count is unsigned, guard against Count - 1 overflow
 
@@ -877,9 +877,9 @@ package body PolyORB.Any is
 
       declare
          New_CC_P : constant Content_Ptr :=
-                      Allocate_Default_Aggregate_Content (CC.Kind);
+           Allocate_Default_Aggregate_Content (CC.Kind);
          New_CC   : Default_Aggregate_Content
-                      renames Default_Aggregate_Content (New_CC_P.all);
+           renames Default_Aggregate_Content (New_CC_P.all);
       begin
          Set_Last (New_CC.V, Last (CC.V));
          for J in First (New_CC.V) .. Last (New_CC.V) loop
