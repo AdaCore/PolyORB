@@ -388,7 +388,7 @@ package body System.Partition_Interface is
 
       AC  : Any_Container'Class renames Get_Container (Item).all;
       ACC : Aggregate_Content'Class renames
-              Aggregate_Content'Class (Get_Value (AC).all);
+        Aggregate_Content'Class (Get_Value (AC).all);
 
       El_Count : constant PolyORB.Types.Unsigned_Long :=
         Get_Aggregate_Count (ACC);
