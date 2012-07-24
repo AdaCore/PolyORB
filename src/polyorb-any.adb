@@ -616,13 +616,13 @@ package body PolyORB.Any is
          when Tk_Union =>
             declare
                L_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Left.The_Value.all);
+                 Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Right.The_Value.all);
+                 Aggregate_Content'Class (Right.The_Value.all);
                List_Type   : constant TypeCode.Object_Ptr :=
-                               Unwind_Typedefs (L_Type);
+                 Unwind_Typedefs (L_Type);
                Switch_Type : constant TypeCode.Object_Ptr :=
-                               TypeCode.Discriminator_Type (List_Type);
+                 TypeCode.Discriminator_Type (List_Type);
                Member_Type : TypeCode.Object_Ptr;
             begin
                pragma Assert (Get_Aggregate_Count (L_ACC) = 2);

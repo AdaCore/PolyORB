@@ -1034,7 +1034,7 @@ package body PolyORB.Representations.CDR is
                El_TC : TypeCode.Object_Ptr;
 
                ACC : Aggregate_Content'Class renames
-                       Aggregate_Content'Class (Get_Value (CData).all);
+                 Aggregate_Content'Class (Get_Value (CData).all);
             begin
                --  Set Nb and El_TC
 
@@ -2279,7 +2279,7 @@ package body PolyORB.Representations.CDR is
                   use type System.Address;
 
                   ACC : Aggregate_Content'Class renames
-                          Aggregate_Content'Class (Get_Value (CData).all);
+                    Aggregate_Content'Class (Get_Value (CData).all);
 
                   Val_TC : TypeCode.Object_Ptr;
                   --  Value typecode, computed from label TC in case of a union
