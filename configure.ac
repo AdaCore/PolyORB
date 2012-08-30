@@ -75,6 +75,18 @@ else
 fi],
 [NODEBUG_OPTIONS])
 
+# LIBRARY_TYPE_OPTIONS set to use static or shared libraries consistently.
+
+AC_ARG_ENABLE(shared,
+AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
+[
+LIBRARY_TYPE_OPTIONS="-XLibrary_Type=RELOCATABLE"
+],
+[
+LIBRARY_TYPE_OPTIONS="-XLibrary_Type=STATIC"
+])
+AC_SUBST(LIBRARY_TYPE_OPTIONS)
+
 # WARNINGS_MODE can be set to:
 #  e (treat warnings as errors)
 #  n (normal processing)
