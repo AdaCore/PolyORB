@@ -41,10 +41,13 @@ See the features-29 file.
 Bug fixes
 ---------
 
+Secure client is unable to communicate with unprotected object when external
+security service is used and it doesn't provide default value for security
+policies. This has been fixed. (L822-047)
+
 When projects file are used, PO_Gnatdist used to be unable to build client
 partitions when the bodies of the RCI units it calls are missing (an
 otherwise supported scenario). This has been fixed. (L521-016)
-
 
 Abortion of a task blocked trying to bind a reference would leave the
 reference locked, causing further bind attemps to hang. (KC09-001)

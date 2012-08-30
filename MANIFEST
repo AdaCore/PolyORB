@@ -1230,7 +1230,6 @@ src/giop/diop/polyorb-setup-access_points-diop.adb
 src/giop/diop/polyorb-setup-access_points-diop.ads
 src/giop/diop/polyorb-setup-diop.adb
 src/giop/diop/polyorb-setup-diop.ads
-src/giop/gen_codeset.adb
 src/giop/iiop/polyorb-binding_data-giop-iiop.adb
 src/giop/iiop/polyorb-binding_data-giop-iiop.ads
 src/giop/iiop/polyorb-giop_p-tagged_components-alternate_iiop_address.adb
@@ -1329,6 +1328,7 @@ src/giop/polyorb-representations-cdr-giop_1_2.adb
 src/giop/polyorb-representations-cdr-giop_1_2.ads
 src/giop/polyorb-representations-cdr-giop_utils.adb
 src/giop/polyorb-representations-cdr-giop_utils.ads
+src/giop/tools/gen_codeset.adb
 src/moma/moma-configuration-server.adb
 src/moma/moma-configuration-server.ads
 src/moma/moma-configuration.adb

@@ -591,9 +591,9 @@ package body PolyORB.Any is
                M_Type    : TypeCode.Object_Ptr;
 
                L_ACC : Aggregate_Content'Class
-                         renames Aggregate_Content'Class (Left.The_Value.all);
+                 renames Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class
-                         renames Aggregate_Content'Class (Right.The_Value.all);
+                 renames Aggregate_Content'Class (Right.The_Value.all);
             begin
                --  Note: Count is unsigned, guard against Count - 1 overflow
 
@@ -616,13 +616,13 @@ package body PolyORB.Any is
          when Tk_Union =>
             declare
                L_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Left.The_Value.all);
+                 Aggregate_Content'Class (Left.The_Value.all);
                R_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Right.The_Value.all);
+                 Aggregate_Content'Class (Right.The_Value.all);
                List_Type   : constant TypeCode.Object_Ptr :=
-                               Unwind_Typedefs (L_Type);
+                 Unwind_Typedefs (L_Type);
                Switch_Type : constant TypeCode.Object_Ptr :=
-                               TypeCode.Discriminator_Type (List_Type);
+                 TypeCode.Discriminator_Type (List_Type);
                Member_Type : TypeCode.Object_Ptr;
             begin
                pragma Assert (Get_Aggregate_Count (L_ACC) = 2);
@@ -877,9 +877,9 @@ package body PolyORB.Any is
 
       declare
          New_CC_P : constant Content_Ptr :=
-                      Allocate_Default_Aggregate_Content (CC.Kind);
+           Allocate_Default_Aggregate_Content (CC.Kind);
          New_CC   : Default_Aggregate_Content
-                      renames Default_Aggregate_Content (New_CC_P.all);
+           renames Default_Aggregate_Content (New_CC_P.all);
       begin
          Set_Last (New_CC.V, Last (CC.V));
          for J in First (New_CC.V) .. Last (New_CC.V) loop

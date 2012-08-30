@@ -174,41 +174,42 @@ package body CORBA.Object.Policies is
          return Result;
       end if;
 
-      if not Is_Domain_Policy (Policy_Type) then
-         return Result;
+      if Is_Domain_Policy (Policy_Type) then
+         --  Obtain domain list from Object
+
+         declare
+            use CORBA.DomainManager;
+            use CORBA.DomainManager.IDL_SEQUENCE_DomainManager;
+
+            Managers : constant DomainManagersList :=
+              Get_Domain_Managers (Self);
+
+         begin
+            --  XXX For now we simply find the first domain manager which hold
+            --  information about the requested policy and return policy value.
+            --  This is not conformant with CORBA specifications which require
+            --  to resolve policy overlapping conflicts but not define any way
+            --  to do this (CORBA 3.0.3 par. 4.10.1.4 Object Membership of
+            --  Policy Domains).
+
+            for J in 1 .. Length (Managers) loop
+               begin
+                  Result :=
+                    Get_Domain_Policy (Get_Element (Managers, J), Policy_Type);
+
+                  if not Policy.Is_Nil (Result) then
+                     return Result;
+                  end if;
+
+               exception
+                  when CORBA.Inv_Policy =>
+                     null;
+               end;
+            end loop;
+         end;
       end if;
 
-      --  Obtain domain list from Object
-
-      declare
-         use CORBA.DomainManager;
-         use CORBA.DomainManager.IDL_SEQUENCE_DomainManager;
-
-         Managers : constant DomainManagersList := Get_Domain_Managers (Self);
-      begin
-         --  XXX For now we simply find the first domain manager which
-         --  hold information about the requested policy and return
-         --  policy value. This is not conformant with CORBA
-         --  specifications which require to resolve policy
-         --  overlapping conflicts but not define any way to do this
-         --  (CORBA 3.0.3 par. 4.10.1.4 Object Membership of Policy
-         --  Domains).
-
-         for J in 1 .. Length (Managers) loop
-            begin
-               Result :=
-                 Get_Domain_Policy (Get_Element (Managers, J), Policy_Type);
-
-               if not Policy.Is_Nil (Result) then
-                  return Result;
-               end if;
-
-            exception
-               when CORBA.Inv_Policy =>
-                  null;
-            end;
-         end loop;
-      end;
+      --  There is no policy value found, raise CORBA::INV_POLICY exception.
 
       Raise_Inv_Policy (Default_Sys_Member);
    end Get_Policy;

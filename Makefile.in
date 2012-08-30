@@ -326,14 +326,14 @@ src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb: ${GEN_HTTP_
 
 # src/giop, tools/po_catref. gen_codeset.
 
-GEN_CODESET = src/giop/gen_codeset${HOST_EXE_SUFFIX}
+GEN_CODESET = src/giop/tools/gen_codeset${HOST_EXE_SUFFIX}
 
 build-gen_codeset:
-	mkdir -p src/giop && cd src/giop && \
-	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop ${COMP_TOOLS_GNATMAKE_FLAGS} -bargs -E
+	mkdir -p src/giop/tools && cd src/giop/tools && \
+	  ${GNATMAKE} gen_codeset -I${top_srcdir}/src/giop/tools ${COMP_TOOLS_GNATMAKE_FLAGS} -bargs -E
 
 src/giop/polyorb-giop_p-code_sets-data.ads-stamp: ${top_srcdir}/src/giop/cs_registry1.2h ${GEN_CODESET}
-	cd src/giop && ./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
+	cd src/giop && ./tools/gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
 	  polyorb-giop_p-code_sets-data.ads.new \
 	  < $<
 	cd src/giop && ${MOVEIFCHANGE} polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
@@ -931,7 +931,7 @@ clean:
 	${RM} -f cos/naming/ir_ab_names
 	${RM} -f cos/naming/po_cos_naming
 	${RM} -f cos/naming/po_cos_naming_shell
-	${RM} -f src/giop/gen_codeset
+	${RM} -f src/giop/tools/gen_codeset
 	${RM} -f src/giop/polyorb-giop_p-code_sets-data.ads
 	${RM} -f src/giop/polyorb-giop_p-code_sets-data.ads-stamp
 	${RM} -f src/soap/perfect_hash.adb
