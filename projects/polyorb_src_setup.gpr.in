@@ -54,7 +54,7 @@ project PolyORB_src_setup is
    for Library_Name use "polyorb-setup";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_setup";
-   for Library_Kind use "static";
+   for Library_Kind use "STATIC";
 
    package Compiler is
 
