@@ -80,10 +80,10 @@ fi],
 AC_ARG_ENABLE(shared,
 AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
 [
-LIBRARY_TYPE_OPTIONS="-XLibrary_Type=RELOCATABLE"
+LIBRARY_TYPE_OPTIONS="-XLibrary_Type=relocatable"
 ],
 [
-LIBRARY_TYPE_OPTIONS="-XLibrary_Type=STATIC"
+LIBRARY_TYPE_OPTIONS="-XLibrary_Type=static"
 ])
 AC_SUBST(LIBRARY_TYPE_OPTIONS)
 

@@ -47,7 +47,7 @@ project PolyORB_src_setup_security is
    for Library_Name use "polyorb-setup-security";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_setup_security";
-   for Library_Kind use "STATIC";
+   for Library_Kind use "static";
 
    package Compiler is
 

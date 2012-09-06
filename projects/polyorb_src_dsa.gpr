@@ -43,7 +43,7 @@ project PolyORB_src_dsa is
    for Library_Name use "polyorb-dsa";
    for Library_Dir use PolyORB_Common.Build_Dir & "lib";
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/src_dsa";
-   for Library_Kind use "STATIC";
+   for Library_Kind use "static";
 
    package Compiler is
 

@@ -39,8 +39,8 @@ project PolyORB_Common is
    type Build_Type is ("PRODUCTION", "DEBUG");
    Build : Build_Type := external ("Build", "PRODUCTION");
 
-   type Library_Type_Type is ("RELOCATABLE", "STATIC");
-   Library_Type : Library_Type_Type := external ("LIBRARY_TYPE", "STATIC");
+   type Library_Type_Type is ("relocatable", "static");
+   Library_Type : Library_Type_Type := external ("LIBRARY_TYPE", "static");
 
    Warnings_Mode := external ("Warnings_Mode", "e");
    --  Possible values:
