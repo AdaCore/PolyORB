@@ -71,14 +71,7 @@ package PolyORB.Sequences.Unbounded is
    --  Can't be "of aliased Element" because Element may be an unconstrained
    --  mutable record type.
 
-   --  The element array below has a null index range, so no elements are
-   --  ever actually initialized, and we can safely ignore a warning about an
-   --  implicit call to Initialize (for a controlled element type) possibly
-   --  causing a Program_Error depending on elaboration order.
-
-   pragma Warnings (Off);
-   Null_Element_Array : Element_Array (1 .. 0);
-   pragma Warnings (On);
+   Null_Element_Array : constant Element_Array (1 .. 0) := (others => <>);
 
    type Element_Array_Access is access all Element_Array;
    procedure Free is
