@@ -1,0 +1,22 @@
+#! /bin/sh
+
+# $Id: timed_grep 143591 2009-01-20 17:19:25Z quinot $
+# Usage: timed_grep <regexp> <file>
+# Repeatedly runs the specified grep command until either it returns some
+# data or a timeout occurs.
+
+j=20
+while [ $j -gt 0 ]; do
+  j=`expr $j - 1`
+  if [ -f "$2" ] && grep "$@"; then
+    exit
+  fi
+  sleep 1
+done
+
+if [ $j = 0 ]; then
+  (echo "grep $* timed out, file contents:"; cat $2) 1>&2
+  exit 1
+else
+  exit 0
+fi
