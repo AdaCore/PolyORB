@@ -63,7 +63,7 @@ def main():
     # Add current directory in PYTHONPATH (to find test_utils.py)
     env = Env()
     env.add_search_path('PYTHONPATH', os.path.join(os.getcwd(), 'tests'))
-    fixed_support_dir = os.path.join(os.getcwd(), '..', 'support')
+    fixed_support_dir = os.path.join(os.getcwd(), 'fixed_support_dir')
     env.add_search_path('FIXED_SUPPORT_DIR', fixed_support_dir)
     env.add_path(os.path.join(fixed_support_dir))
 
