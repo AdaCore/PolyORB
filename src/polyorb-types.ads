@@ -47,23 +47,31 @@ package PolyORB.Types is
    --  Provided as a subtype here so that generated code can avoid a direct
    --  dependency on System, which may clash with a used-defined identifier.
 
+   --  Note that some of these names duplicate names in Standard. The reason is
+   --  that this is patterned after package CORBA, which is required to do
+   --  that.
+
    type    Short              is new Interfaces.Integer_16;
    type    Long               is new Interfaces.Integer_32;
    type    Long_Long          is new Interfaces.Integer_64;
    type    Unsigned_Short     is new Interfaces.Unsigned_16;
    type    Unsigned_Long      is new Interfaces.Unsigned_32;
    type    Unsigned_Long_Long is new Interfaces.Unsigned_64;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    type    Float              is new Interfaces.IEEE_Float_32;
+   pragma Warnings (On);
    type    Double             is new Interfaces.IEEE_Float_64;
    type    Long_Double        is new Interfaces.IEEE_Extended_Float;
    subtype Char               is Standard.Character;
    subtype Wchar              is Standard.Wide_Character;
    type    Octet              is new Interfaces.Unsigned_8;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    subtype Boolean            is Standard.Boolean;
    type    String             is
      new Ada.Strings.Unbounded.Unbounded_String;
    type    Wide_String        is
      new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+   pragma Warnings (On);
 
    type    Short_Ptr              is access all Short;
    type    Long_Ptr               is access all Long;

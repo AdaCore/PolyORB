@@ -52,14 +52,20 @@ package MOMA.Types is
    -----------------
 
    subtype Any            is PolyORB.Any.Any;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    type Boolean        is new PolyORB.Types.Boolean;
+   pragma Warnings (On);
    type Byte           is new PolyORB.Types.Octet;
    type Char           is new PolyORB.Types.Char;
    type Double         is new PolyORB.Types.Double;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    type Float          is new PolyORB.Types.Float;
+   pragma Warnings (On);
    type Long           is new PolyORB.Types.Long;
    type Short          is new PolyORB.Types.Short;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    type String         is new PolyORB.Types.String;
+   pragma Warnings (On);
    type Unsigned_Long  is new PolyORB.Types.Unsigned_Long;
    type Unsigned_Short is new PolyORB.Types.Unsigned_Short;
    subtype Ref            is PolyORB.References.Ref;
