@@ -1,0 +1,90 @@
+=============================
+PolyORB 2.8 NEW FEATURES LIST
+=============================
+
+Copyright (C) 2009-2011, AdaCore
+
+This file contains a complete list of new features in version 2.8 of PolyORB.
+See also file NEWS for various information about this release.
+
+An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
+This date shows the implementation date of the feature. Any 2.8 wavefront
+subsequent to this date will contain the indicated feature, as will any
+subsequent releases.
+
+NF-28-KA26-015 Support for Self_Location / Boot_Location (2011-10-26)
+
+   Support for pragmas Boot_Location and Self_Location in the po_gnatdist
+   configuration file, and for boot_location and self_location runtime
+   parameters, has been implemented. These allow the specification of the
+   host and port used by a partition (self_location) and by the main
+   partition (boot_location).
+
+   Gnatdist configuration example:
+     pragma Boot_Location ("tcp", "myhost:1234");
+
+   Equivalent polyorb.conf setting:
+     [dsa]
+     boot_location=tcp://myhost:1234
+
+NF-28-KA12-017 Removed dependency of "install" on "all" (2011-10-12)
+
+   The "install" target in the main PolyORB Makefile has no dependency on "all"
+   anymore, which avoids a costly recheck of dependencies. (As a result, the
+   "all" target must now be built explicitly prior to "make install".)
+
+NF-28-K922-016 Well known oid for embedded nameserver (2011-09-22)
+
+   When building a DSA application with embedded name server, the name
+   server is now registered on its partition with a fixed, well-known object
+   identifier ("_NameService") so that an object reference that designates it
+   can be constructed knowing just the host name and port number of the
+   main partition.
+
+NF-28-K919-038 Improved installation script (2011-09-19)
+
+   The PolyORB Makefiles do not rely on xargs(1) and install(1). Instead,
+   installation is performed by an equivalent Python script, which avoids
+   spawning a lot of processes.
+
+NF-28-K909-043 Exceptions tracing (2011-09-09)
+
+   A new debugging trace is now available that logs a message for every
+   exception raised in a partition (using GNAT.Exception_Actions).
+
+NF-28-K906-034 Support for new IDL pragmas (2011-09-06)
+
+   IAC implements support for new IDL pragmas defined in version 1.3 of
+   the CORBA/Ada mapping: subtype, derived, and range. It also includes
+   support for implementation defined pragma switchname, compatible with
+   the GNACK IDL compiler, to help in transitioning legacy Ada code to
+   CORBA.
+
+NF-28-K806-001 Improve behaviour in tasking intensive context (2011-08-29)
+
+   Taking advantage of a new feature in the GNAT runtime library, a
+   performance bottleneck has been removed in the PolyORB full tasking
+   profile. This significantly improves performance in situations where a
+   large number of tasks need to be created and destroyed.
+
+NF-28-JC17-036 Support for partition-wide RPC timeout setting (2010-12-23)
+
+   A new runtime parameter rpc_timeout in section [dsa] specifies a global
+   timeout (in milliseconds) to be applied to all remote subprogram calls.
+
+NF-28-JA25-023 Support for additional configuration pragmas (2010-10-26)
+
+   A new configure command line switch --enable-conf-pragmas is provided, which
+   allows the user to specify then name of an additional configuration pragmas
+   file to be used when compiling the PolyORB runtime library, for example
+   containing some application-mandated Restrictions pragmas.
+
+NF-28-J121-026 IDLAC is obsoleted (2011-03-28)
+
+   The legacy IDL to Ada compiler, idlac, is obsoleted. Users should switch
+   to iac, which has been the default since 2008.
+
+NF-28-IA01-037 Source included in iac output (2011-09-24)
+
+   The IAC compiler now includes the IDL source code (commented out) in the Ada
+   stubs package spec, for convenient reference.
