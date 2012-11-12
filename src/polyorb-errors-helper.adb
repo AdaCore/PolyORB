@@ -121,13 +121,14 @@ package body PolyORB.Errors.Helper is
    TC_Completion_Status_Cache : TypeCode.Local_Ref;
 
    function TC_Completion_Status return PolyORB.Any.TypeCode.Local_Ref is
-      TC : TypeCode.Local_Ref renames TC_Completion_Status_Cache;
+      CTC : TypeCode.Local_Ref renames TC_Completion_Status_Cache;
+      TC  : TypeCode.Local_Ref;
    begin
-      if not TypeCode.Is_Nil (TC) then
-         return TC;
+      if not TypeCode.Is_Nil (CTC) then
+         return CTC;
       end if;
 
-      TC := TypeCode.TC_Enum;
+      TC := TypeCode.TCF_Enum;
       TypeCode.Add_Parameter (TC, To_Any ("completion_status"));
       TypeCode.Add_Parameter
         (TC, To_Any ("IDL:omg.org/CORBA/completion_status:1.0"));
@@ -137,6 +138,7 @@ package body PolyORB.Errors.Helper is
            (TC, To_Any (Completion_Status'Image (C)));
       end loop;
 
+      CTC := TC;
       return TC;
    end TC_Completion_Status;
 
@@ -146,13 +148,12 @@ package body PolyORB.Errors.Helper is
 
    function To_Any
      (Name   : Standard.String;
-      Member : Null_Members)
-     return PolyORB.Any.Any
+      Member : Null_Members) return PolyORB.Any.Any
    is
       pragma Unreferenced (Member);
 
-      TC    : constant TypeCode.Local_Ref := TypeCode.TC_Except;
-      Shift : Natural         := 0;
+      TC    : constant TypeCode.Local_Ref := TypeCode.TCF_Except;
+      Shift : Natural                     := 0;
    begin
       --  Name
 
@@ -251,26 +252,28 @@ package body PolyORB.Errors.Helper is
    function TC_ForwardRequest
      return PolyORB.Any.TypeCode.Local_Ref
    is
-      TC : TypeCode.Local_Ref renames TC_ForwardRequest_Cache;
+      CTC : TypeCode.Local_Ref renames TC_ForwardRequest_Cache;
+      TC  : TypeCode.Local_Ref;
 
       Name          : constant String := "ForwardRequest";
       Repository_Id : constant String :=
         PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
    begin
-      if not TypeCode.Is_Nil (TC) then
-         return TC;
+      if not TypeCode.Is_Nil (CTC) then
+         return CTC;
       end if;
 
-      TC := TypeCode.TC_Except;
+      TC := TypeCode.TCF_Except;
 
       TypeCode.Add_Parameter (TC, To_Any (Name));
       TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
       TypeCode.Add_Parameter
-        (TC, To_Any (TypeCode.TC_Object));
+        (TC, To_Any (TypeCode.TC_RootObject));
       TypeCode.Add_Parameter
         (TC, To_Any ("forward_reference"));
 
+      CTC := TC;
       return TC;
    end TC_ForwardRequest;
 
@@ -283,27 +286,29 @@ package body PolyORB.Errors.Helper is
    function TC_ForwardRequestPerm
      return PolyORB.Any.TypeCode.Local_Ref
    is
-      TC : TypeCode.Local_Ref renames TC_ForwardRequestPerm_Cache;
+      CTC : TypeCode.Local_Ref renames TC_ForwardRequestPerm_Cache;
+      TC  : TypeCode.Local_Ref;
 
       Name          : constant String := "ForwardRequestPerm";
       Repository_Id : constant String :=
         PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
 
    begin
-      if not TypeCode.Is_Nil (TC) then
-         return TC;
+      if not TypeCode.Is_Nil (CTC) then
+         return CTC;
       end if;
 
-      TC := TypeCode.TC_Except;
+      TC := TypeCode.TCF_Except;
 
       TypeCode.Add_Parameter (TC, To_Any (Name));
       TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
       TypeCode.Add_Parameter
-        (TC, To_Any (TypeCode.TC_Object));
+        (TC, To_Any (TypeCode.TC_RootObject));
       TypeCode.Add_Parameter
         (TC, To_Any ("forward_reference"));
 
+      CTC := TC;
       return TC;
    end TC_ForwardRequestPerm;
 
@@ -316,18 +321,19 @@ package body PolyORB.Errors.Helper is
    function TC_NeedsAddressingMode
      return PolyORB.Any.TypeCode.Local_Ref
    is
-      TC : TypeCode.Local_Ref renames TC_NeedsAddressingMode_Cache;
+      CTC : TypeCode.Local_Ref renames TC_NeedsAddressingMode_Cache;
+      TC  : TypeCode.Local_Ref;
 
       Name          : constant String := "NeedsAddressingMode";
       Repository_Id : constant String :=
         PolyORB_Exc_Prefix & Name & PolyORB_Exc_Version;
 
    begin
-      if not TypeCode.Is_Nil (TC) then
-         return TC;
+      if not TypeCode.Is_Nil (CTC) then
+         return CTC;
       end if;
 
-      TC := TypeCode.TC_Except;
+      TC := TypeCode.TCF_Except;
 
       TypeCode.Add_Parameter (TC, To_Any (Name));
       TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
@@ -335,6 +341,7 @@ package body PolyORB.Errors.Helper is
       TypeCode.Add_Parameter (TC, To_Any (TC_Short));
       TypeCode.Add_Parameter (TC, To_Any ("mode"));
 
+      CTC := TC;
       return TC;
    end TC_NeedsAddressingMode;
 
@@ -346,7 +353,7 @@ package body PolyORB.Errors.Helper is
       Index          : Any.Any;
       Result_Forward : References.Ref;
    begin
-      Index := Get_Aggregate_Element (Item, TypeCode.TC_Object, 0);
+      Index := Get_Aggregate_Element (Item, TypeCode.TC_RootObject, 0);
       Result_Forward := From_Any (Index);
 
       return (Forward_Reference => Smart_Pointers.Ref (Result_Forward));
@@ -361,7 +368,7 @@ package body PolyORB.Errors.Helper is
       Result_Forward : References.Ref;
 
    begin
-      Index := Get_Aggregate_Element (Item, TypeCode.TC_Object, 0);
+      Index := Get_Aggregate_Element (Item, TypeCode.TC_RootObject, 0);
       Result_Forward := From_Any (Index);
 
       return (Forward_Reference => Smart_Pointers.Ref (Result_Forward));
@@ -514,7 +521,7 @@ package body PolyORB.Errors.Helper is
      (Name : Standard.String)
      return Any.TypeCode.Local_Ref
    is
-      TC    : constant TypeCode.Local_Ref := TypeCode.TC_Except;
+      TC    : constant TypeCode.Local_Ref := TypeCode.TCF_Except;
       Shift : Natural := 0;
    begin
       --  Name

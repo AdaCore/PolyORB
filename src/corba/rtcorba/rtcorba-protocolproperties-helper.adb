@@ -70,7 +70,7 @@ package body RTCORBA.ProtocolProperties.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolProperties:1.0");
       begin
          TC_ProtocolProperties :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_ProtocolProperties, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ProtocolProperties, CORBA.To_Any (Id));
       end;

@@ -2984,39 +2984,39 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                when K_Enumeration_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Enum)));
+                     New_List (RE (RE_TCF_Enum)));
 
                when
                  K_Forward_Interface_Declaration |
                  K_Interface_Declaration         =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Object_1)));
+                     New_List (RE (RE_TCF_Object)));
 
                when K_Fixed_Point_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Fixed)));
+                     New_List (RE (RE_TCF_Fixed)));
 
                when K_Complex_Declarator =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Array)));
+                     New_List (RE (RE_TCF_Array)));
 
                when K_Structure_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Struct)));
+                     New_List (RE (RE_TCF_Struct)));
 
                when K_Union_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Union)));
+                     New_List (RE (RE_TCF_Union)));
 
                when K_Exception_Declaration =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Except)));
+                     New_List (RE (RE_TCF_Except)));
 
                when K_Simple_Declarator =>
                   --  Ensure the original type specifier if E is
@@ -3217,7 +3217,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                           (Make_Defining_Identifier (TC_Name),
                            Make_Subprogram_Call
                            (RE (RE_To_CORBA_Object),
-                            New_List (RE (RE_TC_Array))));
+                            New_List (RE (RE_TCF_Array))));
                         Append_To (Statements, N);
 
                         --  For multi-dimensional arrays, we fill each

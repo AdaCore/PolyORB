@@ -128,7 +128,7 @@ package body PortableServer.Current.Helper is
            CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/Current:1.0");
       begin
          TC_Current :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_Current, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_Current, CORBA.To_Any (Id));
       end;
@@ -140,7 +140,7 @@ package body PortableServer.Current.Helper is
              ("IDL:omg.org/PortableServer/Current/NoContext:1.0");
       begin
          TC_NoContext :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_NoContext, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_NoContext, CORBA.To_Any (Id));
       end;

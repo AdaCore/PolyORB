@@ -68,7 +68,7 @@ package body CORBA.DomainManager.Helper is
    procedure Deferred_Initialization is
    begin
       TC_DomainManager_Cache :=
-        TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+        TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
       Internals.Add_Parameter
         (TC_DomainManager_Cache, To_Any (To_CORBA_String ("DomainManager")));
       Internals.Add_Parameter

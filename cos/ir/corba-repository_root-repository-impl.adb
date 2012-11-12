@@ -209,12 +209,9 @@ package body CORBA.Repository_Root.Repository.Impl is
          --  ??? dubious: the following are not valid typecodes, they lack
          --  some parameters.
 
-         when pk_value_base =>
-            IDL_Type := CORBA.TypeCode.Internals.To_CORBA_Object
-                          (PolyORB.Any.TypeCode.TC_Value);
-         when pk_Principal =>
-            IDL_Type := CORBA.TypeCode.Internals.To_CORBA_Object
-                          (PolyORB.Any.TypeCode.TC_Principal);
+         when pk_value_base |
+              pk_Principal =>
+            raise Program_Error;
       end case;
 
       --  initialize the object

@@ -33,6 +33,7 @@
 pragma Ada_2005;
 
 with Ada.Strings.Fixed;
+with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
@@ -109,9 +110,17 @@ package body PolyORB.Any is
       --------------
 
       function From_Any (C : Any_Container'Class) return T is
+         use Ada.Tags;
       begin
          Kind_Check (C);
          return T_Content_Ptr (C.The_Value).V.all;
+      exception
+         when Constraint_Error =>
+            pragma Debug (L.Enabled,
+              O ("C_E raised in generic elementary From_Any, expected content "
+                 & External_Tag (T_Content'Tag)
+                 & ", found " & External_Tag (C.The_Value'Tag)));
+            raise;
       end From_Any;
 
       ---------------------------
@@ -409,6 +418,10 @@ package body PolyORB.Any is
       --  Compare the Index'th element of Left and Right, which are assumed
       --  to be aggregates. The expected type for both elements is TC.
 
+      ------------------------
+      -- Agg_Elements_Equal --
+      ------------------------
+
       function Agg_Elements_Equal
         (TC           : TypeCode.Object_Ptr;
          L_ACC, R_ACC : access Aggregate_Content'Class;
@@ -431,13 +444,20 @@ package body PolyORB.Any is
          return "=" (L_C, R_C);
       end Agg_Elements_Equal;
 
+      TCK : constant TCKind := TypeCode.Kind (Unwind_Typedefs (L_Type));
+
+   --  Start of processing for "="
+
    begin
+      pragma Debug (C, O ("Equal (Any): enter, TCK(L) = " & TCK'Img));
+
       if not TypeCode.Equal (L_Type, R_Type) then
          return False;
       end if;
 
-      pragma Debug (C, O ("Equal (Any): passed typecode test"));
-      case TypeCode.Kind (Unwind_Typedefs (L_Type)) is
+      pragma Debug (C, O ("Equal (Any): typecodes match"));
+
+      case TCK is
          when Tk_Null | Tk_Void =>
             pragma Debug (C, O ("Equal (Any, Null or Void): end"));
             return True;
@@ -2483,6 +2503,7 @@ package body PolyORB.Any is
 
       PTC_String      : TypeCode.Object_Ptr;
       PTC_Wide_String : TypeCode.Object_Ptr;
+      PTC_RootObject  : TypeCode.Object_Ptr;
 
       type Default_Aggregate_Content_Ptr is
         access all Default_Aggregate_Content'Class;
@@ -2515,16 +2536,20 @@ package body PolyORB.Any is
       function Equal (Left, Right : Object_Ptr) return Boolean is
          Nb_Param : Unsigned_Long;
       begin
-         pragma Debug (C, O ("Equal (TypeCode): enter"));
+         pragma Debug
+           (C, O ("Equal (TypeCode): enter, Left = "
+                  & Image (Left) & ", Right = " & Image (Right)));
 
          --  Shortcut further tests when testing for the same object
 
          if Left = Right then
+            pragma Debug (C, O ("Equal (TypeCode): end: True, same object"));
             return True;
          end if;
 
          if Kind (Left) /= Kind (Right) then
-            pragma Debug (C, O ("Equal (TypeCode): end"));
+            pragma Debug (C,
+              O ("Equal (TypeCode): end: False, different kinds"));
             return False;
          end if;
 
@@ -2533,12 +2558,13 @@ package body PolyORB.Any is
          Nb_Param := Parameter_Count (Right);
 
          if Nb_Param /= Parameter_Count (Left) then
-            pragma Debug (C, O ("Equal (TypeCode): end"));
+            pragma Debug (C,
+              O ("Equal (TypeCode): end: False, different param counts"));
             return False;
          end if;
 
          if Nb_Param = 0 then
-            pragma Debug (C, O ("Equal (TypeCode): end"));
+            pragma Debug (C, O ("Equal (TypeCode): end: True"));
             return True;
          end if;
 
@@ -2550,12 +2576,14 @@ package body PolyORB.Any is
             if not "=" (Any_Container'Class'(Get_Parameter (Left, J).all),
                         Any_Container'Class'(Get_Parameter (Right, J).all))
             then
-               pragma Debug (C, O ("Equal (TypeCode): end"));
+               pragma Debug (C,
+                 O ("Equal (TypeCode): end: False, param"
+                 & J'Img & " differs"));
                return False;
             end if;
          end loop;
 
-         pragma Debug (C, O ("Equal (TypeCode): end"));
+         pragma Debug (C, O ("Equal (TypeCode): end: True, all params match"));
          return True;
       end Equal;
 
@@ -3128,7 +3156,7 @@ package body PolyORB.Any is
       ----------------
 
       procedure Initialize is
-         TC_String, TC_Wide_String : Local_Ref;
+         TC_String, TC_Wide_String, TC_RootObject : Local_Ref;
       begin
          --  Do not ref count / garbage collect our library-level root TCs
 
@@ -3158,6 +3186,13 @@ package body PolyORB.Any is
 
          Smart_Pointers.Disable_Reference_Counting (PTC_String.all);
          Smart_Pointers.Disable_Reference_Counting (PTC_Wide_String.all);
+
+         TC_RootObject := TCF_Object;
+         Add_Parameter (TC_RootObject, To_Any ("Object"));
+         Add_Parameter (TC_RootObject, To_Any ("PolyORB:Object:1.0"));
+
+         PTC_RootObject := Object_Of (TC_RootObject);
+         Smart_Pointers.Disable_Reference_Counting (PTC_RootObject.all);
       end Initialize;
 
       ------------
@@ -3821,185 +3856,194 @@ package body PolyORB.Any is
          return To_Ref (PTC_Wide_String);
       end TC_Wide_String;
 
-      ------------------
-      -- TC_Principal --
-      ------------------
+      -------------------
+      -- TC_RootObject --
+      -------------------
 
-      function TC_Principal return TypeCode.Local_Ref is
+      function TC_RootObject return TypeCode.Local_Ref is
+      begin
+         return To_Ref (PTC_RootObject);
+      end TC_RootObject;
+
+      -------------------
+      -- TCF_Principal --
+      -------------------
+
+      function TCF_Principal return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Principal, E);
-      end TC_Principal;
+      end TCF_Principal;
 
-      ---------------
-      -- TC_Struct --
-      ---------------
+      ----------------
+      -- TCF_Struct --
+      ----------------
 
-      function TC_Struct return TypeCode.Local_Ref is
+      function TCF_Struct return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Struct, E);
-      end TC_Struct;
+      end TCF_Struct;
 
-      --------------
-      -- TC_Union --
-      --------------
+      ---------------
+      -- TCF_Union --
+      ---------------
 
-      function TC_Union return TypeCode.Local_Ref is
+      function TCF_Union return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Union, E);
-      end TC_Union;
+      end TCF_Union;
 
-      -------------
-      -- TC_Enum --
-      -------------
+      --------------
+      -- TCF_Enum --
+      --------------
 
-      function TC_Enum return TypeCode.Local_Ref is
+      function TCF_Enum return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Enum, E);
-      end TC_Enum;
+      end TCF_Enum;
 
-      --------------
-      -- TC_Alias --
-      --------------
+      ---------------
+      -- TCF_Alias --
+      ---------------
 
-      function TC_Alias return TypeCode.Local_Ref is
+      function TCF_Alias return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Alias, E);
-      end TC_Alias;
+      end TCF_Alias;
 
-      ---------------
-      -- TC_Except --
-      ---------------
+      ----------------
+      -- TCF_Except --
+      ----------------
 
-      function TC_Except return TypeCode.Local_Ref is
+      function TCF_Except return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Except, E);
-      end TC_Except;
+      end TCF_Except;
 
-      ---------------
-      -- TC_Object --
-      ---------------
+      ----------------
+      -- TCF_Object --
+      ----------------
 
-      function TC_Object return TypeCode.Local_Ref is
+      function TCF_Object return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Objref, E);
-      end TC_Object;
+      end TCF_Object;
 
-      --------------
-      -- TC_Fixed --
-      --------------
+      ---------------
+      -- TCF_Fixed --
+      ---------------
 
-      function TC_Fixed return TypeCode.Local_Ref is
+      function TCF_Fixed return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Fixed, E);
-      end TC_Fixed;
+      end TCF_Fixed;
 
-      -----------------
-      -- TC_Sequence --
-      -----------------
+      ------------------
+      -- TCF_Sequence --
+      ------------------
 
-      function TC_Sequence return TypeCode.Local_Ref is
+      function TCF_Sequence return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Sequence, E);
-      end TC_Sequence;
+      end TCF_Sequence;
 
-      --------------
-      -- TC_Array --
-      --------------
+      ---------------
+      -- TCF_Array --
+      ---------------
 
-      function TC_Array return TypeCode.Local_Ref is
+      function TCF_Array return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Array, E);
-      end TC_Array;
+      end TCF_Array;
 
-      --------------
-      -- TC_Value --
-      --------------
+      ---------------
+      -- TCF_Value --
+      ---------------
 
-      function TC_Value return TypeCode.Local_Ref is
+      function TCF_Value return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Value, E);
-      end TC_Value;
+      end TCF_Value;
 
-      -----------------
-      -- TC_Valuebox --
-      -----------------
+      ------------------
+      -- TCF_Valuebox --
+      ------------------
 
-      function TC_Valuebox return TypeCode.Local_Ref is
+      function TCF_Valuebox return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Valuebox, E);
-      end TC_Valuebox;
+      end TCF_Valuebox;
 
-      ---------------
-      -- TC_Native --
-      ---------------
+      ----------------
+      -- TCF_Native --
+      ----------------
 
-      function TC_Native return TypeCode.Local_Ref is
+      function TCF_Native return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Native, E);
-      end TC_Native;
+      end TCF_Native;
 
-      ---------------------------
-      -- TC_Abstract_Interface --
-      ---------------------------
+      ----------------------------
+      -- TCF_Abstract_Interface --
+      ----------------------------
 
-      function TC_Abstract_Interface return TypeCode.Local_Ref is
+      function TCF_Abstract_Interface return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Abstract_Interface, E);
-      end TC_Abstract_Interface;
+      end TCF_Abstract_Interface;
 
-      ------------------------
-      -- TC_Local_Interface --
-      ------------------------
+      -------------------------
+      -- TCF_Local_Interface --
+      -------------------------
 
-      function TC_Local_Interface return TypeCode.Local_Ref is
+      function TCF_Local_Interface return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Local_Interface, E);
-      end TC_Local_Interface;
+      end TCF_Local_Interface;
 
-      ------------------
-      -- TC_Component --
-      ------------------
+      -------------------
+      -- TCF_Component --
+      -------------------
 
-      function TC_Component return TypeCode.Local_Ref is
+      function TCF_Component return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Component, E);
-      end TC_Component;
+      end TCF_Component;
 
-      -------------
-      -- TC_Home --
-      -------------
+      --------------
+      -- TCF_Home --
+      --------------
 
-      function TC_Home return TypeCode.Local_Ref is
+      function TCF_Home return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Home, E);
-      end TC_Home;
+      end TCF_Home;
 
-      --------------
-      -- TC_Event --
-      --------------
+      ---------------
+      -- TCF_Event --
+      ---------------
 
-      function TC_Event return TypeCode.Local_Ref is
+      function TCF_Event return TypeCode.Local_Ref is
          E : Empty_Any_Array;
       begin
          return Build_Complex_TC (Tk_Event, E);
-      end TC_Event;
+      end TCF_Event;
 
       ------------
       -- To_Ref --
