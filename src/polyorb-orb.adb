@@ -1078,7 +1078,14 @@ package body PolyORB.ORB is
             pragma Debug (C, O ("Run_Request: got "
               & Ada.Tags.External_Tag (Result'Tag)));
 
-            if Result not in Null_Message then
+            if Result in Null_Message then
+               pragma Debug (C, O ("Run_Request: task " & Image (Current_Task)
+                                 & " queued request for later processing"));
+               null;
+
+            else
+               pragma Debug (C, O ("Run_Request: task " & Image (Current_Task)
+                                 & " processed request"));
                begin
                   Emit_No_Reply (Req.Requesting_Component, Result);
 
@@ -1094,11 +1101,8 @@ package body PolyORB.ORB is
                      O ("Got exception sending Executed_Request:" & ASCII.LF
                         & Ada.Exceptions.Exception_Information (E), Error);
                end;
-
             end if;
          end;
-         pragma Debug (C, O ("Run_Request: task " & Image (Current_Task)
-                               & " executed request"));
       end;
    end Run_Request;
 
