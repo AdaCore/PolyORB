@@ -50,7 +50,7 @@ package body CORBA.Policy.Helper is
    procedure Deferred_Initialization is
    begin
       TC_Policy_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
-        (PolyORB.Any.TypeCode.TC_Object);
+        (PolyORB.Any.TypeCode.TCF_Object);
       Internals.Add_Parameter
         (TC_Policy_Cache, To_Any (To_CORBA_String ("Policy")));
       Internals.Add_Parameter

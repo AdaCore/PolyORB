@@ -619,7 +619,7 @@ package body MOMA.Messages is
       use PolyORB.Utils.Strings;
       use PolyORB.Types;
    begin
-      TC_MOMA_Message := PolyORB.Any.TypeCode.TC_Struct;
+      TC_MOMA_Message := PolyORB.Any.TypeCode.TCF_Struct;
 
       TypeCode.Add_Parameter
         (TC_MOMA_Message,

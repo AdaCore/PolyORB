@@ -131,7 +131,7 @@ package body MOMA.Destinations is
       Ref := From_Any
         (PolyORB.Any.Get_Aggregate_Element
          (Self,
-          PolyORB.Any.TypeCode.TC_Object,
+          PolyORB.Any.TypeCode.TC_RootObject,
           PolyORB.Types.Unsigned_Long (1)));
 
       Kind := MOMA.Types.From_Any
@@ -260,10 +260,10 @@ package body MOMA.Destinations is
       use PolyORB.Utils.Strings;
 
       T : constant PolyORB.Any.TypeCode.Local_Ref
-        := PolyORB.Any.TypeCode.TC_Object;
+        := PolyORB.Any.TypeCode.TCF_Object;
 
    begin
-      TC_MOMA_Destination := PolyORB.Any.TypeCode.TC_Struct;
+      TC_MOMA_Destination := PolyORB.Any.TypeCode.TCF_Struct;
 
       PolyORB.Any.TypeCode.Add_Parameter
         (TC_MOMA_Destination,

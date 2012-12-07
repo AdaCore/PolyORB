@@ -556,7 +556,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA:1.0");
       begin
          TC_POA :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Id));
       end;
@@ -566,7 +566,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/AdapterAlreadyExists:1.0");
       begin
          TC_AdapterAlreadyExists :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_AdapterAlreadyExists, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_AdapterAlreadyExists, CORBA.To_Any (Id));
       end;
@@ -579,7 +579,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/AdapterNonExistent:1.0");
       begin
          TC_AdapterNonExistent :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_AdapterNonExistent, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_AdapterNonExistent, CORBA.To_Any (Id));
       end;
@@ -593,7 +593,7 @@ package body PortableServer.POA.Helper is
          Arg_Name_index : constant CORBA.String := CORBA.To_CORBA_String ("index");
       begin
          TC_InvalidPolicy :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_InvalidPolicy, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_InvalidPolicy, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_InvalidPolicy, CORBA.To_Any (CORBA.TC_Unsigned_Short));
@@ -608,7 +608,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/NoServant:1.0");
       begin
          TC_NoServant :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_NoServant, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_NoServant, CORBA.To_Any (Id));
       end;
@@ -621,7 +621,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ObjectAlreadyActive:1.0");
       begin
          TC_ObjectAlreadyActive :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_ObjectAlreadyActive, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ObjectAlreadyActive, CORBA.To_Any (Id));
       end;
@@ -634,7 +634,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ObjectNotActive:1.0");
       begin
          TC_ObjectNotActive :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_ObjectNotActive, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ObjectNotActive, CORBA.To_Any (Id));
       end;
@@ -647,7 +647,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ServantAlreadyActive:1.0");
       begin
          TC_ServantAlreadyActive :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_ServantAlreadyActive, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ServantAlreadyActive, CORBA.To_Any (Id));
       end;
@@ -660,7 +660,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/ServantNotActive:1.0");
       begin
          TC_ServantNotActive :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_ServantNotActive, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ServantNotActive, CORBA.To_Any (Id));
       end;
@@ -673,7 +673,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/WrongAdapter:1.0");
       begin
          TC_WrongAdapter :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_WrongAdapter, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_WrongAdapter, CORBA.To_Any (Id));
       end;
@@ -686,7 +686,7 @@ package body PortableServer.POA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POA/WrongPolicy:1.0");
       begin
          TC_WrongPolicy :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_WrongPolicy, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_WrongPolicy, CORBA.To_Any (Id));
       end;

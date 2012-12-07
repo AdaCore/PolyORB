@@ -44,7 +44,7 @@ package body PolyORB.Any.ObjRef is
       renames Elementary_Any_Ref.Set_Any_Value;
 
    function To_Any_Instance is
-     new To_Any_G (References.Ref, TypeCode.TC_Object, Set_Any_Value);
+     new To_Any_G (References.Ref, TypeCode.TC_RootObject, Set_Any_Value);
    function To_Any (X : References.Ref) return Any renames To_Any_Instance;
 
    function From_Any (A : Any) return References.Ref

@@ -402,6 +402,10 @@ package PolyORB.Any is
       function TC_Any                return Local_Ref;
       function TC_TypeCode           return Local_Ref;
 
+      --  Universal neutral object ref
+
+      function TC_RootObject         return Local_Ref;
+
       --  Unbounded string typecodes
 
       function TC_String             return Local_Ref;
@@ -409,24 +413,24 @@ package PolyORB.Any is
 
       --  Factories for complex typecodes
 
-      function TC_Principal          return Local_Ref;
-      function TC_Struct             return Local_Ref;
-      function TC_Union              return Local_Ref;
-      function TC_Enum               return Local_Ref;
-      function TC_Alias              return Local_Ref;
-      function TC_Except             return Local_Ref;
-      function TC_Object             return Local_Ref;
-      function TC_Fixed              return Local_Ref;
-      function TC_Sequence           return Local_Ref;
-      function TC_Array              return Local_Ref;
-      function TC_Value              return Local_Ref;
-      function TC_Valuebox           return Local_Ref;
-      function TC_Native             return Local_Ref;
-      function TC_Abstract_Interface return Local_Ref;
-      function TC_Local_Interface    return Local_Ref;
-      function TC_Component          return Local_Ref;
-      function TC_Home               return Local_Ref;
-      function TC_Event              return Local_Ref;
+      function TCF_Principal          return Local_Ref;
+      function TCF_Struct             return Local_Ref;
+      function TCF_Union              return Local_Ref;
+      function TCF_Enum               return Local_Ref;
+      function TCF_Alias              return Local_Ref;
+      function TCF_Except             return Local_Ref;
+      function TCF_Object             return Local_Ref;
+      function TCF_Fixed              return Local_Ref;
+      function TCF_Sequence           return Local_Ref;
+      function TCF_Array              return Local_Ref;
+      function TCF_Value              return Local_Ref;
+      function TCF_Valuebox           return Local_Ref;
+      function TCF_Native             return Local_Ref;
+      function TCF_Abstract_Interface return Local_Ref;
+      function TCF_Local_Interface    return Local_Ref;
+      function TCF_Component          return Local_Ref;
+      function TCF_Home               return Local_Ref;
+      function TCF_Event              return Local_Ref;
 
       --  Typecode objects for root types
 

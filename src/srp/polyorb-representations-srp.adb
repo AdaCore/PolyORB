@@ -510,9 +510,9 @@ package body PolyORB.Representations.SRP is
          when 12 =>
             Result := PolyORB.Any.TypeCode.TC_TypeCode;
          when 13 =>
-            Result := PolyORB.Any.TypeCode.TC_Principal;
+            Result := PolyORB.Any.TypeCode.TCF_Principal;
          when 14 =>
-            Result := PolyORB.Any.TypeCode.TC_Object;
+            Result := PolyORB.Any.TypeCode.TCF_Object;
             declare
                Id : constant PolyORB.Types.String := Unmarshall (Buffer);
                Name : constant PolyORB.Types.String := Unmarshall (Buffer);
@@ -736,7 +736,7 @@ package body PolyORB.Representations.SRP is
                  (Result, To_Any (Length));
             end;
          when 28 =>
-            Result := PolyORB.Any.TypeCode.TC_Fixed;
+            Result := PolyORB.Any.TypeCode.TCF_Fixed;
             declare
                Fixed_Digits : PolyORB.Types.Unsigned_Short;
                Fixed_Scale : PolyORB.Types.Short;

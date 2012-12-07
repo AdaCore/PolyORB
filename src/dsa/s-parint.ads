@@ -527,22 +527,22 @@ package System.Partition_Interface is
    function TC_Opaque return PATC.Local_Ref;
 
    function TC_Alias return PATC.Local_Ref
-     renames PATC.TC_Alias;
+     renames PATC.TCF_Alias;
    --  Empty Tk_Alias typecode
    function TC_Array return PATC.Local_Ref
-     renames PATC.TC_Array;
+     renames PATC.TCF_Array;
    --  Empty Tk_Array typecode
    function TC_Sequence return PATC.Local_Ref
-     renames PATC.TC_Sequence;
+     renames PATC.TCF_Sequence;
    --  Empty Tk_Sequence typecode
    function TC_Struct return PATC.Local_Ref
-     renames PATC.TC_Struct;
+     renames PATC.TCF_Struct;
    --  Empty Tk_Struct typecode
    function TC_Object return PATC.Local_Ref
-     renames PATC.TC_Object;
+     renames PATC.TCF_Object;
    --  Empty Tk_ObjRef typecode
    function TC_Union return PATC.Local_Ref
-     renames PATC.TC_Union;
+     renames PATC.TCF_Union;
    --  Empty Tk_Union typecode
 
    subtype Any_Array is PATC.Any_Array;
