@@ -2134,7 +2134,7 @@ package body System.Partition_Interface is
 
       <<Lookup>>
       if Info.State /= Dead then
-         --  If state is Initial and Entry_Created is false, this means another
+         --  If state is Initial and Entry_Pending is True, this means another
          --  task is in the process of looking up this RCI from the name
          --  server: just wait for Base_Ref to become non-null.
 
