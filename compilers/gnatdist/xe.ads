@@ -78,7 +78,7 @@ package XE is
    Reserved : array (Token_Type) of Boolean := (others => False);
 
    --------------------
-   -- Attribute Type --
+   -- Attribute type --
    --------------------
 
    type Attribute_Type is new Int range 200 .. 217;
@@ -103,7 +103,7 @@ package XE is
    Attribute_ORB_Tasking_Policy    : constant Attribute_Type := 217;
 
    -----------------
-   -- Pragma Type --
+   -- Pragma type --
    -----------------
 
    type Pragma_Type is new Int range 300 .. 308;
@@ -119,7 +119,7 @@ package XE is
    Pragma_Version       : constant Pragma_Type := 308;
 
    ------------------------
-   -- Import Method Type --
+   -- Import Method type --
    ------------------------
 
    type Import_Method_Type is new Int range 341 .. 343;
@@ -129,7 +129,7 @@ package XE is
    None_Import  : constant Import_Method_Type := 343;
 
    ---------------------
-   -- Predefined Type --
+   -- Predefined type --
    ---------------------
 
    type Predefined_Type is new Int range 401 .. 415;
@@ -151,7 +151,7 @@ package XE is
    Pre_Type_Name_Server : constant Predefined_Type := 415;
 
    ----------------------
-   -- Termination Type --
+   -- Termination type --
    ----------------------
 
    type Termination_Type is new Int range 500 .. 503;
@@ -163,7 +163,7 @@ package XE is
    Termination_Img      : array (Termination_Type) of Name_Id;
 
    ------------------
-   -- Boolean Type --
+   -- Boolean type --
    ------------------
 
    type Boolean_Type is new Int range 600 .. 602;
@@ -175,7 +175,7 @@ package XE is
    Boolean_Img : array (Boolean_Type) of Name_Id;
 
    -----------------------
-   -- Reconnection Type --
+   -- Reconnection type --
    -----------------------
 
    type Reconnection_Type is new Int range 700 .. 703;
@@ -187,7 +187,7 @@ package XE is
    Reconnection_Img    : array (Reconnection_Type) of Name_Id;
 
    --------------------------
-   -- Priority Policy Type --
+   -- Priority Policy type --
    --------------------------
 
    type Priority_Policy_Type is new Int range 800 .. 802;
@@ -198,7 +198,7 @@ package XE is
    Priority_Policy_Img : array (Priority_Policy_Type) of Name_Id;
 
    -----------------------------
-   -- ORB Tasking Policy Type --
+   -- ORB tasking policy type --
    -----------------------------
 
    type ORB_Tasking_Policy_Type is new Int range 900 .. 903;
@@ -209,9 +209,9 @@ package XE is
    Thread_Per_Request     : constant ORB_Tasking_Policy_Type := 903;
    ORB_Tasking_Policy_Img : array (ORB_Tasking_Policy_Type) of Name_Id;
 
-   -----------------------------
-   -- ORB Tasking Policy Type --
-   -----------------------------
+   ----------------------
+   -- Name server type --
+   ----------------------
 
    type Name_Server_Type is new Int range 950 .. 953;
 
@@ -222,7 +222,7 @@ package XE is
    Name_Server_Img : array (Name_Server_Type) of Name_Id;
 
    ------------------
-   -- Tasking Type --
+   -- Tasking type --
    ------------------
 
    type Tasking_Type is new Int range 1000 .. 1003;
