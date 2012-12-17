@@ -110,7 +110,9 @@ package body PolyORB.Utils.Sockets is
             end if;
       end Try_One_Address;
 
-      Host_Name        : String renames Remote_Name.Host_Name;
+      Host_Name : String renames Remote_Name.Host_Name;
+
+   --  Start of processing for Connect_Socket
 
    begin
       pragma Debug
