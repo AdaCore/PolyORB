@@ -12,3 +12,7 @@ This date shows the implementation date of the feature. Any 2.10 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-210-K811-013 Make predefined packages compatible with UTF-8 (2012-12-21)
+
+   IAC generates pragma Wide_Character_Encoding to allow usage of prodefined
+   CORBA packages in code with different encoding.
