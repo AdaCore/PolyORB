@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -55,6 +55,7 @@ package body PolyORB.SSL is
       SSL_Verify_Client_Once          : constant SSL_Verify_Mode := 4;
 
       type SSL_Method is private;
+      Null_Method : constant SSL_Method;
 
       type X509_STORE_CTX is private;
 
@@ -212,6 +213,7 @@ package body PolyORB.SSL is
       pragma Convention (C, SSL_Method_Record);
 
       type SSL_Method is access all SSL_Method_Record;
+      Null_Method : constant SSL_Method := null;
 
       type X509_STORE_CTX_Record is null record;
       pragma Convention (C, X509_STORE_CTX_Record);
@@ -439,6 +441,8 @@ package body PolyORB.SSL is
       Verification_Mode          : SSL_Verification_Mode
         := (others => False))
    is
+      use type Thin.SSL_Method;
+
       M : Thin.SSL_Method;
 
    begin
@@ -481,7 +485,9 @@ package body PolyORB.SSL is
 
       end case;
 
-      Context := Thin.SSL_CTX_new (M);
+      if M /= Thin.Null_Method then
+         Context := Thin.SSL_CTX_new (M);
+      end if;
 
       if Context = null then
          Ada.Exceptions.Raise_Exception

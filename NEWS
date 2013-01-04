@@ -41,6 +41,9 @@ See the features-2.10 file.
 Bug fixes
 ---------
 
+Some recent versions of OpenSSL have SSLv2 disabled. PolyORB has been
+updated to allow building with such libraries.
+
 * PolyORB 2.9 (branched on 2012-10-22)
 ======================================
 
