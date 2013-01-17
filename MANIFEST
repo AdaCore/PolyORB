@@ -1990,7 +1990,6 @@ support/reconfig
 support/run_cpp.ksh
 support/ssl.m4
 support/subversion.m4
-support/texinfo.tex
 testsuite/README
 testsuite/acats/CXE1001/Makefile.local
 testsuite/acats/CXE1001/cxe1001_a.adb
