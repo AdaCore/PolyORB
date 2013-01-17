@@ -915,7 +915,8 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 # Copy files
 ##########################################
 
-for a in support/linker support/adacompiler support/gentexifile \
+mkdir support 2> /dev/null
+for a in support/gentexifile \
   support/move-if-change contrib/idlac_wrapper/idlac_wrapper
 do
   echo "==> updating $a"
