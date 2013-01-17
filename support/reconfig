@@ -54,20 +54,6 @@ fi
 
 rm -f aclocal.m4 support/libtool.m4 configure
 
-echo "Libtoolizing"
-# If libtoolize advises us to get a particular version of libtool.m4,
-# copy it locally.
-libtool_m4=`libtoolize --copy --force | sed -n -e '/You should add the contents of \`\([^'\'']*\)'\''.*$/s//\1/p'`
-if [ -n "$libtool_m4" ]; then
-  cp $libtool_m4 support/libtool.m4
-else
-  touch support/libtool.m4
-fi
-
-mv support/ltmain.sh support/ltmain.sh.orig
-sed -e '/xlinker)/,/;;$/s/\$wl/-Xlinker /g' < support/ltmain.sh.orig > support/ltmain.sh
-rm -f support/ltmain.sh.orig
-
 show_step() {
   echo "Running `$1 --version | head -1`"
 }
