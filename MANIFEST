@@ -1975,6 +1975,8 @@ src/web_common/polyorb-web-utils.ads
 src/web_common/polyorb-web.ads
 support/ada.m4
 support/cleanup-conf-files
+support/config.guess
+support/config.sub
 support/distrib.m4
 support/gensedfile
 support/gentexifile
