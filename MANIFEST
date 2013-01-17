@@ -4,6 +4,7 @@ FEATURES
 INSTALL
 MANIFEST
 Makefile.common.in
+Makefile.common.project.in
 Makefile.in
 NEWS
 README
@@ -686,6 +687,7 @@ examples/polyorb/polyorb-test_object_soa.adb
 examples/polyorb/polyorb-test_object_soa.ads
 examples/static/README
 examples/static/po_static_conf.ads
+features-2.10
 features-2.2
 features-2.3
 features-2.4
@@ -694,7 +696,6 @@ features-2.6
 features-2.7
 features-2.8
 features-2.9
-features-2.10
 idls/CORBA_IDL/CORBA_Current.idl
 idls/CORBA_IDL/CORBA_CustomMarshal.idl
 idls/CORBA_IDL/CORBA_DomainManager.idl
