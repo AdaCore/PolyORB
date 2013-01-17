@@ -242,7 +242,9 @@ pragma Preelaborate (Types);
    --  types in interfaces, so it is not wrong to have IEEE_Extended_Float
    --  defined even if the extended format is not available.
 
+   pragma Warnings (Off); -- redefinition of entity in Standard
    type Float       is new Short_Float;
+   pragma Warnings (On);
    type Double      is new Long_Float;
    type Long_Double is new Long_Long_Float;
 

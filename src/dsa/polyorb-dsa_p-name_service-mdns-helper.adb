@@ -267,7 +267,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
             RR_Type_Initialized :=
               True;
             TC_RR_Type :=
-              PolyORB.Any.TypeCode.TC_Enum;
+              PolyORB.Any.TypeCode.TCF_Enum;
 
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_RR_Type,
@@ -487,7 +487,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not SRV_Data_Initialized then
             SRV_Data_Initialized :=
               True;
-            Helper.TC_SRV_Data := PolyORB.Any.TypeCode.TC_Struct;
+            Helper.TC_SRV_Data := PolyORB.Any.TypeCode.TCF_Struct;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_SRV_Data,
                PolyORB.Any.To_Any
@@ -593,7 +593,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
             IDL_AT_Sequence_4_octet_Initialized :=
               True;
             Helper.Internals.Initialize_IDL_SEQUENCE_4_octet;
-            TC_IDL_AT_Sequence_4_octet := PolyORB.Any.TypeCode.TC_Alias;
+            TC_IDL_AT_Sequence_4_octet := PolyORB.Any.TypeCode.TCF_Alias;
             Any.TypeCode.Add_Parameter
               (TC_IDL_AT_Sequence_4_octet, Any.To_Any (Name));
             Any.TypeCode.Add_Parameter (TC_IDL_AT_Sequence_4_octet,
@@ -818,7 +818,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not RR_Data_Initialized then
             RR_Data_Initialized :=
               True;
-            Helper.TC_RR_Data := PolyORB.Any.TypeCode.TC_Union;
+            Helper.TC_RR_Data := PolyORB.Any.TypeCode.TCF_Union;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_RR_Data,
                PolyORB.Any.To_Any
@@ -1064,7 +1064,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not RR_Initialized then
             RR_Initialized :=
               True;
-            Helper.TC_RR := PolyORB.Any.TypeCode.TC_Struct;
+            Helper.TC_RR := PolyORB.Any.TypeCode.TCF_Struct;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_RR,
                PolyORB.Any.To_Any
@@ -1345,7 +1345,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not Rcode_Initialized then
             Rcode_Initialized :=
               True;
-            Helper.TC_Rcode := PolyORB.Any.TypeCode.TC_Enum;
+            Helper.TC_Rcode := PolyORB.Any.TypeCode.TCF_Enum;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_Rcode,
                PolyORB.Any.To_Any
@@ -1465,7 +1465,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
             rrSequence_Initialized :=
               True;
             Helper.Internals.Initialize_IDL_SEQUENCE_DNS_RR;
-            TC_rrSequence := PolyORB.Any.TypeCode.TC_Alias;
+            TC_rrSequence := PolyORB.Any.TypeCode.TCF_Alias;
             Any.TypeCode.Add_Parameter
               (TC_rrSequence, Any.To_Any (Name));
             Any.TypeCode.Add_Parameter (TC_rrSequence, Any.To_Any (Id));

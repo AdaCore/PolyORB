@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . A N Y . O B J R E F                    --
+--            P O L Y O R B . D S A _ P . C O N N E C T I O N S             --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2011-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,33 +30,45 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Any's that contain object references.
+--  Connections management
 
-package body PolyORB.Any.ObjRef is
+pragma Ada_2005;
 
-   --  'Object Reference' content
+package PolyORB.DSA_P.Connections is
 
-   package Elementary_Any_Ref is
-     new Elementary_Any (References.Ref, Tk_Objref);
+   generic
+      type Object is abstract tagged limited private;
+      type RACW is access all Object'Class;
+      pragma Remote_Access_Type (RACW);
+      --  Must be a remote access to class-wide type
 
-   procedure Set_Any_Value
-     (X : References.Ref; C : in out Any_Container'Class)
-      renames Elementary_Any_Ref.Set_Any_Value;
+   package Connection_Manager is
+      function Is_Remote (X : RACW) return Boolean;
+      --  True if X designates a remote object
 
-   function To_Any_Instance is
-     new To_Any_G (References.Ref, TypeCode.TC_RootObject, Set_Any_Value);
-   function To_Any (X : References.Ref) return Any renames To_Any_Instance;
+      function Is_Connected (X : RACW) return Boolean;
+      --  True if a valid connection to the partition of X is open (or X
+      --  X designates a local object).
 
-   function From_Any (A : Any) return References.Ref
-                      renames Elementary_Any_Ref.From_Any;
-   function From_Any (C : Any_Container'Class) return References.Ref
-                      renames Elementary_Any_Ref.From_Any;
+      procedure Disconnect (X : RACW);
+      --  Forcibly close connection to the partition of X.
+      --  Note that this connection is usually shared between all RACWs for
+      --  objects on the same partition.
 
-   ---------
-   -- Wrap --
-   ----------
+      procedure On_Disconnect
+        (X        : RACW;
+         Callback : access procedure (X : RACW));
+      --  Call Callback (X) when connection to partition of X is closed
 
-   function Wrap (X : not null access References.Ref) return Content'Class
-     renames Elementary_Any_Ref.Wrap;
+      procedure Unchecked_Forget (X : in out RACW);
+      --  Mark X as now unused by the application, causing associated stub
+      --  resources (if any) to be deallocated. Note that it is erroneous to
+      --  call this subprogram if the partition still holds other RACWs
+      --  designating the same object.
+      --  And what about the case where X designates a local object???
 
-end PolyORB.Any.ObjRef;
+   private
+      subtype Stub_Type is RACW'Stub_Type;
+   end Connection_Manager;
+
+end PolyORB.DSA_P.Connections;

@@ -81,9 +81,6 @@ autoheader
 show_step autoconf
 autoconf
 
-show_step automake
-automake --add-missing --copy
-
 echo "Generating IDL tree accessors"
 (cd compilers/idlac && python make_nodes.py nodes.txt > nodes.ada \
  && gnatchop -w nodes.ada && rm -f nodes.ada)
@@ -92,16 +89,11 @@ echo "Doing the necessary date modifications"
 for f in \
   configure.ac	\
   aclocal.m4	\
-  Makefile.in	\
   configure	\
   stamp-h.in	\
   config.h.in
 do
-  find . -name $f | grep -v '^\./Makefile.in$' | while read ff
-  # The above 'grep' is to avoid touching the Makefile.in in the root
-  # directory, since that's now a source file, rather than being generated from
-  # Makefile.am.
-  do
+  find . -name $f | while read ff; do
     touch $ff
   done
   sleep 1

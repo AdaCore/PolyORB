@@ -95,7 +95,7 @@ package body CORBA is
          return TC;
       end if;
 
-      TC := TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+      TC := TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
       Internals.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("completion_status")));
       Internals.Add_Parameter
@@ -1771,7 +1771,7 @@ package body CORBA is
             Parent   : Object) return Object
          is
             Res : constant PolyORB.Any.TypeCode.Local_Ref :=
-              PolyORB.Any.TypeCode.TC_Alias;
+                    PolyORB.Any.TypeCode.TCF_Alias;
          begin
             PolyORB.Any.TypeCode.Add_Parameter (Res, PolyORB.Any.Any
               (To_Any (Name)));

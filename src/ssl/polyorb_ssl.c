@@ -6,7 +6,7 @@
  *                                                                          *
  *                       C   s u p p o r t   f i l e                        *
  *                                                                          *
- *         Copyright (C) 2005-2011, Free Software Foundation, Inc.          *
+ *         Copyright (C) 2005-2013, Free Software Foundation, Inc.          *
  *                                                                          *
  * PolyORB is free software; you  can  redistribute  it and/or modify it    *
  * under terms of the  GNU General Public License as published by the  Free *
@@ -42,3 +42,24 @@ int __PolyORB_sk_SSL_CIPHER_num (STACK_OF(SSL_CIPHER) *sk) {
 SSL_CIPHER *__PolyORB_sk_SSL_CIPHER_value (STACK_OF(SSL_CIPHER) *sk, int i) {
     return sk_SSL_CIPHER_value(sk, i);
 }
+
+/*
+ * For versions of OpenSSL where SSLv2 is disabled, provide stubs for the
+ * SSLv2*_method routines.
+ */
+
+#ifdef OPENSSL_NO_SSL2
+
+SSL_METHOD *SSLv2_method(void) {
+  return NULL;
+}
+
+SSL_METHOD *SSLv2_server_method(void) {
+  return NULL;
+}
+
+SSL_METHOD *SSLv2_client_method(void) {
+  return NULL;
+}
+
+#endif

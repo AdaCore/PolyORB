@@ -16,10 +16,6 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License for  more details.                                               --
 --                                                                          --
--- As a special exception under Section 7 of GPL version 3, you are granted --
--- additional permissions described in the GCC Runtime Library Exception,   --
--- version 3.1, as published by the Free Software Foundation.               --
---                                                                          --
 -- You should have received a copy of the GNU General Public License and    --
 -- a copy of the GCC Runtime Library Exception along with this program;     --
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
@@ -30,7 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with Ada.Exceptions;
+with Ada.Text_IO; use Ada.Text_IO;
 
 with CORBA.Impl;
 with CORBA.Object;
@@ -82,23 +79,31 @@ begin
 
          --  Output IOR
 
-         Ada.Text_IO.Put_Line
+         Put_Line
            ("'"
             & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref))
             & "'");
-         Ada.Text_IO.New_Line;
+         New_Line;
 
          --  Output corbaloc
 
-         Ada.Text_IO.Put_Line
+         Put_Line
            ("'"
             & CORBA.To_Standard_String
             (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref))
             & "'");
 
-         --  Launch the server
+         --  Launch the server. CORBA.ORB.Run is supposed to never return,
+         --  print a message if it does.
 
          CORBA.ORB.Run;
+
+         Put_Line ("ORB main loop terminated!");
       end;
    end;
+exception
+   when E : others =>
+      Put_Line
+        ("Echo server raised " & Ada.Exceptions.Exception_Information (E));
+      raise;
 end Server;

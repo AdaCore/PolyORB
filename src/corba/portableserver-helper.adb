@@ -1159,7 +1159,7 @@ package body PortableServer.Helper is
                   ("IDL:omg.org/PortableServer/POA:1.0");
       begin
          TC_POA :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Id));
          CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_POA);
@@ -1199,7 +1199,7 @@ package body PortableServer.Helper is
          Arg_Name_forward_reference : constant CORBA.String := CORBA.To_CORBA_String ("forward_reference");
       begin
          TC_ForwardRequest :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (CORBA.Object.Helper.TC_Object));
@@ -1220,7 +1220,7 @@ package body PortableServer.Helper is
          MAIN_THREAD_MODEL_Name : constant CORBA.String := CORBA.To_CORBA_String ("MAIN_THREAD_MODEL");
       begin
          TC_ThreadPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (ORB_CTRL_MODEL_Name));
@@ -1235,7 +1235,7 @@ package body PortableServer.Helper is
          PERSISTENT_Name : constant CORBA.String := CORBA.To_CORBA_String ("PERSISTENT");
       begin
          TC_LifespanPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (TRANSIENT_Name));
@@ -1249,7 +1249,7 @@ package body PortableServer.Helper is
          MULTIPLE_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("MULTIPLE_ID");
       begin
          TC_IdUniquenessPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (UNIQUE_ID_Name));
@@ -1263,7 +1263,7 @@ package body PortableServer.Helper is
          SYSTEM_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("SYSTEM_ID");
       begin
          TC_IdAssignmentPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (USER_ID_Name));
@@ -1277,7 +1277,7 @@ package body PortableServer.Helper is
          NO_IMPLICIT_ACTIVATION_Name : constant CORBA.String := CORBA.To_CORBA_String ("NO_IMPLICIT_ACTIVATION");
       begin
          TC_ImplicitActivationPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (IMPLICIT_ACTIVATION_Name));
@@ -1291,7 +1291,7 @@ package body PortableServer.Helper is
          NON_RETAIN_Name : constant CORBA.String := CORBA.To_CORBA_String ("NON_RETAIN");
       begin
          TC_ServantRetentionPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (RETAIN_Name));
@@ -1306,7 +1306,7 @@ package body PortableServer.Helper is
          USE_SERVANT_MANAGER_Name : constant CORBA.String := CORBA.To_CORBA_String ("USE_SERVANT_MANAGER");
       begin
          TC_RequestProcessingPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (USE_ACTIVE_OBJECT_MAP_ONLY_Name));

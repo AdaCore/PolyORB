@@ -57,24 +57,32 @@ package CORBA is
    --  appropriate language mapping. The following definitions may
    --  differ. See the mapping specification for more information.
 
+   --  Note that some of the names required by the CORBA standard duplicate
+   --  names in Standard, and GNAT warns about that, so we suppress the
+   --  warnings below.
+
    type    Short              is new Interfaces.Integer_16;
    type    Long               is new Interfaces.Integer_32;
    type    Long_Long          is new Interfaces.Integer_64;
    type    Unsigned_Short     is new Interfaces.Unsigned_16;
    type    Unsigned_Long      is new Interfaces.Unsigned_32;
    type    Unsigned_Long_Long is new Interfaces.Unsigned_64;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    type    Float              is new Interfaces.IEEE_Float_32;
+   pragma Warnings (On);
    type    Double             is new Interfaces.IEEE_Float_64;
    type    Long_Double        is new Interfaces.IEEE_Extended_Float;
    subtype Char               is Standard.Character;
    subtype Wchar              is Standard.Wide_Character;
    type    Octet              is new Interfaces.Unsigned_8;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    subtype Boolean            is Standard.Boolean;
 
    type String is new PolyORB.Types.String;
 
    type    Wide_String        is
      new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+   pragma Warnings (On);
 
    --  Pointers on the previous types
 

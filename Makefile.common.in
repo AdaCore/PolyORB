@@ -1,0 +1,16 @@
+# PolyORB Makefile common definitions (shared by top-level and docs Makefiles)
+
+top_srcdir	:= @abs_top_srcdir@
+top_builddir	:= @abs_top_builddir@
+
+install_sh		:= @install_sh@
+MOVEIFCHANGE		:= ${top_builddir}/support/move-if-change
+RM			:= @RM@
+PINSTALL		:= @PYTHON@ ${top_srcdir}/bldtools/install.py
+INSTALL_SCRIPT		:= ${PINSTALL} -m 555
+INSTALL_BIN		:= ${PINSTALL} -m 555
+INSTALL_DATA            := ${PINSTALL} -m 444
+INSTALL_PROGRAM		:= ${INSTALL_BIN}
+INSTALL_STRIP_PROGRAM	:= ${INSTALL_PROGRAM} -s
+LN_S			:= @LN_S@
+SHELL			:= @SHELL@

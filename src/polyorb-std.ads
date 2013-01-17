@@ -32,19 +32,4 @@
 
 --  Renaming of Standard for use by generated code, to avoid name clashes
 
---  package PolyORB.Std renames Standard;
---  WAG:61 does not work currently
-
-package PolyORB.Std is
-
-   pragma Pure;
-
-   subtype String is Standard.String;
-   subtype Boolean is Standard.Boolean;
-   subtype Integer is Standard.Integer;
-   subtype Natural is Standard.Natural;
-   subtype Positive is Standard.Positive;
-
-   package Ascii renames Standard.Ascii;
-
-end PolyORB.Std;
+package PolyORB.Std renames Standard;

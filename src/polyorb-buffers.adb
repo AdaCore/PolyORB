@@ -580,7 +580,7 @@ package body PolyORB.Buffers is
       Nil_ASCII : constant ASCII_Line := (others => ' ');
 
       Hexa  : Hexa_Line  := Nil_Hexa;
-      ASCII : ASCII_Line := Nil_ASCII;
+      Line  : ASCII_Line := Nil_ASCII;
       Index_Hexa  : Natural := 1;
       Index_ASCII : Natural := 1;
    begin
@@ -592,9 +592,9 @@ package body PolyORB.Buffers is
          Index_Hexa := Index_Hexa + 3;
 
          if Octets (J) < 32 or else Octets (J) > 127 then
-            ASCII (Index_ASCII) := '.';
+            Line (Index_ASCII) := '.';
          else
-            ASCII (Index_ASCII) := Character'Val (Natural (Octets (J)));
+            Line (Index_ASCII) := Character'Val (Natural (Octets (J)));
          end if;
          Index_ASCII := Index_ASCII + 1;
 
@@ -602,21 +602,21 @@ package body PolyORB.Buffers is
             Hexa (Index_Hexa) := ' ';
             Hexa (Index_Hexa + 1) := ' ';
             Index_Hexa := Index_Hexa + 2;
-            ASCII (Index_ASCII) := ' ';
+            Line (Index_ASCII) := ' ';
             Index_ASCII := Index_ASCII + 1;
          end if;
 
          if Index_Hexa > Hexa'Length then
-            pragma Debug (C2, O2 (Hexa & "   " & ASCII));
+            pragma Debug (C2, O2 (Hexa & "   " & Line));
             Index_Hexa := 1;
             Hexa := Nil_Hexa;
             Index_ASCII := 1;
-            ASCII := Nil_ASCII;
+            Line := Nil_ASCII;
          end if;
       end loop;
 
       if Index_Hexa /= 1 then
-         pragma Debug (C2, O2 (Hexa & "   " & ASCII));
+         pragma Debug (C2, O2 (Hexa & "   " & Line));
          null;
       end if;
    end Show;

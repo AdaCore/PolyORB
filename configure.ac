@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.9.0w]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.10.0w]))
 
 AC_PREREQ(2.57)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -80,10 +80,10 @@ fi],
 AC_ARG_ENABLE(shared,
 AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
 [
-LIBRARY_TYPE_OPTIONS="-XLibrary_Type=RELOCATABLE"
+LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=relocatable"
 ],
 [
-LIBRARY_TYPE_OPTIONS="-XLibrary_Type=STATIC"
+LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=static"
 ])
 AC_SUBST(LIBRARY_TYPE_OPTIONS)
 
@@ -886,7 +886,7 @@ AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_
 
 AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
-	Makefile.common.project
+	Makefile.common
 	compilers/common_files/platform.ads
 	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads

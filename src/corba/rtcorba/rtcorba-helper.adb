@@ -751,7 +751,7 @@ package body RTCORBA.Helper is
          Arg_Name_dynamic_threads : constant CORBA.String := CORBA.To_CORBA_String ("dynamic_threads");
       begin
          TC_ThreadpoolLane :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Struct);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Struct);
          CORBA.Internals.Add_Parameter (TC_ThreadpoolLane, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ThreadpoolLane, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ThreadpoolLane, CORBA.To_Any (RTCORBA.Helper.TC_Priority));
@@ -783,7 +783,7 @@ package body RTCORBA.Helper is
          SERVER_DECLARED_Name : constant CORBA.String := CORBA.To_CORBA_String ("SERVER_DECLARED");
       begin
          TC_PriorityModel :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_PriorityModel, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_PriorityModel, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_PriorityModel, CORBA.To_Any (CLIENT_PROPAGATED_Name));
@@ -795,7 +795,7 @@ package body RTCORBA.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/ProtocolProperties:1.0");
       begin
          TC_ProtocolProperties :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_ProtocolProperties, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ProtocolProperties, CORBA.To_Any (Id));
       end;
@@ -808,7 +808,7 @@ package body RTCORBA.Helper is
          Arg_Name_transport_protocol_properties : constant CORBA.String := CORBA.To_CORBA_String ("transport_protocol_properties");
       begin
          TC_Protocol :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Struct);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Struct);
          CORBA.Internals.Add_Parameter (TC_Protocol, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_Protocol, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_Protocol, CORBA.To_Any (IOP.Helper.TC_ProfileId));
@@ -838,7 +838,7 @@ package body RTCORBA.Helper is
          Arg_Name_high : constant CORBA.String := CORBA.To_CORBA_String ("high");
       begin
          TC_PriorityBand :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Struct);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Struct);
          CORBA.Internals.Add_Parameter (TC_PriorityBand, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_PriorityBand, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_PriorityBand, CORBA.To_Any (RTCORBA.Helper.TC_Priority));

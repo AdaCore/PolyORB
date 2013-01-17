@@ -483,7 +483,7 @@ package body CORBA.Object is
    procedure Initialize is
    begin
       TC_Object_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
-                           (PolyORB.Any.TypeCode.TC_Object);
+                           (PolyORB.Any.TypeCode.TCF_Object);
 
       CORBA.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("Object")));

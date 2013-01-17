@@ -627,7 +627,7 @@ package body System.Partition_Interface is
       use PolyORB.Types;
 
       Name   : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
-      TC     : constant PATC.Local_Ref := PATC.TC_Except;
+      TC     : constant PATC.Local_Ref := PATC.TCF_Except;
       Result : PolyORB.Any.Any;
    begin
       --  Name
@@ -2134,7 +2134,7 @@ package body System.Partition_Interface is
 
       <<Lookup>>
       if Info.State /= Dead then
-         --  If state is Initial and Entry_Created is false, this means another
+         --  If state is Initial and Entry_Pending is True, this means another
          --  task is in the process of looking up this RCI from the name
          --  server: just wait for Base_Ref to become non-null.
 
@@ -2240,7 +2240,7 @@ package body System.Partition_Interface is
       --  corresponding to the RACW is also constructed (and this is vital also
       --  on the client side).
 
-      Default_Servant.Obj_TypeCode := PATC.TC_Object;
+      Default_Servant.Obj_TypeCode := PATC.TCF_Object;
       PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode, To_Any (PName));
       PATC.Add_Parameter
