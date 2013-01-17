@@ -3,6 +3,9 @@
 top_srcdir	:= @abs_top_srcdir@
 top_builddir	:= @abs_top_builddir@
 
+prefix          := @prefix@
+datadir         := ${prefix}/share
+
 install_sh		:= @install_sh@
 MOVEIFCHANGE		:= ${top_builddir}/support/move-if-change
 RM			:= @RM@

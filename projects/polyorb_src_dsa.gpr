@@ -51,15 +51,15 @@ project PolyORB_src_dsa is
          use PolyORB_Src.Compiler'Default_Switches ("Ada");
 
       Ada_RTL_Switches :=
-        Compiler'Default_Switches ("Ada") & ("-gnatw" & PolyORB_Common.Warnings_Mode);
+        Compiler'Default_Switches ("Ada")
+          & ("-gnatg", "-gnatw" & PolyORB_Common.Warnings_Mode);
       --  Gnatmake compiles children of System with -gnatg (otherwise it is
       --  illegal to recompile such children). -gnatg sets the warnings mode
       --  to -gnatwe, so we need to reset it explicitly afterwards.
+      --  Gprbuild does not set -gnatg automatically for children of System,
+      --  so we specify it explicitly here.
 
-      for Switches ("s-parint.adb") use Ada_RTL_Switches;
-      for Switches ("s-dsaser.adb") use Ada_RTL_Switches;
-      for Switches ("s-dsatyp.adb") use Ada_RTL_Switches;
-      for Switches ("s-shasto.adb") use Ada_RTL_Switches;
+      for Switches ("s-*.adb") use Ada_RTL_Switches;
 
    end Compiler;
 

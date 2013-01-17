@@ -56,27 +56,14 @@ MAKEFLAGS := --no-builtin-rules \
 
 ################################################################
 
-top_srcdir	:= @abs_top_srcdir@
-top_builddir	:= @abs_top_builddir@
-
-install_sh		:= @install_sh@
-MOVEIFCHANGE		:= ${top_builddir}/support/move-if-change
-RM			:= @RM@
-PINSTALL		:= @PYTHON@ ${top_srcdir}/bldtools/install.py
-INSTALL_SCRIPT		:= ${PINSTALL} -m 555
-INSTALL_BIN		:= ${PINSTALL} -m 555
-INSTALL_PROGRAM		:= ${INSTALL_BIN}
-INSTALL_STRIP_PROGRAM	:= ${INSTALL_PROGRAM} -s
-LN_S			:= @LN_S@
-SHELL			:= @SHELL@
+include Makefile.common
 
 HOST_EXE_SUFFIX		:= @HOST_EXE_SUFFIX@
 TARGET_EXE_SUFFIX	:= @TARGET_EXE_SUFFIX@
 CC_FOR_TARGET		:= @CC_FOR_TARGET@
 GNATCHOP		:= @GNATCHOP@
 GNATMAKE		:= @GNATMAKE@
-GNATMAKE_FOR_TARGET	:= @GNATMAKE_FOR_TARGET@
-# ??? distinguish between native tools, cross tools and cross libs
+GPRBUILD_FOR_TARGET	:= @GPRBUILD_FOR_TARGET@
 
 # Flags common to build and target
 # Do not use := for the following flags, so that they can be overriden on
@@ -94,7 +81,7 @@ ifneq ($(filter -%args,$(EXTRA_GNATMAKE_FLAGS)),)
 MARGS:=-margs
 endif
 
-BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs -L${top_builddir}/lib ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS} ${MARGS}
+BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FLAGS} ${EXTRA_GNATMAKE_FLAGS} ${MARGS}
 # Gnatmake flags for units built from project files
 # Note: if EXTRA_GNATMAKE_FLAGS contains a -%args argument, we add -margs at
 # the end because further builder flags may need to be passed.
@@ -107,11 +94,12 @@ CFLAGS_FOR_TARGET         := @CFLAGS_FOR_TARGET@
 ADAFLAGS_FOR_TARGET       := @ADAFLAGS_FOR_TARGET@
 GNATMAKE_FLAGS_FOR_TARGET := @LIBRARY_TYPE_OPTIONS@ -cargs ${ADAFLAGS_FOR_TARGET}
 
-HAVE_ADA_DYNAMIC_PRIORITIES := @HAVE_ADA_DYNAMIC_PRIORITIES@
-HAVE_SSL := @HAVE_SSL@
-OPENSSL := @OPENSSL@
+# Feature substitutions
 
-include ${top_builddir}/Makefile.common.project
+HAVE_ADA_DYNAMIC_PRIORITIES := @HAVE_ADA_DYNAMIC_PRIORITIES@
+HAVE_GPRBUILD               := @HAVE_GPRBUILD@
+HAVE_SSL                    := @HAVE_SSL@
+OPENSSL                     := @OPENSSL@
 
 .PHONY: all
 all: all-compilers perfect-hash polyorb-idl-stamps do-gnatmake
@@ -132,9 +120,9 @@ ${IDLAC_bin}: all-compilers
 
 ################################################################
 
-# Personalities control
+# Subcomponents build control
 
-APPLI_LIST := @APPLI_LIST@
+include Makefile.common.project
 
 ################################################################
 
@@ -506,9 +494,12 @@ libpolyorb-corba-security-gssup.a: polyorb_src_corba_security_gssup.gpr
 
 .PHONY: libpolyorb-dsa.a
 libpolyorb-dsa.a: polyorb_src_dsa.gpr
+
+ifeq (${HAVE_GPRBUILD}, no)
 libpolyorb-dsa.a: PRJ_GNATMAKE_FLAGS := -a
 # Some components of the DSA application personality are child units of
-# System: use -a to allow them to be compiled.
+# System: use -a to allow gnatmake to compile them.
+endif
 
 .PHONY: libpolyorb-dns.a
 libpolyorb-dns.a: polyorb_src_dns.gpr
@@ -553,9 +544,7 @@ libpolyorb-ssl.a: polyorb_src_ssl.gpr
 .PHONY: libpolyorb-web_common.a
 libpolyorb-web_common.a: polyorb_src_web_common.gpr
 
-# Additional dependencies:
-
-polyorb_src.gpr:		src/csupport.o
+# Additional dependencies between projects
 polyorb_src_corba.gpr: polyorb_src_corba_dynamicany.gpr polyorb_src_corba_iop.gpr polyorb_src_corba_messaging.gpr polyorb_src_corba_portableinterceptor.gpr polyorb_src_corba_rtcorba.gpr
 
 ifeq (${HAVE_SSL},yes)
@@ -564,21 +553,25 @@ polyorb_src_setup.gpr: polyorb_src_setup_security.gpr
 polyorb_src_corba.gpr: polyorb_src_corba_security.gpr polyorb_src_corba_security_gssup.gpr
 polyorb_src.gpr: polyorb_src_security.gpr polyorb_src_security_gssup.gpr polyorb_src_security_x509.gpr polyorb_src_security_tls.gpr
 
-# Additional dependencies upon C files
 C_FILES += 					\
 	src/ssl/polyorb_ssl.c			\
 	src/security/polyorb_asn1.c		\
 	src/security/x509/polyorb_x509.c
+endif
 
+# Additional dependencies on C sources, if building using gnatmake
+
+ifeq (${HAVE_GPRBUILD}, no)
+polyorb_src.gpr:		src/csupport.o
 polyorb_src_ssl.gpr:		src/ssl/polyorb_ssl.o
 polyorb_src_security.gpr:	src/security/polyorb_asn1.o
 polyorb_src_security_x509.gpr:	src/security/x509/polyorb_x509.o
-endif
 
 # Rule for compilation of C source files
 C_OBJECTS=${C_FILES:.c=.o}
 ${C_OBJECTS}: %.o: ${top_srcdir}/%.c
 	${CC_FOR_TARGET} -c -o $@ -I${top_builddir}/src ${CPPFLAGS} ${CFLAGS} ${CFLAGS_FOR_TARGET} $<
+endif
 
 ### No additions to C_FILES / C_OBJECTS beyond this point
 
@@ -615,7 +608,7 @@ ${PROJECT_FILES}: %.gpr: \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
+	  ${GPRBUILD_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 ##########################
 # examples and testsuite #
@@ -670,7 +663,7 @@ test_targets := ${sort ${test_targets}}
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
 	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GNATMAKE_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
+	  ${GPRBUILD_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
@@ -829,7 +822,6 @@ docs:
 
 host=@host@
 target=@target@
-prefix=@prefix@
 
 ifeq (${target}, ${host})
   target_prefix=${prefix}
@@ -892,10 +884,10 @@ install:
 	# pre-built and packaged with sources.
 	if [ -r docs/polyorb_ug.html ]; \
 	then \
-	  (cd docs && ${MAKE} install-data-local prefix="${prefix}"); \
+	  (cd docs && ${MAKE} install prefix="${prefix}"); \
 	elif [ -r $(top_srcdir)/docs/polyorb_ug.html ]; \
 	then \
-	  (cd docs && ${MAKE} install-data-local prefix="${prefix}" doc_build_dir="$(top_srcdir)/docs/"); \
+	  (cd docs && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/docs/"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
@@ -906,10 +898,6 @@ install:
 # Note that any change of the location where DSA application personality
 # files are installed (relative to ${prefix}) must be reflected in
 # gnatdist.
-#
-# install-data-local (as opposed to install) is used for installing the
-# documentation, in order to avoid trying to rebuild the documentation, since
-# users might not have tools like TeX.
 
 ################################################################
 

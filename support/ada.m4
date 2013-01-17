@@ -69,7 +69,7 @@ cat > conftest/gnat.adc <<EOF
 [$4]
 EOF
 dnl The ":" lines below ensure that neither branch of the "if" is empty
-if AC_TRY_COMMAND([cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out])
+if AC_TRY_COMMAND([cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null])
 then
   : Success
   $5
@@ -186,17 +186,11 @@ dnl target are equal). Sets GNATMAKE_FOR_TARGET and GNAT_DRIVER_FOR_TARGET.
 
 AC_DEFUN([AM_CROSS_PROG_GNATMAKE],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
- if test $host = $target; then
-   GNATMAKE_FOR_TARGET=$GNATMAKE
-   AC_SUBST(GNATMAKE_FOR_TARGET)
- else
-   AC_CHECK_PROGS(GNATMAKE_FOR_TARGET, [$target_alias-$GNATMAKE $target-$GNATMAKE])
- fi
- GNAT_DRIVER_FOR_TARGET=`echo $GNATMAKE_FOR_TARGET | sed 's/make$//'`
- AC_SUBST(GNAT_DRIVER_FOR_TARGET)
+ AC_CHECK_TARGET_TOOL(GNATMAKE_FOR_TARGET, gnatmake)
+ AC_CHECK_TARGET_TOOL(GNAT_DRIVER_FOR_TARGET, gnat)
 
  AC_MSG_CHECKING([whether $GNATMAKE_FOR_TARGET supports -aPdir])
- if AC_TRY_COMMAND([gnatmake 2>&1 | grep " -aPdir" > /dev/null])
+ if AC_TRY_COMMAND([$GNATMAKE_FOR_TARGET 2>&1 | grep " -aPdir" > /dev/null])
  then
    HAVE_GNATMAKE_APDIR=yes
  else
@@ -212,13 +206,7 @@ dnl target are equal)
 
 AC_DEFUN([AM_CROSS_PROG_GNATLS],
 [AC_REQUIRE([AM_PROG_WORKING_ADA])
- if test $host = $target; then
-   GNATLS_FOR_TARGET=$GNATLS
-   AC_SUBST(GNATLS_FOR_TARGET)
- else
-   AC_CHECK_PROGS(GNATLS_FOR_TARGET, [$target_alias-$GNATLS $target-$GNATLS])
- fi
-])
+ AC_CHECK_TARGET_TOOL(GNATLS_FOR_TARGET, gnatls)])
 
 dnl Usage: AM_CROSS_PROG_CC
 dnl Look for CC for the target (same as the host one if host and
@@ -226,13 +214,7 @@ dnl target are equal)
 
 AC_DEFUN([AM_CROSS_PROG_CC],
 [AC_REQUIRE([AC_PROG_CC])
- if test $host = $target; then
-   CC_FOR_TARGET=$CC
-   AC_SUBST(CC_FOR_TARGET)
- else
-   AC_CHECK_PROGS(CC_FOR_TARGET, [$target_alias-$CC $target-$CC])
- fi
-])
+ AC_CHECK_TARGET_TOOL(CC_FOR_TARGET, $CC)])
 
 dnl Usage: AM_HAS_GNAT_PROJECT(project)
 dnl Check whether a given project file is available, and set
@@ -563,3 +545,36 @@ AC_DEFUN([AM_SUBST_GPR],
   fi
 done
 AC_SUBST($1_GPR)])
+
+dnl Usage: AM_WITH_GPRBUILD
+dnl Test for presence of gprbuild
+
+define([GPRBUILD_DEFAULT], [no])
+dnl Change to [check] to use gprbuild automatically if present
+
+AC_DEFUN([AM_WITH_GPRBUILD],
+[
+AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_ARG_WITH([gprbuild],
+            [AS_HELP_STRING([--with-gprbuild[=PROG]],
+              [build using gprbuild @<:@default=GPRBUILD_DEFAULT@:>@])],
+            [AS_IF([test "x$with_gprbuild" = "xyes"],
+                   [gprbuild_cmd=gprbuild],
+                   [gprbuild_cmd=$with_gprbuild])],
+            [with_gprbuild=GPRBUILD_DEFAULT;gprbuild_cmd=gprbuild])
+AS_IF([test "$with_gprbuild" != no],
+  [
+   AC_CHECK_PROG([GPRBUILD], $gprbuild_cmd, $gprbuild_cmd)
+   AS_IF([test "$with_gprbuild" != "check" -a -z "$GPRBUILD" ],
+         [AC_MSG_FAILURE(
+            [--with-gprbuild was given, but test for gprbuild failed])])
+   GPRBUILD_FOR_TARGET="$GPRBUILD --target=$target"
+   HAVE_GPRBUILD=yes
+  ],
+  [
+   GPRBUILD_FOR_TARGET=$GNATMAKE_FOR_TARGET
+   HAVE_GPRBUILD=no
+  ])
+AC_SUBST(GPRBUILD_FOR_TARGET)
+AC_SUBST(HAVE_GPRBUILD)
+])

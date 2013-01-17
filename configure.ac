@@ -213,12 +213,11 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 AC_PROG_CC
 if test "${ADAFLAGS-unset}" = unset; then
-  ADAFLAGS="${CFLAGS} ${BASE_ADAFLAGS}"
+  ADAFLAGS="-cargs ${CFLAGS} -margs ${BASE_ADAFLAGS}"
 else
-  ADAFLAGS="${ADAFLAGS} ${BASE_ADAFLAGS}"
+  ADAFLAGS="-cargs ${ADAFLAGS} -margs ${BASE_ADAFLAGS}"
 fi
 
-AC_PROG_INSTALL
 AC_PROG_AWK
 AC_CHECK_PROG(RM, rm, rm)
 AC_CHECK_PROG(SED, sed, sed)
@@ -234,6 +233,7 @@ AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
 AM_CROSS_PROG_CC
 AM_PROG_IDLCPP
+AM_WITH_GPRBUILD
 
 ##########################################
 # Check Ada environment features
@@ -279,8 +279,6 @@ CC="$save_CC"
 ##########################################
 
 AC_EXEEXT
-AM_ENABLE_SHARED(no)
-AM_ENABLE_STATIC(yes)
 
 ##########################################
 # Tools list: contains libraries that are
@@ -678,18 +676,6 @@ fi
 
 AC_SUBST(EXTRA_GNATMAKE_FLAGS)
 
-##########################################
-# We change $host in order to force the generation of a libtool for the
-# target, and not for the host.
-# XXX if someone knows a clean way to do that, be my guest...
-##########################################
-
-host_tmp=$host
-host=$target
-AM_PROG_LIBTOOL
-AC_LIBTOOL_HAS_TAG
-host=$host_tmp
-
 #################################################
 # Build code fragments to be substituted in
 #       src/setup/polyorb-setup-client_base.adb
@@ -852,6 +838,13 @@ AC_SUBST_FILE(PO_CATREF_WITHS)
 AC_SUBST_FILE(PO_CREATEREF_WITHS)
 
 #################################################
+# Consistency checks
+#################################################
+
+AS_IF(test "$HAVE_GPRBUILD:${enable_shared:-no}" = "no:yes",
+ [AC_MSG_FAILURE("--enable-shared requires gprbuild")])
+
+#################################################
 # Build code fragments to be substituted in
 #   Makefile
 #################################################
@@ -887,6 +880,7 @@ AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_
 AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
 	Makefile.common
+	Makefile.common.project
 	compilers/common_files/platform.ads
 	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads
@@ -899,7 +893,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects-distrib/polyorb.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
-        src/src.exclude
+	src/src.exclude
 	src/setup/polyorb-setup-base.adb
 	src/setup/polyorb-setup-client_base.adb
 	src/setup/polyorb-setup-server.adb
@@ -914,8 +908,6 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	examples/corba/secure_echo/tls_gssup.conf
 	tools/po_catref/po_catref_setup.adb
 	tools/po_createref/po_createref_setup.adb
-	support/adacompiler
-	support/linker
 	polyorb-config
 ]),
 [
@@ -935,16 +927,6 @@ do
 done
 
 chmod a+x polyorb-config
-
-for a in adacompiler linker; do
-  na=support/native-$a
-  echo "==> symlinking $na"
-  # The following 'ln -s' command needs to happen in the support subdirectory,
-  # so that we can replace it with 'cp' on machines where 'ln -s' doesn't work
-  # (such as Windows). That is, 'ln -s $a support/native-$a' would work, but
-  # 'cp $a support/native-$a' does not; hence the "cd support...".
-  (cd support ; ${RM} -f native-$a ; ${LN_S} $a native-$a)
-done
 ],
 [
 RM="${RM}"

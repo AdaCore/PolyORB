@@ -1974,7 +1974,6 @@ src/web_common/polyorb-web-utils.adb
 src/web_common/polyorb-web-utils.ads
 src/web_common/polyorb-web.ads
 support/ada.m4
-support/adacompiler.in
 support/cleanup-conf-files
 support/config.guess
 support/config.sub
@@ -1983,12 +1982,6 @@ support/gensedfile
 support/gentexifile
 support/gnatsrc.m4
 support/idlcpp.m4
-support/install-sh
-support/libtool-tag.m4
-support/libtool.m4
-support/linker.in
-support/ltmain.sh
-support/missing
 support/mkdep
 support/mkinstalldirs
 support/move-if-change
