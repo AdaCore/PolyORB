@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2007 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2013 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ who need to rebuild the configure and Makefile.in files should run the
 script support/reconfig from within the top-level source dir for this
 purpose. This should be done after each update from the repository.
 In addition to the requirements above, they will need autoconf 2.57 or
-newer, automake 1.6.3 or newer, and libtool 1.5.8 or newer.
+newer.
 
 To install PolyORB, execute:
 
