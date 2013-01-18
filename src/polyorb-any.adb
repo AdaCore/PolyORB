@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,7 @@
 
 pragma Ada_2005;
 
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
@@ -115,9 +116,10 @@ package body PolyORB.Any is
          Kind_Check (C);
          return T_Content_Ptr (C.The_Value).V.all;
       exception
-         when Constraint_Error =>
+         when E : Constraint_Error =>
             pragma Debug (L.Enabled,
-              O ("C_E raised in generic elementary From_Any, expected content "
+              O ("C_E (" & Ada.Exceptions.Exception_Message (E)
+                 & ") raised in generic elementary From_Any, expected content "
                  & External_Tag (T_Content'Tag)
                  & ", found " & External_Tag (C.The_Value'Tag)));
             raise;
@@ -3115,6 +3117,18 @@ package body PolyORB.Any is
            (Elementary_Any_TypeCode.Unchecked_Get_V
             (Elementary_Any_TypeCode.T_Content
              (TC_Container.The_Value.all)'Access).all);
+      exception
+         when E : Constraint_Error =>
+            pragma Debug (C, O ("C_E (" & Ada.Exceptions.Exception_Message (E)
+              & ") raised getting parameter" & Index'Img
+              & " on a " & Kind (Self)'Img));
+            pragma Debug (C,
+              O ("Expected "
+                 & Ada.Tags.External_Tag
+                     (Elementary_Any_TypeCode.T_Content'Tag)
+                 & ", got "
+                 & Ada.Tags.External_Tag (TC_Container.The_Value'Tag)));
+            raise;
       end Get_Parameter;
 
       --------
@@ -3617,8 +3631,9 @@ package body PolyORB.Any is
       end Name;
 
       function Name (Self : Object_Ptr) return Identifier is
+         TCK : constant TCKind := Kind (Self);
       begin
-         case Kind (Self) is
+         case TCK is
             when Tk_Objref
               | Tk_Struct
               | Tk_Union
@@ -3641,7 +3656,7 @@ package body PolyORB.Any is
                end;
 
             when others =>
-               raise BadKind;
+               raise BadKind with TCK'Img & " TypeCode has no name";
          end case;
       end Name;
 
