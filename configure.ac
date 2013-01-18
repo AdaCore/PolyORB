@@ -419,14 +419,7 @@ AC_SUBST(LIBS_LIST)
 ##########################################
 
 get_perso_prjs() {
-  perso_name=$1
-  result=
-  sep=""
-  for gpr in ${srcdir}/projects/polyorb_src_${perso_name}*.gpr; do
-    result="${result}${sep}\"`basename $gpr .gpr`\""
-    sep=","
-  done
-  echo $result
+  eval "(cd ${srcdir}/projects && echo polyorb_src_$1*.gpr)"
 }
 
 APPLI_DIRS=""
@@ -435,21 +428,25 @@ APPLI_LIBS=""
 APPLI_EXES="\$(poly_exe) "
 APPLI_PRJS=""
 
-sep=""
 for P in ${APPLI_LIST}
 do
    APPLI_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
    APPLI_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
    APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
    APPLI_EXES="${APPLI_EXES} "'$'"(${P}_exe)"
-   APPLI_PRJS="${APPLI_PRJS}${sep}`get_perso_prjs ${P}`"
-   sep=","
+   APPLI_PRJS="${APPLI_PRJS} `get_perso_prjs ${P}`"
 done
-if test x"$APPLI_PRJS" = x
-then
-  WITH_APPLI_PRJS=""
-else
-  WITH_APPLI_PRJS="with $APPLI_PRJS;"
+
+WITH_APPLI_PRJS=
+if test x"$APPLI_PRJS" != x; then
+  for prj in $APPLI_PRJS; do
+    if test "x$WITH_APPLI_PRJS" = x; then
+      WITH_APPLI_PRJS="with \"$prj\""
+    else
+      WITH_APPLI_PRJS="$WITH_APPLI_PRJS, \"$prj\""
+    fi
+  done
+  WITH_APPLI_PRJS="$WITH_APPLI_PRJS;"
 fi
 
 AC_SUBST(APPLI_DIRS)
@@ -464,20 +461,24 @@ PROTO_INCS=""
 PROTO_LIBS=""
 PROTO_PRJS=""
 
-sep=""
 for P in ${PROTO_LIST}
 do
    PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
    PROTO_INCS="${PROTO_INCS} "'$'"(${P}_inc)"
    PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
-   PROTO_PRJS="${PROTO_PRJS}${sep}`get_perso_prjs ${P}`"
-   sep=","
+   PROTO_PRJS="${PROTO_PRJS} `get_perso_prjs ${P}`"
 done
-if test x"$PROTO_PRJS" = x
-then
-  WITH_PROTO_PRJS=""
-else
-  WITH_PROTO_PRJS="with $PROTO_PRJS;"
+
+WITH_PROTO_PRJS=
+if test x"$PROTO_PRJS" != x; then
+  for prj in $PROTO_PRJS; do
+    if test "x$WITH_PROTO_PRJS" = x; then
+      WITH_PROTO_PRJS="with \"$prj\""
+    else
+      WITH_PROTO_PRJS="$WITH_PROTO_PRJS, \"$prj\""
+    fi
+  done
+  WITH_PROTO_PRJS="$WITH_PROTO_PRJS;"
 fi
 
 AC_SUBST(PROTO_DIRS)
@@ -501,15 +502,21 @@ do
    SERVICE_EXES="${SERVICE_EXES} "'$'"(${P}_exe)"
    if test "$P" != ir
    then
-      SERVICE_PRJS="${SERVICE_PRJS}${sep}\"polyorb_idls_cos_${P}\""
+      SERVICE_PRJS="${SERVICE_PRJS} polyorb_idls_cos_${P}"
       sep=","
    fi
 done
-if test x"$SERVICE_PRJS" = x
-then
-  WITH_SERVICE_PRJS=""
-else
-  WITH_SERVICE_PRJS="with $SERVICE_PRJS;"
+
+WITH_SERVICE_PRJS=
+if test x"$SERVICE_PRJS" != x; then
+  for prj in $SERVICE_PRJS; do
+    if test "x$WITH_SERVICE_PRJS" = x; then
+      WITH_SERVICE_PRJS="with \"$prj\""
+    else
+      WITH_SERVICE_PRJS="$WITH_SERVICE_PRJS, \"$prj\""
+    fi
+  done
+  WITH_SERVICE_PRJS="$WITH_SERVICE_PRJS;"
 fi
 
 AC_SUBST(SERVICE_DIRS)
