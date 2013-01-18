@@ -1,5 +1,18 @@
 # Common Makefile fragments for all PolyORB subsystems
 
+APPLI_LIST   := @APPLI_LIST@
+APPLI_LIBS   := @APPLI_LIBS@
+APPLI_EXES   := @APPLI_EXES@
+
+PROTO_LIST   := @PROTO_LIST@
+PROTO_LIBS   := @PROTO_LIBS@
+
+LIBS_LIST    := @LIBS_LIST@
+LIBS_LIBS    := @LIBS_LIBS@
+
+SERVICE_LIBS := @SERVICE_LIBS@
+SERVICE_EXES := @SERVICE_EXES@
+
 #
 # PolyORB's libraries
 #
@@ -56,9 +69,9 @@ web_common_lib=libpolyorb-web_common.a
 # the various personality projects.
 
 POLYORB_LIBS=	libpolyorb.a \
-		@PROTO_LIBS@ \
-		@APPLI_LIBS@ \
-		@LIBS_LIBS@ \
+		${PROTO_LIBS} \
+		${APPLI_LIBS} \
+		${LIBS_LIBS} \
 		libpolyorb-setup.a
 
 ifeq (${HAVE_SSL},yes)
@@ -72,11 +85,6 @@ notification_lib=libpolyorb-corba-cos-notification.a libpolyorb-corba-cos-notifi
 naming_lib=libpolyorb-corba-cos-naming.a libpolyorb-corba-cos-naming-impl.a
 ir_lib=libpolyorb-corba-cos-ir-impl.a
 time_lib=libpolyorb-corba-cos-time.a libpolyorb-corba-cos-time-impl.a
-
-SERVICE_LIBS=@SERVICE_LIBS@
-
-APPLI_EXES=@APPLI_EXES@
-SERVICE_EXES=@SERVICE_EXES@
 
 #
 # PolyORB's include files
