@@ -422,6 +422,22 @@ get_perso_prjs() {
   eval "(cd ${srcdir}/projects && echo polyorb_src_$1*.gpr)"
 }
 
+with_projects() {
+  WITH_PRJS=
+  if test x"$1" != x; then
+    for gpr in $*; do
+      prj='"'`basename $gpr .gpr`'"'
+      if test "x$WITH_PRJS" = x; then
+        WITH_PRJS="with $prj"
+      else
+        WITH_PRJS="$WITH_PRJS, $prj"
+      fi
+    done
+    WITH_PRJS="$WITH_PRJS;"
+  fi
+  echo "$WITH_PRJS"
+}
+
 APPLI_DIRS=""
 APPLI_INCS=""
 APPLI_LIBS=""
@@ -437,17 +453,7 @@ do
    APPLI_PRJS="${APPLI_PRJS} `get_perso_prjs ${P}`"
 done
 
-WITH_APPLI_PRJS=
-if test x"$APPLI_PRJS" != x; then
-  for prj in $APPLI_PRJS; do
-    if test "x$WITH_APPLI_PRJS" = x; then
-      WITH_APPLI_PRJS="with \"$prj\""
-    else
-      WITH_APPLI_PRJS="$WITH_APPLI_PRJS, \"$prj\""
-    fi
-  done
-  WITH_APPLI_PRJS="$WITH_APPLI_PRJS;"
-fi
+WITH_APPLI_PRJS=`with_projects $APPLI_PRJS`
 
 AC_SUBST(APPLI_DIRS)
 AC_SUBST(APPLI_INCS)
@@ -469,17 +475,7 @@ do
    PROTO_PRJS="${PROTO_PRJS} `get_perso_prjs ${P}`"
 done
 
-WITH_PROTO_PRJS=
-if test x"$PROTO_PRJS" != x; then
-  for prj in $PROTO_PRJS; do
-    if test "x$WITH_PROTO_PRJS" = x; then
-      WITH_PROTO_PRJS="with \"$prj\""
-    else
-      WITH_PROTO_PRJS="$WITH_PROTO_PRJS, \"$prj\""
-    fi
-  done
-  WITH_PROTO_PRJS="$WITH_PROTO_PRJS;"
-fi
+WITH_PROTO_PRJS=`with_projects $PROTO_PRJS`
 
 AC_SUBST(PROTO_DIRS)
 AC_SUBST(PROTO_INCS)
@@ -493,7 +489,6 @@ SERVICE_LIBS=""
 SERVICE_EXES=""
 SERVICE_PRJS=""
 
-sep=""
 for P in ${SERVICE_LIST}
 do
    SERVICE_DIRS="${SERVICE_DIRS} "'$'"(${P}_dir)"
@@ -502,22 +497,11 @@ do
    SERVICE_EXES="${SERVICE_EXES} "'$'"(${P}_exe)"
    if test "$P" != ir
    then
-      SERVICE_PRJS="${SERVICE_PRJS} polyorb_idls_cos_${P}"
-      sep=","
+      SERVICE_PRJS="${SERVICE_PRJS} polyorb_idls_cos_${P}.gpr"
    fi
 done
 
-WITH_SERVICE_PRJS=
-if test x"$SERVICE_PRJS" != x; then
-  for prj in $SERVICE_PRJS; do
-    if test "x$WITH_SERVICE_PRJS" = x; then
-      WITH_SERVICE_PRJS="with \"$prj\""
-    else
-      WITH_SERVICE_PRJS="$WITH_SERVICE_PRJS, \"$prj\""
-    fi
-  done
-  WITH_SERVICE_PRJS="$WITH_SERVICE_PRJS;"
-fi
+WITH_SERVICE_PRJS=`with_projects $SERVICE_PRJS`
 
 AC_SUBST(SERVICE_DIRS)
 AC_SUBST(SERVICE_INCS)
