@@ -251,13 +251,12 @@ clean:
 install:
 	$(PINSTALL) -d $(datadir)/doc/polyorb
 	$(PINSTALL) -d $(datadir)/doc/polyorb/info
-	$(PINSTALL) -d $(datadir)/doc/polyorb/ps
 	$(PINSTALL) -d $(datadir)/doc/polyorb/pdf
 	$(PINSTALL) -d $(datadir)/doc/polyorb/txt
 	$(PINSTALL) -d $(datadir)/doc/polyorb/html
 	$(PINSTALL) -d $(datadir)/doc/polyorb/html/polyorb_ug
 
-	for fmt in info ps pdf txt; \
+	for fmt in info pdf txt; \
 	do \
 		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(datadir)/doc/polyorb/$$fmt/; \
 	done
