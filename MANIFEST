@@ -2180,9 +2180,9 @@ testsuite/corba/interop/cpp/common/all_types_dynserver.cc
 testsuite/corba/interop/cpp/common/all_types_imp.cc
 testsuite/corba/interop/cpp/common/all_types_server.cc
 testsuite/corba/interop/cpp/common/report.cc
-testsuite/corba/interop/cpp/omniORB/Makefile.omniORB
-testsuite/corba/interop/java/Jonathan/Makefile.Jonathan
-testsuite/corba/interop/java/OpenORB/Makefile.OpenORB
+testsuite/corba/interop/cpp/omniORB/Makefile
+testsuite/corba/interop/java/Jonathan/Makefile
+testsuite/corba/interop/java/OpenORB/Makefile
 testsuite/corba/interop/java/README
 testsuite/corba/interop/java/common/Alltypes.java
 testsuite/corba/interop/java/common/Client.java
