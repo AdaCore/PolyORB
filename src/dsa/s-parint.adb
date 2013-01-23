@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -2288,23 +2288,6 @@ package body System.Partition_Interface is
          The_TM_Shutdown (Wait_For_Completion);
       end if;
    end Shutdown;
-
-   --------------
-   -- TC_Build --
-   --------------
-
-   --  ??? This function should be replaced by a call to Build_Complex_TC
-
-   function TC_Build
-     (Base       : PATC.Local_Ref;
-      Parameters : Any_Array) return PATC.Local_Ref
-   is
-   begin
-      for J in Parameters'Range loop
-         PATC.Add_Parameter (Base, Parameters (J));
-      end loop;
-      return Base;
-   end TC_Build;
 
    ---------------
    -- TC_Opaque --

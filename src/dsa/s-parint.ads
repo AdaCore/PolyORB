@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,7 +75,7 @@ package System.Partition_Interface is
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
    --  Identification of this DSA implementation variant
 
-   PCS_Version : constant := 5;
+   PCS_Version : constant := 6;
    --  Version of the PCS API (for Exp_Dist consistency check).
    --  This version number is matched against corresponding element of
    --  Exp_Dist.PCS_Version_Number to ensure that the versions of Exp_Dist and
@@ -526,30 +526,25 @@ package System.Partition_Interface is
      renames PATC.TC_Void;
    function TC_Opaque return PATC.Local_Ref;
 
-   function TC_Alias return PATC.Local_Ref
-     renames PATC.TCF_Alias;
-   --  Empty Tk_Alias typecode
-   function TC_Array return PATC.Local_Ref
-     renames PATC.TCF_Array;
-   --  Empty Tk_Array typecode
-   function TC_Sequence return PATC.Local_Ref
-     renames PATC.TCF_Sequence;
-   --  Empty Tk_Sequence typecode
-   function TC_Struct return PATC.Local_Ref
-     renames PATC.TCF_Struct;
-   --  Empty Tk_Struct typecode
-   function TC_Object return PATC.Local_Ref
-     renames PATC.TCF_Object;
-   --  Empty Tk_ObjRef typecode
-   function TC_Union return PATC.Local_Ref
-     renames PATC.TCF_Union;
-   --  Empty Tk_Union typecode
+   function Tk_Alias return PolyORB.Any.TCKind
+     renames PolyORB.Any.Tk_Alias;
+   function Tk_Array return PolyORB.Any.TCKind
+     renames PolyORB.Any.Tk_Array;
+   function Tk_Sequence return PolyORB.Any.TCKind
+     renames PolyORB.Any.Tk_Sequence;
+   function Tk_Struct return PolyORB.Any.TCKind
+     renames PolyORB.Any.Tk_Struct;
+   function Tk_Objref return PolyORB.Any.TCKind
+     renames PolyORB.Any.Tk_Objref;
+   function Tk_Union return PolyORB.Any.TCKind
+     renames PolyORB.Any.Tk_Union;
 
    subtype Any_Array is PATC.Any_Array;
 
-   function TC_Build
-     (Base       : PATC.Local_Ref;
-      Parameters : Any_Array) return PATC.Local_Ref;
+   function Build_Complex_TC
+     (Base       : PolyORB.Any.TCKind;
+      Parameters : Any_Array) return PATC.Local_Ref
+      renames PATC.Build_Complex_TC;
 
    procedure Move_Any_Value (Dest, Src : Any)
      renames PolyORB.Any.Move_Any_Value;
