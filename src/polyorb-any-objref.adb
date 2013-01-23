@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,7 +37,8 @@ package body PolyORB.Any.ObjRef is
    --  'Object Reference' content
 
    package Elementary_Any_Ref is
-     new Elementary_Any (References.Ref, Tk_Objref);
+     new Elementary_Any
+       (References.Ref, TypeCode.PTC_RootObject'Access);
 
    procedure Set_Any_Value
      (X : References.Ref; C : in out Any_Container'Class)

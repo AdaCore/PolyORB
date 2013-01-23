@@ -759,6 +759,10 @@ package CORBA is
          --  True when Self has not been initialized to contain any typecode
          --  information.
 
+         procedure Freeze (Self : CORBA.TypeCode.Object);
+         --  Indicate that no further parameters will be added to Self and that
+         --  optimizations can now be computed.
+
          procedure Disable_Ref_Counting (Self : CORBA.TypeCode.Object);
          --  Disable reference counting on the underlying storage of Self
          --  (meant to be used for library-level typecode objects).

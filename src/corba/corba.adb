@@ -1822,9 +1822,17 @@ package body CORBA is
 
          procedure Disable_Ref_Counting (Self : CORBA.TypeCode.Object) is
          begin
-            PolyORB.Any.TypeCode.Disable_Ref_Counting
-              (Object_Of (Self).all);
+            PolyORB.Any.TypeCode.Disable_Ref_Counting (Object_Of (Self).all);
          end Disable_Ref_Counting;
+
+         ------------
+         -- Freeze --
+         ------------
+
+         procedure Freeze (Self : CORBA.TypeCode.Object) is
+         begin
+            PolyORB.Any.TypeCode.Freeze (Object_Of (Self));
+         end Freeze;
 
          ------------
          -- Is_Nil --

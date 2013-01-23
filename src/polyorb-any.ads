@@ -172,6 +172,21 @@ package PolyORB.Any is
 
    package TypeCode is
 
+      type Object;
+
+      ------------------------------------------
+      -- Support for union member type lookup --
+      ------------------------------------------
+
+      type Union_TC_Map is limited interface;
+      type Union_TC_Map_Ptr is access all Union_TC_Map'Class;
+
+      function Label_To_Member
+        (Map   : access Union_TC_Map;
+         Label : Any_Container'Class) return Types.Long is abstract;
+      --  Return the field index corresponding to the given label, or -1 if
+      --  there is no field for this label.
+
       ----------
       -- Spec --
       ----------
@@ -180,9 +195,20 @@ package PolyORB.Any is
       pragma Preelaborable_Initialization (Local_Ref);
 
       type Object (Kind : TCKind) is
-        new Smart_Pointers.Non_Controlled_Entity
+        new Smart_Pointers.Non_Controlled_Entity and Union_TC_Map
       with record
          Parameters : Content_Ptr;
+         --  TypeCode parameters
+
+         Frozen     : Boolean := False;
+         --  When True, no parameter can be added or modified
+
+         case Kind is
+            when Tk_Union =>
+               Map : Union_TC_Map_Ptr := Object'Unchecked_Access;
+            when others =>
+               null;
+         end case;
       end record;
 
       type Object_Ptr is access all Object;
@@ -203,6 +229,15 @@ package PolyORB.Any is
 
       procedure Disable_Ref_Counting (Self : in out Object);
       --  Mark Self as not to be subjected to reference counting
+
+      procedure Freeze (Obj : Object_Ptr);
+      --  Indicate that the construction of Self is completed, and that no
+      --  further parameters will be added. Optimizations are then performed
+      --  on Self.
+
+      overriding function Label_To_Member
+        (Map   : access Object;
+         Label : Any_Container'Class) return Types.Long;
 
       Bounds       : exception;
       BadKind      : exception;
@@ -451,14 +486,16 @@ package PolyORB.Any is
       PTC_Octet              : aliased Object (Tk_Octet);
       PTC_Any                : aliased Object (Tk_Any);
       PTC_TypeCode           : aliased Object (Tk_TypeCode);
+      PTC_String             : aliased Object (Tk_String);
+      PTC_Wide_String        : aliased Object (Tk_Wstring);
+      PTC_RootObject         : aliased Object (Tk_Objref);
 
       type Any_Array is array (Natural range <>) of Any;
 
       function Build_Complex_TC
         (Kind       : TCKind;
          Parameters : Any_Array) return Local_Ref;
-      --  Fill Base, a typecode with an empty parameter list as created by one
-      --  of the above factories, with the given Parameters.
+      --  Create a TypeCode with the given Kind and Parameters, then freeze it
 
       function Build_String_TC (Max : Types.Unsigned_Long) return Local_Ref;
       --  Build typcode for [bounded] strings
@@ -832,6 +869,9 @@ package PolyORB.Any is
    function From_Any (C : Any_Container'Class) return Standard.Wide_String;
    --  Special variant operating on both bounded and unbounded string anys
 
+   function Pos_From_Any (C : Any_Container'Class) return Types.Unsigned_Long;
+   --  For an Any of an enumration type, return the literal position
+
    function From_Any (A : Any) return Types.Short;
    function From_Any (A : Any) return Types.Long;
    function From_Any (A : Any) return Types.Long_Long;
@@ -988,15 +1028,13 @@ private
    --   - one field for the value
    --
    --  To be able to carry values of different types, the second field is a
-   --  pointer to an Content wrapper, which encapsulates a pointer to the
+   --  pointer to a Content wrapper, which encapsulates a pointer to the
    --  actual stored data. For every elementary type that can be stored in an
-   --  Any, there exsists derived type of Any_Container with appropriate
-   --  accessors.
+   --  Any, derived type of Content with appropriate accessors are provided.
    --
    --  For complex types (with several values, like structures, arrays...),
-   --  we use a special wrapper, Content_Aggregate, which has a field
-   --  pointing on a list of stored objects; various methods are provided
-   --  to manipulate this list.
+   --  we use a special wrapper, Content_Aggregate, which provides access to
+   --  indivivdula member fields.
 
    type Content is abstract tagged null record;
    type No_Content is new Content with null record;
@@ -1077,9 +1115,9 @@ private
 
    generic
       type T (<>) is private;
-      Kind : TCKind;
-   package Elementary_Any is
+      PTC : TypeCode.Object_Ptr;
 
+   package Elementary_Any is
       type T_Ptr is access all T;
       type T_Content is new Content with private;
 
@@ -1088,9 +1126,13 @@ private
          Into : Content_Ptr := null) return Content_Ptr;
       overriding procedure Finalize_Value (CC : in out T_Content);
 
+      function Unchecked_From_Any (C : Any_Container'Class) return T;
+      --  From_Any without any typecode check
+
       function From_Any (C : Any_Container'Class) return T;
       function From_Any is new From_Any_G (T, From_Any);
       pragma Inline (From_Any);
+      --  From_Any with check that C has the proper typecode kind
 
       procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
       --  Note: this assumes that C has the proper typecode

@@ -451,7 +451,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_To_PolyORB_Object,         --  CORBA.TypeCode.
       --                            --    Internals.To_PolyORB_Object
       RE_Disable_Ref_Counting,      --  CORBA.TypeCode.
-      --                            --   Internals. Disable_Ref_Counting
+      --                            --    Internals.Disable_Ref_Counting
+      RE_Freeze,                    --  CORBA.TypeCode.Internals.Freeze
       RE_Arguments_1,               --  CORBA.ServerRequest.Arguments
       RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
@@ -1217,6 +1218,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_To_CORBA_Object           => RU_CORBA_TypeCode_Internals,
          RE_To_PolyORB_Object         => RU_CORBA_TypeCode_Internals,
          RE_Disable_Ref_Counting      => RU_CORBA_TypeCode_Internals,
+         RE_Freeze                    => RU_CORBA_TypeCode_Internals,
          RE_Set_Note                  => RU_PolyORB_Annotations,
          RE_Aggregate_Content         => RU_PolyORB_Any,
          RE_Any_1                     => RU_PolyORB_Any,
