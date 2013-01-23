@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -355,12 +355,17 @@ package body PolyORB.Buffers is
      (Pos       : Stream_Element_Offset;
       Alignment : Alignment_Type) return Stream_Element_Count
    is
-      subtype Alignment_Modular is System.Unsigned_Types.Long_Unsigned;
+      --  Note: we take advantage of the fact that the representation of
+      --  Alignment_Type is such that representation(Align_<n>) = <n>.
 
-      Alignment_Mask : constant Alignment_Modular :=
-        Shift_Left (1, Alignment_Type'Pos (Alignment)) - 1;
-      Padding : constant Alignment_Modular :=
-        (-Alignment_Modular (Pos)) and Alignment_Mask;
+      function To_SSU is
+        new Ada.Unchecked_Conversion (Alignment_Type, Short_Short_Unsigned);
+
+      Alignment_Mask : constant Long_Unsigned :=
+                         Long_Unsigned (To_SSU (Alignment) - 1);
+
+      Padding : constant Long_Unsigned :=
+        (-Long_Unsigned (Pos)) and Alignment_Mask;
    begin
       return Stream_Element_Count (Padding);
    end Padding_Size;

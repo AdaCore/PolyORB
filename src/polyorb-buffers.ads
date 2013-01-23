@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -67,7 +67,8 @@ package PolyORB.Buffers is
       Align_8 => 8);
    for Alignment_Type'Size use Short_Short_Integer'Size;
    --  Alignment of a piece of data within a buffer
-   --  It is assumed that <n> = 2 ** Align_<n>'Pos = representation(Align_<n>)
+   --  Note: Padding_Size relies on the fact that
+   --    representation(Align_<n>) = <n>
 
    function Alignment_Of is
      new Ada.Unchecked_Conversion (Short_Short_Integer, Alignment_Type);
