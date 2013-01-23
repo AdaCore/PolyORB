@@ -13,7 +13,7 @@ LD  = g++
 # Setup for omniORB 4.1.2
 
 # OMNIORB_PATH    = <path_to_omniORB_install_dir>
-OMNIORB_PATH    = /usr/local/packages/omniORB-4.1.2
+OMNIORB_PATH    = /usr
 OMNIORB_BIN     = $(OMNIORB_PATH)/bin
 OMNIORB_INC     = $(OMNIORB_PATH)/include 
 OMNIORB_LIBPATH = $(OMNIORB_PATH)/lib

@@ -399,14 +399,14 @@ static void test(all_types_ptr p)
 
    try 
      {
-       p->testException (2485);
+       p->testException (42, "answer");
      }
  
    catch (all_types::my_exception& ex) 
      {
        Pass = (ex.info == 2485);
 #ifdef DEBUG
-       cerr << "info sur l'exception : " << ex.info << endl;
+       cerr << "exception info: " << ex.info << endl;
 #endif
        output("test user exception", Pass);
      }
