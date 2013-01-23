@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -365,7 +365,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          TC_NamingContext := TypeCode.TCF_Object;
          Add_Parameter (TC_NamingContext, To_Any (Name));
          Add_Parameter (TC_NamingContext, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_NamingContext).all);
+         Disable_Ref_Counting (Object_Of (TC_NamingContext).all);
       end;
 
       declare
@@ -388,7 +388,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Add_Parameter (TC_NotFoundReason, To_Any (missing_node_Name));
          Add_Parameter (TC_NotFoundReason, To_Any (not_context_Name));
          Add_Parameter (TC_NotFoundReason, To_Any (not_object_Name));
-         Disable_Reference_Counting (Object_Of (TC_NotFoundReason).all);
+         Disable_Ref_Counting (Object_Of (TC_NotFoundReason).all);
       end;
 
       declare
@@ -411,7 +411,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Add_Parameter (TC_NotFound, To_Any (Arg_Name_why));
          Add_Parameter (TC_NotFound, To_Any (TC_Name));
          Add_Parameter (TC_NotFound, To_Any (Arg_Name_rest_of_name));
-         Disable_Reference_Counting (Object_Of (TC_NotFound).all);
+         Disable_Ref_Counting (Object_Of (TC_NotFound).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_NotFound, Raise_NotFound_From_Any'Access);
@@ -435,7 +435,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          Add_Parameter (TC_CannotProceed, To_Any (Arg_Name_cxt));
          Add_Parameter (TC_CannotProceed, To_Any (TC_Name));
          Add_Parameter (TC_CannotProceed, To_Any (Arg_Name_rest_of_name));
-         Disable_Reference_Counting (Object_Of (TC_CannotProceed).all);
+         Disable_Ref_Counting (Object_Of (TC_CannotProceed).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_CannotProceed, Raise_CannotProceed_From_Any'Access);
@@ -450,7 +450,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          TC_InvalidName := TCF_Except;
          Add_Parameter (TC_InvalidName, To_Any (Name));
          Add_Parameter (TC_InvalidName, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_InvalidName).all);
+         Disable_Ref_Counting (Object_Of (TC_InvalidName).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_InvalidName, Raise_InvalidName_From_Any'Access);
@@ -465,7 +465,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          TC_AlreadyBound := TCF_Except;
          Add_Parameter (TC_AlreadyBound, To_Any (Name));
          Add_Parameter (TC_AlreadyBound, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_AlreadyBound).all);
+         Disable_Ref_Counting (Object_Of (TC_AlreadyBound).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_AlreadyBound, Raise_AlreadyBound_From_Any'Access);
@@ -480,7 +480,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
          TC_NotEmpty := TCF_Except;
          Add_Parameter (TC_NotEmpty, To_Any (Name));
          Add_Parameter (TC_NotEmpty, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_NotEmpty).all);
+         Disable_Ref_Counting (Object_Of (TC_NotEmpty).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_NotEmpty, Raise_NotEmpty_From_Any'Access);

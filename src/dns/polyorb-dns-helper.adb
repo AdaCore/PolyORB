@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -293,7 +293,7 @@ package body PolyORB.DNS.Helper is
               (TC_RR_Type,
                PolyORB.Any.To_Any
                  (SRV_Name));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
              (Any.TypeCode.Object_Of (TC_RR_Type).all);
 
          end if;
@@ -515,7 +515,7 @@ package body PolyORB.DNS.Helper is
               (TC_SRV_Data,
                PolyORB.Any.To_Any
                  (Argument_Name_target));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
              (Any.TypeCode.Object_Of (TC_SRV_Data).all);
 
          end if;
@@ -553,7 +553,7 @@ package body PolyORB.DNS.Helper is
               PolyORB.Any.TypeCode.Build_Sequence_TC
                  (PolyORB.Any.TC_Octet,
                   4);
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_IDL_SEQUENCE_4_octet).all);
             IDL_SEQUENCE_4_octet_Helper.Initialize
               (Element_TC => PolyORB.Any.TC_Octet,
@@ -587,7 +587,7 @@ package body PolyORB.DNS.Helper is
             Any.TypeCode.Add_Parameter
               (TC_IDL_AT_Sequence_4_octet, Any.To_Any
                  (TC_IDL_SEQUENCE_4_octet));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_IDL_AT_Sequence_4_octet).all);
          end if;
       end Initialize_IDL_AT_Sequence_4_octet;
@@ -862,7 +862,7 @@ package body PolyORB.DNS.Helper is
               (TC_RR_Data,
                PolyORB.Any.To_Any
                  (Argument_Name_rr_answer));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_RR_Data).all);
          end if;
       end Initialize_RR_Data;
@@ -1099,7 +1099,7 @@ package body PolyORB.DNS.Helper is
               (TC_RR,
                PolyORB.Any.To_Any
                  (Argument_Name_rr_data));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_RR).all);
          end if;
       end Initialize_RR;
@@ -1381,7 +1381,7 @@ package body PolyORB.DNS.Helper is
               (TC_Rcode,
                PolyORB.Any.To_Any
                  (Not_Zone_Name));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_Rcode).all);
          end if;
       end Initialize_Rcode;
@@ -1420,7 +1420,7 @@ package body PolyORB.DNS.Helper is
               PolyORB.Any.TypeCode.Build_Sequence_TC
                  (Helper.TC_RR,
                   0);
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_IDL_SEQUENCE_DNS_RR).all);
             IDL_SEQUENCE_DNS_RR_Helper.Initialize
               (Element_TC => Helper.TC_RR,
@@ -1452,7 +1452,7 @@ package body PolyORB.DNS.Helper is
             Any.TypeCode.Add_Parameter (TC_rrSequence, Any.To_Any (Id));
             Any.TypeCode.Add_Parameter (TC_rrSequence, Any.To_Any
                                   (TC_IDL_SEQUENCE_DNS_RR));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_rrSequence).all);
          end if;
       end Initialize_rrSequence;

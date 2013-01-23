@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -106,7 +106,7 @@ package body CORBA is
          Internals.Add_Parameter
            (TC, To_Any (To_PolyORB_String (Completion_Status'Image (C))));
       end loop;
-      TypeCode.Internals.Disable_Reference_Counting (TC);
+      TypeCode.Internals.Disable_Ref_Counting (TC);
 
       return TC;
    end TC_Completion_Status;
@@ -1816,15 +1816,15 @@ package body CORBA is
                (PolyORB.Types.Unsigned_Long (Max)));
          end Build_Wstring_TC;
 
-         --------------------------------
-         -- Disable_Reference_Counting --
-         --------------------------------
+         --------------------------
+         -- Disable_Ref_Counting --
+         --------------------------
 
-         procedure Disable_Reference_Counting (Self : CORBA.TypeCode.Object) is
+         procedure Disable_Ref_Counting (Self : CORBA.TypeCode.Object) is
          begin
-            PolyORB.Any.TypeCode.Disable_Reference_Counting
+            PolyORB.Any.TypeCode.Disable_Ref_Counting
               (Object_Of (Self).all);
-         end Disable_Reference_Counting;
+         end Disable_Ref_Counting;
 
          ------------
          -- Is_Nil --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -759,7 +759,7 @@ package CORBA is
          --  True when Self has not been initialized to contain any typecode
          --  information.
 
-         procedure Disable_Reference_Counting (Self : CORBA.TypeCode.Object);
+         procedure Disable_Ref_Counting (Self : CORBA.TypeCode.Object);
          --  Disable reference counting on the underlying storage of Self
          --  (meant to be used for library-level typecode objects).
 

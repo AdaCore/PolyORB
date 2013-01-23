@@ -2731,14 +2731,14 @@ package body PolyORB.Any is
          end case;
       end Default_Index;
 
-      --------------------------------
-      -- Disable_Reference_Counting --
-      --------------------------------
+      --------------------------
+      -- Disable_Ref_Counting --
+      --------------------------
 
-      procedure Disable_Reference_Counting (Self : in out Object) is
+      procedure Disable_Ref_Counting (Self : in out Object) is
       begin
-         Smart_Pointers.Disable_Reference_Counting (Self);
-      end Disable_Reference_Counting;
+         Smart_Pointers.Disable_Ref_Counting (Self);
+      end Disable_Ref_Counting;
 
       ------------------------
       -- Discriminator_Type --
@@ -3174,23 +3174,23 @@ package body PolyORB.Any is
       begin
          --  Do not ref count / garbage collect our library-level root TCs
 
-         Smart_Pointers.Disable_Reference_Counting (PTC_Null);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Void);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Short);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Long_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Short);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Long_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Float);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Double);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Long_Double);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Boolean);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Char);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Wchar);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Octet);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Any);
-         Smart_Pointers.Disable_Reference_Counting (PTC_TypeCode);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Null);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Void);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Short);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Long_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Unsigned_Short);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Unsigned_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Unsigned_Long_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Float);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Double);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Long_Double);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Boolean);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Char);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Wchar);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Octet);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Any);
+         Smart_Pointers.Disable_Ref_Counting (PTC_TypeCode);
 
          TC_String      := Build_String_TC (0);
          TC_Wide_String := Build_Wstring_TC (0);
@@ -3198,15 +3198,15 @@ package body PolyORB.Any is
          PTC_String      := Object_Of (TC_String);
          PTC_Wide_String := Object_Of (TC_Wide_String);
 
-         Smart_Pointers.Disable_Reference_Counting (PTC_String.all);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Wide_String.all);
+         Smart_Pointers.Disable_Ref_Counting (PTC_String.all);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Wide_String.all);
 
          TC_RootObject := TCF_Object;
          Add_Parameter (TC_RootObject, To_Any ("Object"));
          Add_Parameter (TC_RootObject, To_Any ("PolyORB:Object:1.0"));
 
          PTC_RootObject := Object_Of (TC_RootObject);
-         Smart_Pointers.Disable_Reference_Counting (PTC_RootObject.all);
+         Smart_Pointers.Disable_Ref_Counting (PTC_RootObject.all);
       end Initialize;
 
       ------------

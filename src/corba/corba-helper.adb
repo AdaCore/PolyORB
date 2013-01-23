@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -221,15 +221,15 @@ package body CORBA.Helper is
 
    begin
       TC_RepositoryId_Cache := Build_TC_Alias_String ("RepositoryId");
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_RepositoryId_Cache);
 
       TC_Identifier_Cache   := Build_TC_Alias_String ("Identifier");
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_Identifier_Cache);
 
       TC_ScopedName_Cache   := Build_TC_Alias_String ("ScopedName");
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_ScopedName_Cache);
 
       declare
@@ -239,7 +239,7 @@ package body CORBA.Helper is
       begin
          TC_Visibility_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Short);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting
+         CORBA.TypeCode.Internals.Disable_Ref_Counting
            (TC_Visibility_Cache);
       end;
 
@@ -250,7 +250,7 @@ package body CORBA.Helper is
       begin
          TC_PolicyType_Cache := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.TC_Unsigned_Long);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting
+         CORBA.TypeCode.Internals.Disable_Ref_Counting
            (TC_PolicyType_Cache);
       end;
    end Initialize;

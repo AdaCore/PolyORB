@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -318,7 +318,7 @@ package body  PolyORB.Services.Naming.Helper is
          Add_Parameter (TC_Istring, To_Any (Name));
          Add_Parameter (TC_Istring, To_Any (Id));
          Add_Parameter (TC_Istring, To_Any (TypeCode.TC_String));
-         Disable_Reference_Counting (Object_Of (TC_Istring).all);
+         Disable_Ref_Counting (Object_Of (TC_Istring).all);
       end;
 
       declare
@@ -339,14 +339,14 @@ package body  PolyORB.Services.Naming.Helper is
          Add_Parameter (TC_NameComponent, To_Any (Arg_Name_id));
          Add_Parameter (TC_NameComponent, To_Any (TC_Istring));
          Add_Parameter (TC_NameComponent, To_Any (Arg_Name_kind));
-         Disable_Reference_Counting (Object_Of (TC_NameComponent).all);
+         Disable_Ref_Counting (Object_Of (TC_NameComponent).all);
       end;
 
       TC_SEQUENCE_NameComponent := TCF_Sequence;
       Add_Parameter (TC_SEQUENCE_NameComponent,
                      To_Any (Types.Unsigned_Long'(0)));
       Add_Parameter (TC_SEQUENCE_NameComponent, To_Any (TC_NameComponent));
-      Disable_Reference_Counting (Object_Of (TC_SEQUENCE_NameComponent).all);
+      Disable_Ref_Counting (Object_Of (TC_SEQUENCE_NameComponent).all);
 
       declare
          Name : constant PolyORB.Types.String := To_PolyORB_String ("Name");
@@ -357,7 +357,7 @@ package body  PolyORB.Services.Naming.Helper is
          Add_Parameter (TC_Name, To_Any (Name));
          Add_Parameter (TC_Name, To_Any (Id));
          Add_Parameter (TC_Name, To_Any (TC_SEQUENCE_NameComponent));
-         Disable_Reference_Counting (Object_Of (TC_Name).all);
+         Disable_Ref_Counting (Object_Of (TC_Name).all);
       end;
 
       declare
@@ -376,7 +376,7 @@ package body  PolyORB.Services.Naming.Helper is
          Add_Parameter (TC_BindingType, To_Any (Id));
          Add_Parameter (TC_BindingType, To_Any (nobject_Name));
          Add_Parameter (TC_BindingType, To_Any (ncontext_Name));
-         Disable_Reference_Counting (Object_Of (TC_BindingType).all);
+         Disable_Ref_Counting (Object_Of (TC_BindingType).all);
       end;
 
       declare
@@ -397,7 +397,7 @@ package body  PolyORB.Services.Naming.Helper is
          Add_Parameter (TC_Binding, To_Any (Arg_Name_binding_name));
          Add_Parameter (TC_Binding, To_Any (Helper.TC_BindingType));
          Add_Parameter (TC_Binding, To_Any (Arg_Name_binding_type));
-         Disable_Reference_Counting (Object_Of (TC_Binding).all);
+         Disable_Ref_Counting (Object_Of (TC_Binding).all);
       end;
 
       TC_SEQUENCE_Binding := TCF_Sequence;
@@ -405,7 +405,7 @@ package body  PolyORB.Services.Naming.Helper is
                               To_Any (PolyORB.Types.Unsigned_Long (0)));
       Add_Parameter (TC_SEQUENCE_Binding,
                               To_Any (TC_Binding));
-      Disable_Reference_Counting (Object_Of (TC_SEQUENCE_Binding).all);
+      Disable_Ref_Counting (Object_Of (TC_SEQUENCE_Binding).all);
 
       declare
          Name : constant PolyORB.Types.String :=
@@ -417,7 +417,7 @@ package body  PolyORB.Services.Naming.Helper is
          Add_Parameter (TC_BindingList, To_Any (Name));
          Add_Parameter (TC_BindingList, To_Any (Id));
          Add_Parameter (TC_BindingList, To_Any (TC_SEQUENCE_Binding));
-         Disable_Reference_Counting (Object_Of (TC_BindingList).all);
+         Disable_Ref_Counting (Object_Of (TC_BindingList).all);
       end;
 
       --  XXX to be declared in minimal servant ???
@@ -430,7 +430,7 @@ package body  PolyORB.Services.Naming.Helper is
          Naming.Helper.TC_Object := TypeCode.TCF_Object;
          Add_Parameter (Naming.Helper.TC_Object, To_Any (Name));
          Add_Parameter (Naming.Helper.TC_Object, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (Naming.Helper.TC_Object).all);
+         Disable_Ref_Counting (Object_Of (Naming.Helper.TC_Object).all);
       end;
 
    end Initialize;

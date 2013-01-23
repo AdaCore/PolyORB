@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -145,14 +145,14 @@ package body PolyORB.Smart_Pointers is
       end if;
    end Dec_Usage;
 
-   --------------------------------
-   -- Disable_Reference_Counting --
-   --------------------------------
+   --------------------------
+   -- Disable_Ref_Counting --
+   --------------------------
 
-   procedure Disable_Reference_Counting (Obj : in out Unsafe_Entity'Class) is
+   procedure Disable_Ref_Counting (Obj : in out Unsafe_Entity'Class) is
    begin
       Obj.Counter := -1;
-   end Disable_Reference_Counting;
+   end Disable_Ref_Counting;
 
    -------------------------------
    -- Dummy_Entity_External_Tag --

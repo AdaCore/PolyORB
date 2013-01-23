@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -450,8 +450,8 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                            --    Internals.To_CORBA_Object
       RE_To_PolyORB_Object,         --  CORBA.TypeCode.
       --                            --    Internals.To_PolyORB_Object
-      RE_Disable_Reference_Counting, --  CORBA.TypeCode.
-      --                                  Internals.Disable_Reference_Counting
+      RE_Disable_Ref_Counting,      --  CORBA.TypeCode.
+      --                            --   Internals. Disable_Ref_Counting
       RE_Arguments_1,               --  CORBA.ServerRequest.Arguments
       RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
@@ -1216,7 +1216,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Build_Wstring_TC          => RU_CORBA_TypeCode_Internals,
          RE_To_CORBA_Object           => RU_CORBA_TypeCode_Internals,
          RE_To_PolyORB_Object         => RU_CORBA_TypeCode_Internals,
-         RE_Disable_Reference_Counting => RU_CORBA_TypeCode_Internals,
+         RE_Disable_Ref_Counting      => RU_CORBA_TypeCode_Internals,
          RE_Set_Note                  => RU_PolyORB_Annotations,
          RE_Aggregate_Content         => RU_PolyORB_Any,
          RE_Any_1                     => RU_PolyORB_Any,

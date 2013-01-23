@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -62,7 +62,7 @@ package body CORBA.Bounded_Wide_Strings is
       if Is_Nil (TC_Cache) then
          TC_Cache := Build_Wstring_TC
                        (PolyORB.Types.Unsigned_Long (Max_Length));
-         Disable_Reference_Counting (Object_Of (TC_Cache).all);
+         Disable_Ref_Counting (Object_Of (TC_Cache).all);
       end if;
       return TC_Cache;
    end TC_Bounded_Wide_String;

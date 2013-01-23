@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -3316,7 +3316,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  variable.
 
                   N := Make_Subprogram_Call
-                    (RE (RE_Disable_Reference_Counting),
+                    (RE (RE_Disable_Ref_Counting),
                      New_List (Get_TC_Node (E)));
                   Append_To (Statements, N);
 
@@ -3813,7 +3813,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          if FEN.Kind (E) /= K_Sequence_Type then
             N := Make_Subprogram_Call
-              (RE (RE_Disable_Reference_Counting),
+              (RE (RE_Disable_Ref_Counting),
                New_List (Get_TC_Node (E)));
             Append_To (Statements, N);
          end if;

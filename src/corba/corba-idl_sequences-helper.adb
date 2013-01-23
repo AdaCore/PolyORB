@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -134,7 +134,7 @@ package body CORBA.IDL_SEQUENCES.Helper is
    begin
       TC_IDL_SEQUENCE_Any :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Any, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Any);
 
       IDL_SEQUENCE_Any_Helper.Initialize
@@ -148,12 +148,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_AnySeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Any);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_AnySeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_AnySeq);
       end;
 
       TC_IDL_SEQUENCE_Boolean :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Boolean, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Boolean);
 
       IDL_SEQUENCE_Boolean_Helper.Initialize
@@ -167,12 +167,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_BooleanSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Boolean);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_BooleanSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_BooleanSeq);
       end;
 
       TC_IDL_SEQUENCE_Char :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Char, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Char);
 
       IDL_SEQUENCE_Char_Helper.Initialize
@@ -186,12 +186,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_CharSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Char);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_CharSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_CharSeq);
       end;
 
       TC_IDL_SEQUENCE_Wide_Char :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Wchar, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Wide_Char);
 
       IDL_SEQUENCE_Wide_Char_Helper.Initialize
@@ -205,12 +205,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_WCharSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Wide_Char);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_WCharSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_WCharSeq);
       end;
 
       TC_IDL_SEQUENCE_Octet :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Octet, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Octet);
 
       IDL_SEQUENCE_Octet_Helper.Initialize
@@ -224,12 +224,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_OctetSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Octet);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_OctetSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_OctetSeq);
       end;
 
       TC_IDL_SEQUENCE_Short :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Short, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Short);
 
       IDL_SEQUENCE_Short_Helper.Initialize
@@ -243,13 +243,13 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_ShortSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Short);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ShortSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ShortSeq);
       end;
 
       TC_IDL_SEQUENCE_Unsigned_Short :=
         CORBA.TypeCode.Internals.Build_Sequence_TC
         (CORBA.TC_Unsigned_Short, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Unsigned_Short);
 
       IDL_SEQUENCE_Unsigned_Short_Helper.Initialize
@@ -263,12 +263,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_UShortSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Unsigned_Short);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_UShortSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_UShortSeq);
       end;
 
       TC_IDL_SEQUENCE_Long :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Long, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Long);
 
       IDL_SEQUENCE_Long_Helper.Initialize
@@ -282,12 +282,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_LongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Long);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_LongSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_LongSeq);
       end;
 
       TC_IDL_SEQUENCE_Unsigned_Long :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Unsigned_Long, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Unsigned_Long);
 
       IDL_SEQUENCE_Unsigned_Long_Helper.Initialize
@@ -301,12 +301,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_ULongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Unsigned_Long);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ULongSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ULongSeq);
       end;
 
       TC_IDL_SEQUENCE_Long_Long :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Long_Long, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Long_Long);
 
       IDL_SEQUENCE_Long_Long_Helper.Initialize
@@ -320,13 +320,13 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_LongLongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Long_Long);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_LongLongSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_LongLongSeq);
       end;
 
       TC_IDL_SEQUENCE_Unsigned_Long_Long :=
         CORBA.TypeCode.Internals.Build_Sequence_TC
           (CORBA.TC_Unsigned_Long_Long, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Unsigned_Long_Long);
 
       IDL_SEQUENCE_Unsigned_Long_Long_Helper.Initialize
@@ -342,12 +342,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
          TC_ULongLongSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id,
             Parent => TC_IDL_SEQUENCE_Unsigned_Long_Long);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ULongLongSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ULongLongSeq);
       end;
 
       TC_IDL_SEQUENCE_Float :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Float, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Float);
 
       IDL_SEQUENCE_Float_Helper.Initialize
@@ -361,12 +361,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_FloatSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Float);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_FloatSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_FloatSeq);
       end;
 
       TC_IDL_SEQUENCE_Double :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Double, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Double);
 
       IDL_SEQUENCE_Double_Helper.Initialize
@@ -380,12 +380,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_DoubleSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Double);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_DoubleSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_DoubleSeq);
       end;
 
       TC_IDL_SEQUENCE_Long_Double :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Long_Double, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Long_Double);
 
       IDL_SEQUENCE_Long_Double_Helper.Initialize
@@ -401,13 +401,13 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_LongDoubleSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_Long_Double);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting
+         CORBA.TypeCode.Internals.Disable_Ref_Counting
            (TC_LongDoubleSeq);
       end;
 
       TC_IDL_SEQUENCE_String :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_String, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_String);
 
       IDL_SEQUENCE_String_Helper.Initialize
@@ -421,12 +421,12 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_StringSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => TC_IDL_SEQUENCE_String);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_StringSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_StringSeq);
       end;
 
       TC_IDL_SEQUENCE_Wide_String :=
         CORBA.TypeCode.Internals.Build_Sequence_TC (CORBA.TC_Wide_String, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_Wide_String);
 
       IDL_SEQUENCE_Wide_String_Helper.Initialize
@@ -440,7 +440,7 @@ package body CORBA.IDL_SEQUENCES.Helper is
       begin
          TC_WStringSeq := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name, Id, TC_IDL_SEQUENCE_Wide_String);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_WStringSeq);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_WStringSeq);
       end;
    end Deferred_Initialization;
 
