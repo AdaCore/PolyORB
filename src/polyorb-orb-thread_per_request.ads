@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.ORB.Thread_Per_Request is
 
    pragma Elaborate_Body;
@@ -47,26 +49,26 @@ package PolyORB.ORB.Thread_Per_Request is
 
    type Thread_Per_Request_Policy is new Tasking_Policy_Type with private;
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access Thread_Per_Request_Policy;
       TE  :        Transport_Endpoint_Access);
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access Thread_Per_Request_Policy;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access);

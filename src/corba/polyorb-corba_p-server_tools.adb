@@ -90,7 +90,8 @@ package body PolyORB.CORBA_P.Server_Tools is
    begin
       Activate_Server;
       if Start_New_Task then
-         PolyORB.Tasking.Threads.Create_Task (CORBA.ORB.Run'Access);
+         PolyORB.Tasking.Threads.Create_Task
+           (CORBA.ORB.Run'Access, "ORB_Main");
 
       else
          CORBA.ORB.Run;

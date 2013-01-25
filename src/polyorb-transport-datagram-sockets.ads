@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Datagram Socket Access Point and End Point to receive data from network
 
 with PolyORB.Sockets;
@@ -62,7 +64,7 @@ package PolyORB.Transport.Datagram.Sockets is
    --  on Windows, where we need to use IN_ADDR_ANY for Bind_Address, while
    --  still recording the proper group address in SAP.
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TAP : access Socket_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
@@ -84,25 +86,25 @@ package PolyORB.Transport.Datagram.Sockets is
       Addr : Sock_Addr_Type);
    --  Called on client side to assign remote server address
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TE : access Socket_Endpoint) return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   procedure Read
+   overriding procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
       Error  : out Errors.Error_Container);
    --  Read data from datagram socket
 
-   procedure Write
+   overriding procedure Write
      (TE     : in out Socket_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Error  : out Errors.Error_Container);
    --  Write data to datagram socket
 
-   procedure Close (TE : access Socket_Endpoint);
+   overriding procedure Close (TE : access Socket_Endpoint);
 
-   function Create_Endpoint
+   overriding function Create_Endpoint
      (TAP : access Socket_Access_Point)
      return Datagram_Transport_Endpoint_Access;
    --  Called on server side to initialize socket

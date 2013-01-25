@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A POA configuration for the Proxy-objects-subPOA.
 
 with PolyORB.POA_Policies;
@@ -52,7 +54,7 @@ package body PolyORB.POA_Config.Proxies is
    -- Initialize --
    ----------------
 
-   procedure Initialize
+   overriding procedure Initialize
      (C : Configuration)
    is
       pragma Warnings (Off);
@@ -96,7 +98,7 @@ package body PolyORB.POA_Config.Proxies is
    -- Default_Policies --
    ----------------------
 
-   function Default_Policies
+   overriding function Default_Policies
      (C : Configuration)
      return PolyORB.POA_Policies.PolicyList
    is

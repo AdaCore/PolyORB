@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -467,35 +467,46 @@ begin
 
       --  Unions
       declare
-         Test_Unions : constant array (Integer range <>) of myUnion
-           := ((Switch => 0, Unknown => 987),
-               (Switch => 1, Counter => 1212),
-               (Switch => 2, Flag => True),
-               (Switch => 3, Hue => Green));
+         Test_Unions : constant array (Integer range <>) of myUnion :=
+           ((Switch => 0, Unknown => 987),
+            (Switch => 1, Counter => 1212),
+            (Switch => 2, Flag => True),
+            (Switch => 3, Hue => Green));
          Pass : Boolean;
       begin
          for J in Test_Unions'Range loop
-            Pass := echoUnion (Myall_types, Test_Unions (J)) = Test_Unions (J);
-            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
+            declare
+               Test_Union_Name : constant String :=
+                 "test union" & Test_Unions (J).Switch'Img;
+            begin
+               begin
+                  Pass := echoUnion
+                            (Myall_types, Test_Unions (J)) = Test_Unions (J);
+               exception
+                  when others =>
+                     Pass := False;
+               end;
+               Output (Test_Union_Name, Pass);
+            end;
          end loop;
-      exception
-         when others =>
-            Output ("test union", False);
       end;
 
       declare
          Pass : Boolean;
       begin
          for J in Test_Unions'Range loop
+            declare
+               Test_Union_Name : constant String :=
+                 "test union with enum switch " & Test_Unions (J).Switch'Img;
             begin
-               Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
-                 = Test_Unions (J);
-               Output ("test union with enum switch "
-                       & Test_Unions (J).Switch'Img, Pass);
-            exception
-               when others =>
-                  Output ("test union with enum switch "
-                          & Test_Unions (J).Switch'Img, False);
+               begin
+                  Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
+                    = Test_Unions (J);
+               exception
+                  when others =>
+                     Pass := False;
+               end;
+               Output (Test_Union_Name, Pass);
             end;
          end loop;
       end;

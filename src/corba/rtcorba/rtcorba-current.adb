@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,15 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
 with RTCORBA.PriorityMapping;
 
-with PolyORB.CORBA_P.Initial_References;
 with PolyORB.RTCORBA_P.Setup;
 
 with PolyORB.Annotations;
+with PolyORB.Initial_References;
 with PolyORB.Initialization;
 with PolyORB.QoS.Priority;
+with PolyORB.References;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings.Lists;
@@ -50,20 +50,18 @@ package body RTCORBA.Current is
    use PolyORB.Tasking.Threads.Annotations;
    use PolyORB.QoS.Priority;
 
-   function Create return CORBA.Object.Ref;
+   function Create return PolyORB.References.Ref;
    --  Create a RTCORBA.Current.Ref
 
    ------------
    -- Create --
    ------------
 
-   function Create return CORBA.Object.Ref is
-      Result : Local_Ref;
-      Current : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                  new Current_Object;
+   function Create return PolyORB.References.Ref is
+      Result : PolyORB.References.Ref;
    begin
-      Set (Result, Current);
-      return CORBA.Object.Ref (Result);
+      Result.Set (new Current_Object);
+      return Result;
    end Create;
 
    ----------------------
@@ -171,10 +169,9 @@ package body RTCORBA.Current is
    procedure Initialize;
 
    procedure Initialize is
-      use PolyORB.CORBA_P.Initial_References;
-
    begin
-      Register_Initial_Reference ("RTCurrent", Create'Access);
+      PolyORB.Initial_References.Register_Initial_Reference
+        ("RTCurrent", Create'Access);
    end Initialize;
 
    use PolyORB.Initialization;
@@ -186,8 +183,7 @@ begin
      (Module_Info'
       (Name      => +"rtcorba.current",
        Conflicts => Empty,
-       Depends   => +"corba.initial_references"
-       & "tasking.annotations",
+       Depends   => +"initial_references" & "tasking.annotations",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,

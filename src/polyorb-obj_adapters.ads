@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides the root definition of all Object adapters.
 --  An Object Adapter manages the association of references to servants.
 
@@ -56,7 +58,7 @@ package PolyORB.Obj_Adapters is
    procedure Destroy (OA : access Obj_Adapter);
    --  Deallocate OA's internal structures
 
-   procedure Finalize (OA : in out Obj_Adapter);
+   overriding procedure Finalize (OA : in out Obj_Adapter);
    --  Makes a dispatching call on Destroy
 
    --------------------------------------

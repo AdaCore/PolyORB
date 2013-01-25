@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
@@ -151,7 +153,7 @@ package PolyORB.Binding_Data is
 
    function Is_Local_Profile
      (PF : access Profile_Factory;
-      P  : access Profile_Type'Class) return Boolean is abstract;
+      P  : not null access Profile_Type'Class) return Boolean is abstract;
    --  True iff P designates an object that can be contacted at the access
    --  point associated with PF.
 

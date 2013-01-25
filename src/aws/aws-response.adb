@@ -137,7 +137,7 @@ package body AWS.Response is
       for J in Auth_Values'Range loop
          declare
             Stale_Image : constant String :=
-               Values.Search (To_String (Auth_Values (J)), "stale", False);
+              Values.Search (To_String (Auth_Values (J)), "stale", False);
          begin
             if Stale_Image /= "" then
                return Boolean'Value (Stale_Image);

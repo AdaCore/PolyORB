@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A POA configuration corresponding to CORBA RootPOA policies.
 
 package PolyORB.POA_Config.Root_POA is
@@ -38,10 +40,10 @@ package PolyORB.POA_Config.Root_POA is
 
    type Root_POA_Configuration is new Configuration_Type with private;
 
-   procedure Initialize
+   overriding procedure Initialize
      (C : Root_POA_Configuration);
 
-   function Default_Policies
+   overriding function Default_Policies
      (C : Root_POA_Configuration)
      return PolyORB.POA_Policies.PolicyList;
 

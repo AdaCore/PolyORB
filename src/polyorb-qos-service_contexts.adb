@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Request_QoS;
@@ -246,7 +248,7 @@ package body PolyORB.QoS.Service_Contexts is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (QoS : access QoS_GIOP_Service_Contexts_Parameter)
    is
       Iter : Iterator := First (QoS.Service_Contexts);

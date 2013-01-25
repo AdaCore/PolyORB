@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,13 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.CORBA_P.Interceptors_Slots;
 
 with PolyORB.Annotations;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Initialization;
-with PolyORB.Smart_Pointers;
+with PolyORB.References;
 with PolyORB.Utils.Strings.Lists;
 
 package body PortableInterceptor.Current.Impl is
@@ -45,7 +45,7 @@ package body PortableInterceptor.Current.Impl is
    use PolyORB.CORBA_P.Interceptors_Slots;
    use PolyORB.Tasking.Threads.Annotations;
 
-   function Create return CORBA.Object.Ref;
+   function Create return PolyORB.References.Ref;
 
    procedure Deferred_Initialization;
 
@@ -53,13 +53,11 @@ package body PortableInterceptor.Current.Impl is
    -- Create --
    ------------
 
-   function Create return CORBA.Object.Ref is
-      Result  : Local_Ref;
-      Current : constant PolyORB.Smart_Pointers.Entity_Ptr := new Impl.Object;
+   function Create return PolyORB.References.Ref is
+      Result : PolyORB.References.Ref;
    begin
-      Set (Result, Current);
-
-      return CORBA.Object.Ref (Result);
+      Result.Set (new Impl.Object);
+      return Result;
    end Create;
 
    -----------------------------
@@ -68,7 +66,7 @@ package body PortableInterceptor.Current.Impl is
 
    procedure Deferred_Initialization is
    begin
-      PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
+      PolyORB.Initial_References.Register_Initial_Reference
         ("PICurrent", Create'Access);
    end Deferred_Initialization;
 
@@ -172,7 +170,7 @@ begin
      (Module_Info'
       (Name      => +"portableinterceptor.current",
        Conflicts => Empty,
-       Depends   => +"corba.initial_references",
+       Depends   => +"initial_references",
        Provides  => Empty,
        Implicit  => False,
        Init      => Deferred_Initialization'Access,

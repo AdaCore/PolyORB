@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  TAG_POLICIES tagged component
 
 with PolyORB.Representations.CDR.Common;
@@ -46,17 +48,19 @@ package PolyORB.GIOP_P.Tagged_Components.Policies is
    --  specified in the CORBA specification, par. 22.3.2, use default
    --  value.
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C : access TC_Policies; Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Policies;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents (C : access TC_Policies);
+   overriding procedure Release_Contents (C : access TC_Policies);
 
-   function Duplicate (C : TC_Policies) return Tagged_Component_Access;
+   overriding function Duplicate
+     (C : TC_Policies)
+     return Tagged_Component_Access;
 
 private
 

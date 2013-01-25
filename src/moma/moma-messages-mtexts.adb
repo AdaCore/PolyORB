@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Types;
 
 package body MOMA.Messages.MTexts is
@@ -71,7 +73,7 @@ package body MOMA.Messages.MTexts is
    -- Image --
    -----------
 
-   function Image (Self : MText) return String is
+   overriding function Image (Self : MText) return String is
    begin
       return MOMA.Types.To_Standard_String (Get_Text (Self));
    end Image;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Filters;
@@ -67,7 +69,7 @@ package body PolyORB.Transport.Datagram is
    -- Handle_Event --
    ------------------
 
-   procedure Handle_Event
+   overriding procedure Handle_Event
      (H : access Datagram_TAP_AES_Event_Handler)
    is
       use PolyORB.Components;
@@ -108,7 +110,7 @@ package body PolyORB.Transport.Datagram is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (TE  : not null access Datagram_Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Basic POA implementation.
 
 --  As an implementation package of abstract functions defined in
@@ -49,7 +51,7 @@ package PolyORB.POA.Basic_POA is
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
 
-   procedure Create_POA
+   overriding procedure Create_POA
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
@@ -65,18 +67,18 @@ package PolyORB.POA.Basic_POA is
      (OA         : access Basic_Obj_Adapter;
       Proxies_OA :        Basic_Obj_Adapter_Access);
 
-   function Is_Proxy_Oid
+   overriding function Is_Proxy_Oid
      (OA  : access Basic_Obj_Adapter;
       Oid : access Objects.Object_Id)
      return Boolean;
 
-   procedure To_Proxy_Oid
+   overriding procedure To_Proxy_Oid
      (OA    : access Basic_Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Proxy_To_Ref
+   overriding procedure Proxy_To_Ref
      (OA    : access Basic_Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;

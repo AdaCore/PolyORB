@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  with Ada.Strings.Fixed;
 --
 with PolyORB.Binding_Data.GIOP.IIOP;
@@ -97,7 +99,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    IIOP_Factories : constant PolyORB.Filters.Factory_Array
      := (0 => Sli'Access, 1 => Pro'Access);
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : TLS_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -410,7 +412,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (TMA : TLS_Transport_Mechanism)
      return TLS_Transport_Mechanism
    is
@@ -466,7 +468,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : TLS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is
@@ -588,7 +590,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.TLS is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (M : access TLS_Transport_Mechanism) is
+   overriding procedure Release_Contents
+     (M : access TLS_Transport_Mechanism)
+   is
    begin
       Deallocate (M.Addresses);
    end Release_Contents;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Components;
 with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
@@ -105,7 +107,7 @@ package body PolyORB.ORB.Thread_Pool is
    -- Handle_Close_Connection --
    -----------------------------
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access Thread_Pool_Policy;
       TE  : Transport_Endpoint_Access)
    is
@@ -122,7 +124,7 @@ package body PolyORB.ORB.Thread_Pool is
    -- Handle_New_Server_Connection --
    ----------------------------------
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;
       AC  : Active_Connection)
@@ -146,7 +148,7 @@ package body PolyORB.ORB.Thread_Pool is
    -- Handle_New_Client_Connection --
    ----------------------------------
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access Thread_Pool_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection)
@@ -202,7 +204,7 @@ package body PolyORB.ORB.Thread_Pool is
          pragma Debug
            (C, O (Image (Current_Task) & " creating new spare task"));
          begin
-            Create_Task (Thread_Pool_Main_Loop'Access);
+            Create_Task (Thread_Pool_Main_Loop'Access, "Pool");
          exception
             when Tasking_Error =>
                pragma Debug
@@ -219,7 +221,7 @@ package body PolyORB.ORB.Thread_Pool is
    -- Handle_Request_Execution --
    ------------------------------
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;
       RJ  : access Request_Job'Class)
@@ -240,7 +242,7 @@ package body PolyORB.ORB.Thread_Pool is
    -- Idle --
    ----------
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access Thread_Pool_Policy;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access)
@@ -377,7 +379,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (C, O ("Creating" & Start_Threads'Img & " threads"));
 
       for J in 1 .. Start_Threads loop
-         Create_Task (Thread_Pool_Main_Loop'Access);
+         Create_Task (Thread_Pool_Main_Loop'Access, "Pool");
       end loop;
 
       pragma Debug (C, O ("Create_Threads: leave"));

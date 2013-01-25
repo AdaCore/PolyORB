@@ -69,9 +69,9 @@ package body CORBA.Request is
       pragma Unreferenced (Req_Flags);
 
       PResult : PolyORB.Any.NamedValue :=
-                  (Name      => PolyORB.Types.Identifier (Result.Name),
-                   Argument  => PolyORB.Any.Any (Result.Argument),
-                   Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
+        (Name      => PolyORB.Types.Identifier (Result.Name),
+         Argument  => PolyORB.Any.Any (Result.Argument),
+         Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
 
    begin
       PolyORB.Requests.Setup_Request

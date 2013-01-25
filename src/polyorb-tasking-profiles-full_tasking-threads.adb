@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of Threads under the Full_Tasking profile.
 
 --  WAG:601
@@ -65,11 +67,14 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    --  Task type
 
-   task type Generic_Task (P : System.Priority; S : Natural) is
+   task type Generic_Task
+     (P : System.Priority; S : Natural; N : access String)
+   is
       --  All purpose generic task that executes a 'Runnable'
 
       pragma Priority (P);
       pragma Storage_Size (S);
+      pragma Task_Name ("GT-" & N.all);
 
       entry Initialize (T : PTT.Thread_Access);
       --  Initialize the task
@@ -90,7 +95,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       Stack_Size : Natural;
    end record;
 
-   function Get_Thread_Id
+   overriding function Get_Thread_Id
      (T : access Full_Tasking_Thread_Type) return PTT.Thread_Id;
 
    type Full_Tasking_Thread_Access
@@ -110,7 +115,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end record;
    --  Simplified runnable for parameterless procedure
 
-   procedure Run (SR : not null access Simple_Runnable);
+   overriding procedure Run (SR : not null access Simple_Runnable);
 
    --  WAG:642
    --  For older compilers, we need a separate Reaper task to purge terminated
@@ -190,7 +195,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Run --
    ---------
 
-   procedure Run (SR : not null access Simple_Runnable)
+   overriding procedure Run (SR : not null access Simple_Runnable)
    is
       use type PTT.Parameterless_Procedure;
    begin
@@ -203,9 +208,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Run_In_Task --
    -----------------
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : PTT.Runnable_Access) return PTT.Thread_Access
@@ -214,7 +219,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       pragma Unreferenced (TF);
       pragma Warnings (On);
 
-      T : constant Full_Tasking_Thread_Access := new Full_Tasking_Thread_Type;
+      T  : constant Full_Tasking_Thread_Access := new Full_Tasking_Thread_Type;
       GT : Generic_Task_Access;
 
    begin
@@ -234,16 +239,17 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          T.Stack_Size := Storage_Size;
       end if;
 
-      GT := new Generic_Task (T.Priority, T.Stack_Size);
+      GT := new Generic_Task
+                  (T.Priority, T.Stack_Size, Name'Unrestricted_Access);
       T.Self := GT;
       GT.Initialize (PTT.Thread_Access (T));
       GT.Start (R);
       return PTT.Thread_Access (T);
    end Run_In_Task;
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : PTT.Parameterless_Procedure) return PTT.Thread_Access
@@ -324,9 +330,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Get_Current_Thread_Id --
    ---------------------------
 
-   function Get_Current_Thread_Id
-     (TF : access Full_Tasking_Thread_Factory_Type)
-     return PTT.Thread_Id
+   overriding function Get_Current_Thread_Id
+     (TF : access Full_Tasking_Thread_Factory_Type) return PTT.Thread_Id
    is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
@@ -339,9 +344,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Get_Thread_Id --
    -------------------
 
-   function Get_Thread_Id
-     (T : access Full_Tasking_Thread_Type)
-     return PTT.Thread_Id is
+   overriding function Get_Thread_Id
+     (T : access Full_Tasking_Thread_Type) return PTT.Thread_Id is
    begin
       return T.Id;
    end Get_Thread_Id;
@@ -350,7 +354,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Image --
    -----------
 
-   function Thread_Id_Image
+   overriding function Thread_Id_Image
      (TF  : access Full_Tasking_Thread_Factory_Type;
       TID : PTT.Thread_Id) return String
    is
@@ -371,7 +375,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Set_Priority --
    ------------------
 
-   procedure Set_Priority
+   overriding procedure Set_Priority
      (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority)
@@ -384,7 +388,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Get_Priority --
    ------------------
 
-   function Get_Priority
+   overriding function Get_Priority
      (TF : access Full_Tasking_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority
@@ -397,7 +401,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Relative_Delay --
    --------------------
 
-   procedure Relative_Delay
+   overriding procedure Relative_Delay
      (TF : access Full_Tasking_Thread_Factory_Type; D : Duration)
    is
       pragma Unreferenced (TF);
@@ -409,7 +413,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Awake_Count --
    -----------------
 
-   function Awake_Count
+   overriding function Awake_Count
      (TF : access Full_Tasking_Thread_Factory_Type) return Natural is
    begin
       --  If the environment task is not callable, we do not count it as awake
@@ -425,7 +429,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    -- Independent_Count --
    -----------------------
 
-   function Independent_Count
+   overriding function Independent_Count
      (TF : access Full_Tasking_Thread_Factory_Type) return Natural
    is
       pragma Unreferenced (TF);

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Conversion;
 
@@ -508,9 +510,9 @@ package body PolyORB.Representations.SRP is
          when 12 =>
             Result := PolyORB.Any.TypeCode.TC_TypeCode;
          when 13 =>
-            Result := PolyORB.Any.TypeCode.TC_Principal;
+            Result := PolyORB.Any.TypeCode.TCF_Principal;
          when 14 =>
-            Result := PolyORB.Any.TypeCode.TC_Object;
+            Result := PolyORB.Any.TypeCode.TCF_Object;
             declare
                Id : constant PolyORB.Types.String := Unmarshall (Buffer);
                Name : constant PolyORB.Types.String := Unmarshall (Buffer);
@@ -734,7 +736,7 @@ package body PolyORB.Representations.SRP is
                  (Result, To_Any (Length));
             end;
          when 28 =>
-            Result := PolyORB.Any.TypeCode.TC_Fixed;
+            Result := PolyORB.Any.TypeCode.TCF_Fixed;
             declare
                Fixed_Digits : PolyORB.Types.Unsigned_Short;
                Fixed_Scale : PolyORB.Types.Short;
@@ -1335,7 +1337,7 @@ package body PolyORB.Representations.SRP is
    -- Marshall_From_Any --
    -----------------------
 
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
@@ -1350,7 +1352,7 @@ package body PolyORB.Representations.SRP is
       Data   :        PolyORB.Any.Any_Container'Class)
    is
       Data_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
-                    Unwind_Typedefs (Get_Type (Data));
+        Unwind_Typedefs (Get_Type (Data));
    begin
       pragma Debug (C, O ("Marshall_From_Any: enter"));
       --  pragma Debug
@@ -1666,7 +1668,7 @@ package body PolyORB.Representations.SRP is
    -- Unmarshall_To_Any --
    -----------------------
 
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;
@@ -1686,8 +1688,8 @@ package body PolyORB.Representations.SRP is
      (Buffer : access Buffer_Type;
       Result : in out PolyORB.Any.Any_Container'Class)
    is
-      Tc       : constant PolyORB.Any.TypeCode.Local_Ref :=
-                   Unwind_Typedefs (Get_Type (Result));
+      Tc : constant PolyORB.Any.TypeCode.Local_Ref :=
+        Unwind_Typedefs (Get_Type (Result));
 
    begin
       pragma Debug (C, O ("Unmarshall_To_Any: enter"));

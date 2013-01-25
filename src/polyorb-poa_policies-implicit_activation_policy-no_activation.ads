@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    type No_Activation_Policy is new ImplicitActivationPolicy with null record;
@@ -39,16 +41,16 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    function Create
      return No_Activation_Policy_Access;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        No_Activation_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : No_Activation_Policy)
      return String;
 
-   procedure Implicit_Activate_Servant
+   overriding procedure Implicit_Activate_Servant
      (Self      :        No_Activation_Policy;
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;
@@ -56,7 +58,7 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Errors.Error_Container);
 
-   procedure Ensure_No_Implicit_Activation
+   overriding procedure Ensure_No_Implicit_Activation
      (Self      :        No_Activation_Policy;
       Error     : in out PolyORB.Errors.Error_Container);
 

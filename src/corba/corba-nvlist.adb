@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body CORBA.NVList is
 
    --------------
@@ -85,7 +87,7 @@ package body CORBA.NVList is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self : in out Ref) is
+   overriding procedure Initialize (Self : in out Ref) is
       Res : PolyORB.Any.NVList.Ref;
 
    begin

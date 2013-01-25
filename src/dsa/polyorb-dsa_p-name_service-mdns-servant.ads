@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package implements the actual mDNS servant. It stores a local list
 --  of entries representing the respective RCI/SP packages and upon reception
 --  of a request, looks up the requested package's informations and send them
@@ -80,7 +82,7 @@ package PolyORB.DSA_P.Name_Service.mDNS.Servant is
    --  Depending on the incoming request, it generates the corresponding
    --  Resource Records by lookup up the local list of Local_Entry objects.
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self     : access Object;
       Request  : PolyORB.Requests.Request_Access);
    --  Overriding the abstract servant's Invoke procedure. Used to create

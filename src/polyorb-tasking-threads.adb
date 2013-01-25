@@ -33,7 +33,7 @@
 package body PolyORB.Tasking.Threads is
 
    My_Thread_Factory : Thread_Factory_Access;
-   --  Thread_Factory of the chosen profile.
+   --  Thread_Factory of the chosen profile
 
    Initialised       : Boolean := False;
 
@@ -50,11 +50,12 @@ package body PolyORB.Tasking.Threads is
    -- Create_Task --
    -----------------
 
-   procedure Create_Task (Main : Parameterless_Procedure) is
+   procedure Create_Task (Main : Parameterless_Procedure; Name : String) is
       T : constant Thread_Access :=
-            Run_In_Task
-              (TF => My_Thread_Factory,
-               P  => Main);
+        Run_In_Task
+          (TF   => My_Thread_Factory,
+           P    => Main,
+           Name => Name);
       pragma Warnings (Off);
       pragma Unreferenced (T);
       pragma Warnings (On);
@@ -66,8 +67,7 @@ package body PolyORB.Tasking.Threads is
    -- Current_Task --
    ------------------
 
-   function Current_Task
-     return Thread_Id is
+   function Current_Task return Thread_Id is
    begin
       return Get_Current_Thread_Id (My_Thread_Factory);
    end Current_Task;
@@ -76,8 +76,7 @@ package body PolyORB.Tasking.Threads is
    -- Get_Thread_Factory --
    ------------------------
 
-   function Get_Thread_Factory
-     return Thread_Factory_Access is
+   function Get_Thread_Factory return Thread_Factory_Access is
    begin
       pragma Assert (Initialised);
 
@@ -88,8 +87,7 @@ package body PolyORB.Tasking.Threads is
    -- Image --
    -----------
 
-   function Image (TID : Thread_Id)
-                  return String is
+   function Image (TID : Thread_Id) return String is
    begin
       return Thread_Id_Image (My_Thread_Factory, TID);
    end Image;
@@ -107,8 +105,7 @@ package body PolyORB.Tasking.Threads is
    -- Register_Thread_Factory --
    -----------------------------
 
-   procedure Register_Thread_Factory
-     (TF : Thread_Factory_Access) is
+   procedure Register_Thread_Factory (TF : Thread_Factory_Access) is
    begin
       pragma Assert (not Initialised);
 
@@ -140,8 +137,7 @@ package body PolyORB.Tasking.Threads is
    -- To_Address --
    ----------------
 
-   function To_Address (TID : Thread_Id)
-                       return System.Address is
+   function To_Address (TID : Thread_Id) return System.Address is
    begin
       return System.Address (TID);
    end To_Address;
@@ -150,8 +146,7 @@ package body PolyORB.Tasking.Threads is
    -- To_Thread_Id --
    ------------------
 
-   function To_Thread_Id (A : System.Address)
-                         return Thread_Id is
+   function To_Thread_Id (A : System.Address) return Thread_Id is
    begin
       return Thread_Id (A);
    end To_Thread_Id;

@@ -43,22 +43,22 @@ package PolyORB.Binding_Data.DNS is
 
    overriding function Image (Prof : DNS_Profile_Type) return String;
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access DNS_Profile_Type;
       The_ORB : Components.Component_Access;
       QoS     : PolyORB.QoS.QoS_Parameters;
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Errors.Error_Container);
 
-   procedure Release (P : in out DNS_Profile_Type);
+   overriding procedure Release (P : in out DNS_Profile_Type);
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : DNS_Profile_Type;
       Right : Profile_Type'Class) return Boolean;
 
-   function Is_Local_Profile
+   overriding function Is_Local_Profile
      (PF : access DNS_Profile_Factory;
-      P  : access Profile_Type'Class) return Boolean;
+      P  : not null access Profile_Type'Class) return Boolean;
 
    function Get_Primary_Transport_Mechanism
      (P : DNS_Profile_Type) return PDTM.Transport_Mechanism_Access;

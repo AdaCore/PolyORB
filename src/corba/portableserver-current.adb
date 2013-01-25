@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,12 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.Errors;
 with PolyORB.Initialization;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Assignment_Policy;
 with PolyORB.POA_Types;
+with PolyORB.References;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads.Annotations;
@@ -57,7 +58,7 @@ package body PortableServer.Current is
    use PolyORB.Types;
    use PortableServer.Current.Helper;
 
-   function Create return CORBA.Object.Ref;
+   function Create return PolyORB.References.Ref;
 
    function Find_POA
      (Profile : Profile_Access)
@@ -68,15 +69,11 @@ package body PortableServer.Current is
    -- Create --
    ------------
 
-   function Create return CORBA.Object.Ref
-   is
-      Result  : Local_Ref;
-      Current : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                  new Current_Object;
-
+   function Create return PolyORB.References.Ref is
+      Result  : PolyORB.References.Ref;
    begin
-      Set (Result, Current);
-      return CORBA.Object.Ref (Result);
+      Result.Set (PolyORB.Smart_Pointers.Entity_Ptr'(new Current_Object));
+      return Result;
    end Create;
 
    --------------
@@ -286,7 +283,7 @@ package body PortableServer.Current is
    procedure Initialize;
 
    procedure Initialize is
-      use PolyORB.CORBA_P.Initial_References;
+      use PolyORB.Initial_References;
    begin
       Register_Initial_Reference ("POACurrent", Create'Access);
       PortableServer.PortableServer_Current_Registered := True;
@@ -301,7 +298,7 @@ begin
      (Module_Info'
       (Name      => +"portableserver.current",
        Conflicts => Empty,
-       Depends   => +"corba.initial_references",
+       Depends   => +"initial_references",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,

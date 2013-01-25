@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Jobs;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
@@ -111,17 +113,17 @@ package PolyORB.Lanes is
       Max_Buffer_Size           : PolyORB.Types.Unsigned_Long)
      return Lane_Access;
 
-   procedure Queue_Job
+   overriding procedure Queue_Job
      (L             : access Lane;
       J             :        Job_Access;
       Hint_Priority :        External_Priority := Invalid_Priority);
 
-   function Is_Valid_Priority
+   overriding function Is_Valid_Priority
      (L        : access Lane;
       Priority :        External_Priority)
      return Boolean;
 
-   procedure Destroy (L : access Lane);
+   overriding procedure Destroy (L : access Lane);
 
    ---------------------
    -- Extensible_Lane --
@@ -149,17 +151,17 @@ package PolyORB.Lanes is
       Index :        Positive);
    --  Add lane L at position Index in Set
 
-   procedure Queue_Job
+   overriding procedure Queue_Job
      (L             : access Lanes_Set;
       J             :        Job_Access;
       Hint_Priority :        External_Priority := Invalid_Priority);
 
-   function Is_Valid_Priority
+   overriding function Is_Valid_Priority
      (L        : access Lanes_Set;
       Priority :        External_Priority)
      return Boolean;
 
-   procedure Destroy (L : access Lanes_Set);
+   overriding procedure Destroy (L : access Lanes_Set);
 
 private
 
@@ -170,7 +172,7 @@ private
 
    type Lane_Runnable_Access is access all Lane_Runnable;
 
-   procedure Run (R : not null access Lane_Runnable);
+   overriding procedure Run (R : not null access Lane_Runnable);
 
    ------------------------------
    -- Management of idle tasks --

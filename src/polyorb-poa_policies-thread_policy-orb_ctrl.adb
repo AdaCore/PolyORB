@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of the 'ORB Control' POA Policy.
 
 --  Under this policy, the ORB is responsible for the creation, management,
@@ -55,7 +57,7 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : ORB_Ctrl_Policy)
      return String
    is
@@ -70,7 +72,7 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        ORB_Ctrl_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)

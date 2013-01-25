@@ -117,11 +117,11 @@ package body PortableServer.IdUniquenessPolicy is
 
       declare
          Position : constant CORBA.Unsigned_Long :=
-                      CORBA.From_Any
-                        (CORBA.Internals.Get_Aggregate_Element
-                          (Value,
-                           CORBA.TC_Unsigned_Long,
-                           CORBA.Unsigned_Long (0)));
+           CORBA.From_Any
+             (CORBA.Internals.Get_Aggregate_Element
+                (Value,
+                 CORBA.TC_Unsigned_Long,
+                 CORBA.Unsigned_Long (0)));
       begin
          if Position >
            IdUniquenessPolicyValue'Pos (IdUniquenessPolicyValue'Last)

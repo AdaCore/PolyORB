@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A dummy data representation method, just for show.
 
 with PolyORB.Buffers;
@@ -46,13 +48,13 @@ package PolyORB.Representations.Test is
    --  A real representation function should implement the
    --  following two subprograms.
 
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access Rep_Test;
       Buffer : access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access Rep_Test;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;

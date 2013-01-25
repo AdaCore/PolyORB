@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Binding_Data.Local is
 
    use PolyORB.Objects;
@@ -38,7 +40,7 @@ package body PolyORB.Binding_Data.Local is
    -- Release --
    -------------
 
-   procedure Release (P : in out Local_Profile_Type)
+   overriding procedure Release (P : in out Local_Profile_Type)
    is
    begin
       Free (P.Object_Id);
@@ -61,7 +63,7 @@ package body PolyORB.Binding_Data.Local is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : Local_Profile_Type;
       Right : Profile_Type'Class) return Boolean
    is
@@ -74,7 +76,7 @@ package body PolyORB.Binding_Data.Local is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile
+   overriding function Duplicate_Profile
      (P : Local_Profile_Type)
      return Profile_Access
    is
@@ -91,7 +93,7 @@ package body PolyORB.Binding_Data.Local is
    -- Bind_Profile --
    -------------------
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access Local_Profile_Type;
       The_ORB :        Components.Component_Access;
       QoS     :        PolyORB.QoS.QoS_Parameters;
@@ -116,7 +118,7 @@ package body PolyORB.Binding_Data.Local is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : Local_Profile_Type)
      return Profile_Tag
    is
@@ -132,7 +134,7 @@ package body PolyORB.Binding_Data.Local is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : Local_Profile_Type)
      return Profile_Preference
    is
@@ -150,7 +152,7 @@ package body PolyORB.Binding_Data.Local is
    -- Image --
    -----------
 
-   function Image
+   overriding function Image
      (Prof : Local_Profile_Type)
      return String is
    begin

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.X509;
 
 package PolyORB.Security.Identities.Distinguished_Name is
@@ -46,24 +48,25 @@ private
 
    --  Derived from Identity_Type
 
-   function Get_Token_Type
+   overriding function Get_Token_Type
      (Self : access Distinguished_Name_Identity_Type)
       return PolyORB.Security.Types.Identity_Token_Type;
 
-   function Get_Printable_Name
+   overriding function Get_Printable_Name
      (Self : access Distinguished_Name_Identity_Type)
       return String;
 
-   function Duplicate
+   overriding function Duplicate
      (Self : access Distinguished_Name_Identity_Type) return Identity_Access;
 
-   procedure Release_Contents (Self : access Distinguished_Name_Identity_Type);
+   overriding procedure Release_Contents
+     (Self : access Distinguished_Name_Identity_Type);
 
-   function Encode
+   overriding function Encode
      (Self : access Distinguished_Name_Identity_Type)
       return Ada.Streams.Stream_Element_Array;
 
-   procedure Decode
+   overriding procedure Decode
      (Self  : access Distinguished_Name_Identity_Type;
       Item  :        Ada.Streams.Stream_Element_Array;
       Error : in out PolyORB.Errors.Error_Container);

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
@@ -65,7 +67,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Activate --
    --------------
 
-   procedure Activate
+   overriding procedure Activate
      (Self  : access Basic_POA_Manager;
       Error : in out PolyORB.Errors.Error_Container)
    is
@@ -110,7 +112,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Hold_Requests --
    -------------------
 
-   procedure Hold_Requests
+   overriding procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion : Boolean;
       Error               : in out PolyORB.Errors.Error_Container)
@@ -147,7 +149,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Discard_Requests --
    ----------------------
 
-   procedure Discard_Requests
+   overriding procedure Discard_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
       Error               : in out PolyORB.Errors.Error_Container)
@@ -184,7 +186,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Deactivate --
    ----------------
 
-   procedure Deactivate
+   overriding procedure Deactivate
      (Self                : access Basic_POA_Manager;
       Etherealize_Objects :        Boolean;
       Wait_For_Completion :        Boolean)
@@ -216,7 +218,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Get_State --
    ---------------
 
-   function Get_State (Self : Basic_POA_Manager) return State is
+   overriding function Get_State (Self : Basic_POA_Manager) return State is
       Result : State;
 
    begin
@@ -231,7 +233,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Create --
    ------------
 
-   procedure Create (M : access Basic_POA_Manager) is
+   overriding procedure Create (M : access Basic_POA_Manager) is
       use Requests_Queues;
    begin
       pragma Debug (C, O ("Create a new Basic_POA_Manager"));
@@ -245,7 +247,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Register_POA --
    ------------------
 
-   procedure Register_POA
+   overriding procedure Register_POA
      (Self : access Basic_POA_Manager;
       OA   : Obj_Adapter_Access)
    is
@@ -263,7 +265,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Remove_POA --
    ----------------
 
-   procedure Remove_POA
+   overriding procedure Remove_POA
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
    is
@@ -300,7 +302,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Get_Hold_Servant --
    ----------------------
 
-   function Get_Hold_Servant
+   overriding function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
      return Servants.Servant_Access
@@ -357,7 +359,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Finalize --
    --------------
 
-   procedure Finalize (Self : in out Basic_POA_Manager) is
+   overriding procedure Finalize (Self : in out Basic_POA_Manager) is
       use Requests_Queues;
       use POA_Lists;
 
@@ -419,7 +421,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Obj : not null access Hold_Servant;
       Req : Requests.Request_Access) return Boolean
    is

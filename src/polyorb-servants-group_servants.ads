@@ -32,6 +32,8 @@
 
 pragma Ada_2005;
 
+pragma Ada_2005;
+
 --  A servant that manages a group of servants, and acts as a proxy for them
 
 with PolyORB.Any.NVList;
@@ -152,7 +154,7 @@ private
 
    type Group_Servant_Access is access all Group_Servant;
 
-   function Handle_Message
+   overriding function Handle_Message
      (Self : not null access Group_Servant;
       Msg  : Components.Message'Class) return Components.Message'Class;
    --  Function used to intercept Unmarshall_Arguments message

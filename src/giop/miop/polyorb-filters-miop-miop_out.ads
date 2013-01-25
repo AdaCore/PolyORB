@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MIOP filter for data which arrive from a GIOP Session
 
 with PolyORB.Buffers;
@@ -41,7 +43,7 @@ package PolyORB.Filters.MIOP.MIOP_Out is
 
    type MIOP_Out_Factory is new Factory with private;
 
-   procedure Create
+   overriding procedure Create
      (Fact     : access MIOP_Out_Factory;
       MIOP_Out :    out Filter_Access);
 
@@ -57,7 +59,7 @@ private
       Max_Size  : Types.Unsigned_Short;
    end record;
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access MIOP_Out_Filter;
       S : Components.Message'Class) return Components.Message'Class;
 

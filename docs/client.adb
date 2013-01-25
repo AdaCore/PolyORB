@@ -16,10 +16,6 @@
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License for  more details.                                               --
 --                                                                          --
--- As a special exception under Section 7 of GPL version 3, you are granted --
--- additional permissions described in the GCC Runtime Library Exception,   --
--- version 3.1, as published by the Free Software Foundation.               --
---                                                                          --
 -- You should have received a copy of the GNU General Public License and    --
 -- a copy of the GCC Runtime Library Exception along with this program;     --
 -- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
@@ -30,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---   echo client.
+--  Echo client
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -47,16 +43,20 @@ procedure Client is
    use Ada.Command_Line;
    use Ada.Text_IO;
    use PolyORB.Utils.Report;
+   use type CORBA.String;
 
    Sent_Msg, Rcvd_Msg : CORBA.String;
    myecho : Echo.Ref;
 
+   Length : Natural := 0;
+   Calls  : Natural := 1;
 begin
    New_Test ("Echo client");
 
    CORBA.ORB.Initialize ("ORB");
-   if Argument_Count /= 1 then
-      Put_Line ("usage : client <IOR_string_from_server>|-i");
+   if Argument_Count not in 1 .. 3 then
+      Put_Line
+        ("usage: client <IOR_string_from_server>|-i [strlen [num of calls]]");
       return;
    end if;
 
@@ -64,6 +64,16 @@ begin
 
    CORBA.ORB.String_To_Object
      (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
+
+   --  Get optional arguments Length and Calls
+
+   if Argument_Count >= 2 then
+      Length := Natural'Value (Ada.Command_Line.Argument (2));
+   end if;
+
+   if Argument_Count >= 3 then
+      Calls := Natural'Value (Ada.Command_Line.Argument (3));
+   end if;
 
    --  Checking if it worked
 
@@ -74,18 +84,38 @@ begin
 
    --  Sending message
 
-   Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello Ada !"));
-   Rcvd_Msg := Echo.echoString (myecho, Sent_Msg);
+   if Length = 0 then
+      Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello Ada !"));
+   else
+      Sent_Msg := CORBA.To_CORBA_String
+                    (Standard.String'(1 .. Length => 'X'));
+   end if;
+
+   for J in 1 .. Calls loop
+      Rcvd_Msg := Echo.echoString (myecho, Sent_Msg);
+   end loop;
+
+   if Rcvd_Msg /= Sent_Msg then
+      raise Program_Error with "incorrect string returned by server";
+   end if;
 
    --  Printing result
 
-   Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
-   Put_Line ("The object answered : " & CORBA.To_Standard_String (Rcvd_Msg));
+   if Length = 0 then
+      Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
+      Put_Line
+        ("The object answered : " & CORBA.To_Standard_String (Rcvd_Msg));
+
+   else
+      Put_Line ("I said : 'X' *" & Length'Img);
+      Put_Line ("The object answered the same.");
+   end if;
 
    End_Report;
 
 exception
    when E : CORBA.Transient =>
+      Output ("echo test", False);
       declare
          Memb : CORBA.System_Exception_Members;
       begin

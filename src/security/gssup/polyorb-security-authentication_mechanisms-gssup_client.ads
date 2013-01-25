@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
 
    type GSSUP_Client_Authentication_Mechanism is
@@ -42,12 +44,12 @@ private
 
    --  Derived from Client_Authentication_Mechanism
 
-   function Is_Supports
+   overriding function Is_Supports
      (Mechanism   : access GSSUP_Client_Authentication_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Boolean;
 
-   function Init_Security_Context
+   overriding function Init_Security_Context
      (Mechanism   : access GSSUP_Client_Authentication_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Ada.Streams.Stream_Element_Array;

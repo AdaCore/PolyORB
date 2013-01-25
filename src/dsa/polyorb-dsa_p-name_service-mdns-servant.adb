@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Any.NVList;
 with PolyORB.Errors;
 with PolyORB.Log;
@@ -77,7 +79,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Servant is
 
    end Query;
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self    : access Object;
       Request : PolyORB.Requests.Request_Access)
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Tasking policy for the ORB core: 'No_Tasking'.
 
 package PolyORB.ORB.No_Tasking is
@@ -51,26 +53,26 @@ package PolyORB.ORB.No_Tasking is
 
    type No_Tasking is new Tasking_Policy_Type with private;
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access No_Tasking;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access No_Tasking;
       TE  :        Transport_Endpoint_Access);
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access No_Tasking;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access No_Tasking;
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access No_Tasking;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access);

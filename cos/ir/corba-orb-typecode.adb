@@ -43,7 +43,7 @@ package body CORBA.ORB.Typecode is
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_StructMember;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Struct);
+                  (PolyORB.Any.TypeCode.TCF_Struct);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter
@@ -74,7 +74,7 @@ package body CORBA.ORB.Typecode is
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_UnionMember;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Union);
+                  (PolyORB.Any.TypeCode.TCF_Union);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter
@@ -110,7 +110,7 @@ package body CORBA.ORB.Typecode is
                      EMS.To_Element_Array (EMS.Sequence (Members));
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Enum);
+                  (PolyORB.Any.TypeCode.TCF_Enum);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter
@@ -143,7 +143,7 @@ package body CORBA.ORB.Typecode is
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_StructMember;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Except);
+                  (PolyORB.Any.TypeCode.TCF_Except);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter
@@ -170,7 +170,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Object);
+                  (PolyORB.Any.TypeCode.TCF_Object);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter
@@ -179,25 +179,21 @@ package body CORBA.ORB.Typecode is
    end Create_Interface_Tc;
 
    function Create_String_Tc
-     (Bound : CORBA.Unsigned_Long)
-     return CORBA.TypeCode.Object
+     (Bound : CORBA.Unsigned_Long) return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_String);
-      CORBA.Internals.Add_Parameter (Result, To_Any (Bound));
-      return Result;
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+               (PolyORB.Any.TypeCode.Build_String_TC
+                  (PolyORB.Types.Unsigned_Long (Bound)));
    end Create_String_Tc;
 
    function Create_Wstring_Tc
      (Bound : CORBA.Unsigned_Long) return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-      Result := TC_Wide_String;
-      CORBA.Internals.Add_Parameter (Result, To_Any (Bound));
-      return Result;
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+               (PolyORB.Any.TypeCode.Build_Wstring_TC
+                  (PolyORB.Types.Unsigned_Long (Bound)));
    end Create_Wstring_Tc;
 
    function Create_Fixed_Tc
@@ -208,7 +204,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Fixed);
+                  (PolyORB.Any.TypeCode.TCF_Fixed);
       CORBA.Internals.Add_Parameter (Result, To_Any (IDL_Digits));
       CORBA.Internals.Add_Parameter (Result, To_Any (Scale));
       return Result;
@@ -222,7 +218,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Sequence);
+                  (PolyORB.Any.TypeCode.TCF_Sequence);
       CORBA.Internals.Add_Parameter (Result, To_Any (Bound));
       CORBA.Internals.Add_Parameter (Result, To_Any (Elementtype));
       return Result;
@@ -248,7 +244,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Array);
+                  (PolyORB.Any.TypeCode.TCF_Array);
       CORBA.Internals.Add_Parameter (Result, To_Any (Length));
       CORBA.Internals.Add_Parameter (Result, To_Any (Element_Type));
       return Result;
@@ -268,7 +264,7 @@ package body CORBA.ORB.Typecode is
 
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Value);
+                  (PolyORB.Any.TypeCode.TCF_Value);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter
@@ -302,7 +298,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Valuebox);
+                  (PolyORB.Any.TypeCode.TCF_Valuebox);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter
@@ -320,7 +316,7 @@ package body CORBA.ORB.Typecode is
       Result : CORBA.TypeCode.Object;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
-                  (PolyORB.Any.TypeCode.TC_Native);
+                  (PolyORB.Any.TypeCode.TCF_Native);
       CORBA.Internals.Add_Parameter
         (Result, To_Any (CORBA.String (Name)));
       CORBA.Internals.Add_Parameter

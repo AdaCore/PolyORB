@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 
 with PolyORB.Asynch_Ev;
@@ -70,7 +72,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    -- Disable_Polling --
    ---------------------
 
-   procedure Disable_Polling
+   overriding procedure Disable_Polling
      (O : access ORB_Controller_Half_Sync_Half_Async;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -111,7 +113,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    -- Enable_Polling --
    --------------------
 
-   procedure Enable_Polling
+   overriding procedure Enable_Polling
      (O : access ORB_Controller_Half_Sync_Half_Async;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
@@ -135,7 +137,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    -- Notify_Event --
    ------------------
 
-   procedure Notify_Event
+   overriding procedure Notify_Event
      (O : access ORB_Controller_Half_Sync_Half_Async;
       E : Event)
    is
@@ -321,7 +323,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
          when Task_Unregistered =>
             declare
                Index : constant Integer :=
-                         AEM_Index_Of_Task (O, E.Unregistered_Task);
+                 AEM_Index_Of_Task (O, E.Unregistered_Task);
             begin
                if Index in O.AEM_Infos'Range then
                   --  Unregistering one of the designated monitoring tasks
@@ -341,7 +343,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    -- Schedule_Task --
    -------------------
 
-   procedure Schedule_Task
+   overriding procedure Schedule_Task
      (O  : access ORB_Controller_Half_Sync_Half_Async;
       TI : PTI.Task_Info_Access)
    is
@@ -451,7 +453,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (OCF : ORB_Controller_Half_Sync_Half_Async_Factory)
       return ORB_Controller_Access
    is

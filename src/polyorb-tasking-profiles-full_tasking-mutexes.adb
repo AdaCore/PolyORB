@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like mutexes with full Ada tasking.
 --  This variant uses GNAT-specific library facilities.
 
@@ -78,7 +80,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (MF   : access Full_Tasking_Mutex_Factory_Type;
       Name : String := "")
       return PTM.Mutex_Access
@@ -103,7 +105,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    -- Destroy --
    -------------
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access Full_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access)
    is
@@ -122,7 +124,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    -- Enter --
    -----------
 
-   procedure Enter (M : access Full_Tasking_Mutex_Type) is
+   overriding procedure Enter (M : access Full_Tasking_Mutex_Type) is
       Ceiling_Violation : Boolean;
    begin
       pragma Debug (C, O ("Enter mutex"));
@@ -136,7 +138,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    -- Leave --
    -----------
 
-   procedure Leave (M : access Full_Tasking_Mutex_Type) is
+   overriding procedure Leave (M : access Full_Tasking_Mutex_Type) is
    begin
       pragma Debug (C, O ("Leave mutex"));
       Unlock (M.The_Lock);

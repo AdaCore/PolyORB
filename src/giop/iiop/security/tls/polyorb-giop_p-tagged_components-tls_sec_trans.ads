@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Used only as transport_mech in TAG_CSI_SEC_MECH_LIST tagged component
 
 with PolyORB.Security.Types;
@@ -49,17 +51,19 @@ package PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       Addresses       : Socket_Name_Lists.List;
    end record;
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_TLS_Sec_Trans;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_TLS_Sec_Trans;
       Buffer : access Buffer_Type;
       Error  :    out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents (C : access TC_TLS_Sec_Trans);
+   overriding procedure Release_Contents (C : access TC_TLS_Sec_Trans);
 
-   function Duplicate (C : TC_TLS_Sec_Trans) return Tagged_Component_Access;
+   overriding function Duplicate
+     (C : TC_TLS_Sec_Trans)
+     return Tagged_Component_Access;
 
 end PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 
 with PolyORB.Log;
@@ -51,7 +53,7 @@ package body PolyORB.Call_Back is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (CB_Handler : not null access Call_Back_Handler;
       S          : Components.Message'Class) return Components.Message'Class
    is

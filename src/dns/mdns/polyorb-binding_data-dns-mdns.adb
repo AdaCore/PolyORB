@@ -72,12 +72,10 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
-     (Profile : MDNS_Profile_Type)
-     return Profile_Tag
+   overriding function Get_Profile_Tag
+     (Profile : MDNS_Profile_Type) return Profile_Tag
    is
       pragma Unreferenced (Profile);
-
    begin
       return Tag_MDNS;
    end Get_Profile_Tag;
@@ -86,9 +84,8 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
-     (Profile : MDNS_Profile_Type)
-     return Profile_Preference
+   overriding function Get_Profile_Preference
+     (Profile : MDNS_Profile_Type) return Profile_Preference
    is
       pragma Unreferenced (Profile);
 
@@ -100,15 +97,15 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out MDNS_Profile_Factory;
-      TAP :     Transport.Transport_Access_Point_Access;
-      ORB :     Components.Component_Access)
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access)
    is
       pragma Unreferenced (ORB);
 
-      MF : constant Transport_Mechanism_Factory_Access
-        := new MDNS_Transport_Mechanism_Factory;
+      MF : constant Transport_Mechanism_Factory_Access :=
+        new MDNS_Transport_Mechanism_Factory;
 
    begin
       Create_Factory (MF.all, TAP);
@@ -119,10 +116,9 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access MDNS_Profile_Factory;
-      Oid :        Objects.Object_Id)
-     return Profile_Access
+      Oid : Objects.Object_Id) return Profile_Access
    is
       Result : constant Profile_Access := new MDNS_Profile_Type;
       TResult : MDNS_Profile_Type renames MDNS_Profile_Type (Result.all);
@@ -145,7 +141,9 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : MDNS_Profile_Type) return Profile_Access is
+   overriding function Duplicate_Profile
+     (P : MDNS_Profile_Type) return Profile_Access
+   is
       Result : constant Profile_Access := new MDNS_Profile_Type;
 
       TResult : MDNS_Profile_Type renames MDNS_Profile_Type (Result.all);
@@ -263,7 +261,7 @@ package body PolyORB.Binding_Data.DNS.MDNS is
 
       declare
          Address : constant Utils.Sockets.Socket_Name :=
-                     S (Host_First .. Host_Last) + Port;
+           S (Host_First .. Host_Last) + Port;
       begin
          DNS_Profile_Type (Profile.all).Mechanism :=
            Create_Transport_Mechanism (Address);
@@ -276,7 +274,9 @@ package body PolyORB.Binding_Data.DNS.MDNS is
    -- Is_Multicast_Profile --
    --------------------------
 
-   function Is_Multicast_Profile (P : MDNS_Profile_Type) return Boolean is
+   overriding function Is_Multicast_Profile
+     (P : MDNS_Profile_Type) return Boolean
+   is
       pragma Unreferenced (P);
    begin
       return True;

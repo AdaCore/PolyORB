@@ -37,6 +37,8 @@
 
 pragma Ada_2005;
 
+pragma Ada_2005;
+
 with CORBA.Object;
 with CORBA.Policy;
 with CORBA.Sequences.Unbounded;
@@ -49,7 +51,7 @@ package CORBA.DomainManager is
      (Self        : Ref;
       Policy_Type : CORBA.PolicyType) return CORBA.Policy.Ref;
 
-   function Is_A
+   overriding function Is_A
      (Self            : Ref;
       Logical_Type_Id : Standard.String) return CORBA.Boolean;
 

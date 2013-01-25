@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
@@ -86,10 +88,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
      renames L.Enabled;
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
-                             Sync_None
-                          or Sync_With_Transport
-                          or Sync_With_Server
-                          or Sync_With_Target;
+     Sync_None or Sync_With_Transport or Sync_With_Server or Sync_With_Target;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (GIOP_1_2_CDR_Representation, GIOP_1_2_CDR_Representation_Access);
@@ -149,14 +148,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem (Implem : access GIOP_Implem_1_2) is
+   overriding procedure Initialize_Implem (Implem : access GIOP_Implem_1_2) is
       use PolyORB.Parameters;
 
       Max : constant Types.Unsigned_Long :=
-              Types.Unsigned_Long (Get_Conf
-                (To_Standard_String (Implem.Section),
-                 Get_Conf_Chain (Implem) & ".max_message_size",
-                 Default_Max_GIOP_Message_Size_1_2));
+        Types.Unsigned_Long (Get_Conf
+          (To_Standard_String (Implem.Section),
+           Get_Conf_Chain (Implem) & ".max_message_size",
+           Default_Max_GIOP_Message_Size_1_2));
    begin
       Implem.Data_Alignment        := Data_Alignment_1_2;
       Implem.Max_GIOP_Message_Size := Max - (Max mod 8);
@@ -169,7 +168,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Initialize_Session --
    ------------------------
 
-   procedure Initialize_Session
+   overriding procedure Initialize_Session
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class)
    is
@@ -192,7 +191,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Finalize_Session --
    ----------------------
 
-   procedure Finalize_Session
+   overriding procedure Finalize_Session
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class)
    is
@@ -224,7 +223,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Process_Message --
    ---------------------
 
-   procedure Process_Message
+   overriding procedure Process_Message
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class)
    is
@@ -632,7 +631,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (Implem  : access GIOP_Implem_1_2;
       S       : access Session'Class;
       Request :        Requests.Request_Access)
@@ -684,7 +683,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Emit_Message --
    ------------------
 
-   procedure Emit_Message
+   overriding procedure Emit_Message
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       MCtx   : access GIOP_Message_Context'Class;
@@ -701,7 +700,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Context for fragments
 
       Message_Size : Types.Unsigned_Long :=
-                       Types.Unsigned_Long (Length (Buffer.all));
+        Types.Unsigned_Long (Length (Buffer.all));
    begin
       if Message_Size > Implem.Max_GIOP_Message_Size then
 
@@ -991,7 +990,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Locate_Object --
    -------------------
 
-   procedure Locate_Object
+   overriding procedure Locate_Object
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       R      : Pending_Request_Access;
@@ -1049,7 +1048,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Send_Request --
    ------------------
 
-   procedure Send_Request
+   overriding procedure Send_Request
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       R      : Pending_Request_Access;
@@ -1237,7 +1236,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          declare
             Data            : PolyORB.Opaque.Opaque_Pointer;
             Data_To_Process : Stream_Element_Count :=
-                                Length (Static_Buffer.Buffer.all);
+              Length (Static_Buffer.Buffer.all);
             Data_Processed  : Stream_Element_Count := Data_To_Process;
             Position        : Ada.Streams.Stream_Element_Offset := 0;
          begin
@@ -1375,7 +1374,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Send_Cancel_Request --
    -------------------------
 
-   procedure Send_Cancel_Request
+   overriding procedure Send_Cancel_Request
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       R      : Request_Access)
@@ -1411,7 +1410,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Unmarshall_GIOP_Header --
    ----------------------------
 
-   procedure Unmarshall_GIOP_Header
+   overriding procedure Unmarshall_GIOP_Header
      (Implem : access GIOP_Implem_1_2;
       MCtx   : access GIOP_Message_Context'Class;
       Buffer : access Buffers.Buffer_Type)
@@ -1476,7 +1475,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Marshall_GIOP_Header --
    --------------------------
 
-   procedure Marshall_GIOP_Header
+   overriding procedure Marshall_GIOP_Header
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
       MCtx   : access GIOP_Message_Context'Class;
@@ -1612,7 +1611,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Marshall_GIOP_Header_Reply --
    --------------------------------
 
-   procedure Marshall_GIOP_Header_Reply
+   overriding procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_2;
       S       : access Session'Class;
       R       : Request_Access;

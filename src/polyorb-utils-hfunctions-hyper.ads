@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides a class of hashing functions for strings.
 
 --  Hash_Hyper computes for string S = (Si)i the sum of the elements
@@ -61,16 +63,16 @@ package PolyORB.Utils.HFunctions.Hyper is
 
    type Hash_Hyper_Parameters is new Hash_Parameters with private;
 
-   function Hash
+   overriding function Hash
      (S     : String;
       Param : Hash_Hyper_Parameters;
       Size  : Natural)
      return Natural;
 
-   function Default_Hash_Parameters
+   overriding function Default_Hash_Parameters
      return Hash_Hyper_Parameters;
 
-   function Next_Hash_Parameters
+   overriding function Next_Hash_Parameters
      (Param : Hash_Hyper_Parameters)
      return Hash_Hyper_Parameters;
 

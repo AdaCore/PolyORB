@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Parameters;
 
 package body PolyORB.Security.Credentials.Compound is
@@ -112,7 +114,7 @@ package body PolyORB.Security.Credentials.Compound is
    -- Get_Accepting_Options_Required --
    ------------------------------------
 
-   function Get_Accepting_Options_Required
+   overriding function Get_Accepting_Options_Required
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options
    is
@@ -138,7 +140,7 @@ package body PolyORB.Security.Credentials.Compound is
    -- Get_Accepting_Options_Supported --
    -------------------------------------
 
-   function Get_Accepting_Options_Supported
+   overriding function Get_Accepting_Options_Supported
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options
    is
@@ -175,7 +177,7 @@ package body PolyORB.Security.Credentials.Compound is
    -- Get_Identity --
    ------------------
 
-   function Get_Identity
+   overriding function Get_Identity
      (Self : access Compound_Credentials)
       return PolyORB.Security.Identities.Identity_Access
    is
@@ -191,7 +193,7 @@ package body PolyORB.Security.Credentials.Compound is
    -- Get_Invocation_Options_Required --
    --------------------------------------
 
-   function Get_Invocation_Options_Required
+   overriding function Get_Invocation_Options_Required
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options
    is
@@ -217,7 +219,7 @@ package body PolyORB.Security.Credentials.Compound is
    -- Get_Invocation_Options_Supported --
    --------------------------------------
 
-   function Get_Invocation_Options_Supported
+   overriding function Get_Invocation_Options_Supported
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options
    is

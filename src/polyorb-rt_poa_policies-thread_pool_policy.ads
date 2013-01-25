@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Errors;
 with PolyORB.Lanes;
 with PolyORB.POA_Policies;
@@ -48,9 +50,9 @@ package PolyORB.RT_POA_Policies.Thread_Pool_Policy is
 
    function Create (Lanes : Lane_Root_Access) return Policy_Access;
 
-   function Policy_Id (Self : ThreadPoolPolicy) return String;
+   overriding function Policy_Id (Self : ThreadPoolPolicy) return String;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        ThreadPoolPolicy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);

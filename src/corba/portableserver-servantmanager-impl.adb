@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA;
 
 package body PortableServer.ServantManager.Impl is
@@ -38,7 +40,7 @@ package body PortableServer.ServantManager.Impl is
    -- Is_A --
    ----------
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean
    is

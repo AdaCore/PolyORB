@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,17 +32,16 @@
 
 with CORBA.ORB;
 
-with PolyORB.CORBA_P.Initial_References;
-
 with PolyORB.RTCORBA_P.Mutex;
 with PolyORB.RTCORBA_P.PriorityModelPolicy;
 with PolyORB.RTCORBA_P.ThreadPoolManager;
 with PolyORB.RTCORBA_P.To_ORB_Priority;
 
 with PolyORB.Exceptions;
+with PolyORB.Initial_References;
 with PolyORB.Initialization;
-
 with PolyORB.Lanes;
+with PolyORB.References;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
@@ -55,23 +54,18 @@ package body RTCORBA.RTORB is
    use CORBA;
    use PolyORB.Tasking.Priorities;
 
-   function Create return CORBA.Object.Ref;
+   function Create return PolyORB.References.Ref;
    --  Create a RTCORBA.RTORB.Ref
 
    ------------
    -- Create --
    ------------
 
-   function Create return CORBA.Object.Ref is
-      Result : Local_Ref;
-
-      RTORB_Obj : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := new RTORB_Object;
-
+   function Create return PolyORB.References.Ref is
+      Result : PolyORB.References.Ref;
    begin
-      Set (Result, RTORB_Obj);
-
-      return CORBA.Object.Ref (Result);
+      Result.Set (new RTORB_Object);
+      return Result;
    end Create;
 
    ------------------
@@ -327,10 +321,9 @@ package body RTCORBA.RTORB is
    procedure Initialize;
 
    procedure Initialize is
-      use PolyORB.CORBA_P.Initial_References;
-
    begin
-      Register_Initial_Reference ("RTORB", Create'Access);
+      PolyORB.Initial_References.Register_Initial_Reference
+        ("RTORB", Create'Access);
    end Initialize;
 
    use PolyORB.Initialization;
@@ -342,7 +335,7 @@ begin
      (Module_Info'
       (Name      => +"rtcorba.rtorb",
        Conflicts => Empty,
-       Depends   => +"corba.initial_references",
+       Depends   => +"initial_references",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,

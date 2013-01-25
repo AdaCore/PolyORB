@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 with Ada.Finalization;
 with Interfaces;
@@ -57,7 +59,7 @@ package PolyORB.Smart_Pointers is
 
    type Entity_Ptr is access all Unsafe_Entity'Class;
 
-   procedure Disable_Reference_Counting (Obj : in out Unsafe_Entity'Class);
+   procedure Disable_Ref_Counting (Obj : in out Unsafe_Entity'Class);
    --  Disable reference counting on Obj. No attempt will then be made to keep
    --  track of references, and no automatic deallocation will occur after the
    --  last reference is used. This is intended primarily for library-level
@@ -79,8 +81,8 @@ package PolyORB.Smart_Pointers is
    --  The base type of all references. This type is often derived but never
    --  extended. It contains one field, which designates the referenced object.
 
-   procedure Adjust   (The_Ref : in out Ref);
-   procedure Finalize (The_Ref : in out Ref);
+   overriding procedure Adjust   (The_Ref : in out Ref);
+   overriding procedure Finalize (The_Ref : in out Ref);
 
    procedure Set
      (The_Ref    : in out Ref;

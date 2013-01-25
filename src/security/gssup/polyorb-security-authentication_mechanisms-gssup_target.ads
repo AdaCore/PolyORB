@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Types;
 
 package PolyORB.Security.Authentication_Mechanisms.GSSUP_Target is
@@ -47,7 +49,7 @@ private
 
    --  Derived from Target_Authentication_Mechanism
 
-   procedure Accept_Security_Context
+   overriding procedure Accept_Security_Context
      (Mechanism    : access GSSUP_Target_Authentication_Mechanism;
       Token        :        PolyORB.Security.Types.Stream_Element_Array_Access;
       Success      : out    Boolean;

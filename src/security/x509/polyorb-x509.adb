@@ -485,7 +485,7 @@ package body PolyORB.X509 is
 
       declare
          Result : constant Ada.Streams.Stream_Element_Array :=
-                    Value (Buffer, C.ptrdiff_t (Length));
+           Value (Buffer, C.ptrdiff_t (Length));
       begin
          Thin.OPENSSL_free (Buffer);
 
@@ -510,7 +510,7 @@ package body PolyORB.X509 is
 
       declare
          Result : constant Ada.Streams.Stream_Element_Array :=
-                    Value (Buffer, C.ptrdiff_t (Length));
+           Value (Buffer, C.ptrdiff_t (Length));
 
       begin
          Thin.OPENSSL_free (Buffer);

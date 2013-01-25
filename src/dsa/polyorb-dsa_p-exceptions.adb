@@ -65,8 +65,8 @@ package body PolyORB.DSA_P.Exceptions is
       Msg        : String := "<remote exception>")
    is
       Exc_Repo_Id : constant Standard.String :=
-                      To_Standard_String
-                        (Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence)));
+        To_Standard_String
+          (Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence)));
 
       Is_Error    : Boolean;
       Err_Id      : Error_Id;

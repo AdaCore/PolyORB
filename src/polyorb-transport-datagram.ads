@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstract datagram transport service access points and transport endpoints.
 
 with PolyORB.Transport.Handlers;
@@ -57,7 +59,7 @@ package PolyORB.Transport.Datagram is
    type Datagram_Transport_Endpoint_Access is
      access all Datagram_Transport_Endpoint'Class;
 
-   function Handle_Message
+   overriding function Handle_Message
      (TE  : not null access Datagram_Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class;
 
@@ -76,7 +78,7 @@ private
    type Datagram_TAP_AES_Event_Handler is
      new Handlers.TAP_AES_Event_Handler with null record;
 
-   procedure Handle_Event
+   overriding procedure Handle_Event
      (H : access Datagram_TAP_AES_Event_Handler);
 
    type Datagram_Transport_Access_Point is

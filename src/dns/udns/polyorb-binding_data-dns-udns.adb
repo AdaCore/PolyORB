@@ -73,7 +73,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : UDNS_Profile_Type) return Profile_Tag
    is
       pragma Unreferenced (Profile);
@@ -85,7 +85,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : UDNS_Profile_Type) return Profile_Preference
    is
       pragma Unreferenced (Profile);
@@ -97,14 +97,14 @@ package body PolyORB.Binding_Data.DNS.UDNS is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out UDNS_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       ORB : Components.Component_Access)
    is
       pragma Unreferenced (ORB);
       MF : constant Transport_Mechanism_Factory_Access :=
-             new UDNS_Transport_Mechanism_Factory;
+        new UDNS_Transport_Mechanism_Factory;
    begin
       Create_Factory (MF.all, TAP);
       PF.Mechanism := MF;
@@ -114,7 +114,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access UDNS_Profile_Factory;
       Oid : Objects.Object_Id) return Profile_Access
    is
@@ -135,7 +135,9 @@ package body PolyORB.Binding_Data.DNS.UDNS is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : UDNS_Profile_Type) return Profile_Access is
+   overriding function Duplicate_Profile
+     (P : UDNS_Profile_Type) return Profile_Access
+   is
       Result  : constant Profile_Access := new UDNS_Profile_Type;
       TResult : UDNS_Profile_Type renames UDNS_Profile_Type (Result.all);
 
@@ -246,7 +248,7 @@ package body PolyORB.Binding_Data.DNS.UDNS is
       pragma Debug (C, O ("Oid = " & Image (TResult.Object_Id.all)));
       declare
          Address : constant Utils.Sockets.Socket_Name :=
-                     S (Host_First .. Host_Last) + Port;
+           S (Host_First .. Host_Last) + Port;
       begin
          UDNS_Profile_Type (Profile.all).Mechanism :=
            Create_Transport_Mechanism (Address);

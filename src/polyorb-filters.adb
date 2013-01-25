@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A communication filter (a transport Data_Unit handler/forwarder).
 
 with Ada.Tags;
@@ -80,7 +82,7 @@ package body PolyORB.Filters is
    -- Destroy --
    -------------
 
-   procedure Destroy (F : in out Filter) is
+   overriding procedure Destroy (F : in out Filter) is
    begin
       if F.Upper /= null then
          pragma Debug
@@ -125,7 +127,7 @@ package body PolyORB.Filters is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (F   : not null access Filter;
       Msg : Message'Class) return Components.Message'Class
    is

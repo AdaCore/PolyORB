@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MIOP filter for data which arrive from a GIOP Session
 
 with PolyORB.Filters.Iface;
@@ -55,7 +57,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Fact     : access MIOP_Out_Factory;
       MIOP_Out :    out Filter_Access)
    is
@@ -107,7 +109,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access MIOP_Out_Filter;
       S : Components.Message'Class) return Components.Message'Class
    is
@@ -121,7 +123,7 @@ package body PolyORB.Filters.MIOP.MIOP_Out is
             D : Data_Out renames Data_Out (S);
             --  Length of GIOP packet
             L : constant Types.Unsigned_Short :=
-                  Types.Unsigned_Short (Length (D.Out_Buf.all));
+              Types.Unsigned_Short (Length (D.Out_Buf.all));
             H : MIOP_Header;
          begin
             pragma Debug (C, O ("Encapsulate GIOP data in a MIOP Packet,"

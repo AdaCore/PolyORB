@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Security.Exported_Names.Unknown is
@@ -38,7 +40,7 @@ package body PolyORB.Security.Exported_Names.Unknown is
    -- Decode_Name_BLOB --
    ----------------------
 
-   procedure Decode_Name_BLOB
+   overriding procedure Decode_Name_BLOB
      (Item  : access Unknown_Exported_Name_Type;
       BLOB  :        Ada.Streams.Stream_Element_Array;
       Error : in out PolyORB.Errors.Error_Container)
@@ -53,7 +55,7 @@ package body PolyORB.Security.Exported_Names.Unknown is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (Item : access Unknown_Exported_Name_Type)
       return Exported_Name_Access
    is
@@ -69,7 +71,7 @@ package body PolyORB.Security.Exported_Names.Unknown is
    -- Encode_Name_BLOB --
    ----------------------
 
-   function Encode_Name_BLOB
+   overriding function Encode_Name_BLOB
      (Item : access Unknown_Exported_Name_Type)
       return Ada.Streams.Stream_Element_Array
    is
@@ -81,7 +83,7 @@ package body PolyORB.Security.Exported_Names.Unknown is
    -- Get_Printable_Name --
    ------------------------
 
-   function Get_Printable_Name
+   overriding function Get_Printable_Name
      (Item : access Unknown_Exported_Name_Type)
       return String
    is
@@ -95,7 +97,7 @@ package body PolyORB.Security.Exported_Names.Unknown is
    -- Is_Equivalent --
    -------------------
 
-   function Is_Equivalent
+   overriding function Is_Equivalent
      (Left  : access Unknown_Exported_Name_Type;
       Right : access Exported_Name_Type'Class)
       return Boolean
@@ -118,7 +120,9 @@ package body PolyORB.Security.Exported_Names.Unknown is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (Item : access Unknown_Exported_Name_Type) is
+   overriding procedure Release_Contents
+     (Item : access Unknown_Exported_Name_Type)
+   is
 
       procedure Free is
         new Ada.Unchecked_Deallocation

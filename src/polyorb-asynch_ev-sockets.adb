@@ -30,7 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  An asynchrous event source that is a set of socket descriptors.
+pragma Ada_2005;
+
+--  An asynchronous event source that is a set of socket descriptors.
 
 with Ada.Exceptions;
 
@@ -53,7 +55,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Create --
    ------------
 
-   procedure Create (AEM : out Socket_Event_Monitor) is
+   overriding procedure Create (AEM : out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Create_Selector (AEM.Selector);
@@ -63,7 +65,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Destroy --
    -------------
 
-   procedure Destroy (AEM : in out Socket_Event_Monitor) is
+   overriding procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Close_Selector (AEM.Selector);
@@ -73,7 +75,10 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Has_Sources --
    -----------------
 
-   function Has_Sources (AEM : Socket_Event_Monitor) return Boolean is
+   overriding function Has_Sources
+     (AEM : Socket_Event_Monitor)
+     return Boolean
+   is
    begin
       return not Source_Lists.Is_Empty (AEM.Sources);
    end Has_Sources;
@@ -94,7 +99,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Register_Source --
    ---------------------
 
-   function Register_Source
+   overriding function Register_Source
      (AEM     : access Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access) return Register_Source_Result
    is
@@ -108,7 +113,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
       declare
          S_AES : Socket_Event_Source'Class
-                   renames Socket_Event_Source'Class (AES.all);
+           renames Socket_Event_Source'Class (AES.all);
       begin
          pragma Debug
            (C, O ("Register_Source: socket =" & Image (S_AES.Socket)));
@@ -136,13 +141,13 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Unregister_Source --
    -----------------------
 
-   procedure Unregister_Source
+   overriding procedure Unregister_Source
      (AEM     : in out Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access;
       Success : out Boolean)
    is
       S_AES : Socket_Event_Source'Class
-                renames Socket_Event_Source'Class (AES.all);
+        renames Socket_Event_Source'Class (AES.all);
    begin
       pragma Debug
         (C, O ("Unregister_Source: enter, socket =" & Image (S_AES.Socket)));
@@ -165,7 +170,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Check_Sources --
    -------------------
 
-   function Check_Sources
+   overriding function Check_Sources
      (AEM     : access Socket_Event_Monitor;
       Timeout : Duration) return AES_Array
    is
@@ -263,7 +268,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Abort_Check_Sources --
    -------------------------
 
-   procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
+   overriding procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
    begin
       --  XXX check that selector is currently blocking!
       --  (and do it in a thread-safe manner, if applicable!)
@@ -298,7 +303,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- AEM_Factory_Of --
    --------------------
 
-   function AEM_Factory_Of
+   overriding function AEM_Factory_Of
      (AES : Socket_Event_Source)
      return AEM_Factory
    is

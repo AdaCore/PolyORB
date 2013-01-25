@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.QoS.Tagged_Components is
@@ -44,7 +46,7 @@ package body PolyORB.QoS.Tagged_Components is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (QoS : access QoS_GIOP_Tagged_Components_Parameter)
    is
       Iter : Iterator := First (QoS.Components);

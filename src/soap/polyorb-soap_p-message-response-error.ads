@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.SOAP_P.Message.Payload;
 with PolyORB.SOAP_P.Message.Response;
 
@@ -39,10 +41,10 @@ package PolyORB.SOAP_P.Message.Response.Error is
 
    type Faultcode is new String;
 
-   function From (P : Message.Payload.Object) return Object;
+   overriding function From (P : Message.Payload.Object) return Object;
    --  Build an Error response from a Payload object.
 
-   function XML_Image (E : Object) return Unbounded_String;
+   overriding function XML_Image (E : Object) return Unbounded_String;
    --  Returns the Fault env and associated data (faultcode, faultstring...).
 
    function Build
@@ -51,7 +53,7 @@ package PolyORB.SOAP_P.Message.Response.Error is
      return Object;
    --  Returns an Error object built using Faultcode and Faultstring.
 
-   function Is_Error (E : Object) return Boolean;
+   overriding function Is_Error (E : Object) return Boolean;
    --  Always returns True. This overrides  Response.Object's method.
 
    -----------------

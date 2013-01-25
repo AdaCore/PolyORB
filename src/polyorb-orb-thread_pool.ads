@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of thread pool architecture
 
 package PolyORB.ORB.Thread_Pool is
@@ -46,26 +48,26 @@ package PolyORB.ORB.Thread_Pool is
 
    type Thread_Pool_Policy is new Tasking_Policy_Type with private;
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access Thread_Pool_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access Thread_Pool_Policy;
       TE  :        Transport_Endpoint_Access);
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access Thread_Pool_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection);
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access Thread_Pool_Policy;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access);

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Utils.HFunctions.Mul is
 
    Default_Prime : constant := 1_777_771;
@@ -63,7 +65,7 @@ package body PolyORB.Utils.HFunctions.Mul is
    -- Hash --
    ----------
 
-   function Hash
+   overriding function Hash
      (S     : String;
       Param : Hash_Mul_Parameters;
       Size  : Natural)
@@ -76,7 +78,7 @@ package body PolyORB.Utils.HFunctions.Mul is
    -- Default_Hash_Parameters --
    -----------------------------
 
-   function Default_Hash_Parameters
+   overriding function Default_Hash_Parameters
      return Hash_Mul_Parameters is
    begin
       return Hash_Mul_Parameters'(K => 1, Prime => Default_Prime);
@@ -86,7 +88,7 @@ package body PolyORB.Utils.HFunctions.Mul is
    -- Next_Hash_Parameters --
    --------------------------
 
-   function Next_Hash_Parameters
+   overriding function Next_Hash_Parameters
      (Param : Hash_Mul_Parameters)
      return Hash_Mul_Parameters is
    begin

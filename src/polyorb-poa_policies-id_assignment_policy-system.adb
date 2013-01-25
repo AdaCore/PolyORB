@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 with PolyORB.Object_Maps.System;
 with PolyORB.POA;
@@ -65,7 +67,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           : System_Id_Policy;
       Other_Policies : AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -83,7 +85,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id (Self : System_Id_Policy) return String
+   overriding function Policy_Id (Self : System_Id_Policy) return String
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -97,7 +99,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Create_Object_Map --
    -----------------------
 
-   function Create_Object_Map (Self : System_Id_Policy)
+   overriding function Create_Object_Map (Self : System_Id_Policy)
      return PolyORB.Object_Maps.Object_Map_Access
    is
       pragma Warnings (Off);
@@ -115,7 +117,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Assign_Object_Identifier --
    ------------------------------
 
-   procedure Assign_Object_Identifier
+   overriding procedure Assign_Object_Identifier
      (Self  : System_Id_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       Hint  : Object_Id_Access;
@@ -233,7 +235,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Reconstruct_Object_Identifier --
    -----------------------------------
 
-   procedure Reconstruct_Object_Identifier
+   overriding procedure Reconstruct_Object_Identifier
      (Self  : System_Id_Policy;
       OA    : Obj_Adapter_Access;
       Oid   : Object_Id;
@@ -251,7 +253,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    -- Object_Identifier --
    -----------------------
 
-   procedure Object_Identifier
+   overriding procedure Object_Identifier
      (Self   : System_Id_Policy;
       Oid    : Object_Id_Access;
       Result : out Object_Id_Access;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 --  mDNS Helper package containing type declarations and corresponding
 --  marshall/unmarshall primitives
@@ -71,7 +73,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR_Type;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -96,7 +98,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_RR_Type;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -118,7 +120,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR_Type)
         return PolyORB.Types.Unsigned_Long
       is
@@ -131,7 +133,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR_Type;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -143,7 +145,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Type)
         return PolyORB.Types.Address
       is
@@ -161,7 +163,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR_Type;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -196,7 +198,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR_Type)
       is
          procedure Free
@@ -265,7 +267,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
             RR_Type_Initialized :=
               True;
             TC_RR_Type :=
-              PolyORB.Any.TypeCode.TC_Enum;
+              PolyORB.Any.TypeCode.TCF_Enum;
 
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_RR_Type,
@@ -303,7 +305,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
               (TC_RR_Type,
                PolyORB.Any.To_Any
                  (SRV_Name));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
              (Any.TypeCode.Object_Of (TC_RR_Type).all);
 
          end if;
@@ -313,7 +315,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_SRV_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -352,7 +354,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_SRV_Data)
         return PolyORB.Types.Unsigned_Long
       is
@@ -365,7 +367,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_SRV_Data;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -377,7 +379,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_SRV_Data)
         return PolyORB.Types.Address
       is
@@ -395,7 +397,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_SRV_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -427,7 +429,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_SRV_Data)
       is
          procedure Free
@@ -485,7 +487,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not SRV_Data_Initialized then
             SRV_Data_Initialized :=
               True;
-            Helper.TC_SRV_Data := PolyORB.Any.TypeCode.TC_Struct;
+            Helper.TC_SRV_Data := PolyORB.Any.TypeCode.TCF_Struct;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_SRV_Data,
                PolyORB.Any.To_Any
@@ -526,7 +528,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
               (TC_SRV_Data,
                PolyORB.Any.To_Any
                  (Argument_Name_target));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
              (Any.TypeCode.Object_Of (TC_SRV_Data).all);
 
          end if;
@@ -564,7 +566,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
               PolyORB.Any.TypeCode.Build_Sequence_TC
                  (PolyORB.Any.TC_Octet,
                   4);
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_IDL_SEQUENCE_4_octet).all);
             IDL_SEQUENCE_4_octet_Helper.Initialize
               (Element_TC => PolyORB.Any.TC_Octet,
@@ -591,7 +593,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
             IDL_AT_Sequence_4_octet_Initialized :=
               True;
             Helper.Internals.Initialize_IDL_SEQUENCE_4_octet;
-            TC_IDL_AT_Sequence_4_octet := PolyORB.Any.TypeCode.TC_Alias;
+            TC_IDL_AT_Sequence_4_octet := PolyORB.Any.TypeCode.TCF_Alias;
             Any.TypeCode.Add_Parameter
               (TC_IDL_AT_Sequence_4_octet, Any.To_Any (Name));
             Any.TypeCode.Add_Parameter (TC_IDL_AT_Sequence_4_octet,
@@ -599,7 +601,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
             Any.TypeCode.Add_Parameter
               (TC_IDL_AT_Sequence_4_octet, Any.To_Any
                  (TC_IDL_SEQUENCE_4_octet));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_IDL_AT_Sequence_4_octet).all);
          end if;
       end Initialize_IDL_AT_Sequence_4_octet;
@@ -608,7 +610,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -654,7 +656,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_RR_Data;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -681,7 +683,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR_Data)
         return PolyORB.Types.Unsigned_Long
       is
@@ -694,7 +696,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR_Data;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -706,7 +708,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR_Data)
         return PolyORB.Types.Address
       is
@@ -724,7 +726,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR_Data;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -760,7 +762,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR_Data)
       is
          procedure Free
@@ -816,7 +818,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not RR_Data_Initialized then
             RR_Data_Initialized :=
               True;
-            Helper.TC_RR_Data := PolyORB.Any.TypeCode.TC_Union;
+            Helper.TC_RR_Data := PolyORB.Any.TypeCode.TCF_Union;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_RR_Data,
                PolyORB.Any.To_Any
@@ -875,7 +877,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
               (TC_RR_Data,
                PolyORB.Any.To_Any
                  (Argument_Name_rr_answer));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_RR_Data).all);
          end if;
       end Initialize_RR_Data;
@@ -884,7 +886,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_RR;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -926,7 +928,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_RR)
         return PolyORB.Types.Unsigned_Long
       is
@@ -939,7 +941,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_RR;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -951,7 +953,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_RR)
         return PolyORB.Types.Address
       is
@@ -969,7 +971,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_RR;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -1001,7 +1003,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_RR)
       is
          procedure Free
@@ -1062,7 +1064,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not RR_Initialized then
             RR_Initialized :=
               True;
-            Helper.TC_RR := PolyORB.Any.TypeCode.TC_Struct;
+            Helper.TC_RR := PolyORB.Any.TypeCode.TCF_Struct;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_RR,
                PolyORB.Any.To_Any
@@ -1113,7 +1115,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
               (TC_RR,
                PolyORB.Any.To_Any
                  (Argument_Name_rr_data));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_RR).all);
          end if;
       end Initialize_RR;
@@ -1138,7 +1140,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Element --
       ---------------------------
 
-      function Get_Aggregate_Element
+      overriding function Get_Aggregate_Element
         (Acc : not null access Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -1163,7 +1165,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Element --
       ---------------------------
 
-      procedure Set_Aggregate_Element
+      overriding procedure Set_Aggregate_Element
         (Acc : in out Content_Rcode;
          Tc : PolyORB.Any.TypeCode.Object_Ptr;
          Index : PolyORB.Types.Unsigned_Long;
@@ -1185,7 +1187,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Get_Aggregate_Count --
       -------------------------
 
-      function Get_Aggregate_Count
+      overriding function Get_Aggregate_Count
         (Acc : Content_Rcode)
         return PolyORB.Types.Unsigned_Long
       is
@@ -1198,7 +1200,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Set_Aggregate_Count --
       -------------------------
 
-      procedure Set_Aggregate_Count
+      overriding procedure Set_Aggregate_Count
         (Acc : in out Content_Rcode;
          Count : PolyORB.Types.Unsigned_Long)
       is
@@ -1210,7 +1212,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (Acc : not null access Content_Rcode)
         return PolyORB.Types.Address
       is
@@ -1228,7 +1230,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (Acc : Content_Rcode;
          Into : PolyORB.Any.Content_Ptr := null)
         return PolyORB.Any.Content_Ptr
@@ -1263,7 +1265,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value
+      overriding procedure Finalize_Value
         (Acc : in out Content_Rcode)
       is
          procedure Free
@@ -1343,7 +1345,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
          if not Rcode_Initialized then
             Rcode_Initialized :=
               True;
-            Helper.TC_Rcode := PolyORB.Any.TypeCode.TC_Enum;
+            Helper.TC_Rcode := PolyORB.Any.TypeCode.TCF_Enum;
             PolyORB.Any.TypeCode.Add_Parameter
               (TC_Rcode,
                PolyORB.Any.To_Any
@@ -1396,7 +1398,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
               (TC_Rcode,
                PolyORB.Any.To_Any
                  (Not_Zone_Name));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_Rcode).all);
          end if;
       end Initialize_Rcode;
@@ -1436,7 +1438,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
               PolyORB.Any.TypeCode.Build_Sequence_TC
                  (Helper.TC_RR,
                   0);
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_IDL_SEQUENCE_DNS_RR).all);
             IDL_SEQUENCE_DNS_RR_Helper.Initialize
               (Element_TC => Helper.TC_RR,
@@ -1463,13 +1465,13 @@ package body PolyORB.DSA_P.Name_Service.mDNS.Helper is
             rrSequence_Initialized :=
               True;
             Helper.Internals.Initialize_IDL_SEQUENCE_DNS_RR;
-            TC_rrSequence := PolyORB.Any.TypeCode.TC_Alias;
+            TC_rrSequence := PolyORB.Any.TypeCode.TCF_Alias;
             Any.TypeCode.Add_Parameter
               (TC_rrSequence, Any.To_Any (Name));
             Any.TypeCode.Add_Parameter (TC_rrSequence, Any.To_Any (Id));
             Any.TypeCode.Add_Parameter (TC_rrSequence, Any.To_Any
                                   (TC_IDL_SEQUENCE_DNS_RR));
-            Any.TypeCode.Disable_Reference_Counting
+            Any.TypeCode.Disable_Ref_Counting
               (Any.TypeCode.Object_Of (TC_rrSequence).all);
          end if;
       end Initialize_rrSequence;

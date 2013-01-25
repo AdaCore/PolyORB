@@ -54,20 +54,6 @@ fi
 
 rm -f aclocal.m4 support/libtool.m4 configure
 
-echo "Libtoolizing"
-# If libtoolize advises us to get a particular version of libtool.m4,
-# copy it locally.
-libtool_m4=`libtoolize --copy --force | sed -n -e '/You should add the contents of \`\([^'\'']*\)'\''.*$/s//\1/p'`
-if [ -n "$libtool_m4" ]; then
-  cp $libtool_m4 support/libtool.m4
-else
-  touch support/libtool.m4
-fi
-
-mv support/ltmain.sh support/ltmain.sh.orig
-sed -e '/xlinker)/,/;;$/s/\$wl/-Xlinker /g' < support/ltmain.sh.orig > support/ltmain.sh
-rm -f support/ltmain.sh.orig
-
 show_step() {
   echo "Running `$1 --version | head -1`"
 }
@@ -81,9 +67,6 @@ autoheader
 show_step autoconf
 autoconf
 
-show_step automake
-automake --add-missing --copy
-
 echo "Generating IDL tree accessors"
 (cd compilers/idlac && python make_nodes.py nodes.txt > nodes.ada \
  && gnatchop -w nodes.ada && rm -f nodes.ada)
@@ -92,16 +75,11 @@ echo "Doing the necessary date modifications"
 for f in \
   configure.ac	\
   aclocal.m4	\
-  Makefile.in	\
   configure	\
   stamp-h.in	\
   config.h.in
 do
-  find . -name $f | grep -v '^\./Makefile.in$' | while read ff
-  # The above 'grep' is to avoid touching the Makefile.in in the root
-  # directory, since that's now a source file, rather than being generated from
-  # Makefile.am.
-  do
+  find . -name $f | while read ff; do
     touch $ff
   done
   sleep 1

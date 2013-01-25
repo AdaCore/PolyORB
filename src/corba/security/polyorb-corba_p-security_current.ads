@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Security.Identities;
 
@@ -39,7 +41,7 @@ package PolyORB.CORBA_P.Security_Current is
       Access_Identity : PolyORB.Security.Identities.Identity_Access;
    end record;
 
-   procedure Destroy (N : in out Security_Current_Note);
+   overriding procedure Destroy (N : in out Security_Current_Note);
 
    Empty_Security_Current_Note : constant Security_Current_Note
      := (PolyORB.Annotations.Note with Access_Identity => null);

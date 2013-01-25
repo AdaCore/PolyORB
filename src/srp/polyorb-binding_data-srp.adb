@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.ORB;
@@ -64,7 +66,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Release --
    -------------
 
-   procedure Release (P : in out SRP_Profile_Type) is
+   overriding procedure Release (P : in out SRP_Profile_Type) is
    begin
       Free (P.Address);
       Free (P.Object_Id);
@@ -78,7 +80,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Bind_Profile --
    ------------------
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access SRP_Profile_Type;
       The_ORB :        Components.Component_Access;
       QoS     :        PolyORB.QoS.QoS_Parameters;
@@ -124,7 +126,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : SRP_Profile_Type)
      return Profile_Tag is
    begin
@@ -138,7 +140,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : SRP_Profile_Type)
      return Profile_Preference is
    begin
@@ -152,7 +154,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF : out SRP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       ORB : Components.Component_Access)
@@ -169,7 +171,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access SRP_Profile_Factory;
       Oid : Objects.Object_Id)
      return Profile_Access
@@ -189,7 +191,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile
+   overriding function Duplicate_Profile
      (P : SRP_Profile_Type)
      return Profile_Access
    is
@@ -211,9 +213,9 @@ package body PolyORB.Binding_Data.SRP is
    -- Is_Local_Profile --
    ----------------------
 
-   function Is_Local_Profile
+   overriding function Is_Local_Profile
      (PF : access SRP_Profile_Factory;
-      P  : access Profile_Type'Class)
+      P  : not null access Profile_Type'Class)
       return Boolean is
    begin
       if P.all in SRP_Profile_Type
@@ -229,7 +231,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Image --
    -----------
 
-   function Image (Prof : SRP_Profile_Type) return String is
+   overriding function Image (Prof : SRP_Profile_Type) return String is
    begin
       return "Address : " & Image (Prof.Address.all) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
@@ -239,7 +241,7 @@ package body PolyORB.Binding_Data.SRP is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : SRP_Profile_Type;
       Right : Profile_Type'Class) return Boolean
    is

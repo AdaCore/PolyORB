@@ -56,7 +56,7 @@ package body PolyORB.CORBA_P.Dynamic_Any is
       return DynamicAny.DynAny.Local_Ref
    is
       Neutral : constant PolyORB.Any.TypeCode.Local_Ref :=
-                  CORBA.TypeCode.Internals.To_PolyORB_Object (IDL_Type);
+        CORBA.TypeCode.Internals.To_PolyORB_Object (IDL_Type);
 
    begin
       case Kind (Unwind_Typedefs (Neutral)) is

@@ -116,8 +116,8 @@ package body MOMA.Message_Producers is
       MOMA_Ref : PolyORB.References.Ref;
       Producer : MOMA.Message_Producers.Message_Producer;
       Type_Id_S : constant MOMA.Types.String :=
-                    To_MOMA_String
-                      (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
+        To_MOMA_String
+          (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
 
       Error : Error_Container;
    begin
@@ -358,7 +358,7 @@ package body MOMA.Message_Producers is
       use type PolyORB.Tasking.Priorities.External_Priority;
 
       Argument_Mesg : constant PolyORB.Any.Any :=
-                        MOMA.Messages.To_Any (Message);
+        MOMA.Messages.To_Any (Message);
       Request       : PolyORB.Requests.Request_Access;
       Arg_List      : PolyORB.Any.NVList.Ref;
       Result        : PolyORB.Any.NamedValue;

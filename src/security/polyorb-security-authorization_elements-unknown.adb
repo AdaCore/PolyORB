@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Security.Authorization_Elements.Unknown is
@@ -53,7 +55,7 @@ package body PolyORB.Security.Authorization_Elements.Unknown is
    -- Encode --
    ------------
 
-   function Encode
+   overriding function Encode
      (Self : access Unknown_Authorization_Element_Type)
       return Ada.Streams.Stream_Element_Array
    is
@@ -65,7 +67,7 @@ package body PolyORB.Security.Authorization_Elements.Unknown is
    -- Get_Authorization_Element_Type --
    ------------------------------------
 
-   function Get_Authorization_Element_Type
+   overriding function Get_Authorization_Element_Type
      (Self : access Unknown_Authorization_Element_Type)
       return Element_Type
    is
@@ -77,7 +79,7 @@ package body PolyORB.Security.Authorization_Elements.Unknown is
    -- Is_Holder --
    ---------------
 
-   function Is_Holder
+   overriding function Is_Holder
      (Self     : access Unknown_Authorization_Element_Type;
       Identity :        PolyORB.Security.Identities.Identity_Access)
       return Boolean
@@ -93,7 +95,7 @@ package body PolyORB.Security.Authorization_Elements.Unknown is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (Self : access Unknown_Authorization_Element_Type)
    is
 

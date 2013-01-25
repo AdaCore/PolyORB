@@ -91,8 +91,8 @@ package body IOP.Codec.Impl is
       Buffer   : Buffer_Access := new Buffer_Type;
       Error    : Error_Container;
       Result   : constant PolyORB.Any.Any :=
-                   PolyORB.Any.Get_Empty_Any
-                     (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
+        PolyORB.Any.Get_Empty_Any
+          (CORBA.TypeCode.Internals.To_PolyORB_Object (TC));
 
       use PolyORB.Any;
    begin

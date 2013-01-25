@@ -71,9 +71,9 @@ package body RTCosScheduling.ClientScheduler.Impl is
       Priority : Integer;
 
       Current : constant RTCORBA.Current.Local_Ref :=
-                  RTCORBA.Current.Helper.To_Local_Ref
-                    (CORBA.ORB.Resolve_Initial_References
-                     (CORBA.ORB.To_CORBA_String ("RTCurrent")));
+        RTCORBA.Current.Helper.To_Local_Ref
+          (CORBA.ORB.Resolve_Initial_References
+             (CORBA.ORB.To_CORBA_String ("RTCurrent")));
 
    begin
       pragma Debug (C, O ("Configuring activity: "

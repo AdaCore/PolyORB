@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  An asynchrous event source that is a set of socket descriptors.
 
 with PolyORB.Sockets;
@@ -41,11 +43,11 @@ package PolyORB.Asynch_Ev.Sockets is
 
    type Socket_Event_Monitor is new Asynch_Ev_Monitor with private;
 
-   procedure Create (AEM : out Socket_Event_Monitor);
+   overriding procedure Create (AEM : out Socket_Event_Monitor);
 
-   procedure Destroy (AEM : in out Socket_Event_Monitor);
+   overriding procedure Destroy (AEM : in out Socket_Event_Monitor);
 
-   function Has_Sources (AEM : Socket_Event_Monitor) return Boolean;
+   overriding function Has_Sources (AEM : Socket_Event_Monitor) return Boolean;
 
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
@@ -67,7 +69,9 @@ package PolyORB.Asynch_Ev.Sockets is
    function Create_Event_Source
      (Socket : PolyORB.Sockets.Socket_Type) return Asynch_Ev_Source_Access;
 
-   function AEM_Factory_Of (AES : Socket_Event_Source) return AEM_Factory;
+   overriding function AEM_Factory_Of
+     (AES : Socket_Event_Source)
+     return AEM_Factory;
 
 private
 

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding data concrete implementation for MIOP
 
 with PolyORB.Binding_Data.GIOP.INET;
@@ -83,7 +85,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : UIPMC_Profile_Type) return Profile_Tag
    is
       pragma Unreferenced (Profile);
@@ -96,7 +98,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : UIPMC_Profile_Type) return Profile_Preference
    is
       pragma Unreferenced (Profile);
@@ -109,7 +111,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out UIPMC_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access)
@@ -128,7 +130,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access UIPMC_Profile_Factory;
       Oid :        Objects.Object_Id) return Profile_Access
    is
@@ -204,7 +206,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : UIPMC_Profile_Type) return Profile_Access is
+   overriding function Duplicate_Profile
+     (P : UIPMC_Profile_Type)
+     return Profile_Access
+   is
       Result  : constant Profile_Access := new UIPMC_Profile_Type;
       TResult : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
 
@@ -252,11 +257,11 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       Result   : Profile_Access := new UIPMC_Profile_Type;
       TResult  : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
       Address  : constant Utils.Sockets.Socket_Name :=
-                   Common_Unmarshall_Profile_Body
-                     (Buffer,
-                      Result,
-                      Unmarshall_Object_Id => False,
-                      Unmarshall_Tagged_Components => True);
+        Common_Unmarshall_Profile_Body
+          (Buffer,
+           Result,
+           Unmarshall_Object_Id => False,
+           Unmarshall_Tagged_Components => True);
 
       Temp_Ref : Tagged_Component_Access;
 
@@ -306,7 +311,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       UIPMC_Profile : UIPMC_Profile_Type renames UIPMC_Profile_Type (P.all);
 
       TC_G_I : constant Tagged_Component_Access :=
-                 Get_Component (UIPMC_Profile.Components, Tag_Group);
+        Get_Component (UIPMC_Profile.Components, Tag_Group);
 
    begin
       pragma Debug (C, O ("UIPMC Profile to corbaloc"));
@@ -444,7 +449,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Image --
    -----------
 
-   function Image (Prof : UIPMC_Profile_Type) return String is
+   overriding function Image (Prof : UIPMC_Profile_Type) return String is
       use PolyORB.Servants.Group_Servants;
       use PolyORB.Sockets;
 
@@ -470,7 +475,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Get_OA --
    ------------
 
-   function Get_OA
+   overriding function Get_OA
      (Profile : UIPMC_Profile_Type) return PolyORB.Smart_Pointers.Entity_Ptr
    is
       pragma Unreferenced (Profile);

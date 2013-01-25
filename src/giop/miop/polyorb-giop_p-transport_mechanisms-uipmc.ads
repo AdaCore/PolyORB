@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Utils.Sockets;
 
 package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
    type UIPMC_Transport_Mechanism is new Transport_Mechanism with private;
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : UIPMC_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -44,7 +46,8 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container);
 
-   procedure Release_Contents (M : access UIPMC_Transport_Mechanism);
+   overriding procedure Release_Contents
+     (M : access UIPMC_Transport_Mechanism);
 
    --  UIPMC Transport Mechanism specific subprograms
 
@@ -56,15 +59,15 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    type UIPMC_Transport_Mechanism_Factory is
      new Transport_Mechanism_Factory with private;
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (MF  : out UIPMC_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access);
 
-   function Is_Local_Mechanism
+   overriding function Is_Local_Mechanism
      (MF : access UIPMC_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class) return Boolean;
 
-   function Create_Tagged_Components
+   overriding function Create_Tagged_Components
      (MF : UIPMC_Transport_Mechanism_Factory)
       return Tagged_Components.Tagged_Component_List;
 
@@ -80,11 +83,11 @@ package PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       return Transport_Mechanism_Access;
    --  Create transport mechanism for specified transport access point address
 
-   function Duplicate
+   overriding function Duplicate
      (TMA : UIPMC_Transport_Mechanism)
      return UIPMC_Transport_Mechanism;
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : UIPMC_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean;
 

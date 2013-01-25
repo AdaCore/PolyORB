@@ -30,12 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object references.
+pragma Ada_2005;
 
 with Ada.Tags;
 
 with PolyORB.Binding_Object_QoS;
-with PolyORB.Binding_Objects;
+with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Types;
 
@@ -127,7 +127,7 @@ package body PolyORB.References is
    -- Finalize --
    --------------
 
-   procedure Finalize (RI : in out Reference_Info) is
+   overriding procedure Finalize (RI : in out Reference_Info) is
    begin
       pragma Debug (C, O ("Finalize (Reference_Info): enter"));
 
@@ -153,41 +153,42 @@ package body PolyORB.References is
    ----------------------
 
    procedure Get_Binding_Info
-     (R   :     Ref'Class;
-      QoS :     PolyORB.QoS.QoS_Parameters;
-      BOC : out Components.Component_Access;
+     (R   : Ref'Class;
+      QoS : PolyORB.QoS.QoS_Parameters;
+      BO  : in out Binding_Objects.Ref;
       Pro : out Binding_Data.Profile_Access)
    is
       use Binding_Info_Lists;
 
       RI   : constant Reference_Info_Access := Ref_Info_Of (R);
       Iter : Binding_Info_Lists.Iterator    := First (RI.Binding_Info);
-      BO   : Binding_Object_Access;
 
    begin
       while not Last (Iter) loop
-         BO := Binding_Object_Access
-                 (Entity_Of (Value (Iter).Binding_Object_Ref));
+         declare
+            BOR : Binding_Objects.Ref renames Value (Iter).Binding_Object_Ref;
+            BOA : constant Binding_Object_Access :=
+              Binding_Object_Access (Entity_Of (BOR));
+         begin
+            --  If the binding object has become invalid, forget about it
 
-         --  If the binding object has become invalid, forget about it
+            if not Valid (BOA) then
+               pragma Debug (C, O ("Removing invalid binding object"));
+               Remove (RI.Binding_Info, Iter);
 
-         if not Valid (BO) then
-            pragma Debug (C, O ("Removing invalid binding object"));
-            Remove (RI.Binding_Info, Iter);
+            --  If existing BO QoS is compatible with requested QoS, reuse it
 
-         --  If existing BO QoS is compatible with requested QoS, reuse it
+            elsif PolyORB.Binding_Object_QoS.Is_Compatible (BOA, QoS) then
+               BO  := BOR;
+               Pro := Value (Iter).all.Binding_Profile;
+               return;
 
-         elsif PolyORB.Binding_Object_QoS.Is_Compatible (BO, QoS) then
-            BOC := Get_Component (Value (Iter).Binding_Object_Ref);
-            Pro := Value (Iter).all.Binding_Profile;
-            return;
-
-         else
-            Next (Iter);
-         end if;
+            else
+               Next (Iter);
+            end if;
+         end;
       end loop;
 
-      BOC := null;
       Pro := null;
    end Get_Binding_Info;
 
@@ -262,17 +263,21 @@ package body PolyORB.References is
       end if;
    end Is_Exported_Reference;
 
-   -----------------
-   -- Enter_Mutex --
-   -----------------
+   --------------
+   -- Mutex_Of --
+   --------------
 
-   procedure Enter_Mutex (R : Ref) is
+   function Mutex_Of
+     (R : Ref) return access Tasking.Mutexes.Mutex_Type'Class
+   is
       RI : constant Reference_Info_Access := Ref_Info_Of (R);
    begin
       if RI /= null then
-         Enter (RI.Mutex);
+         return RI.Mutex;
+      else
+         return null;
       end if;
-   end Enter_Mutex;
+   end Mutex_Of;
 
    ----------------
    -- Notepad_Of --
@@ -468,18 +473,6 @@ package body PolyORB.References is
          null;
       end if;
    end Set_Type_Id;
-
-   -----------------
-   -- Leave_Mutex --
-   -----------------
-
-   procedure Leave_Mutex (R : Ref) is
-      RI : constant Reference_Info_Access := Ref_Info_Of (R);
-   begin
-      if RI /= null then
-         Leave (RI.Mutex);
-      end if;
-   end Leave_Mutex;
 
    -----------
    -- Write --

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Generic chained list.
 
 with PolyORB.Utils.Chained_Lists;
@@ -42,7 +44,7 @@ package PolyORB.Utils.Strings.Lists is
 
    type List is new String_Ptr_Lists.List;
    type Iterator is new String_Ptr_Lists.Iterator;
-   function Empty return List;
+   overriding function Empty return List;
 
    function First (L : List) return Iterator;
    function Value (I : Iterator) return String_Ptr;
@@ -55,7 +57,7 @@ package PolyORB.Utils.Strings.Lists is
    function "&" (L : List; I : String) return List;
    --  Append I to L
 
-   procedure Deallocate (L : in out List);
+   overriding procedure Deallocate (L : in out List);
 
 private
 

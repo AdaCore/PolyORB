@@ -181,12 +181,12 @@ package body PolyORB.GIOP_P.Exceptions is
       Colon2 : constant Integer := Find (Id, Colon1 + 1, ':');
 
       Internal_Name : constant PolyORB.Types.String :=
-                        To_PolyORB_String (Id (Colon1 + 1 .. Colon2 - 1));
+        To_PolyORB_String (Id (Colon1 + 1 .. Colon2 - 1));
 
       New_Name : constant PolyORB.Types.String :=
-                   CORBA_Root_PTS & Internal_Name & CORBA_Exc_Version_PTS;
+        CORBA_Root_PTS & Internal_Name & CORBA_Exc_Version_PTS;
 
-      Result_TC : constant TypeCode.Local_Ref := TypeCode.TC_Except;
+      Result_TC : constant TypeCode.Local_Ref := TypeCode.TCF_Except;
 
    begin
       pragma Debug (C, O ("Exception Id was: " & Id));
@@ -245,7 +245,7 @@ package body PolyORB.GIOP_P.Exceptions is
 
          declare
             Exception_Name : constant String :=
-                               To_Standard_String (Name (Result_TC));
+              To_Standard_String (Name (Result_TC));
             Id : constant Error_Id := Error_Id'Value (Exception_Name & "_E");
 
             Minor : constant Types.Unsigned_Long
@@ -302,8 +302,8 @@ package body PolyORB.GIOP_P.Exceptions is
    is
       use System_Exception_TC_Cache;
 
-      TC    : constant TypeCode.Local_Ref
-        := Lookup (Name, TypeCode.TC_Except);
+      TC    : constant TypeCode.Local_Ref :=
+                Lookup (Name, TypeCode.TCF_Except);
 
       Shift : Natural := 0;
       Repository_Id : PolyORB.Types.String;

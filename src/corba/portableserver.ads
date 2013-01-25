@@ -37,6 +37,8 @@
 
 pragma Ada_2005;
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 
 with CORBA.Forward;
@@ -95,7 +97,7 @@ package PortableServer is
    --  Servant_Base type and default implementations of the primitive
    --  operations on Servant_Base that meet the required semantics.
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self    : access Servant_Base;
       Request : CORBA.ServerRequest.Object_Ptr);
 

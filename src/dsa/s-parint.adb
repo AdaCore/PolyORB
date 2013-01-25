@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,8 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Characters.Handling;
 with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 
 with System.Address_To_Access_Conversions;
 with System.Standard_Library;
@@ -72,7 +75,6 @@ with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
 with PolyORB.Utils.Configuration_File;
-with PolyORB.Utils.Ilists;
 with PolyORB.Utils.Strings.Lists;
 
 package body System.Partition_Interface is
@@ -186,7 +188,7 @@ package body System.Partition_Interface is
       --  True if the package is assigned on local partition
 
       Reconnection_Policy : Reconnection_Policy_Type :=
-                              Default_Reconnection_Policy;
+        Default_Reconnection_Policy;
       --  Reconnection policy for this RCI's partition
 
       State               : RCI_State := Initial;
@@ -233,7 +235,7 @@ package body System.Partition_Interface is
    type DSA_Source is
      new PolyORB.Parameters.Parameters_Source with null record;
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access DSA_Source;
       Section, Key : String) return String;
 
@@ -318,7 +320,7 @@ package body System.Partition_Interface is
       use PolyORB.POA_Manager;
 
       POA   : constant Obj_Adapter_Access :=
-                Obj_Adapter_Access (Default_Servant.Object_Adapter);
+        Obj_Adapter_Access (Default_Servant.Object_Adapter);
       Error : Error_Container;
    begin
       pragma Debug (C, O ("Activate_RPC_Receiver: "
@@ -386,12 +388,12 @@ package body System.Partition_Interface is
 
       AC  : Any_Container'Class renames Get_Container (Item).all;
       ACC : Aggregate_Content'Class renames
-              Aggregate_Content'Class (Get_Value (AC).all);
+        Aggregate_Content'Class (Get_Value (AC).all);
 
       El_Count : constant PolyORB.Types.Unsigned_Long :=
-                   Get_Aggregate_Count (ACC);
+        Get_Aggregate_Count (ACC);
       Data_Length  : constant Stream_Element_Count :=
-                       Stream_Element_Count (El_Count - 1);
+        Stream_Element_Count (El_Count - 1);
       pragma Assert (El_Count - 1 = Get_Aggregate_Element (AC, 0));
       --  Note: for a sequence aggregate, the first aggregate element is the
       --  sequence length.
@@ -444,8 +446,8 @@ package body System.Partition_Interface is
       use Octet_Sequences;
 
       S : PolyORB.Opaque.Zone_Access :=
-            new Stream_Element_Array'(PolyORB.Buffers.To_Stream_Element_Array
-                                        (Stream.Buf));
+        new Stream_Element_Array'(PolyORB.Buffers.To_Stream_Element_Array
+                                    (Stream.Buf));
 
       subtype OSEA_T is Element_Array (1 .. S'Length);
       OSEA_Addr : constant System.Address := S (S'First)'Address;
@@ -625,7 +627,7 @@ package body System.Partition_Interface is
       use PolyORB.Types;
 
       Name   : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
-      TC     : constant PATC.Local_Ref := PATC.TC_Except;
+      TC     : constant PATC.Local_Ref := PATC.TCF_Except;
       Result : PolyORB.Any.Any;
    begin
       --  Name
@@ -656,7 +658,7 @@ package body System.Partition_Interface is
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Servant;
       Req  : PolyORB.Requests.Request_Access) return Boolean
    is
@@ -693,8 +695,7 @@ package body System.Partition_Interface is
                Arg_Name_n  : constant PolyORB.Types.Identifier :=
                  To_PolyORB_String ("n");
                Argument_n  : constant Any :=
-                               Get_Empty_Any (
-                                 PolyORB.Services.Naming.Helper.TC_Name);
+                 Get_Empty_Any (PolyORB.Services.Naming.Helper.TC_Name);
 
                Result      : Object_Ref;
                Arg_List    : NVList_Ref;
@@ -797,10 +798,10 @@ package body System.Partition_Interface is
    function Extract_Union_Value (U : Any) return Any is
       U_Type : constant PATC.Local_Ref := Get_Type (U);
       Label_Any : constant Any :=
-                    PolyORB.Any.Get_Aggregate_Element
-                      (U, PATC.Discriminator_Type (U_Type), 0);
+        PolyORB.Any.Get_Aggregate_Element
+          (U, PATC.Discriminator_Type (U_Type), 0);
       Value_Type : constant PATC.Local_Ref :=
-                     PATC.Member_Type_With_Label (U_Type, Label_Any);
+        PATC.Member_Type_With_Label (U_Type, Label_Any);
    begin
       return PolyORB.Any.Get_Aggregate_Element (U, Value_Type, 1);
    end Extract_Union_Value;
@@ -811,7 +812,7 @@ package body System.Partition_Interface is
 
    function FA_A (Item : PolyORB.Any.Any) return DSAT.Any_Container_Ptr is
       Item_ACP : constant PolyORB.Any.Any_Container_Ptr :=
-                   PolyORB.Any.Get_Container (PolyORB.Any.From_Any (Item));
+        PolyORB.Any.Get_Container (PolyORB.Any.From_Any (Item));
       pragma Warnings (Off);
       --  No aliasing issues since DSAT.Any_Container_Ptr values are never
       --  dereferenced without first being converted back to
@@ -906,6 +907,41 @@ package body System.Partition_Interface is
         (PolyORB.Types.String'(From_Any (Item)));
    end FA_String;
 
+   ---------------
+   -- Free_Stub --
+   ---------------
+
+   procedure Free_Stub (RACW : in out RACW_Stub_Type_Access) is
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+              (RACW_Stub_Type'Class, RACW_Stub_Type_Access);
+      H_Entry : RACW_Stub_Type_Access;
+   begin
+      if RACW = null then
+         return;
+      end if;
+
+      PTM.Enter (Critical_Section);
+
+      --  Check that this RACW value is properly recorded in Objects_HTable
+
+      H_Entry := Objects_HTable.Get (RACW);
+      if H_Entry /= RACW then
+         PTM.Leave (Critical_Section);
+         raise Constraint_Error with "invalid RACW";
+      end if;
+
+      --  Proceed to remove it
+
+      Objects_HTable.Remove (RACW);
+      PTM.Leave (Critical_Section);
+
+      --  We can now safely deallocate the stub
+
+      PolyORB.Smart_Pointers.Dec_Usage (RACW.Target);
+      Free (RACW);
+   end Free_Stub;
+
    ---------------------------
    -- Get_Aggregate_Element --
    ---------------------------
@@ -927,7 +963,7 @@ package body System.Partition_Interface is
    function Get_Active_Partition_ID (Name : Unit_Name) return RPC.Partition_ID
    is
       Is_Local : constant Boolean :=
-                   PolyORB.Parameters.Get_Conf ("dsa", RCI_Attr (Name, Local));
+        PolyORB.Parameters.Get_Conf ("dsa", RCI_Attr (Name, Local));
       Info     : RCI_Info_Access;
    begin
 
@@ -985,7 +1021,7 @@ package body System.Partition_Interface is
    -- Get_Conf --
    --------------
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access DSA_Source;
       Section, Key : String) return String
    is
@@ -993,7 +1029,7 @@ package body System.Partition_Interface is
       subtype String_Ptr is PolyORB.Utils.Strings.String_Ptr;
       use type String_Ptr;
       V : constant String_Ptr :=
-            PUCFCT.Lookup (Conf_Table, Make_Global_Key (Section, Key), null);
+        PUCFCT.Lookup (Conf_Table, Make_Global_Key (Section, Key), null);
    begin
       if V /= null then
          return V.all;
@@ -1014,7 +1050,7 @@ package body System.Partition_Interface is
       use PolyORB.Errors;
 
       Profiles : constant Profile_Array :=
-                   PolyORB.References.Profiles_Of (Ref);
+        PolyORB.References.Profiles_Of (Ref);
 
       Error : Error_Container;
 
@@ -1088,6 +1124,15 @@ package body System.Partition_Interface is
    ----------
    -- Link --
    ----------
+
+   function Link
+     (X     : access RACW_Stub_Type'Class;
+      Which : PolyORB.Utils.Ilists.Link_Type)
+      return access RACW_Stub_Type_Access
+   is
+   begin
+      return X.Notification_Links (Which)'Unchecked_Access;
+   end Link;
 
    function Link
      (S     : access Private_Info;
@@ -1187,7 +1232,7 @@ package body System.Partition_Interface is
       if PATC.Kind (TC) = Tk_Struct then
          declare
             Index : constant PolyORB.Types.Unsigned_Long :=
-                      PATC.Member_Count (TC) - 1;
+              PATC.Member_Count (TC) - 1;
          begin
             pragma Debug (C, O ("Index of last member is" & Index'Img));
 
@@ -1204,8 +1249,7 @@ package body System.Partition_Interface is
          use type U32;
 
          Outer_Length : constant U32 :=
-                          FA_U32 (PolyORB.Any.Get_Aggregate_Element
-                                   (Seq_Any, TC_U32, 0));
+           FA_U32 (PolyORB.Any.Get_Aggregate_Element (Seq_Any, TC_U32, 0));
       begin
          if Depth = 1 or else Outer_Length = 0 then
             return Outer_Length;
@@ -1331,7 +1375,7 @@ package body System.Partition_Interface is
                      new System.Address_To_Access_Conversions (Subp_Array);
 
                   Subp_Info : constant Subp_Info_Addr_Conv.Object_Pointer :=
-                                Subp_Info_Addr_Conv.To_Pointer (RS.Subp_Info);
+                    Subp_Info_Addr_Conv.To_Pointer (RS.Subp_Info);
                begin
                   if RS.Kind = Pkg_Stub
                     and then To_Lower (RS.Name.all) = To_Lower (Pkg_Name)
@@ -1593,13 +1637,10 @@ package body System.Partition_Interface is
          use PolyORB.Parameters;
 
          Is_Main_Partition : constant Boolean :=
-                               Get_Conf ("dsa", "main_partition", False);
+           Get_Conf ("dsa", "main_partition", False);
          Has_Embedded_Nameserver : constant Boolean :=
-                                     Ada.Characters.Handling.To_Upper
-                                       (Get_Conf
-                                          ("dsa",
-                                           "name_server_kind", ""))
-                                       = "EMBEDDED";
+           Ada.Characters.Handling.To_Upper
+             (Get_Conf ("dsa", "name_server_kind", "")) = "EMBEDDED";
          Boot_Loc : constant String := Get_Conf ("dsa", "boot_location", "");
          Self_Loc : constant String := Get_Conf ("dsa", "self_location", "");
       begin
@@ -1645,7 +1686,7 @@ package body System.Partition_Interface is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (Stream : in out Buffer_Stream_Type;
       Item   : out Stream_Element_Array;
       Last   : out Stream_Element_Offset)
@@ -1653,9 +1694,8 @@ package body System.Partition_Interface is
       use PolyORB.Buffers;
 
       Transfer_Length : constant Stream_Element_Count :=
-                          Stream_Element_Count'Min
-                            (Remaining (Stream.Buf'Access),
-                             Item'Length);
+        Stream_Element_Count'Min
+          (Remaining (Stream.Buf'Access), Item'Length);
       Data : PolyORB.Opaque.Opaque_Pointer;
    begin
       Extract_Data (Stream.Buf'Access, Data, Transfer_Length);
@@ -1814,7 +1854,7 @@ package body System.Partition_Interface is
 
          Error : Error_Container;
          Key : aliased PolyORB.Objects.Object_Id :=
-                 To_Local_Oid (System.Null_Address);
+           To_Local_Oid (System.Null_Address);
 
          U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
          Oid : PolyORB.POA_Types.Object_Id_Access;
@@ -1933,8 +1973,7 @@ package body System.Partition_Interface is
          declare
             E   : constant PolyORB.Any.Any := R.Exception_Info;
             Msg : constant String :=
-                    PolyORB.QoS.Exception_Informations.
-                      Get_Exception_Message (R);
+              PolyORB.QoS.Exception_Informations.  Get_Exception_Message (R);
          begin
             Raise_From_Any (E, Msg);
          end;
@@ -2095,7 +2134,7 @@ package body System.Partition_Interface is
 
       <<Lookup>>
       if Info.State /= Dead then
-         --  If state is Initial and Entry_Created is false, this means another
+         --  If state is Initial and Entry_Pending is True, this means another
          --  task is in the process of looking up this RCI from the name
          --  server: just wait for Base_Ref to become non-null.
 
@@ -2171,8 +2210,8 @@ package body System.Partition_Interface is
    --------------------
 
    function Same_Partition
-     (Left  : access RACW_Stub_Type;
-      Right : access RACW_Stub_Type) return Boolean
+     (Left  : access RACW_Stub_Type'Class;
+      Right : access RACW_Stub_Type'Class) return Boolean
    is
    begin
       return Same_Node (Make_Ref (Left.Target), Make_Ref (Right.Target));
@@ -2194,14 +2233,14 @@ package body System.Partition_Interface is
 
       POA   : Obj_Adapter_Access;
       PName : constant PolyORB.Types.String :=
-                PolyORB.Types.String (To_PolyORB_String (Name));
+        PolyORB.Types.String (To_PolyORB_String (Name));
       Error : Error_Container;
    begin
       --  NOTE: Actually this does more than set up an RPC receiver. A TypeCode
       --  corresponding to the RACW is also constructed (and this is vital also
       --  on the client side).
 
-      Default_Servant.Obj_TypeCode := PATC.TC_Object;
+      Default_Servant.Obj_TypeCode := PATC.TCF_Object;
       PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode, To_Any (PName));
       PATC.Add_Parameter
@@ -2249,23 +2288,6 @@ package body System.Partition_Interface is
          The_TM_Shutdown (Wait_For_Completion);
       end if;
    end Shutdown;
-
-   --------------
-   -- TC_Build --
-   --------------
-
-   --  ??? This function should be replaced by a call to Build_Complex_TC
-
-   function TC_Build
-     (Base       : PATC.Local_Ref;
-      Parameters : Any_Array) return PATC.Local_Ref
-   is
-   begin
-      for J in Parameters'Range loop
-         PATC.Add_Parameter (Base, Parameters (J));
-      end loop;
-      return Base;
-   end TC_Build;
 
    ---------------
    -- TC_Opaque --
@@ -2397,7 +2419,7 @@ package body System.Partition_Interface is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (Stream : in out Buffer_Stream_Type;
       Item   : Stream_Element_Array)
    is

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Call back component.
 --
 --  A Call back component act as a request 'bouncer'. It is associated to a
@@ -51,7 +53,7 @@ package PolyORB.Call_Back is
      (Req :        PolyORB.Requests.Request;
       CBH : access Call_Back_Handler);
 
-   function Handle_Message
+   overriding function Handle_Message
      (CB_Handler : not null access Call_Back_Handler;
       S          : Components.Message'Class) return Components.Message'Class;
 

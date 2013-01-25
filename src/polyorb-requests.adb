@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Errors.Helper;
@@ -101,14 +103,12 @@ package body PolyORB.Requests is
       Arg_List                   : Any.NVList.Ref;
       Result                     : in out Any.NamedValue;
       Exc_List                   : Any.ExceptionList.Ref :=
-                                     Any.ExceptionList.Nil_Ref;
+        Any.ExceptionList.Nil_Ref;
       Req                        : out Request_Access;
-      Req_Flags                  : Flags :=
-                                     Default_Flags;
-      Deferred_Arguments_Session : Components.Component_Access :=
-                                     null;
+      Req_Flags                  : Flags := Default_Flags;
+      Deferred_Arguments_Session : Components.Component_Access := null;
       Identification             : Arguments_Identification :=
-                                     Ident_By_Position;
+        Ident_By_Position;
       Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null)
    is
       use PolyORB.Request_QoS;
@@ -145,7 +145,7 @@ package body PolyORB.Requests is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Req : in out Request) is
+   overriding procedure Initialize (Req : in out Request) is
    begin
       Tasking.Mutexes.Create (Req.Upcall_Abortable_Mutex);
    end Initialize;
@@ -154,7 +154,7 @@ package body PolyORB.Requests is
    -- Finalize --
    --------------
 
-   procedure Finalize (Req : in out Request) is
+   overriding procedure Finalize (Req : in out Request) is
    begin
       PolyORB.Utils.Strings.Free (Req.Operation);
       Annotations.Destroy (Req.Notepad);
@@ -198,7 +198,7 @@ package body PolyORB.Requests is
             --  WAG:FSF-4.5.0
             --  Hide warning "AR is not referenced"
             AR      : aliased Abortable'Class :=
-                        Make_Abortable (Abortable_Tag, R'Access);
+              Make_Abortable (Abortable_Tag, R'Access);
             pragma Warnings (On);
             Expired : Boolean := False;
             Error   : Errors.Error_Container;
@@ -552,8 +552,7 @@ package body PolyORB.Requests is
                   then
                      declare
                         Dst_Arg_Type : constant TypeCode.Object_Ptr :=
-                                         Get_Unwound_Type
-                                           (Value (Dst_It).Argument);
+                          Get_Unwound_Type (Value (Dst_It).Argument);
                      begin
                         pragma Debug (C, O ("Src_Arg: "
                                          & To_String (Value (Src_It).Name)));
@@ -737,7 +736,9 @@ package body PolyORB.Requests is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Request_Completion_Runnable) is
+   overriding procedure Run
+     (R : not null access Request_Completion_Runnable)
+   is
       use PolyORB.Setup;
    begin
       PolyORB.ORB.Run (The_ORB, R.Req.all'Unchecked_Access, May_Exit => True);
@@ -798,10 +799,9 @@ package body PolyORB.Requests is
 
          declare
             Identification_Method : constant Arguments_Identification :=
-                                      Identification and Self.Args_Ident;
+              Identification and Self.Args_Ident;
             Ignore_Src_Mode : constant Boolean :=
-                                Self.Requesting_Component.all
-                                  in Protocols.Session'Class;
+              Self.Requesting_Component.all in Protocols.Session'Class;
          begin
             if Identification_Method = Ident_By_Position
               or else Identification_Method = Ident_Both
@@ -917,7 +917,7 @@ package body PolyORB.Requests is
       Identification : Arguments_Identification := Ident_By_Position)
    is
       Identification_Method : constant Arguments_Identification :=
-                                Identification and Self.Args_Ident;
+        Identification and Self.Args_Ident;
    begin
       if Identification_Method = Ident_By_Position
         or else Identification_Method = Ident_Both
@@ -961,11 +961,11 @@ package body PolyORB.Requests is
       Arg_List                   : Any.NVList.Ref;
       Result                     : in out Any.NamedValue;
       Exc_List                   : Any.ExceptionList.Ref :=
-                                     Any.ExceptionList.Nil_Ref;
+        Any.ExceptionList.Nil_Ref;
       Req_Flags                  : Flags := Default_Flags;
       Deferred_Arguments_Session : Components.Component_Access := null;
       Identification             : Arguments_Identification :=
-                                     Ident_By_Position;
+        Ident_By_Position;
       Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null)
    is
       use PolyORB.Request_QoS;

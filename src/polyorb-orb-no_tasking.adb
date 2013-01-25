@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Tasking policy for the ORB core: 'No_Tasking'.
 
 with PolyORB.Components;
@@ -56,7 +58,7 @@ package body PolyORB.ORB.No_Tasking is
    -- Handle_Close_Connection --
    -----------------------------
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access No_Tasking;
       TE  :        Transport_Endpoint_Access)
    is
@@ -73,7 +75,7 @@ package body PolyORB.ORB.No_Tasking is
    -- Handle_New_Client_Connection --
    ----------------------------------
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access No_Tasking;
       ORB :        ORB_Access;
       AC  :        Active_Connection)
@@ -97,7 +99,7 @@ package body PolyORB.ORB.No_Tasking is
    -- Handle_New_Server_Connection --
    ----------------------------------
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access No_Tasking;
       ORB :        ORB_Access;
       AC  :        Active_Connection)
@@ -119,7 +121,7 @@ package body PolyORB.ORB.No_Tasking is
    -- Handle_Request_Execution --
    ------------------------------
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access No_Tasking;
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
@@ -139,7 +141,7 @@ package body PolyORB.ORB.No_Tasking is
    -- Idle --
    ----------
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access No_Tasking;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access)

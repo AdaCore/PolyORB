@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of the 'Main thread' POA Policy.
 
 --  Under this policy, requests to *all* main-thread POAs are
@@ -69,7 +71,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Main_Thread_Policy)
      return String
    is
@@ -84,7 +86,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Main_Thread_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -105,7 +107,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
    -- Execute_In_Context --
    ------------------------
 
-   function Execute_In_Context
+   overriding function Execute_In_Context
      (Self      : access Main_Thread_Executor;
       Req       : Requests.Request_Access;
       Requestor : Components.Component_Access) return Boolean
@@ -143,7 +145,7 @@ package body PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
       declare
          Res : constant Boolean :=
-                 Abortable_Execute_Servant (Servant_Access (Requestor), Req);
+           Abortable_Execute_Servant (Servant_Access (Requestor), Req);
       begin
          Leave (Main_Thread_Lock);
          pragma Debug (C, O ("Execute_In_Context: Leave"));

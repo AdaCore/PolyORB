@@ -1,5 +1,17 @@
 # Common Makefile fragments for all PolyORB subsystems
-# $Id$
+
+APPLI_LIST   := @APPLI_LIST@
+APPLI_LIBS   := @APPLI_LIBS@
+APPLI_EXES   := @APPLI_EXES@
+
+PROTO_LIST   := @PROTO_LIST@
+PROTO_LIBS   := @PROTO_LIBS@
+
+LIBS_LIST    := @LIBS_LIST@
+LIBS_LIBS    := @LIBS_LIBS@
+
+SERVICE_LIBS := @SERVICE_LIBS@
+SERVICE_EXES := @SERVICE_EXES@
 
 #
 # PolyORB's libraries
@@ -57,9 +69,9 @@ web_common_lib=libpolyorb-web_common.a
 # the various personality projects.
 
 POLYORB_LIBS=	libpolyorb.a \
-		@PROTO_LIBS@ \
-		@APPLI_LIBS@ \
-		@LIBS_LIBS@ \
+		${PROTO_LIBS} \
+		${APPLI_LIBS} \
+		${LIBS_LIBS} \
 		libpolyorb-setup.a
 
 ifeq (${HAVE_SSL},yes)
@@ -73,11 +85,6 @@ notification_lib=libpolyorb-corba-cos-notification.a libpolyorb-corba-cos-notifi
 naming_lib=libpolyorb-corba-cos-naming.a libpolyorb-corba-cos-naming-impl.a
 ir_lib=libpolyorb-corba-cos-ir-impl.a
 time_lib=libpolyorb-corba-cos-time.a libpolyorb-corba-cos-time-impl.a
-
-SERVICE_LIBS=@SERVICE_LIBS@
-
-APPLI_EXES=@APPLI_EXES@
-SERVICE_EXES=@SERVICE_EXES@
 
 #
 # PolyORB's include files
@@ -153,29 +160,10 @@ aliDATA_INSTALL = $(INSTALL) -m 444
 # Scripts and common build rules
 #
 
-SUFFIXES=	.c .adb .ads .lo .ali .idl
-ADACOMPILER=	$(top_builddir)/support/adacompiler
-LINKER=		$(top_builddir)/support/linker
-NATIVE_LINKER=	$(top_builddir)/support/native-linker
+SUFFIXES=	.c .adb .ads .ali .idl
 MOVEIFCHANGE=	$(top_builddir)/support/move-if-change
-IDLAC_dir=	$(top_builddir)/compilers/$(IDLAC)
-IDLAC_bin=	$(IDLAC_dir)/$(IDLAC)
-IDLAC_WRAPPER=	$(top_builddir)/contrib/idlac_wrapper/idlac_wrapper
 GEN_CODESET_dir=$(top_builddir)/src/giop
 GEN_CODESET=	$(GEN_CODESET_dir)/gen_codeset
-
-LINK=		$(LINKER) -o $@
-
-.c.lo:
-	$(LTCOMPILE) -c $<
-
-.adb.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
-.ads.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 .idl.ads:
 	$(IDLAC_bin) -I$(srcdir) $(IDLAC_FLAGS) $<

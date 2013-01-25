@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Special Object Adapter to manage group servants
 
 with PolyORB.Any;
@@ -51,33 +53,33 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
    type Group_Object_Adapter is new Obj_Adapter with private;
    type Group_Object_Adapter_Access is access all Group_Object_Adapter'Class;
 
-   procedure Create (GOA : access Group_Object_Adapter);
+   overriding procedure Create (GOA : access Group_Object_Adapter);
 
-   procedure Destroy (GOA : access Group_Object_Adapter);
+   overriding procedure Destroy (GOA : access Group_Object_Adapter);
 
    --------------------------------------
    -- Interface to application objects --
    --------------------------------------
 
-   procedure Export
+   overriding procedure Export
      (GOA   : access Group_Object_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Unexport
+   overriding procedure Unexport
      (GOA   : access Group_Object_Adapter;
       Id    :        Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Object_Key
+   overriding procedure Object_Key
      (GOA     : access Group_Object_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Get_QoS
+   overriding procedure Get_QoS
      (OA    : access Group_Object_Adapter;
       Id    :        Objects.Object_Id;
       QoS   :    out PolyORB.QoS.QoS_Parameters;
@@ -87,25 +89,25 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Interface to ORB (acting on behalf of clients) --
    ----------------------------------------------------
 
-   function Get_Empty_Arg_List
+   overriding function Get_Empty_Arg_List
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
       return Any.NVList.Ref;
 
-   function Get_Empty_Result
+   overriding function Get_Empty_Result
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
       return Any.Any;
 
-   procedure Find_Servant
+   overriding procedure Find_Servant
      (GOA     : access Group_Object_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Release_Servant
+   overriding procedure Release_Servant
      (GOA     : access Group_Object_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access);

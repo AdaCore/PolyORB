@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides glue codee between PolyORB's
 --  AdapterActivator and CORBA specific AdapterActivator.
 
@@ -53,7 +55,7 @@ package PolyORB.CORBA_P.AdapterActivator is
      (Self : CORBA_AdapterActivator)
      return PortableServer.AdapterActivator.Ref'Class;
 
-   procedure Unknown_Adapter
+   overriding procedure Unknown_Adapter
      (Self   : access CORBA_AdapterActivator;
       Parent : access PPT.Obj_Adapter'Class;
       Name   : String;

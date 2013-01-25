@@ -26,6 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.NVList;
 with CORBA.ORB;
 
@@ -35,7 +37,7 @@ package body Echo_DynImpl is
    -- Invoke --
    ------------
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self    : access Object;
       Request : CORBA.ServerRequest.Object_Ptr)
    is

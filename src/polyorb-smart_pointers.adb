@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 with Ada.Unchecked_Deallocation;
 
@@ -62,9 +64,9 @@ package body PolyORB.Smart_Pointers is
    --  (before complete ORB initialization).
 
    Entity_External_Tag : Entity_External_Tag_Hook :=
-                           Dummy_Entity_External_Tag'Access;
+     Dummy_Entity_External_Tag'Access;
    Ref_External_Tag    : Ref_External_Tag_Hook    :=
-                           Dummy_Ref_External_Tag'Access;
+     Dummy_Ref_External_Tag'Access;
    --  Debugging hooks, set at initialization
 
    Default_Trace : Boolean := True;
@@ -90,7 +92,7 @@ package body PolyORB.Smart_Pointers is
    -- Adjust --
    ------------
 
-   procedure Adjust
+   overriding procedure Adjust
      (The_Ref : in out Ref) is
    begin
       pragma Debug (C, O ("Adjust: enter"));
@@ -143,14 +145,14 @@ package body PolyORB.Smart_Pointers is
       end if;
    end Dec_Usage;
 
-   --------------------------------
-   -- Disable_Reference_Counting --
-   --------------------------------
+   --------------------------
+   -- Disable_Ref_Counting --
+   --------------------------
 
-   procedure Disable_Reference_Counting (Obj : in out Unsafe_Entity'Class) is
+   procedure Disable_Ref_Counting (Obj : in out Unsafe_Entity'Class) is
    begin
       Obj.Counter := -1;
-   end Disable_Reference_Counting;
+   end Disable_Ref_Counting;
 
    -------------------------------
    -- Dummy_Entity_External_Tag --
@@ -199,7 +201,7 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize (The_Ref : in out Ref) is
+   overriding procedure Finalize (The_Ref : in out Ref) is
 
       function Return_Ref_External_Tag return String;
       --  Encapsulate the call to Ref_External_Tag. This function avoids
@@ -373,7 +375,7 @@ package body PolyORB.Smart_Pointers is
    is
       Entity_Kind : constant String := Entity_External_Tag (Obj.all);
       Event_Values : constant array (Event_Kind_Type) of Integer_32 :=
-                       (Inc_Usage => +1, Dec_Usage => -1);
+        (Inc_Usage => +1, Dec_Usage => -1);
    begin
       if Get_Trace (Entity_Kind) then
          O (Event_Kind'Img & ": "

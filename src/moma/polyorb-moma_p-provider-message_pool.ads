@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Actual implementation of the Message_Pool object. It is derived
 --  from PolyORB's Minimal_Servant. This package contains Message_Pool
 --  skeleton and implementation subroutines.
@@ -53,7 +55,7 @@ package PolyORB.MOMA_P.Provider.Message_Pool is
       Info :        MOMA.Types.Message_Pool);
    --  Initialize the object.
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self : access Object;
       Req  : PolyORB.Requests.Request_Access);
    --  Message_Pool servant skeleton.

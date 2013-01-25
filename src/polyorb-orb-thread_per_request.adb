@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;
@@ -66,7 +68,7 @@ package body PolyORB.ORB.Thread_Per_Request is
       A_Job : Jobs.Job_Access;
    end record;
 
-   procedure Run (R : not null access Request_Runnable);
+   overriding procedure Run (R : not null access Request_Runnable);
 
    procedure Initialize;
 
@@ -74,7 +76,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Handle_Close_Connection --
    -----------------------------
 
-   procedure Handle_Close_Connection
+   overriding procedure Handle_Close_Connection
      (P   : access Thread_Per_Request_Policy;
       TE  :        Transport_Endpoint_Access)
    is
@@ -87,7 +89,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Handle_New_Client_Connection --
    ----------------------------------
 
-   procedure Handle_New_Client_Connection
+   overriding procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection)
@@ -104,7 +106,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Handle_New_Server_Connection --
    ----------------------------------
 
-   procedure Handle_New_Server_Connection
+   overriding procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
       AC  :        Active_Connection)
@@ -121,7 +123,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Handle_Request_Execution --
    ------------------------------
 
-   procedure Handle_Request_Execution
+   overriding procedure Handle_Request_Execution
      (P   : access Thread_Per_Request_Policy;
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
@@ -135,9 +137,10 @@ package body PolyORB.ORB.Thread_Per_Request is
    begin
       pragma Debug (C, O ("Handle_Request_Execution: enter"));
       T := Run_In_Task (Get_Thread_Factory,
-                        R => new Request_Runnable'
-                          (ORB   => ORB,
-                           A_Job => Job_Access (RJ)));
+                        R    => new Request_Runnable'
+                                      (ORB   => ORB,
+                                       A_Job => Job_Access (RJ)),
+                        Name => "Request");
       pragma Debug (C, O ("Handle_Request_Execution: leave"));
    end Handle_Request_Execution;
 
@@ -145,7 +148,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Idle --
    ----------
 
-   procedure Idle
+   overriding procedure Idle
      (P         : access Thread_Per_Request_Policy;
       This_Task : PTI.Task_Info_Access;
       ORB       : ORB_Access)
@@ -180,7 +183,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Request_Runnable) is
+   overriding procedure Run (R : not null access Request_Runnable) is
    begin
 
       --  Running Job

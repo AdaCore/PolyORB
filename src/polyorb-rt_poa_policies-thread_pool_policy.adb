@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 
 package body PolyORB.RT_POA_Policies.Thread_Pool_Policy is
@@ -59,7 +61,7 @@ package body PolyORB.RT_POA_Policies.Thread_Pool_Policy is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id (Self : ThreadPoolPolicy) return String is
+   overriding function Policy_Id (Self : ThreadPoolPolicy) return String is
       pragma Unreferenced (Self);
 
    begin
@@ -70,7 +72,7 @@ package body PolyORB.RT_POA_Policies.Thread_Pool_Policy is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        ThreadPoolPolicy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)

@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Smart_Pointers.Controlled_Entities is
 
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize (X : in out Entity_Controller) is
+   overriding procedure Finalize (X : in out Entity_Controller) is
    begin
       Finalize (X.E.all);
    end Finalize;
@@ -45,7 +47,7 @@ package body PolyORB.Smart_Pointers.Controlled_Entities is
    -- Initialize --
    ----------------
 
-   procedure Initialize (X : in out Entity_Controller) is
+   overriding procedure Initialize (X : in out Entity_Controller) is
    begin
       Initialize (X.E.all);
    end Initialize;
@@ -54,7 +56,7 @@ package body PolyORB.Smart_Pointers.Controlled_Entities is
    -- Is_Controlled --
    -------------------
 
-   function Is_Controlled (X : Entity) return Boolean is
+   overriding function Is_Controlled (X : Entity) return Boolean is
       pragma Unreferenced (X);
    begin
       return True;

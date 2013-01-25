@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with GNAT.HTable;
 --  XXX Use PolyORB's Hash table ...
 
@@ -141,7 +143,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    -- Invoke --
    ------------
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self    : access Object;
       Request : PolyORB.Requests.Request_Access)
    is
@@ -160,7 +162,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
             Type_Id          : PolyORB.Types.String;
             Argument_Type_Id : constant PolyORB.Any.Any :=
-                                 Get_Empty_Any (TypeCode.TC_String);
+              Get_Empty_Any (TypeCode.TC_String);
 
             Result           : PolyORB.Types.Boolean;
             Exception_Error  : Error_Container;
@@ -199,7 +201,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
             Obj          : PolyORB.References.Ref;
             Argument_Obj : constant PolyORB.Any.Any :=
-                             Get_Empty_Any (PSNH.TC_Object);
+              Get_Empty_Any (PSNH.TC_Object);
 
             Exception_Error        : Error_Container;
          begin
@@ -243,7 +245,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
             Obj          : PolyORB.References.Ref;
             Argument_Obj : constant PolyORB.Any.Any :=
-                             Get_Empty_Any (PSNH.TC_Object);
+              Get_Empty_Any (PSNH.TC_Object);
 
             Exception_Error        : Error_Container;
          begin
@@ -285,7 +287,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
             Nc          : NamingContext.Ref;
             Argument_Nc : constant PolyORB.Any.Any :=
-                            Get_Empty_Any (TC_NamingContext);
+              Get_Empty_Any (TC_NamingContext);
 
             Exception_Error       : Error_Container;
          begin
@@ -329,7 +331,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
             Nc          : NamingContext.Ref;
             Argument_Nc : constant PolyORB.Any.Any :=
-                            Get_Empty_Any (TC_NamingContext);
+              Get_Empty_Any (TC_NamingContext);
 
             Exception_Error       : Error_Container;
          begin
@@ -370,7 +372,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
             N               : Name;
             Argument_N      : constant PolyORB.Any.Any :=
-                                Get_Empty_Any (TC_Name);
+              Get_Empty_Any (TC_Name);
 
             Result          : PolyORB.References.Ref;
             Exception_Error : Error_Container;

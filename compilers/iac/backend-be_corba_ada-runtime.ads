@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -411,7 +411,7 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Object_Of,                 --  CORBA.Object.Object_Of
       RE_Is_A,                      --  CORBA.Object.Is_A
       RE_From_Any_1,                --  CORBA.Object.Helper.From_Any
-      RE_TC_Object_0,               --  CORBA.Object.Helper.TC_Object
+      RE_TC_Object,                 --  CORBA.Object.Helper.TC_Object
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_Wrap_3,                    --  CORBA.Object.Helper.Wrap
       RE_To_PolyORB_Ref,            --  CORBA.Object.Internals.To_PolyORB_Ref
@@ -450,8 +450,9 @@ package Backend.BE_CORBA_Ada.Runtime is
       --                            --    Internals.To_CORBA_Object
       RE_To_PolyORB_Object,         --  CORBA.TypeCode.
       --                            --    Internals.To_PolyORB_Object
-      RE_Disable_Reference_Counting, --  CORBA.TypeCode.
-      --                                  Internals.Disable_Reference_Counting
+      RE_Disable_Ref_Counting,      --  CORBA.TypeCode.
+      --                            --    Internals.Disable_Ref_Counting
+      RE_Freeze,                    --  CORBA.TypeCode.Internals.Freeze
       RE_Arguments_1,               --  CORBA.ServerRequest.Arguments
       RE_Object_Ptr,                --  CORBA.ServerRequest.Object_ptr
       RE_Operation,                 --  CORBA.ServerRequest.Operation
@@ -570,16 +571,16 @@ package Backend.BE_CORBA_Ada.Runtime is
       RE_Local_Ref_1,               --  PolyORB.Any.TypeCode.Local_Ref
       RE_Object_Ptr_2,              --  PolyORB.Any.TypeCode.Object_Ptr
       RE_Object_7,                  --  PolyORB.Any.TypeCode.Object
-      RE_TC_Object_1,               --  PolyORB.Any.TypeCode.TC_Object
+      RE_TCF_Object,                --  PolyORB.Any.TypeCode.TCF_Object
       RE_Object_Of_1,               --  PolyORB.Any.TypeCode.Object_Of
       RE_To_Ref_1,                  --  PolyORB.Any.TypeCode.To_Ref
-      RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
-      RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
-      RE_TC_Except,                 --  PolyORB.Any.TypeCode.TC_Except
-      RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
-      RE_TC_Array,                  --  PolyORB.Any.TypeCode.TC_Array
-      RE_TC_Union,                  --  PolyORB.Any.TypeCode.TC_Union
-      RE_TC_Fixed,                  --  PolyORB.Any.TypeCode.TC_Fixed
+      RE_TCF_Alias,                 --  PolyORB.Any.TypeCode.TCF_Alias
+      RE_TCF_Enum,                  --  PolyORB.Any.TypeCode.TCF_Enum
+      RE_TCF_Except,                --  PolyORB.Any.TypeCode.TCF_Except
+      RE_TCF_Struct,                --  PolyORB.Any.TypeCode.TCF_Struct
+      RE_TCF_Array,                 --  PolyORB.Any.TypeCode.TCF_Array
+      RE_TCF_Union,                 --  PolyORB.Any.TypeCode.TCF_Union
+      RE_TCF_Fixed,                 --  PolyORB.Any.TypeCode.TCF_Fixed
       RE_Register_Exception,        --  PolyORB.Any.TypeCode.Register_Exception
       RE_Buffer_Access,             --  PolyORB.Buffers.Buffer_Access
       RE_Buffer_Type,               --  PolyORB.Buffers.Buffer_Type
@@ -1181,7 +1182,7 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_To_PolyORB_Ref            => RU_CORBA_Object_Internals,
          RE_To_CORBA_Ref              => RU_CORBA_Object_Internals,
          RE_From_Any_1                => RU_CORBA_Object_Helper,
-         RE_TC_Object_0               => RU_CORBA_Object_Helper,
+         RE_TC_Object                 => RU_CORBA_Object_Helper,
          RE_To_Any_3                  => RU_CORBA_Object_Helper,
          RE_Wrap_3                    => RU_CORBA_Object_Helper,
          RE_Ref_6                     => RU_CORBA_Policy,
@@ -1216,7 +1217,8 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Build_Wstring_TC          => RU_CORBA_TypeCode_Internals,
          RE_To_CORBA_Object           => RU_CORBA_TypeCode_Internals,
          RE_To_PolyORB_Object         => RU_CORBA_TypeCode_Internals,
-         RE_Disable_Reference_Counting => RU_CORBA_TypeCode_Internals,
+         RE_Disable_Ref_Counting      => RU_CORBA_TypeCode_Internals,
+         RE_Freeze                    => RU_CORBA_TypeCode_Internals,
          RE_Set_Note                  => RU_PolyORB_Annotations,
          RE_Aggregate_Content         => RU_PolyORB_Any,
          RE_Any_1                     => RU_PolyORB_Any,
@@ -1248,14 +1250,14 @@ package Backend.BE_CORBA_Ada.Runtime is
          RE_Object_7                  => RU_PolyORB_Any_TypeCode,
          RE_Object_Of_1               => RU_PolyORB_Any_TypeCode,
          RE_To_Ref_1                  => RU_PolyORB_Any_TypeCode,
-         RE_TC_Alias                  => RU_PolyORB_Any_TypeCode,
-         RE_TC_Array                  => RU_PolyORB_Any_TypeCode,
-         RE_TC_Enum                   => RU_PolyORB_Any_TypeCode,
-         RE_TC_Except                 => RU_PolyORB_Any_TypeCode,
-         RE_TC_Object_1               => RU_PolyORB_Any_TypeCode,
-         RE_TC_Struct                 => RU_PolyORB_Any_TypeCode,
-         RE_TC_Union                  => RU_PolyORB_Any_TypeCode,
-         RE_TC_Fixed                  => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Alias                 => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Array                 => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Enum                  => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Except                => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Object                => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Struct                => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Union                 => RU_PolyORB_Any_TypeCode,
+         RE_TCF_Fixed                 => RU_PolyORB_Any_TypeCode,
          RE_Buffer_Access             => RU_PolyORB_Buffers,
          RE_Buffer_Type               => RU_PolyORB_Buffers,
          RE_Align_Position            => RU_PolyORB_Buffers,

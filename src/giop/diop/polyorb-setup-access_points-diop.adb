@@ -89,10 +89,10 @@ package body PolyORB.Setup.Access_Points.DIOP is
                             (Integer (Any_Port), Integer (Any_Port))));
 
             Addr : constant Inet_Addr_Type :=
-                     Inet_Addr (String'(Get_Conf
-                                        ("diop",
-                                         "polyorb.protocols.diop.default_addr",
-                                         Image (No_Inet_Addr))));
+              Inet_Addr (String'(Get_Conf
+                                   ("diop",
+                                    "polyorb.protocols.diop.default_addr",
+                                    Image (No_Inet_Addr))));
          begin
             Initialize_Unicast_Socket (DIOP_Access_Point, Port_Hint, Addr);
 

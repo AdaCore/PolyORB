@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.CORBA_P.Security_Current is
 
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy (N : in out Security_Current_Note) is
+   overriding procedure Destroy (N : in out Security_Current_Note) is
    begin
       PolyORB.Security.Identities.Destroy (N.Access_Identity);
    end Destroy;

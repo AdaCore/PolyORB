@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.DomainManager.Helper;
+with CORBA.DomainManager;
 with CORBA.ORB;
 
 with PortableServer.Helper;
@@ -40,7 +40,7 @@ with PortableServer.ServantLocator;
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -145,7 +145,7 @@ package body PortableServer.POA is
 
       A_Oid : aliased PolyORB.POA_Types.Object_Id :=
         PolyORB.POA_Types.Object_Id
-        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
+          (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
 
    begin
       PolyORB.POA.Activate_Object
@@ -167,15 +167,13 @@ package body PortableServer.POA is
    ----------------------------------
 
    procedure Associate_To_Domain_Managers (P_Servant : Servant) is
-      use PolyORB.CORBA_P.Initial_References;
-
-      Policy_Manager : constant CORBA.DomainManager.Ref
-        := CORBA.DomainManager.Helper.To_Ref
-        (Resolve_Initial_References ("PolyORBPolicyDomainManager"));
-
-      Note           : PolyORB.CORBA_P.Domain_Management.Domain_Manager_Note;
+      use PolyORB.Initial_References;
+      Policy_Manager : CORBA.DomainManager.Ref;
+      Note : PolyORB.CORBA_P.Domain_Management.Domain_Manager_Note;
 
    begin
+      Policy_Manager.Set
+        (Resolve_Initial_References ("PolyORBPolicyDomainManager").Entity_Of);
       if CORBA.DomainManager.Is_Nil (Policy_Manager) then
          pragma Debug (C, O ("No policy domain manager registered"));
          return;
@@ -482,7 +480,7 @@ package body PortableServer.POA is
 
       A_Oid : aliased constant PolyORB.POA_Types.Object_Id :=
         PolyORB.POA_Types.Object_Id
-        (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
+          (PortableServer.Internals.To_PolyORB_Object_Id (Oid));
 
    begin
       PolyORB.POA.Deactivate_Object (POA, A_Oid, Error);
@@ -1146,7 +1144,7 @@ package body PortableServer.POA is
             declare
                Member : constant AdapterAlreadyExists_Members :=
                  AdapterAlreadyExists_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_AdapterAlreadyExists (Member, Message);
@@ -1156,7 +1154,7 @@ package body PortableServer.POA is
             declare
                Member : constant AdapterNonExistent_Members :=
                  AdapterNonExistent_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_AdapterNonExistent (Member, Message);
@@ -1166,10 +1164,10 @@ package body PortableServer.POA is
             declare
                Member : constant InvalidPolicy_Members :=
                  InvalidPolicy_Members'
-                 (CORBA.IDL_Exception_Members with
-                   Index => CORBA.Unsigned_Short
-                              (PolyORB.Errors.InvalidPolicy_Members
-                               (Error.Member.all).Index));
+                   (CORBA.IDL_Exception_Members with
+                     Index => CORBA.Unsigned_Short
+                                (PolyORB.Errors.InvalidPolicy_Members
+                                 (Error.Member.all).Index));
             begin
                Free (Error.Member);
                Raise_InvalidPolicy (Member, Message);
@@ -1179,7 +1177,7 @@ package body PortableServer.POA is
             declare
                Member : constant NoServant_Members :=
                  NoServant_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_NoServant (Member, Message);
@@ -1189,7 +1187,7 @@ package body PortableServer.POA is
             declare
                Member : constant ObjectAlreadyActive_Members :=
                  ObjectAlreadyActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ObjectAlreadyActive (Member, Message);
@@ -1199,7 +1197,7 @@ package body PortableServer.POA is
             declare
                Member : constant ObjectNotActive_Members :=
                  ObjectNotActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ObjectNotActive (Member, Message);
@@ -1209,7 +1207,7 @@ package body PortableServer.POA is
             declare
                Member : constant ServantAlreadyActive_Members :=
                  ServantAlreadyActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ServantAlreadyActive (Member, Message);
@@ -1219,7 +1217,7 @@ package body PortableServer.POA is
             declare
                Member : constant ServantNotActive_Members :=
                  ServantNotActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ServantNotActive (Member, Message);
@@ -1229,7 +1227,7 @@ package body PortableServer.POA is
             declare
                Member : constant WrongAdapter_Members :=
                  WrongAdapter_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_WrongAdapter (Member, Message);
@@ -1239,7 +1237,7 @@ package body PortableServer.POA is
             declare
                Member : constant WrongPolicy_Members :=
                  WrongPolicy_Members'
-                 (CORBA.IDL_Exception_Members with null record);
+                   (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_WrongPolicy (Member, Message);
@@ -1467,7 +1465,7 @@ package body PortableServer.POA is
       Oid : PolyORB.Objects.Object_Id_Access;
 
       TID : constant Standard.String :=
-              PortableServer.Internals.Get_Type_Id (P_Servant);
+        PortableServer.Internals.Get_Type_Id (P_Servant);
       Result : PolyORB.References.Ref;
 
       Error : PolyORB.Errors.Error_Container;

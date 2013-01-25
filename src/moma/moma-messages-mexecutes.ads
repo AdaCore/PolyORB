@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MExecute message type.
 --
 --  A MExecute message derives directly from MMap message.
@@ -62,7 +64,7 @@ package MOMA.Messages.MExecutes is
    function Create_Execute_Message return Messages.MExecutes.MExecute;
    --  Create a MExecute message.
 
-   function Image (Self : MExecute) return String;
+   overriding function Image (Self : MExecute) return String;
    --  Image function for MExecute type.
 
    --  Accessors to MExecute payload.

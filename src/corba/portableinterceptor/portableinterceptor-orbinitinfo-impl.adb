@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,9 +33,9 @@
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Policies;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.CORBA_P.Initial_References;
 
-with IOP.CodecFactory.Helper;
+with PolyORB.Initial_References;
+
 with PortableInterceptor.ORBInitInfo.Helper;
 
 package body PortableInterceptor.ORBInitInfo.Impl is
@@ -180,15 +180,14 @@ package body PortableInterceptor.ORBInitInfo.Impl is
    -----------------------
 
    function Get_Codec_Factory
-     (Self : access Object)
-      return IOP.CodecFactory.Local_Ref
+     (Self : access Object) return IOP.CodecFactory.Local_Ref
    is
       pragma Unreferenced (Self);
+      Result : IOP.CodecFactory.Local_Ref;
    begin
-      return
-        IOP.CodecFactory.Helper.To_Local_Ref
-          (PolyORB.CORBA_P.Initial_References.Resolve_Initial_References
-           ("CodecFactory"));
+      Result.Set (PolyORB.Initial_References.Resolve_Initial_References
+                    ("CodecFactory").Entity_Of);
+      return Result;
    end Get_Codec_Factory;
 
    ----------------

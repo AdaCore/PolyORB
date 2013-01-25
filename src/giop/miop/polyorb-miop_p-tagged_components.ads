@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MIOP specific tagged components
 
 with PolyORB.Buffers;
@@ -54,18 +56,20 @@ package PolyORB.MIOP_P.Tagged_Components is
      end record;
    type TC_Group_Info_Access is access all TC_Group_Info;
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents (Comp : access TC_Group_Info);
+   overriding procedure Release_Contents (Comp : access TC_Group_Info);
 
-   function Duplicate (Comp : TC_Group_Info) return Tagged_Component_Access;
+   overriding function Duplicate
+     (Comp : TC_Group_Info)
+     return Tagged_Component_Access;
 
    function To_String (Comp : access TC_Group_Info) return String;
    --  Convert C into an element of a corbaloc

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Sequences.Unbounded is
 
    Dummy_Element_Ptr : Element_Ptr;
@@ -38,7 +40,7 @@ package body PolyORB.Sequences.Unbounded is
    --  Element that is preelaborable (but is never actually evaluated).
 
    Empty_Element_Array : aliased Element_Array :=
-                           (1 .. 0 => Dummy_Element_Ptr.all);
+     (1 .. 0 => Dummy_Element_Ptr.all);
    Empty : constant Element_Array_Access := Empty_Element_Array'Access;
 
    ------------------------------------------------
@@ -187,7 +189,7 @@ package body PolyORB.Sequences.Unbounded is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : Sequence) return Boolean is
+   overriding function "=" (Left, Right : Sequence) return Boolean is
       L : Natural renames Left.Length;
    begin
       return L = Right.Length
@@ -218,7 +220,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Adjust --
    ------------
 
-   procedure Adjust (X : in out Sequence) is
+   overriding procedure Adjust (X : in out Sequence) is
    begin
       if X.Length > 0 then
          X.Content := new Element_Array'(X.Content.all);
@@ -363,7 +365,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Finalize --
    --------------
 
-   procedure Finalize (X : in out Sequence) is
+   overriding procedure Finalize (X : in out Sequence) is
    begin
       --  Note: X.Content'Length is the allocated length of the sequence, can
       --  be greater than X.Length (the current length). If X.Content'Length
@@ -450,7 +452,7 @@ package body PolyORB.Sequences.Unbounded is
    -- Initialize --
    ----------------
 
-   procedure Initialize (X : in out Sequence) is
+   overriding procedure Initialize (X : in out Sequence) is
    begin
       X.Length  := 0;
       X.Content := Allocate (0);

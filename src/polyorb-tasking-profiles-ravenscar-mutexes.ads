@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like mutexes under the Ravenscar
 --  profile. For more details see PolyORB.Tasking.Mutexes.
 
@@ -51,8 +53,8 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    type Ravenscar_Mutex_Access is access all Ravenscar_Mutex_Type'Class;
 
-   procedure Enter (M : access Ravenscar_Mutex_Type);
-   procedure Leave (M : access Ravenscar_Mutex_Type);
+   overriding procedure Enter (M : access Ravenscar_Mutex_Type);
+   overriding procedure Leave (M : access Ravenscar_Mutex_Type);
 
    type Ravenscar_Mutex_Factory_Type is
      new Mutex_Factory_Type with private;
@@ -62,12 +64,12 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    The_Mutex_Factory : constant Ravenscar_Mutex_Factory_Access;
 
-   function Create
+   overriding function Create
      (MF   : access Ravenscar_Mutex_Factory_Type;
       Name : String := "")
      return Mutex_Access;
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access Ravenscar_Mutex_Factory_Type;
       M  : in out Mutex_Access);
 

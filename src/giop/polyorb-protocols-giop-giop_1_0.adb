@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
@@ -75,9 +77,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      (GIOP_1_0_CDR_Representation, GIOP_1_0_CDR_Representation_Access);
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
-                             Sync_None
-                          or Sync_With_Transport
-                          or Sync_With_Target;
+     Sync_None or Sync_With_Transport or Sync_With_Target;
 
    --  Msg_Type
 
@@ -117,7 +117,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem (Implem : access GIOP_Implem_1_0) is
+   overriding procedure Initialize_Implem (Implem : access GIOP_Implem_1_0) is
    begin
       Implem.Data_Alignment        := Data_Alignment_1_0;
       Implem.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
@@ -127,7 +127,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Initialize_Session --
    ------------------------
 
-   procedure Initialize_Session
+   overriding procedure Initialize_Session
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class)
    is
@@ -150,7 +150,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Finalize_Session --
    ----------------------
 
-   procedure Finalize_Session
+   overriding procedure Finalize_Session
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class)
    is
@@ -172,7 +172,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Process_Message --
    ---------------------
 
-   procedure Process_Message
+   overriding procedure Process_Message
      (Implem     : access GIOP_Implem_1_0;
       S          : access Session'Class)
    is
@@ -381,7 +381,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
       Request :        Requests.Request_Access)
@@ -437,7 +437,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Sess    : GIOP_Session renames GIOP_Session (S);
       MCtx    : aliased GIOP_Message_Context_1_0 :=
-                  GIOP_Message_Context_1_0 (Sess.MCtx.all);
+        GIOP_Message_Context_1_0 (Sess.MCtx.all);
       Buffer  : Buffer_Access renames Sess.Buffer_In;
 
       Request_Id   : constant Types.Unsigned_Long := Unmarshall (Buffer);
@@ -469,7 +469,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Locate_Object --
    -------------------
 
-   procedure Locate_Object
+   overriding procedure Locate_Object
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
       R      :        Pending_Request_Access;
@@ -520,7 +520,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Send_Request --
    ------------------
 
-   procedure Send_Request
+   overriding procedure Send_Request
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
       R      : Pending_Request_Access;
@@ -539,11 +539,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
       Resp_Exp      : constant Boolean :=
-                        Is_Set (Sync_With_Target, R.Req.Req_Flags)
-                          or else
-                        Is_Set (Sync_Call_Back, R.Req.Req_Flags);
+        Is_Set (Sync_With_Target, R.Req.Req_Flags)
+          or else Is_Set (Sync_Call_Back, R.Req.Req_Flags);
       Oid           : constant Object_Id_Access :=
-                        Binding_Data.Get_Object_Key (R.Target_Profile.all);
+        Binding_Data.Get_Object_Key (R.Target_Profile.all);
    begin
       pragma Debug (C, O ("Sending request, Id :" & R.Request_Id'Img));
 
@@ -593,7 +592,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Send_Cancel_Request --
    -------------------------
 
-   procedure Send_Cancel_Request
+   overriding procedure Send_Cancel_Request
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
       R      : Request_Access)
@@ -629,7 +628,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Unmarshall_GIOP_Header --
    ----------------------------
 
-   procedure Unmarshall_GIOP_Header
+   overriding procedure Unmarshall_GIOP_Header
      (Implem : access GIOP_Implem_1_0;
       MCtx   : access GIOP_Message_Context'Class;
       Buffer : access Buffers.Buffer_Type)
@@ -673,7 +672,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Marshall_GIOP_Header --
    --------------------------
 
-   procedure Marshall_GIOP_Header
+   overriding procedure Marshall_GIOP_Header
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
       MCtx   : access GIOP_Message_Context'Class;
@@ -742,7 +741,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -- Marshall_GIOP_Header_Reply --
    --------------------------------
 
-   procedure Marshall_GIOP_Header_Reply
+   overriding procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
       R       : Request_Access;

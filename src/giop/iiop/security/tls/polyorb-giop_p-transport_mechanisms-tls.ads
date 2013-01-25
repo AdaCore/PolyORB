@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans;
 --  with PolyORB.Sockets;
 
@@ -42,7 +44,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.TLS is
       Addresses       : Tagged_Components.TLS_Sec_Trans.Socket_Name_Lists.List;
    end record;
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : TLS_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -50,9 +52,9 @@ package PolyORB.GIOP_P.Transport_Mechanisms.TLS is
       BO_Ref    : out Smart_Pointers.Ref;
       Error     : out Errors.Error_Container);
 
-   procedure Release_Contents (M : access TLS_Transport_Mechanism);
+   overriding procedure Release_Contents (M : access TLS_Transport_Mechanism);
 
-   function Duplicate
+   overriding function Duplicate
      (TMA : TLS_Transport_Mechanism)
      return TLS_Transport_Mechanism;
 
@@ -60,7 +62,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.TLS is
      (Left  : TLS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean;
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : TLS_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean;
 

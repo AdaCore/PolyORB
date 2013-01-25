@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -145,7 +145,7 @@ package body XE_Back is
    ------------------
 
    function Find_Backend (PCS_Name : String) return Backend_Access is
-      S : aliased String := PCS_Name;
+      S       : aliased String := PCS_Name;
       Backend : Backend_Access;
    begin
       Backend := All_Backends.Get (S'Unchecked_Access);
@@ -161,13 +161,12 @@ package body XE_Back is
    -- Generate_All_Stubs_And_Skels --
    ----------------------------------
 
-   procedure Generate_All_Stubs_And_Skels
-   is
-      PID     : Partition_Id;
-      Unit    : Unit_Id;
-      Uname   : Unit_Name_Type;
-   begin
+   procedure Generate_All_Stubs_And_Skels is
+      PID   : Partition_Id;
+      Unit  : Unit_Id;
+      Uname : Unit_Name_Type;
 
+   begin
       for J in ALIs.First .. ALIs.Last loop
          Unit := ALIs.Table (J).Last_Unit;
 
@@ -178,6 +177,13 @@ package body XE_Back is
            and then (Units.Table (Unit).RCI
                      or else Units.Table (Unit).Shared_Passive)
          then
+            --  Remove the original object and ALI files so that the monolithic
+            --  version of the unit is ignored. Note that Ofile is an absolute
+            --  path, whereas Afile is just a filename.
+
+            Delete_File (ALIs.Table (J).Ofile);
+            Delete_File (Dir (Monolithic_Obj_Dir, ALIs.Table (J).Afile));
+
             Uname := Name (Units.Table (Unit).Uname);
             PID   := Get_Partition_Id (Uname);
 

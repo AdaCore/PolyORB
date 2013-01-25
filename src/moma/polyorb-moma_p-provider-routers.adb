@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with MOMA.Messages;
 
 with PolyORB.Any.NVList;
@@ -288,7 +290,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
    -- Invoke --
    ------------
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self : access Router;
       Req  : PolyORB.Requests.Request_Access)
    is

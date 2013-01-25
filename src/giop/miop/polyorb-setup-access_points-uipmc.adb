@@ -83,9 +83,9 @@ package body PolyORB.Setup.Access_Points.UIPMC is
       use PolyORB.Parameters;
 
       Addr : constant String :=
-               Get_Conf ("miop", "polyorb.miop.multicast_addr", "");
+        Get_Conf ("miop", "polyorb.miop.multicast_addr", "");
       Port : constant Port_Type :=
-               Port_Type (Get_Conf ("miop", "polyorb.miop.multicast_port", 0));
+        Port_Type (Get_Conf ("miop", "polyorb.miop.multicast_port", 0));
    begin
       if Get_Conf ("access_points", "uipmc", True) then
 

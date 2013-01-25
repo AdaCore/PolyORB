@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Local;
 
 package PortableServer.ServantManager.Impl is
@@ -45,7 +47,7 @@ package PortableServer.ServantManager.Impl is
 
 private
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean;
 

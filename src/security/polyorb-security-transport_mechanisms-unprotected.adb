@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.Security.Transport_Mechanisms.Unprotected is
 
    -----------------
    -- Is_Supports --
    -----------------
 
-   function Is_Supports
+   overriding function Is_Supports
      (Mechanism   : access Unprotected_Transport_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Boolean
@@ -52,7 +54,7 @@ package body PolyORB.Security.Transport_Mechanisms.Unprotected is
    -- Target_Requires --
    ---------------------
 
-   function Target_Requires
+   overriding function Target_Requires
      (Mechanism : access Unprotected_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options
    is
@@ -66,7 +68,7 @@ package body PolyORB.Security.Transport_Mechanisms.Unprotected is
    -- Target_Supports --
    ---------------------
 
-   function Target_Supports
+   overriding function Target_Supports
      (Mechanism : access Unprotected_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options
    is

@@ -66,6 +66,7 @@ package XE_Flags is
    Verbose_Flag        : constant String_Access := new String'("-v");
    GLADE_List_Flag     : constant String_Access := new String'("-V");
    External_Units_Flag : constant String_Access := new String'("-x");
+   No_Main_Proc_Flag   : constant String_Access := new String'("-z");
    Semantic_Only_Flag  : constant String_Access := new String'("-gnatc");
    Skel_Flag           : constant String_Access := new String'("-gnatzr");
    Stub_Flag           : constant String_Access := new String'("-gnatzc");

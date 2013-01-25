@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,8 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.Initialization;
+with PolyORB.References;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
@@ -131,16 +132,11 @@ package body DynamicAny.DynAnyFactory.Impl is
    -----------------------------
 
    procedure Deferred_Initialization is
-      Factory_Object : constant Object_Ptr := new Object;
-      Factory_Ref    : CORBA.Object.Ref;
+      Factory_Ref : PolyORB.References.Ref;
    begin
-      CORBA.Object.Set
-        (Factory_Ref,
-         PolyORB.Smart_Pointers.Entity_Ptr (Factory_Object));
-
-      PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
-        ("DynAnyFactory",
-         Factory_Ref);
+      Factory_Ref.Set (PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
+      PolyORB.Initial_References.Register_Initial_Reference
+        ("DynAnyFactory", Factory_Ref);
    end Deferred_Initialization;
 
    ----------
@@ -172,7 +168,7 @@ begin
         (Module_Info'
          (Name      => +"dynamicany.dynanyfactory",
           Conflicts => Empty,
-          Depends   => +"corba.initial_references",
+          Depends   => +"initial_references",
           Provides  => Empty,
           Implicit  => False,
           Init      => Deferred_Initialization'Access,

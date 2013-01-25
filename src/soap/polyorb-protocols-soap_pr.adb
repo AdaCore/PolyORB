@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
 
@@ -80,7 +82,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Abort_Request --
    -------------------
 
-   procedure Abort_Request
+   overriding procedure Abort_Request
      (S : access SOAP_Session;
       R : Requests.Request_Access)
    is
@@ -94,7 +96,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Create --
    ------------
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access SOAP_Protocol;
       Session : out Filter_Access)
    is
@@ -114,7 +116,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Handle_Data_Indication --
    ----------------------------
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (S           : access SOAP_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container)
@@ -227,7 +229,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Handle_Connect_Indication --
    -------------------------------
 
-   procedure Handle_Connect_Indication (S : access SOAP_Session) is
+   overriding procedure Handle_Connect_Indication (S : access SOAP_Session) is
    begin
       S.Role := Server;
       Expect_Data (S, S.In_Buf, 0);
@@ -238,7 +240,9 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Handle_Connect_Confirmation --
    ---------------------------------
 
-   procedure Handle_Connect_Confirmation (S : access SOAP_Session) is
+   overriding procedure Handle_Connect_Confirmation
+     (S : access SOAP_Session)
+   is
    begin
       S.Role := Client;
       Expect_Data (S, S.In_Buf, 0);
@@ -249,7 +253,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Handle_Disconnect --
    -----------------------
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (S : access SOAP_Session; Error : Errors.Error_Container)
    is
       use type Buffers.Buffer_Access;
@@ -288,7 +292,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Handle_Flush --
    ------------------
 
-   procedure Handle_Flush (S : access SOAP_Session) is
+   overriding procedure Handle_Flush (S : access SOAP_Session) is
    begin
       raise Program_Error;
    end Handle_Flush;
@@ -297,7 +301,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (Sess : not null access SOAP_Session;
       S    : Components.Message'Class) return Components.Message'Class
    is
@@ -319,7 +323,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Handle_Unmarshall_Arguments --
    ---------------------------------
 
-   procedure Handle_Unmarshall_Arguments
+   overriding procedure Handle_Unmarshall_Arguments
      (S     : access SOAP_Session;
       Args  : in out PolyORB.Any.NVList.Ref;
       Error : in out PolyORB.Errors.Error_Container)
@@ -354,7 +358,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Invoke_Request --
    --------------------
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (S   : access SOAP_Session;
       R   : Requests.Request_Access;
       Pro : access Binding_Data.Profile_Type'Class)
@@ -477,7 +481,7 @@ package body PolyORB.Protocols.SOAP_Pr is
    -- Send_Reply --
    ----------------
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
       (S : access SOAP_Session;
        R : Requests.Request_Access)
    is
@@ -526,7 +530,7 @@ package body PolyORB.Protocols.SOAP_Pr is
          PolyORB.SOAP_P.Message.Set_Parameters (RO, RP);
          declare
             RD : constant PolyORB.SOAP_P.Response.Data :=
-                   PolyORB.SOAP_P.Message.Response.Build (RO);
+              PolyORB.SOAP_P.Message.Response.Build (RO);
             --  Here we depend on a violation of abstraction: we construct an
             --  AWS response object, and AWS is HTTP-specific. This is a
             --  shortcoming of the AWS SOAP engine. It is unknown yet whether

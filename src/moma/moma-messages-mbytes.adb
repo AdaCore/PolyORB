@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Types;
 
 package body MOMA.Messages.MBytes is
@@ -52,7 +54,7 @@ package body MOMA.Messages.MBytes is
    -- Image --
    -----------
 
-   function Image (Self : MByte) return String is
+   overriding function Image (Self : MByte) return String is
    begin
       raise Program_Error;
       pragma Warnings (Off);

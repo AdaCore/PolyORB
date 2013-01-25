@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A Destination contains data to reference an object to which messages
 --  can be sent, or from which messages can be retrieved.
 
@@ -52,7 +54,10 @@ package MOMA.Destinations is
       return Destination;
    --  Create a destination structure.
 
-   function "=" (Dest1 : Destination; Dest2 : Destination) return Boolean;
+   overriding function "="
+     (Dest1 : Destination;
+      Dest2 : Destination)
+     return Boolean;
    --  Compare two destinations.
    --  XXX Comparison is made only on the name.
 

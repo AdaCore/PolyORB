@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Strings.Fixed;
 
 with PolyORB.Binding_Data.GIOP.IIOP;
@@ -80,7 +82,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Bind_Mechanism --
    --------------------
 
-   procedure Bind_Mechanism
+   overriding procedure Bind_Mechanism
      (Mechanism : SSLIOP_Transport_Mechanism;
       Profile   : access PolyORB.Binding_Data.Profile_Type'Class;
       The_ORB   : Components.Component_Access;
@@ -162,7 +164,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (MF  : out SSLIOP_Transport_Mechanism_Factory;
       TAP :     Transport.Transport_Access_Point_Access)
    is
@@ -329,7 +331,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Create_Tagged_Components --
    ------------------------------
 
-   function Create_Tagged_Components
+   overriding function Create_Tagged_Components
      (MF : SSLIOP_Transport_Mechanism_Factory)
       return Tagged_Components.Tagged_Component_List
    is
@@ -351,7 +353,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Duplicate --
    ---------------
 
-   function Duplicate
+   overriding function Duplicate
      (TMA : SSLIOP_Transport_Mechanism)
      return SSLIOP_Transport_Mechanism is
    begin
@@ -406,7 +408,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : SSLIOP_Transport_Mechanism;
       Right : Transport_Mechanism'Class) return Boolean
    is
@@ -419,7 +421,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Is_Local_Mechanism --
    ------------------------
 
-   function Is_Local_Mechanism
+   overriding function Is_Local_Mechanism
      (MF : access SSLIOP_Transport_Mechanism_Factory;
       M  : access Transport_Mechanism'Class)
       return Boolean
@@ -433,7 +435,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (M : access SSLIOP_Transport_Mechanism) is
+   overriding procedure Release_Contents
+     (M : access SSLIOP_Transport_Mechanism)
+   is
    begin
       Free (M.Address);
    end Release_Contents;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides the definitions required by the IDL-to-Ada mapping
 --  specification for bounded sequences. This package is instantiated for each
 --  IDL bounded sequence type. This package defines the sequence type and the
@@ -173,7 +175,7 @@ package PolyORB.Sequences.Bounded is
       Low    : Positive;
       High   : Natural) return Element_Array;
 
-   function "=" (Left, Right : Sequence) return Boolean;
+   overriding function "=" (Left, Right : Sequence) return Boolean;
 
    function "="
      (Left  : Sequence;

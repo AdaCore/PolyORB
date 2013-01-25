@@ -89,6 +89,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
    The_Unique_Suffix : access constant String := Latin_1_Unique_Suffix'Access;
    The_Unique_Infix  : access constant String := Latin_1_Unique_Infix'Access;
 
+   --  argument for pragma Wide_Character_Encoding
+   Encoding_Name  : Name_Id;  --  Brackets or UTF8
+   Use_UTF8       : Boolean := False;
+
    procedure New_Operator (Op : Operator_Type; I : String := "");
 
    function Internal_Name (P : Node_Id; L : GLists) return Name_Id;
@@ -1067,6 +1071,14 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Set_Str_To_Name_Buffer ("DomainManager");
       DomainManager_Name := Name_Find;
+
+      if Use_UTF8 then
+         Set_Str_To_Name_Buffer ("UTF8");
+      else
+         Set_Str_To_Name_Buffer ("Brackets");
+      end if;
+
+      Encoding_Name := Name_Find;
    end Initialize;
 
    --------------
@@ -1750,6 +1762,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
       function Make_Style_Check_Pragma return Node_Id;
       --  Returns a node for a pragma deactivating style checks
 
+      function Make_Character_Encoding_Pragma return Node_Id;
+      --  Returns a node for an encoding specification pragma
+
       -----------------------------
       -- Make_Style_Check_Pragma --
       -----------------------------
@@ -1768,6 +1783,17 @@ package body Backend.BE_CORBA_Ada.Nutils is
                      (Make_Literal
                         (New_String_Value (Name_Find, Wide => False))));
       end Make_Style_Check_Pragma;
+
+      ------------------------------------
+      -- Make_Character_Encoding_Pragma --
+      ------------------------------------
+
+      function Make_Character_Encoding_Pragma return Node_Id is
+      begin
+         return Make_Pragma
+                  (Pragma_Wide_Character_Encoding,
+                   New_List (Make_Identifier (Encoding_Name)));
+      end Make_Character_Encoding_Pragma;
 
    --  Start of processing for Make_Package_Declaration
 
@@ -1805,6 +1831,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  comment because some lines in the header may be very long.
 
       Append_To (Context_Clause (Pkg), Make_Style_Check_Pragma);
+      Append_To (Context_Clause (Pkg), Make_Character_Encoding_Pragma);
 
       --  Adding a comment header
 
@@ -2901,6 +2928,7 @@ package body Backend.BE_CORBA_Ada.Nutils is
    begin
       The_Unique_Suffix := UTF_8_Unique_Suffix'Access;
       The_Unique_Infix  := UTF_8_Unique_Infix'Access;
+      Use_UTF8          := True;
    end Set_UTF_8_Encoding;
 
 end Backend.BE_CORBA_Ada.Nutils;

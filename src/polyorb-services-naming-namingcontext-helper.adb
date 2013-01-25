@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -93,9 +93,9 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
       return NamingContext.NotFoundReason
    is
       Index : constant PolyORB.Any.Any :=
-                Get_Aggregate_Element (Item,
-                                       TypeCode.TC_Unsigned_Long,
-                                       PolyORB.Types.Unsigned_Long (0));
+        Get_Aggregate_Element (Item,
+                               TypeCode.TC_Unsigned_Long,
+                               PolyORB.Types.Unsigned_Long (0));
       Position : constant PolyORB.Types.Unsigned_Long := From_Any (Index);
    begin
       return NotFoundReason'Val (Position);
@@ -279,7 +279,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any :=
-         Get_Empty_Any_Aggregate (TC_NotFoundReason);
+        Get_Empty_Any_Aggregate (TC_NotFoundReason);
    begin
       Add_Aggregate_Element
         (Result,
@@ -304,7 +304,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
      return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any :=
-         Get_Empty_Any_Aggregate (TC_CannotProceed);
+        Get_Empty_Any_Aggregate (TC_CannotProceed);
    begin
       Add_Aggregate_Element (Result, To_Any (Item.cxt));
       Add_Aggregate_Element (Result, To_Any (Item.rest_of_name));
@@ -315,7 +315,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
      (Item : NamingContext.InvalidName_Members) return PolyORB.Any.Any
    is
       Result : constant PolyORB.Any.Any :=
-                 Get_Empty_Any_Aggregate (TC_InvalidName);
+        Get_Empty_Any_Aggregate (TC_InvalidName);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -327,7 +327,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
      (Item : NamingContext.AlreadyBound_Members) return PolyORB.Any.Any
    is
       Result : constant PolyORB.Any.Any :=
-                 Get_Empty_Any_Aggregate (TC_AlreadyBound);
+        Get_Empty_Any_Aggregate (TC_AlreadyBound);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -339,7 +339,7 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
      (Item : NamingContext.NotEmpty_Members) return PolyORB.Any.Any
    is
       Result : constant PolyORB.Any.Any :=
-                 Get_Empty_Any_Aggregate (TC_NotEmpty);
+        Get_Empty_Any_Aggregate (TC_NotEmpty);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Item);
@@ -358,129 +358,129 @@ package body PolyORB.Services.Naming.NamingContext.Helper is
    begin
       declare
          Name : constant PolyORB.Types.String :=
-                  To_PolyORB_String ("NamingContext");
+           To_PolyORB_String ("NamingContext");
          Id : constant PolyORB.Types.String :=
-                To_PolyORB_String ("IDL:omg.org/CosNaming/NamingContext:1.0");
+           To_PolyORB_String ("IDL:omg.org/CosNaming/NamingContext:1.0");
       begin
-         TC_NamingContext := TypeCode.TC_Object;
+         TC_NamingContext := TypeCode.TCF_Object;
          Add_Parameter (TC_NamingContext, To_Any (Name));
          Add_Parameter (TC_NamingContext, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_NamingContext).all);
+         Disable_Ref_Counting (Object_Of (TC_NamingContext).all);
       end;
 
       declare
          Name : constant PolyORB.Types.String :=
-                  To_PolyORB_String ("NotFoundReason");
+           To_PolyORB_String ("NotFoundReason");
          Id : constant PolyORB.Types.String :=
-                To_PolyORB_String
-                  ("IDL:omg.org/CosNaming/NamingContext/NotFoundReason:1.0");
+           To_PolyORB_String
+             ("IDL:omg.org/CosNaming/NamingContext/NotFoundReason:1.0");
 
          missing_node_Name : constant PolyORB.Types.String :=
-                               To_PolyORB_String ("missing_node");
+           To_PolyORB_String ("missing_node");
          not_context_Name  : constant PolyORB.Types.String :=
-                               To_PolyORB_String ("not_context");
+           To_PolyORB_String ("not_context");
          not_object_Name   : constant PolyORB.Types.String :=
-                               To_PolyORB_String ("not_object");
+           To_PolyORB_String ("not_object");
       begin
-         TC_NotFoundReason := TC_Enum;
+         TC_NotFoundReason := TCF_Enum;
          Add_Parameter (TC_NotFoundReason, To_Any (Name));
          Add_Parameter (TC_NotFoundReason, To_Any (Id));
          Add_Parameter (TC_NotFoundReason, To_Any (missing_node_Name));
          Add_Parameter (TC_NotFoundReason, To_Any (not_context_Name));
          Add_Parameter (TC_NotFoundReason, To_Any (not_object_Name));
-         Disable_Reference_Counting (Object_Of (TC_NotFoundReason).all);
+         Disable_Ref_Counting (Object_Of (TC_NotFoundReason).all);
       end;
 
       declare
          Name : constant PolyORB.Types.String :=
-                  To_PolyORB_String ("NotFound");
+           To_PolyORB_String ("NotFound");
          Id : constant PolyORB.Types.String :=
-                To_PolyORB_String
-                  ("IDL:omg.org/CosNaming/NamingContext/NotFound:1.0");
+           To_PolyORB_String
+             ("IDL:omg.org/CosNaming/NamingContext/NotFound:1.0");
 
          Arg_Name_why : constant PolyORB.Types.String :=
-                          To_PolyORB_String ("why");
+           To_PolyORB_String ("why");
 
          Arg_Name_rest_of_name : constant PolyORB.Types.String :=
-                                   To_PolyORB_String ("rest_of_name");
+           To_PolyORB_String ("rest_of_name");
       begin
-         TC_NotFound := TC_Except;
+         TC_NotFound := TCF_Except;
          Add_Parameter (TC_NotFound, To_Any (Name));
          Add_Parameter (TC_NotFound, To_Any (Id));
          Add_Parameter (TC_NotFound, To_Any (TC_NotFoundReason));
          Add_Parameter (TC_NotFound, To_Any (Arg_Name_why));
          Add_Parameter (TC_NotFound, To_Any (TC_Name));
          Add_Parameter (TC_NotFound, To_Any (Arg_Name_rest_of_name));
-         Disable_Reference_Counting (Object_Of (TC_NotFound).all);
+         Disable_Ref_Counting (Object_Of (TC_NotFound).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_NotFound, Raise_NotFound_From_Any'Access);
 
       declare
          Name : constant PolyORB.Types.String :=
-                  To_PolyORB_String ("CannotProceed");
+           To_PolyORB_String ("CannotProceed");
          Id : constant PolyORB.Types.String :=
-                To_PolyORB_String
-                  ("IDL:omg.org/CosNaming/NamingContext/CannotProceed:1.0");
+           To_PolyORB_String
+             ("IDL:omg.org/CosNaming/NamingContext/CannotProceed:1.0");
 
          Arg_Name_cxt : constant PolyORB.Types.String :=
-                          To_PolyORB_String ("cxt");
+           To_PolyORB_String ("cxt");
          Arg_Name_rest_of_name : constant PolyORB.Types.String :=
-                                   To_PolyORB_String ("rest_of_name");
+           To_PolyORB_String ("rest_of_name");
       begin
-         TC_CannotProceed := TC_Except;
+         TC_CannotProceed := TCF_Except;
          Add_Parameter (TC_CannotProceed, To_Any (Name));
          Add_Parameter (TC_CannotProceed, To_Any (Id));
          Add_Parameter (TC_CannotProceed, To_Any (TC_NamingContext));
          Add_Parameter (TC_CannotProceed, To_Any (Arg_Name_cxt));
          Add_Parameter (TC_CannotProceed, To_Any (TC_Name));
          Add_Parameter (TC_CannotProceed, To_Any (Arg_Name_rest_of_name));
-         Disable_Reference_Counting (Object_Of (TC_CannotProceed).all);
+         Disable_Ref_Counting (Object_Of (TC_CannotProceed).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_CannotProceed, Raise_CannotProceed_From_Any'Access);
 
       declare
          Name : constant PolyORB.Types.String :=
-                  To_PolyORB_String ("InvalidName");
+           To_PolyORB_String ("InvalidName");
          Id : constant PolyORB.Types.String :=
-                To_PolyORB_String
-                  ("IDL:omg.org/CosNaming/NamingContext/InvalidName:1.0");
+           To_PolyORB_String
+             ("IDL:omg.org/CosNaming/NamingContext/InvalidName:1.0");
       begin
-         TC_InvalidName := TC_Except;
+         TC_InvalidName := TCF_Except;
          Add_Parameter (TC_InvalidName, To_Any (Name));
          Add_Parameter (TC_InvalidName, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_InvalidName).all);
+         Disable_Ref_Counting (Object_Of (TC_InvalidName).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_InvalidName, Raise_InvalidName_From_Any'Access);
 
       declare
          Name : constant PolyORB.Types.String :=
-                  To_PolyORB_String ("AlreadyBound");
+           To_PolyORB_String ("AlreadyBound");
          Id : constant PolyORB.Types.String :=
-                To_PolyORB_String
-                  ("IDL:omg.org/CosNaming/NamingContext/AlreadyBound:1.0");
+           To_PolyORB_String
+             ("IDL:omg.org/CosNaming/NamingContext/AlreadyBound:1.0");
       begin
-         TC_AlreadyBound := TC_Except;
+         TC_AlreadyBound := TCF_Except;
          Add_Parameter (TC_AlreadyBound, To_Any (Name));
          Add_Parameter (TC_AlreadyBound, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_AlreadyBound).all);
+         Disable_Ref_Counting (Object_Of (TC_AlreadyBound).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_AlreadyBound, Raise_AlreadyBound_From_Any'Access);
 
       declare
          Name : constant PolyORB.Types.String :=
-                  To_PolyORB_String ("NotEmpty");
+           To_PolyORB_String ("NotEmpty");
          Id : constant PolyORB.Types.String :=
-                To_PolyORB_String
-                  ("IDL:omg.org/CosNaming/NamingContext/NotEmpty:1.0");
+           To_PolyORB_String
+             ("IDL:omg.org/CosNaming/NamingContext/NotEmpty:1.0");
       begin
-         TC_NotEmpty := TC_Except;
+         TC_NotEmpty := TCF_Except;
          Add_Parameter (TC_NotEmpty, To_Any (Name));
          Add_Parameter (TC_NotEmpty, To_Any (Id));
-         Disable_Reference_Counting (Object_Of (TC_NotEmpty).all);
+         Disable_Ref_Counting (Object_Of (TC_NotEmpty).all);
       end;
       PolyORB.Exceptions.Register_Exception
         (TC_NotEmpty, Raise_NotEmpty_From_Any'Access);

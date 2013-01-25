@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Target Side CORBA CSI Version 2 Compound Mechanism Configuration
 
 with PolyORB.Annotations;
@@ -108,6 +110,7 @@ package PolyORB.QoS.Targets_Security is
    type QoS_Target_Security_Parameter_Access is
      access all QoS_Target_Security_Parameter;
 
-   procedure Release_Contents (QoS : access QoS_Target_Security_Parameter);
+   overriding procedure Release_Contents
+     (QoS : access QoS_Target_Security_Parameter);
 
 end PolyORB.QoS.Targets_Security;

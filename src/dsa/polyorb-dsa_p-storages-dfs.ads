@@ -32,6 +32,8 @@
 
 pragma Ada_2005;
 
+pragma Ada_2005;
+
 with Ada.Streams;
 with Ada.Streams.Stream_IO;
 
@@ -66,24 +68,19 @@ package PolyORB.DSA_P.Storages.DFS is
 
    --  DFS_Manager_Type type primitives
 
-   overriding
-   procedure Read
+   overriding procedure Read
      (Self : access DFS_Manager_Type;
       Var  : SDT.Any_Container_Ptr);
 
-   overriding
-   procedure Write
+   overriding procedure Write
      (Self : access DFS_Manager_Type;
       Var  : SDT.Any_Container_Ptr);
 
-   overriding
-   procedure Lock   (Self : access DFS_Manager_Type);
+   overriding procedure Lock   (Self : access DFS_Manager_Type);
 
-   overriding
-   procedure Unlock (Self : access DFS_Manager_Type);
+   overriding procedure Unlock (Self : access DFS_Manager_Type);
 
-   overriding
-   function Create
+   overriding function Create
      (Manager_Factory : access DFS_Manager_Type;
       Full_Name       : String) return Shared_Data_Manager_RACW;
 

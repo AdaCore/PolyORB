@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Minimal_Servant;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Requests;
@@ -66,7 +68,7 @@ package PolyORB.Services.Naming.NamingContext.Servant is
          Tail : Bound_Object_Ptr;
       end record;
 
-   procedure Invoke
+   overriding procedure Invoke
      (Self     : access Object;
       Request  : PolyORB.Requests.Request_Access);
    function If_Desc return PolyORB.Obj_Adapters.Simple.Interface_Description;

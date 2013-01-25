@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like condition variables under the Ravenscar
 --  profile. For more details see PolyORB.Tasking.Condition_Variables
 
@@ -54,13 +56,13 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    type Ravenscar_Condition_Access is
      access all Ravenscar_Condition_Type'Class;
 
-   procedure Wait
+   overriding procedure Wait
      (Cond : access Ravenscar_Condition_Type;
       M    : access Mutex_Type'Class);
 
-   procedure Signal (Cond : access Ravenscar_Condition_Type);
+   overriding procedure Signal (Cond : access Ravenscar_Condition_Type);
 
-   procedure Broadcast (Cond : access Ravenscar_Condition_Type);
+   overriding procedure Broadcast (Cond : access Ravenscar_Condition_Type);
 
    type Ravenscar_Condition_Factory_Type is
      new Condition_Factory_Type with private;
@@ -70,12 +72,12 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    The_Condition_Factory : constant Ravenscar_Condition_Factory_Access;
 
-   function Create
+   overriding function Create
      (MF   : access Ravenscar_Condition_Factory_Type;
       Name : String := "")
      return Condition_Access;
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF   : access Ravenscar_Condition_Factory_Type;
       Cond : in out Condition_Access);
 

@@ -198,7 +198,8 @@ package body CosNotifyChannelAdmin.ProxyPullConsumer.Impl is
 
       --  Start engin
       if not Self.X.Engin_Launched then
-         Create_Task (Proxy_Pull_Consumer_Engine'Access);
+         Create_Task
+           (Proxy_Pull_Consumer_Engine'Access, "Proxy_Pull_Consumer");
          Self.X.Engin_Launched := True;
          --  thread created
       end if;

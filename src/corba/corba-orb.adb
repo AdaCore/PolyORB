@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -40,7 +40,7 @@
 with Ada.Command_Line;
 with Ada.Exceptions;
 
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.ORB_Init;
 with PolyORB.CORBA_P.Policy_Management;
@@ -151,7 +151,7 @@ package body CORBA.ORB is
       while Pos <= Length (Argv) loop
          declare
             Suffix : constant Standard.String :=
-                                To_Standard_String (Get_Element (Argv, Pos));
+              To_Standard_String (Get_Element (Argv, Pos));
 
             Initialized : Boolean := False;
             Space_Index : Positive;
@@ -187,8 +187,8 @@ package body CORBA.ORB is
                elsif Pos < Length (Argv) then
                   declare
                      Value : constant Standard.String :=
-                               To_Standard_String
-                                 (Get_Element (Argv, Pos + 1));
+                       To_Standard_String
+                         (Get_Element (Argv, Pos + 1));
 
                   begin
                      pragma Debug
@@ -430,7 +430,7 @@ package body CORBA.ORB is
 
    function List_Initial_Services return ObjectIdList
    is
-      use PolyORB.CORBA_P.Initial_References;
+      use PolyORB.Initial_References;
       use PolyORB.Utils.Strings.Lists;
 
       Services_List : List := List_Initial_Services;
@@ -474,9 +474,10 @@ package body CORBA.ORB is
       Ref        : CORBA.Object.Ref)
    is
       use CORBA.Object;
-      use PolyORB.CORBA_P.Initial_References;
+      use PolyORB.Initial_References;
 
       Id : constant Standard.String := To_Standard_String (Identifier);
+      PO_Ref : PolyORB.References.Ref;
 
    begin
       pragma Debug (C, O ("Register_Initial_Reference: " & Id));
@@ -485,7 +486,7 @@ package body CORBA.ORB is
       --  then raise InvalidName.
 
       if Id = ""
-        or else not Is_Nil (Resolve_Initial_References (Id))
+        or else not Resolve_Initial_References (Id).Is_Nil
       then
          Raise_InvalidName (InvalidName_Members'(null record));
       end if;
@@ -498,7 +499,8 @@ package body CORBA.ORB is
                                      Completed => Completed_No));
       end if;
 
-      Register_Initial_Reference (Id, Ref);
+      PO_Ref.Set (Ref.Entity_Of);
+      Register_Initial_Reference (Id, PO_Ref);
    end Register_Initial_Reference;
 
    procedure Register_Initial_Reference
@@ -520,18 +522,18 @@ package body CORBA.ORB is
      return CORBA.Object.Ref
    is
       use CORBA.Object;
-      use PolyORB.CORBA_P.Initial_References;
+      use PolyORB.Initial_References;
 
       Id : constant Standard.String := To_Standard_String (Identifier);
 
-      Result : constant CORBA.Object.Ref := Resolve_Initial_References (Id);
+      Result : CORBA.Object.Ref;
    begin
       pragma Debug (C, O ("Resolve_Initial_References: " & Id));
 
+      Result.Set (Resolve_Initial_References (Id).Entity_Of);
       if Is_Nil (Result) then
          Raise_InvalidName (InvalidName_Members'(null record));
       end if;
-
       return Result;
    end Resolve_Initial_References;
 
@@ -755,8 +757,7 @@ begin
      (Module_Info'
       (Name      => +"corba.orb",
        Conflicts => Empty,
-       Depends   => +"orb"
-       & "corba.initial_references",
+       Depends   => +"orb" & "initial_references",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,

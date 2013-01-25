@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body CORBA.ContextList is
 
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize (Obj : in out Object) is
+   overriding procedure Finalize (Obj : in out Object) is
    begin
       Context_Sequence.Delete
         (Obj.List,

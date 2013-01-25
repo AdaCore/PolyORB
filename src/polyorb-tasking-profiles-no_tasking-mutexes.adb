@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like mutexes under the No_Tasking profile.
 
 with PolyORB.Initialization;
@@ -44,7 +46,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (MF   : access No_Tasking_Mutex_Factory_Type;
       Name : String := "")
      return PTM.Mutex_Access is
@@ -60,7 +62,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Destroy --
    -------------
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access No_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access) is
       pragma Warnings (Off);
@@ -74,7 +76,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Enter --
    -----------
 
-   procedure Enter (M : access No_Tasking_Mutex_Type)
+   overriding procedure Enter (M : access No_Tasking_Mutex_Type)
    is
       pragma Warnings (Off);
       pragma Unreferenced (M);
@@ -97,7 +99,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Leave --
    -----------
 
-   procedure Leave (M : access No_Tasking_Mutex_Type)
+   overriding procedure Leave (M : access No_Tasking_Mutex_Type)
    is
       pragma Warnings (Off);
       pragma Unreferenced (M);

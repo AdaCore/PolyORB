@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package is based on Tree_Reader from the XMLada package.
 
 with Sax.Attributes;       use Sax.Attributes;
@@ -45,7 +47,7 @@ package body PolyORB.SOAP_P.Message.Reader is
    -- Characters --
    ----------------
 
-   procedure Characters
+   overriding procedure Characters
      (Handler : in out Tree_Reader;
       Ch      : Unicode.CES.Byte_Sequence)
    is
@@ -62,7 +64,7 @@ package body PolyORB.SOAP_P.Message.Reader is
    -- End_Element --
    -----------------
 
-   procedure End_Element
+   overriding procedure End_Element
      (Handler       : in out Tree_Reader;
       Namespace_URI : Unicode.CES.Byte_Sequence := "";
       Local_Name    : Unicode.CES.Byte_Sequence := "";
@@ -91,7 +93,7 @@ package body PolyORB.SOAP_P.Message.Reader is
    -- Ignorable_Whitespace --
    --------------------------
 
-   procedure Ignorable_Whitespace
+   overriding procedure Ignorable_Whitespace
      (Handler : in out Tree_Reader;
       Ch      : Unicode.CES.Byte_Sequence)
    is
@@ -117,7 +119,7 @@ package body PolyORB.SOAP_P.Message.Reader is
    -- Start_Document --
    --------------------
 
-   procedure Start_Document (Handler : in out Tree_Reader) is
+   overriding procedure Start_Document (Handler : in out Tree_Reader) is
       Implementation : DOM_Implementation;
    begin
       Handler.Tree := Create_Document (Implementation);
@@ -128,7 +130,7 @@ package body PolyORB.SOAP_P.Message.Reader is
    -- Start_Element --
    -------------------
 
-   procedure Start_Element
+   overriding procedure Start_Element
      (Handler       : in out Tree_Reader;
       Namespace_URI : Unicode.CES.Byte_Sequence       := "";
       Local_Name    : Unicode.CES.Byte_Sequence       := "";

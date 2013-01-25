@@ -59,7 +59,7 @@ package body PolyORB.CORBA_P.Interceptors_Slots is
 
    procedure Allocate_Slots (Note : in out Slots_Note) is
       Empty : constant CORBA.Any :=
-                CORBA.Internals.Get_Empty_Any (CORBA.TC_Null);
+        CORBA.Internals.Get_Empty_Any (CORBA.TC_Null);
 
    begin
       Note.Slots := Null_Sequence;

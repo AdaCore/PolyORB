@@ -66,32 +66,40 @@ package body PolyORB.CORBA_P.Security_Policy is
       use PolyORB.Security.Types;
 
       Target   : constant CORBA.Object.Ref :=
-                   CORBA.Object.Internals.To_CORBA_Ref (Object);
+        CORBA.Object.Internals.To_CORBA_Ref (Object);
       Creds    : Credentials_List_Access := null;
       Requires : PolyORB.Security.Types.Association_Options := 0;
+      Policy   : CORBA.Policy.Ref;
 
    begin
       --  Analize overridden policy
 
       for J in Registry'Range loop
          if Registry (J).Registered then
-            declare
-               Aux : constant Client_Policy
-                 := Registry (J).Convertor
-                 (CORBA.Object.Policies.Get_Policy (Target, J));
-
             begin
-               Requires := Requires or Aux.Client_Requires;
+               Policy := CORBA.Object.Policies.Get_Policy (Target, J);
 
-               if Aux.Invocation_Credentials'Length /= 0 then
-                  Free (Creds);
-                  Creds :=
-                    new PolyORB.Security.Credentials.Credentials_List'
-                    (Aux.Invocation_Credentials);
-               end if;
+               declare
+                  Aux : constant Client_Policy :=
+                    Registry (J).Convertor (Policy);
+
+               begin
+                  Requires := Requires or Aux.Client_Requires;
+
+                  if Aux.Invocation_Credentials'Length /= 0 then
+                     Free (Creds);
+                     Creds :=
+                       new PolyORB.Security.Credentials.Credentials_List'
+                       (Aux.Invocation_Credentials);
+                  end if;
+               end;
 
             exception
                when CORBA.Inv_Policy =>
+                  --  CORBA::INV_POLICY can be raised by
+                  --  CORBA::Object::get_policy when policy's value is not
+                  --  defined.
+
                   null;
             end;
          end if;

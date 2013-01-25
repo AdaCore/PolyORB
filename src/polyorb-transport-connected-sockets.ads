@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
@@ -58,11 +60,11 @@ package PolyORB.Transport.Connected.Sockets is
    --  will assign an available port number itself. On return,
    --  Address is always set to the actual address used.
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TAP : access Socket_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   procedure Accept_Connection
+   overriding procedure Accept_Connection
      (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access);
 
@@ -77,7 +79,7 @@ package PolyORB.Transport.Connected.Sockets is
      (TE : in out Socket_Endpoint;
       S  : Socket_Type);
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TE : access Socket_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
@@ -86,19 +88,19 @@ package PolyORB.Transport.Connected.Sockets is
       N  : Natural)
      return Boolean;
 
-   procedure Read
+   overriding procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
       Error  :    out Errors.Error_Container);
 
-   procedure Write
+   overriding procedure Write
      (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container);
 
-   procedure Close (TE : access Socket_Endpoint);
-   procedure Destroy (TE : in out Socket_Endpoint);
+   overriding procedure Close (TE : access Socket_Endpoint);
+   overriding procedure Destroy (TE : in out Socket_Endpoint);
 
    procedure Check_Validity (TE : access Socket_Endpoint);
 

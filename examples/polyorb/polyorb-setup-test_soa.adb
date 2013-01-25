@@ -169,9 +169,9 @@ package body PolyORB.Setup.Test_SOA is
 
          --  Execute the ORB main loop
 
-         Run (The_ORB, Request  => Req, May_Exit => True);
-
+         Run (The_ORB, Request => Req, May_Exit => True);
          End_Report;
+         Shutdown (The_ORB, Wait_For_Completion => True);
       end;
    end Run_Test;
 

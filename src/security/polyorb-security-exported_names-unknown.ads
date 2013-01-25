@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Security.Types;
 
 package PolyORB.Security.Exported_Names.Unknown is
@@ -44,26 +46,27 @@ private
 
    --  Derived from Exported_Name_Type
 
-   function Is_Equivalent
+   overriding function Is_Equivalent
      (Left  : access Unknown_Exported_Name_Type;
       Right : access Exported_Name_Type'Class)
       return Boolean;
 
-   function Get_Printable_Name
+   overriding function Get_Printable_Name
      (Item : access Unknown_Exported_Name_Type)
       return String;
 
-   function Duplicate
+   overriding function Duplicate
      (Item : access Unknown_Exported_Name_Type)
       return Exported_Name_Access;
 
-   procedure Release_Contents (Item : access Unknown_Exported_Name_Type);
+   overriding procedure Release_Contents
+     (Item : access Unknown_Exported_Name_Type);
 
-   function Encode_Name_BLOB
+   overriding function Encode_Name_BLOB
      (Item : access Unknown_Exported_Name_Type)
       return Ada.Streams.Stream_Element_Array;
 
-   procedure Decode_Name_BLOB
+   overriding procedure Decode_Name_BLOB
      (Item  : access Unknown_Exported_Name_Type;
       BLOB  :        Ada.Streams.Stream_Element_Array;
       Error : in out PolyORB.Errors.Error_Container);

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Neighbour profiles are used to reach partitions for which a local client
 --  binding object linking to them exists, which we call the target binding
 --  object. Neighbour profiles allow us to make requests to remote object in
@@ -55,29 +57,29 @@ package PolyORB.Binding_Data.Neighbour is
    -- Overridden primitives from Profile_Type --
    ---------------------------------------------
 
-   procedure Release (P : in out Neighbour_Profile_Type);
+   overriding procedure Release (P : in out Neighbour_Profile_Type);
 
-   function Duplicate_Profile
+   overriding function Duplicate_Profile
      (P : Neighbour_Profile_Type) return Profile_Access;
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access Neighbour_Profile_Type;
       The_ORB :        Components.Component_Access;
       QoS     :        PolyORB.QoS.QoS_Parameters;
       BO_Ref  :    out Smart_Pointers.Ref;
       Error   :    out Errors.Error_Container);
 
-   function Get_Profile_Tag
+   overriding function Get_Profile_Tag
      (Profile : Neighbour_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : Neighbour_Profile_Type) return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   function Image (Prof : Neighbour_Profile_Type) return String;
+   overriding function Image (Prof : Neighbour_Profile_Type) return String;
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : Neighbour_Profile_Type;
       Right : Profile_Type'Class) return Boolean;
 

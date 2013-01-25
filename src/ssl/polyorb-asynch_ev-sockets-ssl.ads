@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  An asynchrous event source that is a set of SSL sockets.
 
 with PolyORB.SSL;
@@ -59,7 +61,9 @@ package PolyORB.Asynch_Ev.Sockets.SSL is
    --  XXX This subprogram can be removed once multiple event source
    --  monitors are implemented in ORB Controllers
 
-   function AEM_Factory_Of (AES : SSL_Event_Source) return AEM_Factory;
+   overriding function AEM_Factory_Of
+     (AES : SSL_Event_Source)
+     return AEM_Factory;
 
 private
 

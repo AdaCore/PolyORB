@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Security.Exported_Names;
 with PolyORB.Types;
 
@@ -63,7 +65,7 @@ private
 --     (Self : access GSSUP_Credentials)
 --      return Invocation_Credentials_Type;
 
-   function Get_Accepting_Options_Supported
+   overriding function Get_Accepting_Options_Supported
      (Self : access GSSUP_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -71,7 +73,7 @@ private
 --     (Self    : access GSSUP_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Accepting_Options_Required
+   overriding function Get_Accepting_Options_Required
      (Self : access GSSUP_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -79,7 +81,7 @@ private
 --     (Self    : access GSSUP_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Invocation_Options_Supported
+   overriding function Get_Invocation_Options_Supported
      (Self : access GSSUP_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -87,7 +89,7 @@ private
 --     (Self    : access GSSUP_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Invocation_Options_Required
+   overriding function Get_Invocation_Options_Required
      (Self : access GSSUP_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -95,12 +97,12 @@ private
 --     (Self    : access GSSUP_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Identity
+   overriding function Get_Identity
      (Self : access GSSUP_Credentials)
       return PolyORB.Security.Identities.Identity_Access;
 
    --  Derived from Non_Controlled_Entity
 
-   procedure Finalize (Self : in out GSSUP_Credentials);
+   overriding procedure Finalize (Self : in out GSSUP_Credentials);
 
 end PolyORB.Security.Credentials.GSSUP;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A dummy protocol, just for testing.
 
 with Ada.Exceptions;
@@ -67,7 +69,7 @@ package body PolyORB.Protocols.Echo is
 
    Rep : Rep_Test;
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access Echo_Protocol;
       Session : out Filter_Access)
    is
@@ -87,7 +89,7 @@ package body PolyORB.Protocols.Echo is
 
    end Create;
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
      (S : access Echo_Session;
       R : Request_Access;
       P : access Binding_Data.Profile_Type'Class) is
@@ -100,7 +102,10 @@ package body PolyORB.Protocols.Echo is
       null;
    end Invoke_Request;
 
-   procedure Abort_Request (S : access Echo_Session; R : Request_Access) is
+   overriding procedure Abort_Request
+     (S : access Echo_Session;
+      R : Request_Access)
+   is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (S);
@@ -109,7 +114,9 @@ package body PolyORB.Protocols.Echo is
       null;
    end Abort_Request;
 
-   procedure Send_Reply (S : access Echo_Session; R : Request_Access)
+   overriding procedure Send_Reply
+     (S : access Echo_Session;
+      R : Request_Access)
    is
       use Buffers;
 
@@ -123,7 +130,7 @@ package body PolyORB.Protocols.Echo is
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => B));
    end Send_Reply;
 
-   procedure Handle_Connect_Indication (S : access Echo_Session) is
+   overriding procedure Handle_Connect_Indication (S : access Echo_Session) is
    begin
       pragma Debug (C, O ("Received new connection to echo service..."));
 
@@ -151,7 +158,9 @@ package body PolyORB.Protocols.Echo is
 
    end Handle_Connect_Indication;
 
-   procedure Handle_Connect_Confirmation (S : access Echo_Session) is
+   overriding procedure Handle_Connect_Confirmation
+     (S : access Echo_Session)
+   is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (S);
@@ -195,7 +204,7 @@ package body PolyORB.Protocols.Echo is
       end loop;
    end Free;
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (S           : access Echo_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container)
@@ -284,7 +293,7 @@ package body PolyORB.Protocols.Echo is
 
    end Handle_Data_Indication;
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (S : access Echo_Session; Error : Errors.Error_Container)
    is
       pragma Unreferenced (Error);
@@ -296,7 +305,7 @@ package body PolyORB.Protocols.Echo is
       Buffers.Release (S.Buffer);
    end Handle_Disconnect;
 
-   procedure Handle_Flush (S : access Echo_Session) is
+   overriding procedure Handle_Flush (S : access Echo_Session) is
    begin
       raise Program_Error;
    end Handle_Flush;

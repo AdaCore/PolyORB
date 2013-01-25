@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Note: this implementation does not actually support GIOP 1.1
 --  fragmentation: incoming fragmented messages won't be accepted, and
 --  outgoing messages will never be fragmented.
@@ -47,62 +49,62 @@ private
 
    type GIOP_Message_Context_1_1 is new GIOP_Message_Context with null record;
 
-   procedure Initialize_Implem
+   overriding procedure Initialize_Implem
      (Implem : access GIOP_Implem_1_1);
 
-   procedure Initialize_Session
+   overriding procedure Initialize_Session
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class);
 
-   procedure Finalize_Session
+   overriding procedure Finalize_Session
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class);
 
-   procedure Unmarshall_GIOP_Header
+   overriding procedure Unmarshall_GIOP_Header
      (Implem : access GIOP_Implem_1_1;
       MCtx    : access GIOP_Message_Context'Class;
       Buffer  : access Buffers.Buffer_Type);
 
-   procedure Marshall_GIOP_Header
+   overriding procedure Marshall_GIOP_Header
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
       MCtx    : access GIOP_Message_Context'Class;
       Buffer  : access Buffers.Buffer_Type);
 
-   procedure Marshall_GIOP_Header_Reply
+   overriding procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
       R       : Request_Access;
       MCtx    : access GIOP_Message_Context'Class;
       Buffer  : access Buffers.Buffer_Type);
 
-   procedure Process_Message
+   overriding procedure Process_Message
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class);
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (Implem  : access GIOP_Implem_1_1;
       S       : access Session'Class;
       Request :        Requests.Request_Access);
 
-   procedure Locate_Object
+   overriding procedure Locate_Object
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
       R      :        Pending_Request_Access;
       Error  : in out Errors.Error_Container);
 
-   procedure Send_Request
+   overriding procedure Send_Request
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
       R      : Pending_Request_Access;
       Error  : in out Errors.Error_Container);
 
-   procedure Send_Cancel_Request
+   overriding procedure Send_Cancel_Request
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
       R      : Request_Access);
 
-   procedure Marshall_Argument_List
+   overriding procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem_1_1;
       Buffer              : Buffers.Buffer_Access;
       Representation      : access

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.Security.Credentials.Compound is
 
    --  Compound Credentials
@@ -78,7 +80,7 @@ private
      (Self : access Compound_Credentials)
       return Invocation_Credentials_Type;
 
-   function Get_Accepting_Options_Supported
+   overriding function Get_Accepting_Options_Supported
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -86,7 +88,7 @@ private
 --     (Self    : access Compound_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Accepting_Options_Required
+   overriding function Get_Accepting_Options_Required
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -94,7 +96,7 @@ private
 --     (Self    : access Compound_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Invocation_Options_Supported
+   overriding function Get_Invocation_Options_Supported
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -102,7 +104,7 @@ private
 --     (Self    : access Compound_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Invocation_Options_Required
+   overriding function Get_Invocation_Options_Required
      (Self : access Compound_Credentials)
       return PolyORB.Security.Types.Association_Options;
 
@@ -110,7 +112,7 @@ private
 --     (Self    : access Compound_Credentials;
 --      Options : PolyORB.Security.Types.Association_Options);
 
-   function Get_Identity
+   overriding function Get_Identity
      (Self : access Compound_Credentials)
       return PolyORB.Security.Identities.Identity_Access;
 

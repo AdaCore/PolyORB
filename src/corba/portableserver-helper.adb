@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -106,7 +106,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.ForwardRequest_Members) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ForwardRequest);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ForwardRequest);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result, CORBA.Object.Helper.To_Any (Item.forward_reference));
@@ -259,9 +259,9 @@ package body PortableServer.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -277,7 +277,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.ThreadPolicyValue) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ThreadPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ThreadPolicyValue);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -404,9 +404,9 @@ package body PortableServer.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -422,7 +422,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.LifespanPolicyValue) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_LifespanPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_LifespanPolicyValue);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -548,9 +548,9 @@ package body PortableServer.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -566,7 +566,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.IdUniquenessPolicyValue) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdUniquenessPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdUniquenessPolicyValue);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -692,9 +692,9 @@ package body PortableServer.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -710,7 +710,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.IdAssignmentPolicyValue) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdAssignmentPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_IdAssignmentPolicyValue);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -836,9 +836,9 @@ package body PortableServer.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -854,7 +854,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.ImplicitActivationPolicyValue) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ImplicitActivationPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ImplicitActivationPolicyValue);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -980,9 +980,9 @@ package body PortableServer.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -998,7 +998,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.ServantRetentionPolicyValue) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantRetentionPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_ServantRetentionPolicyValue);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -1124,9 +1124,9 @@ package body PortableServer.Helper is
       ACC : PolyORB.Any.Aggregate_Content'Class renames PolyORB.Any.Aggregate_Content'Class (PolyORB.Any.Get_Value (C).all);
       El_M  : aliased PolyORB.Any.Mechanism := PolyORB.Any.By_Value;
       El_CC : aliased PolyORB.Any.Content'Class :=
-         PolyORB.Any.Get_Aggregate_Element (ACC'Access,
-                                                PolyORB.Any.TC_Unsigned_Long,
-                                                0, El_M'Access);
+        PolyORB.Any.Get_Aggregate_Element (ACC'Access,
+                                           PolyORB.Any.TC_Unsigned_Long,
+                                           0, El_M'Access);
       El_C : PolyORB.Any.Any_Container;
    begin
       PolyORB.Any.Set_Type (El_C, PolyORB.Any.TC_Unsigned_Long);
@@ -1142,7 +1142,7 @@ package body PortableServer.Helper is
    function To_Any
      (Item : PortableServer.RequestProcessingPolicyValue) return CORBA.Any is
       Result : CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_RequestProcessingPolicyValue);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_RequestProcessingPolicyValue);
    begin
       CORBA.Internals.Add_Aggregate_Element
          (Result,
@@ -1159,74 +1159,74 @@ package body PortableServer.Helper is
                   ("IDL:omg.org/PortableServer/POA:1.0");
       begin
          TC_POA :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_POA, CORBA.To_Any (Id));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_POA);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_POA);
       end;
 
       TC_IDL_SEQUENCE_PortableServer_POA_Forward :=
         CORBA.TypeCode.Internals.Build_Sequence_TC
           (PortableServer.POA.Helper.TC_POA, 0);
-      CORBA.TypeCode.Internals.Disable_Reference_Counting
+      CORBA.TypeCode.Internals.Disable_Ref_Counting
         (TC_IDL_SEQUENCE_PortableServer_POA_Forward);
 
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("POAList");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POAList:1.0");
+           CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/POAList:1.0");
       begin
          TC_POAList := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => PortableServer.Helper.TC_IDL_SEQUENCE_PortableServer_POA_Forward);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_POAList);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_POAList);
       end;
 
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("ObjectId");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ObjectId:1.0");
+           CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ObjectId:1.0");
       begin
          TC_ObjectId := CORBA.TypeCode.Internals.Build_Alias_TC
            (Name => Name, Id => Id, Parent => CORBA.IDL_SEQUENCES.Helper.TC_OctetSeq);
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ObjectId);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ObjectId);
       end;
 
       declare
          Name : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("ForwardRequest");
+           CORBA.To_CORBA_String ("ForwardRequest");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ForwardRequest:1.0");
+           CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ForwardRequest:1.0");
          Arg_Name_forward_reference : constant CORBA.String := CORBA.To_CORBA_String ("forward_reference");
       begin
          TC_ForwardRequest :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (CORBA.Object.Helper.TC_Object));
          CORBA.Internals.Add_Parameter (TC_ForwardRequest, CORBA.To_Any (Arg_Name_forward_reference));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ForwardRequest);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ForwardRequest);
       end;
       PolyORB.Exceptions.Register_Exception
         (CORBA.TypeCode.Internals.To_PolyORB_Object (TC_ForwardRequest),
          Raise_ForwardRequest_From_Any'Access);
       declare
          Name : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("ThreadPolicyValue");
+           CORBA.To_CORBA_String ("ThreadPolicyValue");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ThreadPolicyValue:1.0");
+           CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/ThreadPolicyValue:1.0");
 
          ORB_CTRL_MODEL_Name : constant CORBA.String := CORBA.To_CORBA_String ("ORB_CTRL_MODEL");
          SINGLE_THREAD_MODEL_Name : constant CORBA.String := CORBA.To_CORBA_String ("SINGLE_THREAD_MODEL");
          MAIN_THREAD_MODEL_Name : constant CORBA.String := CORBA.To_CORBA_String ("MAIN_THREAD_MODEL");
       begin
          TC_ThreadPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (ORB_CTRL_MODEL_Name));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (SINGLE_THREAD_MODEL_Name));
          CORBA.Internals.Add_Parameter (TC_ThreadPolicyValue, CORBA.To_Any (MAIN_THREAD_MODEL_Name));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ThreadPolicyValue);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ThreadPolicyValue);
       end;
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("LifespanPolicyValue");
@@ -1235,12 +1235,12 @@ package body PortableServer.Helper is
          PERSISTENT_Name : constant CORBA.String := CORBA.To_CORBA_String ("PERSISTENT");
       begin
          TC_LifespanPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (TRANSIENT_Name));
          CORBA.Internals.Add_Parameter (TC_LifespanPolicyValue, CORBA.To_Any (PERSISTENT_Name));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_LifespanPolicyValue);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_LifespanPolicyValue);
       end;
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("IdUniquenessPolicyValue");
@@ -1249,12 +1249,12 @@ package body PortableServer.Helper is
          MULTIPLE_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("MULTIPLE_ID");
       begin
          TC_IdUniquenessPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (UNIQUE_ID_Name));
          CORBA.Internals.Add_Parameter (TC_IdUniquenessPolicyValue, CORBA.To_Any (MULTIPLE_ID_Name));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_IdUniquenessPolicyValue);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_IdUniquenessPolicyValue);
       end;
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("IdAssignmentPolicyValue");
@@ -1263,12 +1263,12 @@ package body PortableServer.Helper is
          SYSTEM_ID_Name : constant CORBA.String := CORBA.To_CORBA_String ("SYSTEM_ID");
       begin
          TC_IdAssignmentPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (USER_ID_Name));
          CORBA.Internals.Add_Parameter (TC_IdAssignmentPolicyValue, CORBA.To_Any (SYSTEM_ID_Name));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_IdAssignmentPolicyValue);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_IdAssignmentPolicyValue);
       end;
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("ImplicitActivationPolicyValue");
@@ -1277,12 +1277,12 @@ package body PortableServer.Helper is
          NO_IMPLICIT_ACTIVATION_Name : constant CORBA.String := CORBA.To_CORBA_String ("NO_IMPLICIT_ACTIVATION");
       begin
          TC_ImplicitActivationPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (IMPLICIT_ACTIVATION_Name));
          CORBA.Internals.Add_Parameter (TC_ImplicitActivationPolicyValue, CORBA.To_Any (NO_IMPLICIT_ACTIVATION_Name));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ImplicitActivationPolicyValue);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ImplicitActivationPolicyValue);
       end;
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("ServantRetentionPolicyValue");
@@ -1291,12 +1291,12 @@ package body PortableServer.Helper is
          NON_RETAIN_Name : constant CORBA.String := CORBA.To_CORBA_String ("NON_RETAIN");
       begin
          TC_ServantRetentionPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (RETAIN_Name));
          CORBA.Internals.Add_Parameter (TC_ServantRetentionPolicyValue, CORBA.To_Any (NON_RETAIN_Name));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_ServantRetentionPolicyValue);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_ServantRetentionPolicyValue);
       end;
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("RequestProcessingPolicyValue");
@@ -1306,13 +1306,13 @@ package body PortableServer.Helper is
          USE_SERVANT_MANAGER_Name : constant CORBA.String := CORBA.To_CORBA_String ("USE_SERVANT_MANAGER");
       begin
          TC_RequestProcessingPolicyValue :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (Id));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (USE_ACTIVE_OBJECT_MAP_ONLY_Name));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (USE_DEFAULT_SERVANT_Name));
          CORBA.Internals.Add_Parameter (TC_RequestProcessingPolicyValue, CORBA.To_Any (USE_SERVANT_MANAGER_Name));
-         CORBA.TypeCode.Internals.Disable_Reference_Counting (TC_RequestProcessingPolicyValue);
+         CORBA.TypeCode.Internals.Disable_Ref_Counting (TC_RequestProcessingPolicyValue);
       end;
 
    end Deferred_Initialization;

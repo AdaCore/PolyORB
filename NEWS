@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 1999-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,8 +27,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-* PolyORB 2.9
-=============
+* PolyORB 2.10
+==============
+
+This release contains the PolyORB generic middleware, and its CORBA
+and DSA instantiations. In addition to the 2.9 release, it includes:
+
+New features
+------------
+
+See the features-2.10 file.
+
+Bug fixes
+---------
+
+Some recent versions of OpenSSL have SSLv2 disabled. PolyORB has been
+updated to allow building with such libraries.
+
+* PolyORB 2.9 (branched on 2012-10-22)
+======================================
 
 This release contains the PolyORB generic middleware, and its CORBA
 and DSA instantiations. In addition to the 2.8 release, it includes:
@@ -41,9 +58,30 @@ See the features-29 file.
 Bug fixes
 ---------
 
+Secure client is unable to communicate with unprotected object when external
+security service is used and it doesn't provide default value for security
+policies. This has been fixed. (L822-047)
+
+When projects file are used, PO_Gnatdist used to be unable to build client
+partitions when the bodies of the RCI units it calls are missing (an
+otherwise supported scenario). This has been fixed. (L521-016)
+
+Abortion of a task blocked trying to bind a reference would leave the
+reference locked, causing further bind attemps to hang. (KC09-001)
+
+Configuration parameters delay_between_failed_requests and max_failed_requests
+from section [dsa], controlling the retry policy for connections to the DSA
+name servers, were not correctly taken into account (hard-coded values were
+used instead). (KC08-002)
+
 DSA RPC receivers were activated too early (before the partition was
 completely elaborated), which could cause access before elaboration
 while servicing remote calls. (KC22-022)
+
+The activation of RPC receivers is now part of the elaboration of the
+partition, instead of a generated main subprogram, which allows correct
+partition operation even if no main subprogram is actually called (case
+of a partition built as a standalone library). (L405-023)
 
 * PolyORB 2.8 (branched on 2011-10-31)
 ======================================
@@ -58,6 +96,10 @@ See the features-28 file.
 
 Bug fixes
 ---------
+
+Bug in initialization of default set of security features was fixed.
+
+Format of GSSUP authentication token was fixed. (L327-004)
 
 Several race conditions related to session reuse have been identified and
 corrected. (K915-014, K915-018, K915-019)

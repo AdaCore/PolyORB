@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
@@ -111,19 +113,22 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
         := Credentials_Access (Entity_Of (Credentials));
 
    begin
-      if Creds /= null then
+      if Creds /= null
+        and then Creds.all in Compound_Credentials'Class
+      then
+         --  Get authentication credentials from compound credentials.
+
          Creds :=
            Credentials_Access
            (Entity_Of
             (Get_Authentication_Credentials
              (Compound_Credentials_Access (Creds))));
+      end if;
 
-         if Creds /= null
-           and then Creds.all in GSSUP_Credentials'Class
-         then
-            return GSSUP_Credentials_Access (Creds);
-         end if;
-
+      if Creds /= null
+        and then Creds.all in GSSUP_Credentials'Class
+      then
+         return GSSUP_Credentials_Access (Creds);
       end if;
 
       return null;
@@ -133,7 +138,7 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
    -- Init_Security_Context --
    ---------------------------
 
-   function Init_Security_Context
+   overriding function Init_Security_Context
      (Mechanism   : access GSSUP_Client_Authentication_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Ada.Streams.Stream_Element_Array
@@ -147,8 +152,29 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
    begin
       Start_Encapsulation (Buffer);
 
-      Marshall_Latin_1_String (Buffer, Get_User_Name (Creds));
-      Marshall_Latin_1_String (Buffer, Get_Password (Creds));
+      --  User name and password are encoded as sequence<octet>, but stored as
+      --  strings internally.
+
+      declare
+         Image  : constant String := Get_User_Name (Creds);
+         Binary : constant Stream_Element_Array (1 .. Image'Length);
+         for Binary'Address use Image'Address;
+         pragma Import (Ada, Binary);
+
+      begin
+         Marshall (Buffer, Binary);
+      end;
+
+      declare
+         Image  : constant String := Get_Password (Creds);
+         Binary : constant Stream_Element_Array (1 .. Image'Length);
+         for Binary'Address use Image'Address;
+         pragma Import (Ada, Binary);
+
+      begin
+         Marshall (Buffer, Binary);
+      end;
+
       Marshall (Buffer, Encode (Get_Target_Name (Creds)));
 
       declare
@@ -185,7 +211,7 @@ package body PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
    -- Is_Supports --
    -----------------
 
-   function Is_Supports
+   overriding function Is_Supports
      (Mechanism   : access GSSUP_Client_Authentication_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Boolean

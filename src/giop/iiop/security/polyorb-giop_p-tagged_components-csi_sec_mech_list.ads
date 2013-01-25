@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  TAG_CSI_SEC_MECH_LIST Tagged Component
 
 with PolyORB.ASN1;
@@ -88,18 +90,18 @@ package PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    type TC_CSI_Sec_Mech_List_Access is
      access all TC_CSI_Sec_Mech_List'Class;
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_CSI_Sec_Mech_List;
       Buffer : access Buffer_Type);
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_CSI_Sec_Mech_List;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container);
 
-   procedure Release_Contents (C : access TC_CSI_Sec_Mech_List);
+   overriding procedure Release_Contents (C : access TC_CSI_Sec_Mech_List);
 
-   function Duplicate (C : TC_CSI_Sec_Mech_List)
+   overriding function Duplicate (C : TC_CSI_Sec_Mech_List)
      return Tagged_Component_Access;
 
    --  Registry for Transport Mechanisms Tagged Components

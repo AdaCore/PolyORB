@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Half-Sync/Half-Async ORB Controller for PolyORB ORB main loop
 
 --  It is a tasking ORB Controller implementation, it supports
@@ -45,26 +47,26 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
    type ORB_Controller_Half_Sync_Half_Async_Access is
      access all ORB_Controller_Half_Sync_Half_Async'Class;
 
-   procedure Notify_Event
+   overriding procedure Notify_Event
      (O : access ORB_Controller_Half_Sync_Half_Async;
       E :        Event);
 
-   procedure Schedule_Task
+   overriding procedure Schedule_Task
      (O  : access ORB_Controller_Half_Sync_Half_Async;
       TI :        PTI.Task_Info_Access);
 
-   procedure Disable_Polling
+   overriding procedure Disable_Polling
      (O : access ORB_Controller_Half_Sync_Half_Async;
       M : PAE.Asynch_Ev_Monitor_Access);
 
-   procedure Enable_Polling
+   overriding procedure Enable_Polling
      (O : access ORB_Controller_Half_Sync_Half_Async;
       M : PAE.Asynch_Ev_Monitor_Access);
 
    type ORB_Controller_Half_Sync_Half_Async_Factory is
      new ORB_Controller_Factory with private;
 
-   function Create
+   overriding function Create
      (OCF : ORB_Controller_Half_Sync_Half_Async_Factory)
      return ORB_Controller_Access;
 

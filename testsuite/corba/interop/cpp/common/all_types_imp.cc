@@ -15,6 +15,7 @@ public:
   CORBA::Double echoDouble(CORBA::Double arg) {return arg;};
   CORBA::Char echoChar(CORBA::Char arg) {return arg;};
   CORBA::Octet echoOctet(CORBA::Octet arg) {return arg;};
+  CORBA::Any* echoAny(const CORBA::Any &arg) {return (CORBA::Any*) &arg;};
   all_types::Color echoColor(all_types::Color arg) {return arg;};
 
   char* echoString(const char* arg) 
@@ -100,9 +101,9 @@ public:
   all_types::Color myColor() {return tmpColor;};
   void myColor(all_types::Color arg) {tmpColor = arg;};
 
-  void testException(CORBA::Long arg) 
+  void testException(CORBA::Long arg, const char *why) 
   {
-    CORBA::UserException *u = new all_types::my_exception(arg);
+    CORBA::UserException *u = new all_types::my_exception(arg, why);
     u->_raise();
   };
 

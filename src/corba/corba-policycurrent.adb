@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,13 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
+pragma Ada_2005;
 
 with PolyORB.Annotations;
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.CORBA_P.Policy_Management;
 with PolyORB.Initialization;
-with PolyORB.Smart_Pointers;
+with PolyORB.References;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings;
 
@@ -50,7 +50,7 @@ package body CORBA.PolicyCurrent is
    -- Is_A --
    ----------
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean
    is
@@ -74,7 +74,7 @@ package body CORBA.PolicyCurrent is
    -- Get_Policy_Overrides --
    --------------------------
 
-   function Get_Policy_Overrides
+   overriding function Get_Policy_Overrides
      (Self : Local_Ref;
       TS   : CORBA.Policy.PolicyTypeSeq) return CORBA.Policy.PolicyList
    is
@@ -108,7 +108,7 @@ package body CORBA.PolicyCurrent is
    -- Set_Policy_Overrides --
    --------------------------
 
-   procedure Set_Policy_Overrides
+   overriding procedure Set_Policy_Overrides
      (Self     : Local_Ref;
       Policies : CORBA.Policy.PolicyList;
       Set_Add  : SetOverrideType)
@@ -159,15 +159,11 @@ package body CORBA.PolicyCurrent is
    procedure Deferred_Initialization;
 
    procedure Deferred_Initialization is
-      Ptr : constant Object_Ptr := new Object;
-      Ref : CORBA.Object.Ref;
-
+      Ref : PolyORB.References.Ref;
    begin
-      CORBA.Object.Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (Ptr));
-
-      PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
-        ("PolicyCurrent",
-         Ref);
+      Ref.Set (new Object);
+      PolyORB.Initial_References.Register_Initial_Reference
+        ("PolicyCurrent", Ref);
    end Deferred_Initialization;
 
    use PolyORB.Initialization;
@@ -179,7 +175,7 @@ begin
      (Module_Info'
       (Name      => +"corba.policycurrent",
        Conflicts => Empty,
-       Depends   => +"corba.initial_references",
+       Depends   => +"initial_references",
        Provides  => Empty,
        Implicit  => False,
        Init      => Deferred_Initialization'Access,

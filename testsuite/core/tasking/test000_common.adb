@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Real_Time;
 with Ada.Exceptions;
 
@@ -122,7 +124,7 @@ package body Test000_Common is
    --  Simple generic Runnable, that use a access to procedure
    --  for its main procedure
 
-   procedure Run (R : not null access Generic_Run);
+   overriding procedure Run (R : not null access Generic_Run);
    --  Call to R.P.all
 
    Ok             : Boolean := True;
@@ -217,7 +219,7 @@ package body Test000_Common is
       P  : Identified_Runnable_Main_Procedure;
    end record;
 
-   procedure Run (R : not null access Identified_Runnable);
+   overriding procedure Run (R : not null access Identified_Runnable);
 
    type Id_Runnable_Arr is array (Task_Index) of Runnable_Access;
    Id_R  : Id_Runnable_Arr;
@@ -298,12 +300,12 @@ package body Test000_Common is
    -- Run --
    ---------
 
-   procedure Run (R : not null access Generic_Run) is
+   overriding procedure Run (R : not null access Generic_Run) is
    begin
       R.P.all;
    end Run;
 
-   procedure Run (R : not null access Identified_Runnable) is
+   overriding procedure Run (R : not null access Identified_Runnable) is
    begin
       R.P.all (R.Id);
    end Run;
@@ -869,7 +871,8 @@ package body Test000_Common is
 
             declare
                T : constant Thread_Access :=
-                     Run_In_Task (TF => My_Thread_Factory, R  => Id_R (J));
+                     Run_In_Task
+                       (TF => My_Thread_Factory, R  => Id_R (J), Name => "T");
                pragma Unreferenced (T);
             begin
                null;
@@ -972,7 +975,8 @@ package body Test000_Common is
 
             declare
                T : constant Thread_Access :=
-                     Run_In_Task (TF => My_Thread_Factory, R  => Id_R (J));
+                     Run_In_Task
+                       (TF => My_Thread_Factory, R  => Id_R (J), Name => "T");
                pragma Unreferenced (T);
             begin
                null;
@@ -1081,7 +1085,8 @@ package body Test000_Common is
 
             declare
                T : constant Thread_Access :=
-                     Run_In_Task (TF => My_Thread_Factory, R  => R (J));
+                     Run_In_Task
+                       (TF => My_Thread_Factory, R  => R (J), Name => "T");
                pragma Unreferenced (T);
             begin
                null;
@@ -1112,7 +1117,8 @@ package body Test000_Common is
 
             declare
                T : constant Thread_Access :=
-                     Run_In_Task (TF => My_Thread_Factory, R  => R (J));
+                     Run_In_Task
+                       (TF => My_Thread_Factory, R  => R (J), Name => "T");
                pragma Unreferenced (T);
             begin
                null;

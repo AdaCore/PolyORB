@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body MOMA.Messages.MAnys is
 
    --------------
@@ -70,7 +72,7 @@ package body MOMA.Messages.MAnys is
    -- Image --
    -----------
 
-   function Image (Self : MAny) return String is
+   overriding function Image (Self : MAny) return String is
    begin
       return Image (Get_Any (Self));
    end Image;

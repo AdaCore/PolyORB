@@ -289,8 +289,7 @@ package body PolyORB.Initialization is
                if Conflicting.Virtual then
                   declare
                      First_Provider : constant Module_Access :=
-                                        Value
-                                          (First (Conflicting.Deps)).Target;
+                       Value (First (Conflicting.Deps)).Target;
                   begin
                      --  For a conflict against a virtual module, do not fail
                      --  if Current is the only provider: the conflict entry

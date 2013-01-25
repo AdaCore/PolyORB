@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
 with PolyORB.Initialization;
@@ -73,7 +75,9 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag (Profile : DIOP_Profile_Type) return Profile_Tag is
+   overriding function Get_Profile_Tag
+     (Profile : DIOP_Profile_Type)
+     return Profile_Tag is
       pragma Unreferenced (Profile);
 
    begin
@@ -84,7 +88,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : DIOP_Profile_Type)
      return Profile_Preference
    is
@@ -98,7 +102,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out DIOP_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access)
@@ -117,7 +121,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access DIOP_Profile_Factory;
       Oid :        Objects.Object_Id)
      return Profile_Access
@@ -146,7 +150,9 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : DIOP_Profile_Type) return Profile_Access is
+   overriding function Duplicate_Profile
+     (P : DIOP_Profile_Type)
+     return Profile_Access is
       Result : constant Profile_Access := new DIOP_Profile_Type;
 
       TResult : DIOP_Profile_Type renames DIOP_Profile_Type (Result.all);
@@ -188,11 +194,11 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    is
       Result  : constant Profile_Access := new DIOP_Profile_Type;
       Address : constant Utils.Sockets.Socket_Name :=
-                  Common_Unmarshall_Profile_Body
-                    (Buffer,
-                     Result,
-                     Unmarshall_Object_Id         => True,
-                     Unmarshall_Tagged_Components => False);
+        Common_Unmarshall_Profile_Body
+          (Buffer,
+           Result,
+           Unmarshall_Object_Id         => True,
+           Unmarshall_Tagged_Components => False);
    begin
       --  Create transport mechanism
 
@@ -207,7 +213,7 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    -- Image --
    -----------
 
-   function Image (Prof : DIOP_Profile_Type) return String is
+   overriding function Image (Prof : DIOP_Profile_Type) return String is
    begin
       return "Address : "
         & Utils.Sockets.Image
@@ -240,10 +246,10 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
    function Corbaloc_To_Profile (Str : String) return Profile_Access is
       Result  : aliased Profile_Access := new DIOP_Profile_Type;
       Address : constant Utils.Sockets.Socket_Name :=
-                  Common_IIOP_DIOP_Corbaloc_To_Profile
-                    (Str,
-                     DIOP_Version_Major, DIOP_Version_Minor,
-                     Result'Access);
+        Common_IIOP_DIOP_Corbaloc_To_Profile
+          (Str,
+           DIOP_Version_Major, DIOP_Version_Minor,
+           Result'Access);
    begin
       --  Create transport mechanism
 

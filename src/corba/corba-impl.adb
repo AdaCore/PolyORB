@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body CORBA.Impl is
 
    ---------------------
    -- Execute_Servant --
    ---------------------
 
-   function Execute_Servant
+   overriding function Execute_Servant
      (Self : not null access Implementation;
       Req  : PolyORB.Requests.Request_Access) return Boolean
    is

@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.9.0w]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.10.0w]))
 
 AC_PREREQ(2.57)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -74,6 +74,18 @@ else
   NODEBUG_OPTIONS
 fi],
 [NODEBUG_OPTIONS])
+
+# LIBRARY_TYPE_OPTIONS set to use static or shared libraries consistently.
+
+AC_ARG_ENABLE(shared,
+AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
+[
+LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=relocatable"
+],
+[
+LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=static"
+])
+AC_SUBST(LIBRARY_TYPE_OPTIONS)
 
 # WARNINGS_MODE can be set to:
 #  e (treat warnings as errors)
@@ -201,12 +213,11 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 AC_PROG_CC
 if test "${ADAFLAGS-unset}" = unset; then
-  ADAFLAGS="${CFLAGS} ${BASE_ADAFLAGS}"
+  ADAFLAGS="-cargs ${CFLAGS} -margs ${BASE_ADAFLAGS}"
 else
-  ADAFLAGS="${ADAFLAGS} ${BASE_ADAFLAGS}"
+  ADAFLAGS="-cargs ${ADAFLAGS} -margs ${BASE_ADAFLAGS}"
 fi
 
-AC_PROG_INSTALL
 AC_PROG_AWK
 AC_CHECK_PROG(RM, rm, rm)
 AC_CHECK_PROG(SED, sed, sed)
@@ -222,7 +233,7 @@ AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
 AM_CROSS_PROG_CC
 AM_PROG_IDLCPP
-AM_PROG_XARGS_I
+AM_WITH_GPRBUILD
 
 ##########################################
 # Check Ada environment features
@@ -233,7 +244,7 @@ AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
 AM_HAS_PRAGMA_SUPPRESS_VALIDITY_CHECK
 AM_HAS_STYLESW_YG
-# AM_HAS_STYLESW_YO
+AM_HAS_STYLESW_YO
 AM_SUBST_GPR([STYLE_SWITCHES])
 AM_HAS_INTRINSIC_SYNC_COUNTERS
 AM_HAS_ADA_DYNAMIC_PRIORITIES
@@ -268,8 +279,6 @@ CC="$save_CC"
 ##########################################
 
 AC_EXEEXT
-AM_ENABLE_SHARED(no)
-AM_ENABLE_STATIC(yes)
 
 ##########################################
 # Tools list: contains libraries that are
@@ -347,6 +356,16 @@ AS_HELP_STRING([--with-idl-compiler=X], [Select IDL compiler]),
   IDLAC=iac
 ])
 AC_SUBST(IDLAC)
+
+AC_ARG_ENABLE(idlac-wrapper,
+AS_HELP_STRING([--disable-idlac-wrapper], [Do not use idlac_wrapper for build]),
+[case "$enableval" in
+   yes|no) USE_IDLAC_WRAPPER=$enableval ;;
+   *)      AC_ERROR([invalid argument to --enable-idlac-wrapper: $enableval]) ;;
+esac],
+[USE_IDLAC_WRAPPER=yes])
+AC_SUBST(USE_IDLAC_WRAPPER)
+
 AM_IDLCPP_NEEDS_DOT
 
 ##########################################
@@ -400,14 +419,23 @@ AC_SUBST(LIBS_LIST)
 ##########################################
 
 get_perso_prjs() {
-  perso_name=$1
-  result=
-  sep=""
-  for gpr in ${srcdir}/projects/polyorb_src_${perso_name}*.gpr; do
-    result="${result}${sep}\"`basename $gpr .gpr`\""
-    sep=","
-  done
-  echo $result
+  eval "(cd ${srcdir}/projects && echo polyorb_src_$1*.gpr)"
+}
+
+with_projects() {
+  WITH_PRJS=
+  if test x"$1" != x; then
+    for gpr in $*; do
+      prj='"'`basename $gpr .gpr`'"'
+      if test "x$WITH_PRJS" = x; then
+        WITH_PRJS="with $prj"
+      else
+        WITH_PRJS="$WITH_PRJS, $prj"
+      fi
+    done
+    WITH_PRJS="$WITH_PRJS;"
+  fi
+  echo "$WITH_PRJS"
 }
 
 APPLI_DIRS=""
@@ -416,22 +444,16 @@ APPLI_LIBS=""
 APPLI_EXES="\$(poly_exe) "
 APPLI_PRJS=""
 
-sep=""
 for P in ${APPLI_LIST}
 do
    APPLI_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
    APPLI_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
    APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
    APPLI_EXES="${APPLI_EXES} "'$'"(${P}_exe)"
-   APPLI_PRJS="${APPLI_PRJS}${sep}`get_perso_prjs ${P}`"
-   sep=","
+   APPLI_PRJS="${APPLI_PRJS} `get_perso_prjs ${P}`"
 done
-if test x"$APPLI_PRJS" = x
-then
-  WITH_APPLI_PRJS=""
-else
-  WITH_APPLI_PRJS="with $APPLI_PRJS;"
-fi
+
+WITH_APPLI_PRJS=`with_projects $APPLI_PRJS`
 
 AC_SUBST(APPLI_DIRS)
 AC_SUBST(APPLI_INCS)
@@ -445,21 +467,15 @@ PROTO_INCS=""
 PROTO_LIBS=""
 PROTO_PRJS=""
 
-sep=""
 for P in ${PROTO_LIST}
 do
    PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
    PROTO_INCS="${PROTO_INCS} "'$'"(${P}_inc)"
    PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
-   PROTO_PRJS="${PROTO_PRJS}${sep}`get_perso_prjs ${P}`"
-   sep=","
+   PROTO_PRJS="${PROTO_PRJS} `get_perso_prjs ${P}`"
 done
-if test x"$PROTO_PRJS" = x
-then
-  WITH_PROTO_PRJS=""
-else
-  WITH_PROTO_PRJS="with $PROTO_PRJS;"
-fi
+
+WITH_PROTO_PRJS=`with_projects $PROTO_PRJS`
 
 AC_SUBST(PROTO_DIRS)
 AC_SUBST(PROTO_INCS)
@@ -473,7 +489,6 @@ SERVICE_LIBS=""
 SERVICE_EXES=""
 SERVICE_PRJS=""
 
-sep=""
 for P in ${SERVICE_LIST}
 do
    SERVICE_DIRS="${SERVICE_DIRS} "'$'"(${P}_dir)"
@@ -482,16 +497,11 @@ do
    SERVICE_EXES="${SERVICE_EXES} "'$'"(${P}_exe)"
    if test "$P" != ir
    then
-      SERVICE_PRJS="${SERVICE_PRJS}${sep}\"polyorb_idls_cos_${P}\""
-      sep=","
+      SERVICE_PRJS="${SERVICE_PRJS} polyorb_idls_cos_${P}.gpr"
    fi
 done
-if test x"$SERVICE_PRJS" = x
-then
-  WITH_SERVICE_PRJS=""
-else
-  WITH_SERVICE_PRJS="with $SERVICE_PRJS;"
-fi
+
+WITH_SERVICE_PRJS=`with_projects $SERVICE_PRJS`
 
 AC_SUBST(SERVICE_DIRS)
 AC_SUBST(SERVICE_INCS)
@@ -586,7 +596,7 @@ AC_MSG_RESULT($EXCEPTION_MODEL)
 AC_SUBST(GNAT_RTS_FLAG)
 
 #
-# If ATC or dynamic priritoes are not supported, remove corresponding units.
+# If ATC or dynamic priorities are not supported, remove corresponding units.
 # Note: can't use a multi-line value for an AC_SUBST variable, this works only
 # with recent versions of autoconf (which use awk(1) for all substitutions).
 # Older versions that rely on sed(1) don't handle multi-line substitutions
@@ -656,18 +666,6 @@ fi
 ##########################################
 
 AC_SUBST(EXTRA_GNATMAKE_FLAGS)
-
-##########################################
-# We change $host in order to force the generation of a libtool for the
-# target, and not for the host.
-# XXX if someone knows a clean way to do that, be my guest...
-##########################################
-
-host_tmp=$host
-host=$target
-AM_PROG_LIBTOOL
-AC_LIBTOOL_HAS_TAG
-host=$host_tmp
 
 #################################################
 # Build code fragments to be substituted in
@@ -831,20 +829,29 @@ AC_SUBST_FILE(PO_CATREF_WITHS)
 AC_SUBST_FILE(PO_CREATEREF_WITHS)
 
 #################################################
+# Consistency checks
+#################################################
+
+AS_IF(test "$HAVE_GPRBUILD:${enable_shared:-no}" = "no:yes",
+ [AC_MSG_FAILURE("--enable-shared requires gprbuild")])
+
+#################################################
 # Build code fragments to be substituted in
 #   Makefile
 #################################################
 
 LOCAL_MAKEFILES=config.local.makefiles
 
+(
+echo "test_targets :="
 (cd ${srcdir} && find . -name Makefile.local) | sed "s,^\./,," | \
 while read mklocal; do
   testdir="`dirname ${mklocal}`/"
   echo "current_dir  := ${testdir}"
   echo "test_target  := ${testdir}build-test"
-  echo "test_targets += ${testdir}build-test"
   echo "include \$(top_srcdir)/${mklocal}"
-done > ${LOCAL_MAKEFILES}
+  echo "test_targets += \${test_target}"
+done) > ${LOCAL_MAKEFILES}
 AC_SUBST_FILE(LOCAL_MAKEFILES)
 
 # GNATDIST version
@@ -863,6 +870,7 @@ AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_
 
 AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
+	Makefile.common
 	Makefile.common.project
 	compilers/common_files/platform.ads
 	compilers/config.adc
@@ -876,7 +884,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects-distrib/polyorb.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
-        src/src.exclude
+	src/src.exclude
 	src/setup/polyorb-setup-base.adb
 	src/setup/polyorb-setup-client_base.adb
 	src/setup/polyorb-setup-server.adb
@@ -891,8 +899,6 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	examples/corba/secure_echo/tls_gssup.conf
 	tools/po_catref/po_catref_setup.adb
 	tools/po_createref/po_createref_setup.adb
-	support/adacompiler
-	support/linker
 	polyorb-config
 ]),
 [
@@ -900,7 +906,8 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 # Copy files
 ##########################################
 
-for a in support/linker support/adacompiler support/gentexifile \
+mkdir support 2> /dev/null
+for a in support/gentexifile \
   support/move-if-change contrib/idlac_wrapper/idlac_wrapper
 do
   echo "==> updating $a"
@@ -912,16 +919,6 @@ do
 done
 
 chmod a+x polyorb-config
-
-for a in adacompiler linker; do
-  na=support/native-$a
-  echo "==> symlinking $na"
-  # The following 'ln -s' command needs to happen in the support subdirectory,
-  # so that we can replace it with 'cp' on machines where 'ln -s' doesn't work
-  # (such as Windows). That is, 'ln -s $a support/native-$a' would work, but
-  # 'cp $a support/native-$a' does not; hence the "cd support...".
-  (cd support ; ${RM} -f native-$a ; ${LN_S} $a native-$a)
-done
 ],
 [
 RM="${RM}"

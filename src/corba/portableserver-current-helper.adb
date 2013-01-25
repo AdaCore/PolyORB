@@ -85,7 +85,7 @@ package body PortableServer.Current.Helper is
      (Item : PortableServer.Current.NoContext_Members) return CORBA.Any
    is
       Result : constant CORBA.Any :=
-                 CORBA.Internals.Get_Empty_Any_Aggregate (TC_NoContext);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_NoContext);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -125,11 +125,10 @@ package body PortableServer.Current.Helper is
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("Current");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String
-                    ("IDL:omg.org/PortableServer/Current:1.0");
+           CORBA.To_CORBA_String ("IDL:omg.org/PortableServer/Current:1.0");
       begin
          TC_Current :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_Current, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_Current, CORBA.To_Any (Id));
       end;
@@ -137,11 +136,11 @@ package body PortableServer.Current.Helper is
       declare
          Name : constant CORBA.String := CORBA.To_CORBA_String ("NoContext");
          Id   : constant CORBA.String :=
-                  CORBA.To_CORBA_String
-                    ("IDL:omg.org/PortableServer/Current/NoContext:1.0");
+           CORBA.To_CORBA_String
+             ("IDL:omg.org/PortableServer/Current/NoContext:1.0");
       begin
          TC_NoContext :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_NoContext, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_NoContext, CORBA.To_Any (Id));
       end;

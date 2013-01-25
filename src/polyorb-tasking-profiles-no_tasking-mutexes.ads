@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of POSIX-like mutexes with no Ada tasking.
 --  For more information see PolyORB.Tasking.Mutexes.
 
@@ -49,8 +51,8 @@ package PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
      access all No_Tasking_Mutex_Type'Class;
    --  Type for mutexes with no Ada tasking.
 
-   procedure Enter (M : access No_Tasking_Mutex_Type);
-   procedure Leave (M : access No_Tasking_Mutex_Type);
+   overriding procedure Enter (M : access No_Tasking_Mutex_Type);
+   overriding procedure Leave (M : access No_Tasking_Mutex_Type);
 
    type No_Tasking_Mutex_Factory_Type is
      new PTM.Mutex_Factory_Type with private;
@@ -61,7 +63,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
 
    The_Mutex_Factory : constant No_Tasking_Mutex_Factory_Access;
 
-   function Create
+   overriding function Create
      (MF   : access No_Tasking_Mutex_Factory_Type;
       Name : String := "")
      return PTM.Mutex_Access;
@@ -69,7 +71,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    --  Name will be used to get the configuration of this
    --  Mutex from the configuration module.
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access No_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access);
    --  Destroy M.

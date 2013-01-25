@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.Impl;
 with CORBA.Object;
 
@@ -71,7 +73,7 @@ package body PolyORB.CORBA_P.ServantLocator is
    -- Preinvoke --
    ---------------
 
-   procedure Preinvoke
+   overriding procedure Preinvoke
      (Self       : access CORBA_ServantLocator;
       Oid        :        PPT.Object_Id;
       Adapter    : access PPT.Obj_Adapter'Class;
@@ -85,7 +87,7 @@ package body PolyORB.CORBA_P.ServantLocator is
       CORBA_Servant : PortableServer.Servant;
 
       Locator : constant PortableServer.ServantLocator.Local_Ref'Class :=
-                  Get_Servant_Manager (Self.all);
+        Get_Servant_Manager (Self.all);
 
    begin
       PortableServer.POA_Forward.Set
@@ -124,7 +126,7 @@ package body PolyORB.CORBA_P.ServantLocator is
    -- Postinvoke --
    ----------------
 
-   procedure Postinvoke
+   overriding procedure Postinvoke
      (Self        : access CORBA_ServantLocator;
       Oid         : PPT.Object_Id;
       Adapter     : access PPT.Obj_Adapter'Class;
@@ -139,7 +141,7 @@ package body PolyORB.CORBA_P.ServantLocator is
                                 (The_Servant));
 
       Locator : constant PortableServer.ServantLocator.Local_Ref'Class :=
-                  Get_Servant_Manager (Self.all);
+        Get_Servant_Manager (Self.all);
 
    begin
       PortableServer.POA_Forward.Set

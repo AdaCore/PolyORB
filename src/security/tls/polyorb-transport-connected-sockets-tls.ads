@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  TLS transport service access points and transport endpoints.
 
 with PolyORB.QoS;
@@ -43,7 +45,7 @@ package PolyORB.Transport.Connected.Sockets.TLS is
 
    type TLS_Access_Point is new Socket_Access_Point with private;
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TAP : access TLS_Access_Point)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
@@ -57,7 +59,7 @@ package PolyORB.Transport.Connected.Sockets.TLS is
        PolyORB.Security.Transport_Mechanisms.
          Target_Transport_Mechanism_Access);
 
-   procedure Accept_Connection
+   overriding procedure Accept_Connection
      (TAP : TLS_Access_Point;
       TE  : out Transport_Endpoint_Access);
 
@@ -74,24 +76,27 @@ package PolyORB.Transport.Connected.Sockets.TLS is
        PolyORB.Security.Transport_Mechanisms.Target_Transport_Mechanism_Access;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref);
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TE : access TLS_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
-   function Is_Data_Available (TE : TLS_Endpoint; N : Natural) return Boolean;
+   overriding function Is_Data_Available
+     (TE : TLS_Endpoint;
+      N : Natural)
+     return Boolean;
 
-   procedure Read
+   overriding procedure Read
      (TE     : in out TLS_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
       Error  : out Errors.Error_Container);
 
-   procedure Write
+   overriding procedure Write
      (TE     : in out TLS_Endpoint;
       Buffer : Buffers.Buffer_Access;
       Error  : out Errors.Error_Container);
 
-   procedure Close (TE : access TLS_Endpoint);
+   overriding procedure Close (TE : access TLS_Endpoint);
 
    function Create_QoS
      (End_Point : TLS_Endpoint) return PolyORB.QoS.QoS_Parameter_Access;

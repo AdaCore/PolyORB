@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
@@ -102,7 +104,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
      (Code_Set : Code_Set_Id)
       return Wide_Info_Lists.Element_Access;
 
-   --  Code set converters factory functions
+   --  Code functions
 
    function Create_ISO88591_Native_Converter return Converter_Access;
 
@@ -268,7 +270,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    -- Marshall --
    --------------
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Char;
@@ -280,7 +282,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Marshall_Latin_1_Char (Buffer, Data);
    end Marshall;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.String;
@@ -292,7 +294,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Marshall_Latin_1_String (Buffer, Data);
    end Marshall;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Char;
@@ -312,7 +314,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
    end Marshall;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.String;
@@ -329,7 +331,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
          Buf    : Buffer_Access            := new Buffer_Type;
          Length : Unsigned_Long            := 0;
          Equiv  : constant Standard.String :=
-                    To_String (Data) & Character'Val (16#00#);
+           To_String (Data) & Character'Val (16#00#);
 
       begin
          for J in Equiv'Range loop
@@ -353,7 +355,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end;
    end Marshall;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wchar;
@@ -370,7 +372,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
    end Marshall;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wide_String;
@@ -397,7 +399,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
    end Marshall;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wchar;
@@ -426,7 +428,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
    end Marshall;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wide_String;
@@ -574,7 +576,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    -- Unmarshall --
    ----------------
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
@@ -591,7 +593,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
    -- Unmarshall --
    ----------------
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
@@ -603,7 +605,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Data := Unmarshall_Latin_1_String (Buffer);
    end Unmarshall;
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
@@ -624,7 +626,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
    end Unmarshall;
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
@@ -662,7 +664,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Data := To_PolyORB_String (Result (Result'First .. Last - 1));
    end Unmarshall;
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
@@ -686,7 +688,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
    end Unmarshall;
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
@@ -720,7 +722,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       Data := To_PolyORB_Wide_String (Result (Result'First .. Last));
    end Unmarshall;
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
@@ -783,7 +785,7 @@ package body PolyORB.GIOP_P.Code_Sets.Converters is
       end if;
    end Unmarshall;
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;

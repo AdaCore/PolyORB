@@ -68,13 +68,13 @@ package body PolyORB.Services.Naming.NamingContext.Client is
       Obj  : PolyORB.References.Ref)
    is
       Arg_Name_N : constant PolyORB.Types.Identifier :=
-                     PolyORB.Types.To_PolyORB_String ("n");
+        PolyORB.Types.To_PolyORB_String ("n");
       Argument_N : constant PolyORB.Any.Any := To_Any (N);
 
       Arg_Name_Obj : constant PolyORB.Types.Identifier :=
-                       PolyORB.Types.To_PolyORB_String ("obj");
+        PolyORB.Types.To_PolyORB_String ("obj");
       Argument_Obj : constant PolyORB.Any.Any :=
-                       PolyORB.Services.Naming.Helper.To_Any (Obj);
+        PolyORB.Services.Naming.Helper.To_Any (Obj);
 
       Operation_Name : constant Standard.String := "bind";
 
@@ -142,13 +142,13 @@ package body PolyORB.Services.Naming.NamingContext.Client is
       Obj  : PolyORB.References.Ref)
    is
       Arg_Name_n : constant PolyORB.Types.Identifier :=
-                     PolyORB.Types.To_PolyORB_String ("n");
+        PolyORB.Types.To_PolyORB_String ("n");
       Argument_n : constant PolyORB.Any.Any := To_Any (N);
 
       Arg_Name_obj : constant PolyORB.Types.Identifier :=
-                       PolyORB.Types.To_PolyORB_String ("obj");
+        PolyORB.Types.To_PolyORB_String ("obj");
       Argument_obj : constant PolyORB.Any.Any :=
-                       PolyORB.Services.Naming.Helper.To_Any (Obj);
+        PolyORB.Services.Naming.Helper.To_Any (Obj);
 
       Operation_Name : constant Standard.String := "rebind";
 
@@ -215,11 +215,11 @@ package body PolyORB.Services.Naming.NamingContext.Client is
       Nc   : NamingContext.Ref)
    is
       Arg_Name_n : constant PolyORB.Types.Identifier :=
-                     PolyORB.Types.To_PolyORB_String ("n");
+        PolyORB.Types.To_PolyORB_String ("n");
       Argument_n : constant PolyORB.Any.Any := To_Any (N);
 
       Arg_Name_nc : constant PolyORB.Types.Identifier :=
-                      PolyORB.Types.To_PolyORB_String ("nc");
+        PolyORB.Types.To_PolyORB_String ("nc");
       Argument_nc : constant PolyORB.Any.Any := To_Any (Nc);
 
       Operation_Name : constant Standard.String := "bind_context";
@@ -288,11 +288,11 @@ package body PolyORB.Services.Naming.NamingContext.Client is
       Nc   : NamingContext.Ref)
    is
       Arg_Name_n : constant PolyORB.Types.Identifier :=
-                     PolyORB.Types.To_PolyORB_String ("n");
+        PolyORB.Types.To_PolyORB_String ("n");
       Argument_n : constant PolyORB.Any.Any := To_Any (N);
 
       Arg_Name_nc : constant PolyORB.Types.Identifier :=
-                      PolyORB.Types.To_PolyORB_String ("nc");
+        PolyORB.Types.To_PolyORB_String ("nc");
       Argument_nc : constant PolyORB.Any.Any := To_Any (Nc);
 
       Operation_Name : constant Standard.String := "rebind_context";
@@ -359,7 +359,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
       N    : Name) return PolyORB.References.Ref
    is
       Arg_Name_n : constant PolyORB.Types.Identifier :=
-                     PolyORB.Types.To_PolyORB_String ("n");
+        PolyORB.Types.To_PolyORB_String ("n");
       Argument_n : constant PolyORB.Any.Any := To_Any (N);
 
       Operation_Name : constant Standard.String := "resolve";
@@ -425,7 +425,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
       N    : Name)
    is
       Arg_Name_n : constant PolyORB.Types.Identifier :=
-                     PolyORB.Types.To_PolyORB_String ("n");
+        PolyORB.Types.To_PolyORB_String ("n");
       Argument_n : constant PolyORB.Any.Any := To_Any (N);
 
       Operation_Name : constant Standard.String := "unbind";
@@ -535,7 +535,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
       N    : Name) return NamingContext.Ref
    is
       Arg_Name_n : constant PolyORB.Types.Identifier :=
-                     PolyORB.Types.To_PolyORB_String ("n");
+        PolyORB.Types.To_PolyORB_String ("n");
       Argument_n : constant PolyORB.Any.Any := To_Any (N);
 
       Operation_Name : constant Standard.String := "bind_new_context";

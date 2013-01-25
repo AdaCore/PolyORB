@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding object: A protocol stacks considered as a reference-counted entity
 
 with PolyORB.Errors;
@@ -55,7 +57,7 @@ package body PolyORB.Binding_Objects is
    -- Finalize --
    --------------
 
-   procedure Finalize (X : in out Binding_Object) is
+   overriding procedure Finalize (X : in out Binding_Object) is
       use PolyORB.Annotations;
       use PolyORB.Components;
       use PolyORB.Errors;
@@ -97,6 +99,7 @@ package body PolyORB.Binding_Objects is
       end if;
 
       Destroy (X.Notepad);
+      Tasking.Mutexes.Destroy (X.Mutex);
 
       pragma Debug (C, O ("RIP"));
    end Finalize;
@@ -135,6 +138,15 @@ package body PolyORB.Binding_Objects is
       return BO.Profile;
    end Get_Profile;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize (X : in out Binding_Object) is
+   begin
+      Tasking.Mutexes.Create (X.Mutex);
+   end Initialize;
+
    ----------
    -- Link --
    ----------
@@ -146,6 +158,27 @@ package body PolyORB.Binding_Objects is
    begin
       return X.Links (Which)'Unchecked_Access;
    end Link;
+
+   --------------
+   -- Mutex_Of --
+   --------------
+
+   function Mutex_Of
+     (BO : access Binding_Object'Class) return Tasking.Mutexes.Mutex_Access
+   is
+   begin
+      return BO.Mutex;
+   end Mutex_Of;
+
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of (BO : Binding_Object_Access)
+     return Annotations.Notepad_Access is
+   begin
+      return BO.Notepad'Access;
+   end Notepad_Of;
 
    ----------------
    -- Referenced --
@@ -182,6 +215,7 @@ package body PolyORB.Binding_Objects is
       BO     : constant Binding_Object_Access := new Binding_Object;
       Bottom : Filters.Filter_Access;
    begin
+      Initialize (BO.all);
       Smart_Pointers.Set (BO_Ref, Smart_Pointers.Entity_Ptr (BO));
 
       Set_Profile (BO, Pro);
@@ -223,16 +257,6 @@ package body PolyORB.Binding_Objects is
       end if;
    end Set_Profile;
 
-   ----------------
-   -- Notepad_Of --
-   ----------------
-
-   function Notepad_Of (BO : Binding_Object_Access)
-     return Annotations.Notepad_Access is
-   begin
-      return BO.Notepad'Access;
-   end Notepad_Of;
-
    -----------
    -- Valid --
    -----------
@@ -242,7 +266,7 @@ package body PolyORB.Binding_Objects is
       use Filters.Iface;
 
       Reply : constant Message'Class :=
-                Emit (Component_Access (BO.Top), Check_Validity'(null record));
+        Emit (Component_Access (BO.Top), Check_Validity'(null record));
    begin
       return Reply in Components.Null_Message;
    end Valid;

@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with CORBA.AbstractBase;
 with PolyORB.Any.NVList;
 
@@ -84,7 +86,7 @@ package CORBA.NVList is
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
-   procedure Initialize (Self : in out Ref);
+   overriding procedure Initialize (Self : in out Ref);
 
    pragma Inline (Add_Item);
    pragma Inline (Get_Count);

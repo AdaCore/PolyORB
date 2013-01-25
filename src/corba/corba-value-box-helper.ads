@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 generic
    with function Element_From_Any (Item : CORBA.Any) return Boxed;
    with function Element_To_Any   (Item : Boxed) return CORBA.Any;
@@ -60,7 +62,7 @@ private
 
    --  Aggregate container primitives
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Box_Ref_Content;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
@@ -73,17 +75,17 @@ private
 --      Index  : Types.Unsigned_Long;
 --      From_C : in out PolyORB.Any.Any_Container'Class);
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Box_Ref_Content) return PolyORB.Types.Unsigned_Long;
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Box_Ref_Content;
       Count : PolyORB.Types.Unsigned_Long);
 
-   function Clone
+   overriding function Clone
      (ACC  : Box_Ref_Content;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
 
-   procedure Finalize_Value (ACC : in out Box_Ref_Content);
+   overriding procedure Finalize_Value (ACC : in out Box_Ref_Content);
 
 end CORBA.Value.Box.Helper;

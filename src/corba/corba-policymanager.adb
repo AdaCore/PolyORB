@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,11 +30,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.CORBA_P.Policy_Management;
 with PolyORB.Initialization;
 with PolyORB.ORB;
+with PolyORB.References;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
@@ -50,7 +53,7 @@ package body CORBA.PolicyManager is
    -- Is_A --
    ----------
 
-   function Is_A
+   overriding function Is_A
      (Self            : not null access Object;
       Logical_Type_Id : Standard.String) return Boolean
    is
@@ -162,16 +165,14 @@ package body CORBA.PolicyManager is
 
    procedure Deferred_Initialization is
       PM_Object : constant Object_Ptr := new Object;
-      Ref : CORBA.Object.Ref;
+      Ref : PolyORB.References.Ref;
    begin
       Create (PM_Object.Lock);
 
-      CORBA.Object.Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (PM_Object));
+      Ref.Set (PolyORB.Smart_Pointers.Entity_Ptr (PM_Object));
 
-      PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
-        ("ORBPolicyManager",
-         Ref);
-      --  There is at most one ORBPolicyManager per partition
+      PolyORB.Initial_References.Register_Initial_Reference
+        ("ORBPolicyManager", Ref);
    end Deferred_Initialization;
 
    use PolyORB.Initialization;
@@ -183,7 +184,7 @@ begin
      (Module_Info'
       (Name      => +"corba.policymanager",
        Conflicts => Empty,
-       Depends   => +"corba.initial_references",
+       Depends   => +"initial_references",
        Provides  => Empty,
        Implicit  => False,
        Init      => Deferred_Initialization'Access,

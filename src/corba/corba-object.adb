@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
@@ -53,11 +55,11 @@ package body CORBA.Object is
    --  operations.
 
    RPC_Result_Name : constant PolyORB.Types.Identifier :=
-                       To_PolyORB_String ("Result");
+     To_PolyORB_String ("Result");
 
    RPC_Is_A_Op_Name  : constant Standard.String := "_is_a";
    RPC_Is_A_Arg_Name : constant PolyORB.Types.Identifier :=
-                         To_PolyORB_String ("Type_Id");
+     To_PolyORB_String ("Type_Id");
 
    function RPC_Is_A
      (Self            : Ref;
@@ -320,7 +322,7 @@ package body CORBA.Object is
    -- Is_Nil --
    ------------
 
-   function Is_Nil (Self : Ref) return CORBA.Boolean is
+   overriding function Is_Nil (Self : Ref) return CORBA.Boolean is
    begin
       return Is_Nil (PolyORB.Smart_Pointers.Ref (Self));
    end Is_Nil;
@@ -419,7 +421,7 @@ package body CORBA.Object is
    -- Release --
    -------------
 
-   procedure Release (Self : in out Ref) is
+   overriding procedure Release (Self : in out Ref) is
    begin
       Release (PolyORB.Smart_Pointers.Ref (Self));
    end Release;
@@ -481,7 +483,7 @@ package body CORBA.Object is
    procedure Initialize is
    begin
       TC_Object_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
-                           (PolyORB.Any.TypeCode.TC_Object);
+                           (PolyORB.Any.TypeCode.TCF_Object);
 
       CORBA.Internals.Add_Parameter
         (TC_Object_Cache, To_Any (To_CORBA_String ("Object")));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
@@ -62,6 +66,18 @@ package body PolyORB.Any is
    --  Foreign status is transferred from Src_C to Dst_C. The previous contents
    --  of Dst_C are deallocated if appropriate.
 
+   function Any_Container_Eq
+     (TC           : TypeCode.Object_Ptr;
+      Left, Right  : Any_Container'Class) return Boolean;
+   --  Test equality between Left and Right, Any containers with type TC.
+   --  Note: the actual typecode set on Left and Right is ignored.
+
+   function Agg_Container_Eq
+     (TCK          : TCKind;
+      TC           : TypeCode.Object_Ptr;
+      Left, Right  : Any_Container'Class) return Boolean;
+   --  Helper for Any_Container_Eq, handles the case of aggregates
+
    type Aggregate_Content_Ptr is access all Aggregate_Content'Class;
 
    --------------------
@@ -69,6 +85,8 @@ package body PolyORB.Any is
    --------------------
 
    package body Elementary_Any is
+
+      Kind : TCKind renames PTC.Kind;
 
       type T_Content_Ptr is access all T_Content;
 
@@ -81,7 +99,7 @@ package body PolyORB.Any is
       -- Clone --
       -----------
 
-      function Clone
+      overriding function Clone
         (CC   : T_Content;
          Into : Content_Ptr := null) return Content_Ptr
       is
@@ -97,7 +115,7 @@ package body PolyORB.Any is
       -- Finalize_Value --
       --------------------
 
-      procedure Finalize_Value (CC : in out T_Content) is
+      overriding procedure Finalize_Value (CC : in out T_Content) is
       begin
          Free (CC.V);
       end Finalize_Value;
@@ -107,9 +125,18 @@ package body PolyORB.Any is
       --------------
 
       function From_Any (C : Any_Container'Class) return T is
+         use Ada.Tags;
       begin
          Kind_Check (C);
          return T_Content_Ptr (C.The_Value).V.all;
+      exception
+         when E : Constraint_Error =>
+            pragma Debug (L.Enabled,
+              O ("C_E (" & Ada.Exceptions.Exception_Message (E)
+                 & ") raised in generic elementary From_Any, expected content "
+                 & External_Tag (T_Content'Tag)
+                 & ", found " & External_Tag (C.The_Value'Tag)));
+            raise;
       end From_Any;
 
       ---------------------------
@@ -121,16 +148,13 @@ package body PolyORB.Any is
          Index : Unsigned_Long) return T
       is
          CA_Ptr : constant Aggregate_Content_Ptr :=
-                    Aggregate_Content_Ptr (Value.The_Value);
+           Aggregate_Content_Ptr (Value.The_Value);
          M : aliased Mechanism := By_Value;
 
-         PTC : aliased TypeCode.Object (Kind);
-         CC  : constant T_Content :=
-                 T_Content
-                   (Get_Aggregate_Element
-                    (CA_Ptr, PTC'Unchecked_Access, Index, M'Access));
+         CC  : constant Content'Class :=
+                 Get_Aggregate_Element (CA_Ptr, PTC, Index, M'Access);
       begin
-         return CC.V.all;
+         return T_Content (CC).V.all;
       end Get_Aggregate_Element;
 
       ---------------------------
@@ -175,6 +199,15 @@ package body PolyORB.Any is
          C.Is_Finalized := False;
       end Set_Any_Value;
 
+      ------------------------
+      -- Unchecked_From_Any --
+      ------------------------
+
+      function Unchecked_From_Any (C : Any_Container'Class) return T is
+      begin
+         return T_Content_Ptr (C.The_Value).V.all;
+      end Unchecked_From_Any;
+
       ---------------------
       -- Unchecked_Get_V --
       ---------------------
@@ -188,7 +221,7 @@ package body PolyORB.Any is
       -- Unchecked_Get_V --
       ---------------------
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (X : not null access T_Content) return System.Address
       is
       begin
@@ -223,11 +256,11 @@ package body PolyORB.Any is
    --------------
 
    function To_Any_G (X : T) return Any is
-      A : Any;
    begin
-      Set_Type (A, TC);
-      Set_Any_Value (X, Get_Container (A).all);
-      return A;
+      return A : Any do
+         Set_Type (A, TC);
+         Set_Any_Value (X, Get_Container (A).all);
+      end return;
    end To_Any_G;
 
    ------------------------------
@@ -235,46 +268,52 @@ package body PolyORB.Any is
    ------------------------------
 
    package Elementary_Any_Octet is
-     new Elementary_Any (Types.Octet, Tk_Octet);
+     new Elementary_Any (Types.Octet, TypeCode.PTC_Octet'Access);
    package Elementary_Any_Short is
-     new Elementary_Any (Types.Short, Tk_Short);
+     new Elementary_Any (Types.Short, Typecode.PTC_Short'Access);
    package Elementary_Any_Long is
-     new Elementary_Any (Types.Long, Tk_Long);
+     new Elementary_Any (Types.Long, Typecode.PTC_Long'Access);
    package Elementary_Any_Long_Long is
-     new Elementary_Any (Types.Long_Long, Tk_Longlong);
+     new Elementary_Any (Types.Long_Long, Typecode.PTC_Long_Long'Access);
    package Elementary_Any_UShort is
-     new Elementary_Any (Types.Unsigned_Short, Tk_Ushort);
+     new Elementary_Any (Types.Unsigned_Short,
+                         Typecode.PTC_Unsigned_Short'Access);
    package Elementary_Any_ULong is
-     new Elementary_Any (Types.Unsigned_Long, Tk_Ulong);
+     new Elementary_Any (Types.Unsigned_Long,
+                         Typecode.PTC_Unsigned_Long'Access);
    package Elementary_Any_ULong_Long is
-     new Elementary_Any (Types.Unsigned_Long_Long, Tk_Ulonglong);
+     new Elementary_Any (Types.Unsigned_Long_Long,
+                         Typecode.PTC_Unsigned_Long_Long'Access);
    package Elementary_Any_Boolean is
-     new Elementary_Any (Types.Boolean, Tk_Boolean);
+     new Elementary_Any (Types.Boolean, Typecode.PTC_Boolean'Access);
    package Elementary_Any_Char is
-     new Elementary_Any (Types.Char, Tk_Char);
+     new Elementary_Any (Types.Char, Typecode.PTC_Char'Access);
    package Elementary_Any_Wchar is
-     new Elementary_Any (Types.Wchar, Tk_Widechar);
+     new Elementary_Any (Types.Wchar, Typecode.PTC_Wchar'Access);
    package Elementary_Any_Float is
-     new Elementary_Any (Types.Float, Tk_Float);
+     new Elementary_Any (Types.Float, Typecode.PTC_Float'Access);
    package Elementary_Any_Double is
-     new Elementary_Any (Types.Double, Tk_Double);
+     new Elementary_Any (Types.Double, Typecode.PTC_Double'Access);
    package Elementary_Any_Long_Double is
-     new Elementary_Any (Types.Long_Double, Tk_Longdouble);
+     new Elementary_Any (Types.Long_Double, Typecode.PTC_Long_Double'Access);
    package Elementary_Any_String is
-     new Elementary_Any (Types.String, Tk_String);
+     new Elementary_Any (Types.String, Typecode.PTC_String'Access);
    package Elementary_Any_Wide_String is
-     new Elementary_Any (Types.Wide_String, Tk_Wstring);
+     new Elementary_Any (Types.Wide_String, Typecode.PTC_Wide_String'Access);
+
+   --  Wrong typecodes used below, should use bounded typecodes???
 
    package Elementary_Any_Bounded_String is
-     new Elementary_Any (Ada.Strings.Superbounded.Super_String, Tk_String);
+     new Elementary_Any (Ada.Strings.Superbounded.Super_String,
+                         Typecode.PTC_String'Access);
    package Elementary_Any_Bounded_Wide_String is
      new Elementary_Any (Ada.Strings.Wide_Superbounded.Super_String,
-                         Tk_Wstring);
+                         Typecode.PTC_Wide_string'Access);
 
    package Elementary_Any_Any is
-     new Elementary_Any (Any, Tk_Any);
+     new Elementary_Any (Any, Typecode.PTC_Any'Access);
    package Elementary_Any_TypeCode is
-     new Elementary_Any (TypeCode.Local_Ref, Tk_TypeCode);
+     new Elementary_Any (TypeCode.Local_Ref, Typecode.PTC_TypeCode'Access);
 
    ---------------------------------
    -- 'Aggregate' content wrapper --
@@ -340,33 +379,33 @@ package body PolyORB.Any is
 
    --  Content primitives
 
-   function Clone
+   overriding function Clone
      (CC   : Default_Aggregate_Content;
       Into : Content_Ptr := null) return Content_Ptr;
-   procedure Finalize_Value (CC : in out Default_Aggregate_Content);
+   overriding procedure Finalize_Value (CC : in out Default_Aggregate_Content);
 
    --  Aggregate_Content primitives
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Default_Aggregate_Content) return Types.Unsigned_Long;
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long);
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Default_Aggregate_Content;
       TC    : TypeCode.Object_Ptr;
       Index : Types.Unsigned_Long;
       Mech  : not null access Mechanism) return Content'Class;
 
-   procedure Set_Aggregate_Element
+   overriding procedure Set_Aggregate_Element
      (ACC    : in out Default_Aggregate_Content;
       TC     : TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
       From_C : in out Any_Container'Class);
 
-   procedure Add_Aggregate_Element
+   overriding procedure Add_Aggregate_Element
      (ACC : in out Default_Aggregate_Content;
       El  : Any_Container_Ptr);
 
@@ -382,7 +421,7 @@ package body PolyORB.Any is
    -- "=" --
    ---------
 
-   function "=" (Left, Right : Any) return Boolean is
+   overriding function "=" (Left, Right : Any) return Boolean is
       Res : Boolean;
    begin
       pragma Debug (C, O ("Equal (Any): enter, "
@@ -392,13 +431,77 @@ package body PolyORB.Any is
       return Res;
    end "=";
 
-   ---------
-   -- "=" --
-   ---------
+   ---------------------------
+   -- Add_Aggregate_Element --
+   ---------------------------
 
-   function "=" (Left, Right : Any_Container'Class) return Boolean is
-      L_Type : constant TypeCode.Object_Ptr := Get_Type_Obj (Left);
-      R_Type : constant TypeCode.Object_Ptr := Get_Type_Obj (Right);
+   procedure Add_Aggregate_Element
+     (ACC : in out Aggregate_Content;
+      El  : Any_Container_Ptr)
+   is
+   begin
+
+      --  This is not supported by default
+
+      raise Program_Error;
+   end Add_Aggregate_Element;
+
+   ---------------------------
+   -- Add_Aggregate_Element --
+   ---------------------------
+
+   overriding procedure Add_Aggregate_Element
+     (ACC : in out Default_Aggregate_Content;
+      El  : Any_Container_Ptr)
+   is
+      use Content_Tables;
+   begin
+      pragma Assert (Initialized (ACC.V));
+
+      Smart_Pointers.Inc_Usage (Smart_Pointers.Entity_Ptr (El));
+      Increment_Last (ACC.V);
+      ACC.V.Table (Last (ACC.V)) := El;
+   end Add_Aggregate_Element;
+
+   ---------------------------
+   -- Add_Aggregate_Element --
+   ---------------------------
+
+   procedure Add_Aggregate_Element (Value : in out Any; Element : Any) is
+      CA_Ptr : constant Aggregate_Content_Ptr :=
+        Aggregate_Content_Ptr (Get_Container (Value).The_Value);
+   begin
+      pragma Debug (C, O ("Add_Aggregate_Element: enter"));
+      Add_Aggregate_Element (CA_Ptr.all, Get_Container (Element));
+      pragma Debug (C, O ("Add_Aggregate_Element: end"));
+   end Add_Aggregate_Element;
+
+   ----------------------------------------
+   -- Allocate_Default_Aggregate_Content --
+   ----------------------------------------
+
+   function Allocate_Default_Aggregate_Content
+     (Kind : TCKind) return Content_Ptr
+   is
+      Result : constant Aggregate_Content_Ptr :=
+        new Default_Aggregate_Content (Kind => Kind);
+   begin
+      Content_Tables.Initialize (Default_Aggregate_Content (Result.all).V);
+      return Content_Ptr (Result);
+   end Allocate_Default_Aggregate_Content;
+
+   ----------------------
+   -- Agg_Container_Eq --
+   ----------------------
+
+   function Agg_Container_Eq
+     (TCK          : TCKind;
+      TC           : TypeCode.Object_Ptr;
+      Left, Right  : Any_Container'Class) return Boolean
+   is
+      L_C : Any_Container;
+      R_C : Any_Container;
+      --  Scratch containers for aggregate elements
 
       function Agg_Elements_Equal
         (TC           : TypeCode.Object_Ptr;
@@ -407,13 +510,15 @@ package body PolyORB.Any is
       --  Compare the Index'th element of Left and Right, which are assumed
       --  to be aggregates. The expected type for both elements is TC.
 
+      ------------------------
+      -- Agg_Elements_Equal --
+      ------------------------
+
       function Agg_Elements_Equal
         (TC           : TypeCode.Object_Ptr;
          L_ACC, R_ACC : access Aggregate_Content'Class;
          Index        : Types.Unsigned_Long) return Boolean
       is
-         L_C  : Any_Container;
-         R_C  : Any_Container;
          L_M  : aliased Mechanism := By_Value;
          L_CC : aliased Content'Class :=
                   Get_Aggregate_Element (L_ACC, TC, Index, L_M'Access);
@@ -421,29 +526,185 @@ package body PolyORB.Any is
          R_CC : aliased Content'Class :=
                   Get_Aggregate_Element (R_ACC, TC, Index, R_M'Access);
       begin
-         Set_Type (L_C, TC);
          Set_Value (L_C, L_CC'Unchecked_Access, Foreign => True);
-         Set_Type (R_C, TC);
          Set_Value (R_C, R_CC'Unchecked_Access, Foreign => True);
-
-         return "=" (L_C, R_C);
+         return Any_Container_Eq (TC, L_C, R_C);
       end Agg_Elements_Equal;
 
-   begin
-      if not TypeCode.Equal (L_Type, R_Type) then
-         return False;
-      end if;
+   --  Start of processing for Agg_Container_Eq
 
-      pragma Debug (C, O ("Equal (Any): passed typecode test"));
-      case TypeCode.Kind (Unwind_Typedefs (L_Type)) is
+   begin
+      case TCK is
+         when Tk_Struct | Tk_Except =>
+
+            --  1. Retrieve aggregate contents wrapper for Left and Right
+            --  2. For each member in the aggregate, compare both values:
+            --     2.1. Retrieve member type
+            --     2.2. Retrieve contents wrapper on the stack
+            --     2.3. Conjure up temporary Any's pointing to these wrappers,
+            --          marked as foreign (no contents deallocation upon
+            --          finalization)
+            --     2.4. Recurse in Equal on temporary Anys
+
+            declare
+               List_Type : constant TypeCode.Object_Ptr :=
+                             Unwind_Typedefs (TC);
+               Count     : constant Types.Unsigned_Long :=
+                             TypeCode.Member_Count (List_Type);
+               M_Type    : TypeCode.Object_Ptr;
+
+               L_ACC : Aggregate_Content'Class
+                 renames Aggregate_Content'Class (Left.The_Value.all);
+               R_ACC : Aggregate_Content'Class
+                 renames Aggregate_Content'Class (Right.The_Value.all);
+            begin
+               --  Note: Count is unsigned, guard against Count - 1 overflow
+
+               if Count > 0 then
+                  for J in 0 .. Count - 1 loop
+                     M_Type := TypeCode.Member_Type (List_Type, J);
+                     if not Agg_Elements_Equal
+                              (M_Type, L_ACC'Access, R_ACC'Access, J)
+                     then
+                        pragma Debug
+                          (C, O ("Equal (Any, struct/except): end"));
+                        return False;
+                     end if;
+                  end loop;
+               end if;
+               pragma Debug (C, O ("Equal (Any, struct/except): end"));
+               return True;
+            end;
+
+         when Tk_Union =>
+            declare
+               L_ACC : Aggregate_Content'Class renames
+                 Aggregate_Content'Class (Left.The_Value.all);
+               R_ACC : Aggregate_Content'Class renames
+                 Aggregate_Content'Class (Right.The_Value.all);
+               List_Type   : constant TypeCode.Object_Ptr :=
+                 Unwind_Typedefs (TC);
+               Switch_Type : constant TypeCode.Object_Ptr :=
+                 TypeCode.Discriminator_Type (List_Type);
+               Member_Type : TypeCode.Object_Ptr;
+            begin
+               pragma Assert (Get_Aggregate_Count (L_ACC) = 2);
+               pragma Assert (Get_Aggregate_Count (R_ACC) = 2);
+
+               --  First compares the switch value
+
+               if not Agg_Elements_Equal
+                        (Switch_Type, L_ACC'Access, R_ACC'Access, 0)
+               then
+                  pragma Debug (C, O ("Equal (Any, Union): "
+                    & "switch differs, end"));
+                  return False;
+               end if;
+
+               declare
+                  Label_Mech : aliased Mechanism := By_Value;
+                  Label_CC : aliased Content'Class :=
+                    Get_Aggregate_Element
+                      (L_ACC'Access, Switch_Type, 0, Label_Mech'Access);
+                  Res : Boolean;
+               begin
+                  Set_Type (L_C, Switch_Type);
+                  Set_Value
+                    (L_C, Label_CC'Unchecked_Access, Foreign => True);
+                  Member_Type :=
+                    TypeCode.Member_Type_With_Label (List_Type, L_C);
+
+                  Res := Agg_Elements_Equal
+                           (Member_Type, L_ACC'Access, R_ACC'Access, 1);
+                  pragma Debug (C, O ("Equal (Any, Union): end, " & Res'Img));
+                  return Res;
+               end;
+            end;
+
+         when Tk_Sequence
+           | Tk_Array =>
+            declare
+               List_Type : constant TypeCode.Object_Ptr :=
+                 Unwind_Typedefs (TC);
+
+               Member_Type : constant TypeCode.Object_Ptr :=
+                 TypeCode.Content_Type (List_Type);
+
+               L_ACC : Aggregate_Content'Class renames
+                 Aggregate_Content'Class (Left.The_Value.all);
+               R_ACC : Aggregate_Content'Class renames
+                 Aggregate_Content'Class (Right.The_Value.all);
+            begin
+               --  Compare values for each member in both aggregates
+
+               for J in 0 .. TypeCode.Length (List_Type) - 1 loop
+                  if not Agg_Elements_Equal
+                           (Member_Type, L_ACC'Access, R_ACC'Access, J)
+                  then
+                     pragma Debug (C, O ("Equal (Any, sequence/array): end"));
+                     return False;
+                  end if;
+               end loop;
+
+               pragma Debug (C, O ("Equal (Any, sequence/array): end"));
+               return True;
+            end;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Agg_Container_Eq;
+
+   ----------------------
+   -- Any_Container_Eq --
+   ----------------------
+
+   function Any_Container_Eq
+     (TC           : TypeCode.Object_Ptr;
+      Left, Right  : Any_Container'Class) return Boolean
+   is
+      TCK : constant TCKind := TypeCode.Kind (Unwind_Typedefs (TC));
+   begin
+      case TCK is
+         when Tk_Struct   |
+              Tk_Except   |
+              Tk_Union    |
+              Tk_Array    |
+              Tk_Sequence =>
+            return Agg_Container_Eq (TCK, TC, Left, Right);
+
+         when Tk_Enum =>
+            pragma Debug (C, O ("Equal (Any, Enum): end"));
+            --  Compare the only element of both aggregate: an unsigned long
+
+            declare
+               use Elementary_Any_ULong;
+
+               L_M  : aliased Mechanism := By_Value;
+               L_CC : aliased Content'Class :=
+                        Get_Aggregate_Element
+                          (Aggregate_Content'Class
+                             (Left.The_Value.all)'Access, TC, 0, L_M'Access);
+               R_M  : aliased Mechanism := By_Value;
+               R_CC : aliased Content'Class :=
+                        Get_Aggregate_Element
+                          (Aggregate_Content'Class
+                             (Right.The_Value.all)'Access, TC, 0, R_M'Access);
+
+            begin
+               return Unchecked_Get_V (T_Content (L_CC)'Access).all
+                    = Unchecked_Get_V (T_Content (R_CC)'Access).all;
+            end;
+
          when Tk_Null | Tk_Void =>
             pragma Debug (C, O ("Equal (Any, Null or Void): end"));
             return True;
 
          when Tk_Short =>
             declare
-               L : constant Short := From_Any (Left);
-               R : constant Short := From_Any (Right);
+               use Elementary_Any_Short;
+               L : constant Short := Unchecked_From_Any (Left);
+               R : constant Short := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Short): end"));
                return L = R;
@@ -451,8 +712,9 @@ package body PolyORB.Any is
 
          when Tk_Long =>
             declare
-               L : constant Long := From_Any (Left);
-               R : constant Long := From_Any (Right);
+               use Elementary_Any_Long;
+               L : constant Long := Unchecked_From_Any (Left);
+               R : constant Long := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Long): end"));
                return L = R;
@@ -460,8 +722,9 @@ package body PolyORB.Any is
 
          when Tk_Ushort =>
             declare
-               L : constant Unsigned_Short := From_Any (Left);
-               R : constant Unsigned_Short := From_Any (Right);
+               use Elementary_Any_UShort;
+               L : constant Unsigned_Short := Unchecked_From_Any (Left);
+               R : constant Unsigned_Short := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Ushort): end"));
                return L = R;
@@ -469,8 +732,9 @@ package body PolyORB.Any is
 
          when Tk_Ulong =>
             declare
-               L : constant Unsigned_Long := From_Any (Left);
-               R : constant Unsigned_Long := From_Any (Right);
+               use Elementary_Any_ULong;
+               L : constant Unsigned_Long := Unchecked_From_Any (Left);
+               R : constant Unsigned_Long := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Ulong): end"));
                return L = R;
@@ -478,8 +742,9 @@ package body PolyORB.Any is
 
          when Tk_Float =>
             declare
-               L : constant Types.Float := From_Any (Left);
-               R : constant Types.Float := From_Any (Right);
+               use Elementary_Any_Float;
+               L : constant Types.Float := Unchecked_From_Any (Left);
+               R : constant Types.Float := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Float): end"));
                return L = R;
@@ -487,8 +752,9 @@ package body PolyORB.Any is
 
          when Tk_Double =>
             declare
-               L : constant Double := From_Any (Left);
-               R : constant Double := From_Any (Right);
+               use Elementary_Any_Double;
+               L : constant Double := Unchecked_From_Any (Left);
+               R : constant Double := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Double): end"));
                return L = R;
@@ -496,8 +762,9 @@ package body PolyORB.Any is
 
          when Tk_Boolean =>
             declare
-               L : constant Boolean := From_Any (Left);
-               R : constant Boolean := From_Any (Right);
+               use Elementary_Any_Boolean;
+               L : constant Boolean := Unchecked_From_Any (Left);
+               R : constant Boolean := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Boolean): end"));
                return L = R;
@@ -505,8 +772,9 @@ package body PolyORB.Any is
 
          when Tk_Char =>
             declare
-               L : constant Char := From_Any (Left);
-               R : constant Char := From_Any (Right);
+               use Elementary_Any_Char;
+               L : constant Char := Unchecked_From_Any (Left);
+               R : constant Char := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Char): end"));
                return L = R;
@@ -514,8 +782,9 @@ package body PolyORB.Any is
 
          when Tk_Octet =>
             declare
-               L : constant Octet := From_Any (Left);
-               R : constant Octet := From_Any (Right);
+               use Elementary_Any_Octet;
+               L : constant Octet := Unchecked_From_Any (Left);
+               R : constant Octet := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Octet): end"));
                return L = R;
@@ -523,8 +792,9 @@ package body PolyORB.Any is
 
          when Tk_Any =>
             declare
-               L : constant Any := From_Any (Left);
-               R : constant Any := From_Any (Right);
+               use Elementary_Any_Any;
+               L : constant Any := Unchecked_From_Any (Left);
+               R : constant Any := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Any): end"));
                return "=" (L, R);
@@ -532,8 +802,9 @@ package body PolyORB.Any is
 
          when Tk_TypeCode =>
             declare
-               L : constant TypeCode.Local_Ref := From_Any (Left);
-               R : constant TypeCode.Local_Ref := From_Any (Right);
+               use Elementary_Any_TypeCode;
+               L : constant TypeCode.Local_Ref := Unchecked_From_Any (Left);
+               R : constant TypeCode.Local_Ref := Unchecked_From_Any (Right);
             begin
                if TypeCode.Kind (R) = Tk_Value then
                   pragma Debug (C, O ("Equal (Any, TypeCode) :" &
@@ -570,137 +841,6 @@ package body PolyORB.Any is
                --  return CORBA.Object.Is_Equivalent (L, R);
             end;
 
-         when Tk_Struct | Tk_Except =>
-
-            --  1. Retrieve aggregate contents wrapper for Left and Right
-            --  2. For each member in the aggregate, compare both values:
-            --     2.1. Retrieve member type
-            --     2.2. Retrieve contents wrapper on the stack
-            --     2.3. Conjure up temporary Any's pointing to these wrappers,
-            --          marked as foreign (no contents deallocation upon
-            --          finalization)
-            --     2.4. Recurse in Equal on temporary Anys
-
-            declare
-               List_Type : constant TypeCode.Object_Ptr :=
-                             Unwind_Typedefs (L_Type);
-               Count     : constant Types.Unsigned_Long :=
-                             TypeCode.Member_Count (List_Type);
-               M_Type    : TypeCode.Object_Ptr;
-
-               L_ACC : Aggregate_Content'Class
-                         renames Aggregate_Content'Class (Left.The_Value.all);
-               R_ACC : Aggregate_Content'Class
-                         renames Aggregate_Content'Class (Right.The_Value.all);
-            begin
-               --  Note: Count is unsigned, guard against Count - 1 overflow
-
-               if Count > 0 then
-                  for J in 0 .. Count - 1 loop
-                     M_Type := TypeCode.Member_Type (List_Type, J);
-                     if not Agg_Elements_Equal
-                              (M_Type, L_ACC'Access, R_ACC'Access, J)
-                     then
-                        pragma Debug
-                          (C, O ("Equal (Any, struct/except): end"));
-                        return False;
-                     end if;
-                  end loop;
-               end if;
-               pragma Debug (C, O ("Equal (Any, struct/except): end"));
-               return True;
-            end;
-
-         when Tk_Union =>
-            declare
-               L_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Left.The_Value.all);
-               R_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Right.The_Value.all);
-               List_Type   : constant TypeCode.Object_Ptr :=
-                               Unwind_Typedefs (L_Type);
-               Switch_Type : constant TypeCode.Object_Ptr :=
-                               TypeCode.Discriminator_Type (List_Type);
-               Member_Type : TypeCode.Object_Ptr;
-            begin
-               pragma Assert (Get_Aggregate_Count (L_ACC) = 2);
-               pragma Assert (Get_Aggregate_Count (R_ACC) = 2);
-
-               --  First compares the switch value
-
-               if not Agg_Elements_Equal
-                        (Switch_Type, L_ACC'Access, R_ACC'Access, 0)
-               then
-                  pragma Debug (C, O ("Equal (Any, Union): "
-                    & "switch differs, end"));
-                  return False;
-               end if;
-
-               declare
-                  Label_Mech : aliased Mechanism := By_Value;
-                  Label_CC : aliased Content'Class :=
-                               Get_Aggregate_Element
-                                 (L_ACC'Access, Switch_Type, 0,
-                                  Label_Mech'Access);
-                  Label_C : Any_Container;
-                  Res : Boolean;
-               begin
-                  Set_Type (Label_C, Switch_Type);
-                  Set_Value
-                    (Label_C, Label_CC'Unchecked_Access, Foreign => True);
-                  Member_Type :=
-                    TypeCode.Member_Type_With_Label (List_Type, Label_C);
-
-                  Res := Agg_Elements_Equal
-                           (Member_Type, L_ACC'Access, R_ACC'Access, 1);
-                  pragma Debug (C, O ("Equal (Any, Union): end, " & Res'Img));
-                  return Res;
-               end;
-            end;
-
-         when Tk_Enum =>
-            pragma Debug (C, O ("Equal (Any, Enum): end"));
-            --  compares the only element of both aggregate : an unsigned long
-            declare
-               L_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Left.The_Value.all);
-               R_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Right.The_Value.all);
-            begin
-               return Agg_Elements_Equal
-                 (TypeCode.PTC_Unsigned_Long'Access,
-                  L_ACC'Access, R_ACC'Access, 0);
-            end;
-
-         when Tk_Sequence
-           | Tk_Array =>
-            declare
-               List_Type : constant TypeCode.Object_Ptr :=
-                             Unwind_Typedefs (L_Type);
-
-               Member_Type : constant TypeCode.Object_Ptr :=
-                               TypeCode.Content_Type (List_Type);
-
-               L_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Left.The_Value.all);
-               R_ACC : Aggregate_Content'Class renames
-                         Aggregate_Content'Class (Right.The_Value.all);
-            begin
-               --  for each member in the aggregate, compare both values
-
-               for J in 0 .. TypeCode.Length (List_Type) - 1 loop
-                  if not Agg_Elements_Equal
-                           (Member_Type, L_ACC'Access, R_ACC'Access, J)
-                  then
-                     pragma Debug (C, O ("Equal (Any, sequence/array): end"));
-                     return False;
-                  end if;
-               end loop;
-
-               pragma Debug (C, O ("Equal (Any, sequence/array): end"));
-               return True;
-            end;
-
          when Tk_Fixed
            | Tk_Value
            | Tk_Valuebox
@@ -735,8 +875,9 @@ package body PolyORB.Any is
 
          when Tk_Longlong =>
             declare
-               L : constant Long_Long := From_Any (Left);
-               R : constant Long_Long := From_Any (Right);
+               use Elementary_Any_Long_Long;
+               L : constant Long_Long := Unchecked_From_Any (Left);
+               R : constant Long_Long := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Long_Long): end"));
                return L = R;
@@ -744,8 +885,9 @@ package body PolyORB.Any is
 
          when Tk_Ulonglong =>
             declare
-               L : constant Unsigned_Long_Long := From_Any (Left);
-               R : constant Unsigned_Long_Long := From_Any (Right);
+               use Elementary_Any_ULong_Long;
+               L : constant Unsigned_Long_Long := Unchecked_From_Any (Left);
+               R : constant Unsigned_Long_Long := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Unsigned_Long_Long): end"));
                return L = R;
@@ -753,8 +895,9 @@ package body PolyORB.Any is
 
          when Tk_Longdouble =>
             declare
-               L : constant Long_Double := From_Any (Left);
-               R : constant Long_Double := From_Any (Right);
+               use Elementary_Any_Long_Double;
+               L : constant Long_Double := Unchecked_From_Any (Left);
+               R : constant Long_Double := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Long_Double): end"));
                return L = R;
@@ -762,8 +905,9 @@ package body PolyORB.Any is
 
          when Tk_Widechar =>
             declare
-               L : constant Wchar := From_Any (Left);
-               R : constant Wchar := From_Any (Right);
+               use Elementary_Any_Wchar;
+               L : constant Wchar := Unchecked_From_Any (Left);
+               R : constant Wchar := Unchecked_From_Any (Right);
             begin
                pragma Debug (C, O ("Equal (Any, Wchar): end"));
                return L = R;
@@ -784,72 +928,27 @@ package body PolyORB.Any is
                              & " NON IMPLEMENTED -> TRUE"));
             return True;
       end case;
+   end Any_Container_Eq;
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left, Right : Any_Container'Class) return Boolean is
+      L_Type : constant TypeCode.Object_Ptr := Get_Type_Obj (Left);
+      R_Type : constant TypeCode.Object_Ptr := Get_Type_Obj (Right);
+
+   begin
+      return TypeCode.Equal (L_Type, R_Type)
+               and then
+             Any_Container_Eq (L_Type, Left, Right);
    end "=";
-
-   ---------------------------
-   -- Add_Aggregate_Element --
-   ---------------------------
-
-   procedure Add_Aggregate_Element
-     (ACC : in out Aggregate_Content;
-      El  : Any_Container_Ptr)
-   is
-   begin
-
-      --  This is not supported by default
-
-      raise Program_Error;
-   end Add_Aggregate_Element;
-
-   ---------------------------
-   -- Add_Aggregate_Element --
-   ---------------------------
-
-   procedure Add_Aggregate_Element
-     (ACC : in out Default_Aggregate_Content;
-      El  : Any_Container_Ptr)
-   is
-      use Content_Tables;
-   begin
-      pragma Assert (Initialized (ACC.V));
-
-      Smart_Pointers.Inc_Usage (Smart_Pointers.Entity_Ptr (El));
-      Increment_Last (ACC.V);
-      ACC.V.Table (Last (ACC.V)) := El;
-   end Add_Aggregate_Element;
-
-   ---------------------------
-   -- Add_Aggregate_Element --
-   ---------------------------
-
-   procedure Add_Aggregate_Element (Value : in out Any; Element : Any) is
-      CA_Ptr : constant Aggregate_Content_Ptr :=
-                 Aggregate_Content_Ptr (Get_Container (Value).The_Value);
-   begin
-      pragma Debug (C, O ("Add_Aggregate_Element: enter"));
-      Add_Aggregate_Element (CA_Ptr.all, Get_Container (Element));
-      pragma Debug (C, O ("Add_Aggregate_Element: end"));
-   end Add_Aggregate_Element;
-
-   ----------------------------------------
-   -- Allocate_Default_Aggregate_Content --
-   ----------------------------------------
-
-   function Allocate_Default_Aggregate_Content
-     (Kind : TCKind) return Content_Ptr
-   is
-      Result : constant Aggregate_Content_Ptr :=
-                 new Default_Aggregate_Content (Kind => Kind);
-   begin
-      Content_Tables.Initialize (Default_Aggregate_Content (Result.all).V);
-      return Content_Ptr (Result);
-   end Allocate_Default_Aggregate_Content;
 
    -----------
    -- Clone --
    -----------
 
-   function Clone
+   overriding function Clone
      (CC   : No_Content;
       Into : Content_Ptr := null) return Content_Ptr is
    begin
@@ -863,7 +962,7 @@ package body PolyORB.Any is
    --  the contents of the original element. It is *extremely* costly! Also,
    --  it never supports direct in-place assignment.
 
-   function Clone
+   overriding function Clone
      (CC   : Default_Aggregate_Content;
       Into : Content_Ptr := null) return Content_Ptr
    is
@@ -876,9 +975,9 @@ package body PolyORB.Any is
 
       declare
          New_CC_P : constant Content_Ptr :=
-                      Allocate_Default_Aggregate_Content (CC.Kind);
+           Allocate_Default_Aggregate_Content (CC.Kind);
          New_CC   : Default_Aggregate_Content
-                      renames Default_Aggregate_Content (New_CC_P.all);
+           renames Default_Aggregate_Content (New_CC_P.all);
       begin
          Set_Last (New_CC.V, Last (CC.V));
          for J in First (New_CC.V) .. Last (New_CC.V) loop
@@ -928,11 +1027,12 @@ package body PolyORB.Any is
       Src_C : Any_Container'Class)
    is
       TC  : constant TypeCode.Object_Ptr :=
-              Unwind_Typedefs (Get_Type_Obj (Src_C));
+        Unwind_Typedefs (Get_Type_Obj (Src_C));
+
       TCK : constant TCKind := TypeCode.Kind (TC);
 
       Dst_TCK : constant TCKind :=
-                  TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Dst_C)));
+        TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Dst_C)));
    begin
       if Src_C'Address = Dst_C'Address then
          return;
@@ -1046,13 +1146,11 @@ package body PolyORB.Any is
                declare
                   El_TC : TypeCode.Object_Ptr;
                   Dst_ACC : Aggregate_Content'Class
-                              renames Aggregate_Content'Class
-                                (Dst_C.The_Value.all);
+                    renames Aggregate_Content'Class (Dst_C.The_Value.all);
                   Src_ACC : Aggregate_Content'Class
-                              renames Aggregate_Content'Class
-                                (Src_C.The_Value.all);
+                    renames Aggregate_Content'Class (Src_C.The_Value.all);
                   Src_Count : constant Types.Unsigned_Long :=
-                                Get_Aggregate_Count (Src_ACC);
+                    Get_Aggregate_Count (Src_ACC);
                begin
                   Set_Aggregate_Count (Dst_ACC, Src_Count);
 
@@ -1086,15 +1184,13 @@ package body PolyORB.Any is
 
                         Dst_El_M  : aliased Mechanism := By_Reference;
                         Dst_El_CC : aliased Content'Class :=
-                                      Get_Aggregate_Element
-                                        (Dst_ACC'Access, El_TC, J,
-                                         Dst_El_M'Access);
+                          Get_Aggregate_Element
+                            (Dst_ACC'Access, El_TC, J, Dst_El_M'Access);
 
                         Src_El_M  : aliased Mechanism := By_Value;
                         Src_El_CC : aliased Content'Class :=
-                                      Get_Aggregate_Element
-                                        (Src_ACC'Access, El_TC, J,
-                                         Src_El_M'Access);
+                          Get_Aggregate_Element
+                            (Src_ACC'Access, El_TC, J, Src_El_M'Access);
 
                      begin
                         Set_Type (Src_El_C, El_TC);
@@ -1206,7 +1302,7 @@ package body PolyORB.Any is
    -- Finalize --
    --------------
 
-   procedure Finalize (Self : in out Any_Container) is
+   overriding procedure Finalize (Self : in out Any_Container) is
    begin
       pragma Debug (C, O ("Finalizing Any_Container: enter"));
 
@@ -1233,7 +1329,7 @@ package body PolyORB.Any is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value (CC : in out No_Content) is
+   overriding procedure Finalize_Value (CC : in out No_Content) is
    begin
       raise Program_Error;
    end Finalize_Value;
@@ -1242,7 +1338,9 @@ package body PolyORB.Any is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value (CC : in out Default_Aggregate_Content) is
+   overriding procedure Finalize_Value
+     (CC : in out Default_Aggregate_Content)
+   is
    begin
       Deep_Deallocate (CC.V);
    end Finalize_Value;
@@ -1333,7 +1431,7 @@ package body PolyORB.Any is
 
    function From_Any (C : Any_Container'Class) return Standard.String is
       Bound : constant Types.Unsigned_Long :=
-                TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
+        TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
    begin
       if Bound = 0 then
 
@@ -1356,7 +1454,7 @@ package body PolyORB.Any is
 
    function From_Any (C : Any_Container'Class) return Standard.Wide_String is
       Bound : constant Types.Unsigned_Long :=
-                TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
+        TypeCode.Length (Unwind_Typedefs (Get_Type_Obj (C)));
    begin
       if Bound = 0 then
 
@@ -1394,12 +1492,12 @@ package body PolyORB.Any is
    function Get_Aggregate_Count (Value : Any) return Unsigned_Long
    is
       CA_Ptr : constant Aggregate_Content_Ptr :=
-                 Aggregate_Content_Ptr (Get_Value (Get_Container (Value).all));
+        Aggregate_Content_Ptr (Get_Value (Get_Container (Value).all));
    begin
       return Get_Aggregate_Count (CA_Ptr.all);
    end Get_Aggregate_Count;
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Default_Aggregate_Content) return Unsigned_Long
    is
    begin
@@ -1421,7 +1519,7 @@ package body PolyORB.Any is
       return Get_Aggregate_Element (ACC, TypeCode.Object_Of (TC), Index, Mech);
    end Get_Aggregate_Element;
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Default_Aggregate_Content;
       TC    : TypeCode.Object_Ptr;
       Index : Unsigned_Long;
@@ -1431,7 +1529,7 @@ package body PolyORB.Any is
       use Content_Tables;
 
       El_C_Ptr : Any_Container_Ptr renames
-                   ACC.V.Table (First (ACC.V) + Natural (Index));
+        ACC.V.Table (First (ACC.V) + Natural (Index));
    begin
       pragma Debug (C, O ("Get_Aggregate_Element: enter"));
 
@@ -1495,12 +1593,13 @@ package body PolyORB.Any is
 
       pragma Unsuppress (Tag_Check);
       CA_Ptr : constant Aggregate_Content_Ptr :=
-                 Aggregate_Content_Ptr (Get_Container (Value).The_Value);
+        Aggregate_Content_Ptr (Get_Container (Value).The_Value);
 
       A : Any;
       M : aliased Mechanism := By_Value;
       CC : constant Content'Class :=
-             Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
+        Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
+
       New_CC : Content_Ptr;
       use PolyORB.Smart_Pointers;
    begin
@@ -1853,12 +1952,13 @@ package body PolyORB.Any is
                Index_C : Any_Container;
                Val_M   : aliased Mechanism := By_Value;
                CA_Ptr  : constant Aggregate_Content_Ptr :=
-                           Aggregate_Content_Ptr (C.The_Value);
+                 Aggregate_Content_Ptr (C.The_Value);
 
                Val_CC  : aliased Content'Class :=
-                           Get_Aggregate_Element (CA_Ptr,
-                             TypeCode.PTC_Unsigned_Long'Access, 0,
-                             Val_M'Access);
+                 Get_Aggregate_Element (CA_Ptr,
+                   TypeCode.PTC_Unsigned_Long'Access, 0,
+                   Val_M'Access);
+
             begin
                Set_Type  (Index_C, TC_Unsigned_Long);
                Set_Value (Index_C, Val_CC'Unchecked_Access, Foreign => True);
@@ -1891,7 +1991,7 @@ package body PolyORB.Any is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self : in out Any) is
+   overriding procedure Initialize (Self : in out Any) is
       use type PolyORB.Smart_Pointers.Entity_Ptr;
 
       Container : constant Any_Container_Ptr := new Any_Container;
@@ -1967,11 +2067,42 @@ package body PolyORB.Any is
       return No_Content'(null record);
    end No_Wrap;
 
+   ------------------
+   -- Pos_From_Any --
+   ------------------
+
+   function Pos_From_Any
+     (C : Any_Container'Class) return Types.Unsigned_Long
+   is
+      subtype UL is Types.Unsigned_Long;
+   begin
+      case TypeCode.Kind (C.The_Type) is
+         when Tk_Enum =>
+            return Get_Aggregate_Element (C, 0);
+         when Tk_Boolean =>
+            return Boolean'Pos (From_Any (C));
+         when Tk_Short =>
+            return UL (From_Any (C) - Short'First);
+         when Tk_Ushort =>
+            return UL (From_Any (C) - Unsigned_Short'First);
+         when Tk_Long =>
+            return UL (From_Any (C) - Long'First);
+         when Tk_Ulong =>
+            return UL (From_Any (C) - Unsigned_Long'First);
+
+         --  Mapping of scalar value to Unsigned_Long position is unsupported
+         --  for other typecode kinds, in particular [unsigned] long longs.
+
+         when others =>
+            raise TypeCode.BadKind;
+      end case;
+   end Pos_From_Any;
+
    -------------------------
    -- Set_Aggregate_Count --
    -------------------------
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Default_Aggregate_Content;
       Count : Types.Unsigned_Long)
    is
@@ -2021,7 +2152,7 @@ package body PolyORB.Any is
    -- Set_Aggregate_Element --
    ---------------------------
 
-   procedure Set_Aggregate_Element
+   overriding procedure Set_Aggregate_Element
      (ACC    : in out Default_Aggregate_Content;
       TC     : TypeCode.Object_Ptr;
       Index  : Unsigned_Long;
@@ -2030,7 +2161,7 @@ package body PolyORB.Any is
       use Content_Tables;
       V_First : constant Natural := First (ACC.V);
       El_C : Any_Container'Class
-               renames ACC.V.Table (V_First + Natural (Index)).all;
+        renames ACC.V.Table (V_First + Natural (Index)).all;
    begin
       if ACC.Kind = Tk_Union
         and then Index = 0
@@ -2065,7 +2196,7 @@ package body PolyORB.Any is
    procedure Set_Any_Aggregate_Value (Agg_C : in out Any_Container'Class) is
       use TypeCode;
       Kind : constant TCKind :=
-               TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Agg_C)));
+        TypeCode.Kind (Unwind_Typedefs (Get_Type_Obj (Agg_C)));
    begin
       pragma Debug (C, O ("Set_Any_Aggregate_Value: enter"));
       if Kind not in Aggregate_TCKind then
@@ -2473,14 +2604,34 @@ package body PolyORB.Any is
 
    package body TypeCode is
 
-      --  Empty parameter list
+      ---------------------------------
+      -- Support for union typecodes --
+      ---------------------------------
 
-      subtype Empty_Any_Array is Any_Array (1 .. 0);
+      --  Union typecodes need an efficient way of looking up the field index
+      --  corresponding to a given label value. Depending on specific union
+      --  types, this can be done as a (costly) linear scan of the type code,
+      --  or through a lookup table.
 
-      --  Default complex typecodes
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Union_TC_Map'Class, Union_TC_Map_Ptr);
 
-      PTC_String      : TypeCode.Object_Ptr;
-      PTC_Wide_String : TypeCode.Object_Ptr;
+      type Member_Array is array (Unsigned_Long range <>) of Long;
+
+      type Enum_Union_TC_Map (Enum_Last : Unsigned_Long)
+        is new Union_TC_Map
+      with record
+         Members : Member_Array (0 .. Enum_Last);
+      end record;
+
+      overriding function Label_To_Member
+        (Map   : access Enum_Union_TC_Map;
+         Label : Any_Container'Class) return Long;
+      --  Look up field pos from label pos
+
+      -------------------------------
+      -- Default complex typecodes --
+      -------------------------------
 
       type Default_Aggregate_Content_Ptr is
         access all Default_Aggregate_Content'Class;
@@ -2501,6 +2652,9 @@ package body PolyORB.Any is
       --  Special version of Get_Parameter for the case where the parameter
       --  is itself a TypeCode.
 
+      procedure Add_Parameter (Obj : Object_Ptr; Param : Any);
+      --  Add Param to Obj. Raises Program_Error if Obj is frozen
+
       -----------
       -- Equal --
       -----------
@@ -2513,16 +2667,20 @@ package body PolyORB.Any is
       function Equal (Left, Right : Object_Ptr) return Boolean is
          Nb_Param : Unsigned_Long;
       begin
-         pragma Debug (C, O ("Equal (TypeCode): enter"));
+         pragma Debug
+           (C, O ("Equal (TypeCode): enter, Left = "
+                  & Image (Left) & ", Right = " & Image (Right)));
 
          --  Shortcut further tests when testing for the same object
 
          if Left = Right then
+            pragma Debug (C, O ("Equal (TypeCode): end: True, same object"));
             return True;
          end if;
 
          if Kind (Left) /= Kind (Right) then
-            pragma Debug (C, O ("Equal (TypeCode): end"));
+            pragma Debug (C,
+              O ("Equal (TypeCode): end: False, different kinds"));
             return False;
          end if;
 
@@ -2531,12 +2689,13 @@ package body PolyORB.Any is
          Nb_Param := Parameter_Count (Right);
 
          if Nb_Param /= Parameter_Count (Left) then
-            pragma Debug (C, O ("Equal (TypeCode): end"));
+            pragma Debug (C,
+              O ("Equal (TypeCode): end: False, different param counts"));
             return False;
          end if;
 
          if Nb_Param = 0 then
-            pragma Debug (C, O ("Equal (TypeCode): end"));
+            pragma Debug (C, O ("Equal (TypeCode): end: True"));
             return True;
          end if;
 
@@ -2548,12 +2707,14 @@ package body PolyORB.Any is
             if not "=" (Any_Container'Class'(Get_Parameter (Left, J).all),
                         Any_Container'Class'(Get_Parameter (Right, J).all))
             then
-               pragma Debug (C, O ("Equal (TypeCode): end"));
+               pragma Debug (C,
+                 O ("Equal (TypeCode): end: False, param"
+                 & J'Img & " differs"));
                return False;
             end if;
          end loop;
 
-         pragma Debug (C, O ("Equal (TypeCode): end"));
+         pragma Debug (C, O ("Equal (TypeCode): end: True, all params match"));
          return True;
       end Equal;
 
@@ -2562,16 +2723,27 @@ package body PolyORB.Any is
       -------------------
 
       procedure Add_Parameter (Self  : Local_Ref; Param : Any) is
-         S_Parameters : Content_Ptr renames Object_Of (Self).Parameters;
+      begin
+         Add_Parameter (Object_Of (Self), Param);
+      end Add_Parameter;
+
+      procedure Add_Parameter (Obj : Object_Ptr; Param : Any) is
       begin
          pragma Debug (C, O ("Add_Parameter: enter"));
+
+         if Obj.Frozen then
+            raise Program_Error with "TypeCode already frozen";
+         end if;
+
          pragma Debug (C, O ("Add_Parameter: adding " & Image (Param)));
 
-         if S_Parameters = null then
-            S_Parameters := Allocate_Default_Aggregate_Content (Tk_TypeCode);
+         if Obj.Parameters = null then
+            Obj.Parameters :=
+              Allocate_Default_Aggregate_Content (Tk_TypeCode);
          end if;
+
          Add_Aggregate_Element
-           (Default_Aggregate_Content (S_Parameters.all),
+           (Default_Aggregate_Content (Obj.Parameters.all),
             Get_Container (Param));
          pragma Debug (C, O ("Add_Parameter: end"));
       end Add_Parameter;
@@ -2591,6 +2763,7 @@ package body PolyORB.Any is
          for J in Parameters'Range loop
             TypeCode.Add_Parameter (Res, Parameters (J));
          end loop;
+         Freeze (Obj);
          return Res;
       end Build_Complex_TC;
 
@@ -2699,14 +2872,14 @@ package body PolyORB.Any is
          end case;
       end Default_Index;
 
-      --------------------------------
-      -- Disable_Reference_Counting --
-      --------------------------------
+      --------------------------
+      -- Disable_Ref_Counting --
+      --------------------------
 
-      procedure Disable_Reference_Counting (Self : in out Object) is
+      procedure Disable_Ref_Counting (Self : in out Object) is
       begin
-         Smart_Pointers.Disable_Reference_Counting (Self);
-      end Disable_Reference_Counting;
+         Smart_Pointers.Disable_Ref_Counting (Self);
+      end Disable_Ref_Counting;
 
       ------------------------
       -- Discriminator_Type --
@@ -2821,7 +2994,7 @@ package body PolyORB.Any is
                   Id_Left  : constant RepositoryId := Id (Left);
                   Id_Right : constant RepositoryId := Id (Right);
                   Null_RepositoryId : constant RepositoryId :=
-                                        RepositoryId'(To_PolyORB_String (""));
+                    RepositoryId'(To_PolyORB_String (""));
                begin
                   if Id_Left /= Null_RepositoryId
                     and then Id_Right /= Null_RepositoryId
@@ -2998,17 +3171,92 @@ package body PolyORB.Any is
          return True;
       end Equivalent;
 
+      ------------
+      -- Freeze --
+      ------------
+
+      procedure Freeze (Obj : Object_Ptr) is
+      begin
+         Obj.Frozen := True;
+
+         case Obj.Kind is
+            when Tk_Union =>
+               --  For a union typecode with enum discriminant, build a
+               --  pos-to-field lookup table.
+
+               declare
+                  Disc_TC   : constant Object_Ptr := Discriminator_Type (Obj);
+                  Disc_Kind : constant TCKind := Kind (Disc_TC);
+                  Enum_Len  : Unsigned_Long;
+               begin
+                  case Disc_Kind is
+                     when Tk_Enum | Tk_Boolean =>
+                        if Disc_Kind = Tk_Boolean then
+                           Enum_Len := 2;
+                        else
+                           Enum_Len := Member_Count (Disc_TC);
+                        end if;
+
+                        declare
+                           Param_Nb     : constant Unsigned_Long :=
+                             Parameter_Count (Obj);
+                           Def_Index    : constant Long := Default_Index (Obj);
+                           New_Map_Ptr  : constant Union_TC_Map_Ptr :=
+                             new Enum_Union_TC_Map'
+                               (Enum_Last => Enum_Len - 1,
+                                Members   => (others => Def_Index));
+                           New_Map      : Enum_Union_TC_Map
+                           renames Enum_Union_TC_Map (New_Map_Ptr.all);
+                        begin
+                           --  Build lookup table
+
+                           for J in 0 .. (Param_Nb - 4) / 3 - 1 loop
+
+                              --  Note: we must skip the assignment for the
+                              --  default member, because it has a dummy label
+                              --  value.
+
+                              if Long (J) /= Def_Index then
+                                 New_Map.Members
+                                   (Pos_From_Any
+                                      (Member_Label (Obj, J).all)) := Long (J);
+                              end if;
+                           end loop;
+
+                           --  Install new mapper in union typecode (replacing
+                           --  the original scan-based mapper provided by the
+                           --  typecode itself).
+
+                           Obj.Map := New_Map_Ptr;
+                        end;
+
+                     when others =>
+                        null;
+                  end case;
+               end;
+
+            when others =>
+               null;
+         end case;
+      end Freeze;
+
       --------------
       -- Finalize --
       --------------
 
-      procedure Finalize (Self : in out Object) is
+      overriding procedure Finalize (Self : in out Object) is
       begin
          pragma Debug (C, O ("Finalize (TypeCode.Object): enter"));
 
          if Self.Parameters /= null then
             Finalize_Value (Self.Parameters.all);
             Free (Self.Parameters);
+         end if;
+
+         if Self.Kind = Tk_Union
+           and then Self.Map /= Union_TC_Map (Self)'Unchecked_Access
+         then
+            Free (Union_TC_Map_Ptr (Self.Map));
          end if;
 
          pragma Debug (C, O ("Finalize (TypeCode.Object): leave"));
@@ -3074,7 +3322,7 @@ package body PolyORB.Any is
         (Self : Object_Ptr; Index : Unsigned_Long) return Object_Ptr
       is
          TC_Container : constant Any_Container_Ptr :=
-                          Get_Parameter (Self, Index);
+           Get_Parameter (Self, Index);
       begin
          --  Here we have an Any that contains a TypeCode. We extract the
          --  inner TypeCode.Object_Ptr directly rather than doing a From_Any
@@ -3085,6 +3333,18 @@ package body PolyORB.Any is
            (Elementary_Any_TypeCode.Unchecked_Get_V
             (Elementary_Any_TypeCode.T_Content
              (TC_Container.The_Value.all)'Access).all);
+      exception
+         when E : Constraint_Error =>
+            pragma Debug (C, O ("C_E (" & Ada.Exceptions.Exception_Message (E)
+              & ") raised getting parameter" & Index'Img
+              & " on a " & Kind (Self)'Img));
+            pragma Debug (C,
+              O ("Expected "
+                 & Ada.Tags.External_Tag
+                     (Elementary_Any_TypeCode.T_Content'Tag)
+                 & ", got "
+                 & Ada.Tags.External_Tag (TC_Container.The_Value'Tag)));
+            raise;
       end Get_Parameter;
 
       --------
@@ -3126,43 +3386,45 @@ package body PolyORB.Any is
       ----------------
 
       procedure Initialize is
-         TC_String, TC_Wide_String : Local_Ref;
       begin
+         --  Set parameters of default complex typecodes
+
+         Add_Parameter (PTC_String'Access,      To_Any (Unsigned_Long'(0)));
+
+         Add_Parameter (PTC_Wide_String'Access, To_Any (Unsigned_Long'(0)));
+
+         Add_Parameter (PTC_RootObject'Access, To_Any ("Object"));
+         Add_Parameter (PTC_RootObject'Access, To_Any ("PolyORB:Object:1.0"));
+
          --  Do not ref count / garbage collect our library-level root TCs
 
-         Smart_Pointers.Disable_Reference_Counting (PTC_Null);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Void);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Short);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Long_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Short);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Unsigned_Long_Long);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Float);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Double);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Long_Double);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Boolean);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Char);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Wchar);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Octet);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Any);
-         Smart_Pointers.Disable_Reference_Counting (PTC_TypeCode);
-
-         TC_String      := Build_String_TC (0);
-         TC_Wide_String := Build_Wstring_TC (0);
-
-         PTC_String      := Object_Of (TC_String);
-         PTC_Wide_String := Object_Of (TC_Wide_String);
-
-         Smart_Pointers.Disable_Reference_Counting (PTC_String.all);
-         Smart_Pointers.Disable_Reference_Counting (PTC_Wide_String.all);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Null);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Void);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Short);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Long_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Unsigned_Short);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Unsigned_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Unsigned_Long_Long);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Float);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Double);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Long_Double);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Boolean);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Char);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Wchar);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Octet);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Any);
+         Smart_Pointers.Disable_Ref_Counting (PTC_TypeCode);
+         Smart_Pointers.Disable_Ref_Counting (PTC_String);
+         Smart_Pointers.Disable_Ref_Counting (PTC_Wide_String);
+         Smart_Pointers.Disable_Ref_Counting (PTC_RootObject);
       end Initialize;
 
       ------------
       -- Is_Nil --
       ------------
 
-      function Is_Nil (Self : Local_Ref) return Boolean is
+      overriding function Is_Nil (Self : Local_Ref) return Boolean is
       begin
          return Smart_Pointers.Is_Nil (Smart_Pointers.Ref (Self));
       end Is_Nil;
@@ -3188,6 +3450,58 @@ package body PolyORB.Any is
             return Self.Kind;
          end if;
       end Kind;
+
+      ---------------------
+      -- Label_To_Member --
+      ---------------------
+
+      overriding function Label_To_Member
+        (Map   : access Object;
+         Label : Any_Container'Class) return Long
+      is
+         Encl_TC      : constant Object_Ptr := Object_Ptr (Map);
+         Param_Nb     : constant Unsigned_Long :=
+                          Parameter_Count (Encl_TC);
+         Def_Index    : constant Long :=
+                          Default_Index (Encl_TC);
+         Member_Index : Long := -1;
+
+      begin
+         --  Default version of Label_To_Member: linear scan of typecode
+         --  (horribly inefficient???)
+
+         Parameters :
+         for J in 0 .. (Param_Nb - 4) / 3 - 1 loop
+
+            --  We ignore the default member, as its placeholder label could
+            --  interfere with a non-default label.
+
+            if Long (J) /= Def_Index
+                 and then
+                Any_Container_Eq
+                  (Discriminator_Type (Encl_TC),
+                   Member_Label (Encl_TC, J).all,
+                   Label)
+            then
+               Member_Index := Long (J);
+               exit Parameters;
+            end if;
+         end loop Parameters;
+
+         if Member_Index = -1 then
+            Member_Index := Def_Index;
+         end if;
+
+         return Member_Index;
+      end Label_To_Member;
+
+      overriding function Label_To_Member
+        (Map   : access Enum_Union_TC_Map;
+         Label : Any_Container'Class) return Long
+      is
+      begin
+         return Map.Members (Pos_From_Any (Label));
+      end Label_To_Member;
 
       ------------
       -- Length --
@@ -3474,15 +3788,10 @@ package body PolyORB.Any is
         (Self  : Object_Ptr;
          Label : Any_Container'Class) return Object_Ptr
       is
-         Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
-
-         Label_Found : Boolean := False;
          Member_Index : Long;
 
       begin
          pragma Debug (C, O ("Member_Type_With_Label: enter"));
-         pragma Debug (C, O ("Member_Type_With_Label: Param_Nb = "
-                          & Unsigned_Long'Image (Param_Nb)));
 
          --  See comments after the declaration of TypeCode.Object in the
          --  private part of PolyORB.Any.TypeCode to understand the magic
@@ -3492,36 +3801,9 @@ package body PolyORB.Any is
             raise BadKind;
          end if;
 
-         --  Look at the members until we got enough with the right label or we
-         --  reach the end.
-
-         pragma Debug (C, O ("Member_Type_With_Label: enter loop"));
-
-         --  ??? This is horribly inefficient, we should have a fast lookup
-         --  mechanism mapping a label value to the appropriate member index.
-
-         Parameters :
-         for Current_Member in 0 .. (Param_Nb - 4) / 3 - 1 loop
-
-            --  We ignore the default member, as its placeholder label could
-            --  interfere with a non-default label.
-
-            if Long (Current_Member) /= Default_Index (Self)
-              and then Member_Label (Self, Current_Member).all = Label
-            then
-               pragma Debug (C, O ("Member_Type_With_Label: matching label"));
-               Label_Found := True;
-               Member_Index := Long (Current_Member);
-               exit Parameters;
-            end if;
-         end loop Parameters;
-
-         if not Label_Found then
-            Member_Index := Default_Index (Self);
-            pragma Debug
-              (C, O ("Member_Type_With_Label: using default member at index "
-                  & Member_Index'Img));
-         end if;
+         Member_Index := Self.Map.Label_To_Member (Label);
+         pragma Debug
+           (C, O ("Member_Type_With_Label: found index " & Member_Index'Img));
 
          if Member_Index = -1 then
 
@@ -3580,8 +3862,9 @@ package body PolyORB.Any is
       end Name;
 
       function Name (Self : Object_Ptr) return Identifier is
+         TCK : constant TCKind := Kind (Self);
       begin
-         case Kind (Self) is
+         case TCK is
             when Tk_Objref
               | Tk_Struct
               | Tk_Union
@@ -3604,7 +3887,7 @@ package body PolyORB.Any is
                end;
 
             when others =>
-               raise BadKind;
+               raise BadKind with TCK'Img & " TypeCode has no name";
          end case;
       end Name;
 
@@ -3807,7 +4090,7 @@ package body PolyORB.Any is
 
       function TC_String return Local_Ref is
       begin
-         return To_Ref (PTC_String);
+         return To_Ref (PTC_String'Access);
       end TC_String;
 
       --------------------
@@ -3816,188 +4099,179 @@ package body PolyORB.Any is
 
       function TC_Wide_String return Local_Ref is
       begin
-         return To_Ref (PTC_Wide_String);
+         return To_Ref (PTC_Wide_String'Access);
       end TC_Wide_String;
 
-      ------------------
-      -- TC_Principal --
-      ------------------
+      -------------------
+      -- TC_RootObject --
+      -------------------
 
-      function TC_Principal return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TC_RootObject return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Principal, E);
-      end TC_Principal;
+         return To_Ref (PTC_RootObject'Access);
+      end TC_RootObject;
+
+      -------------------
+      -- TCF_Principal --
+      -------------------
+
+      function TCF_Principal return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Principal));
+      end TCF_Principal;
+
+      ----------------
+      -- TCF_Struct --
+      ----------------
+
+      function TCF_Struct return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Struct));
+      end TCF_Struct;
 
       ---------------
-      -- TC_Struct --
+      -- TCF_Union --
       ---------------
 
-      function TC_Struct return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TCF_Union return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Struct, E);
-      end TC_Struct;
+         return To_Ref (new Object (Tk_Union));
+      end TCF_Union;
 
       --------------
-      -- TC_Union --
+      -- TCF_Enum --
       --------------
 
-      function TC_Union return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TCF_Enum return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Union, E);
-      end TC_Union;
-
-      -------------
-      -- TC_Enum --
-      -------------
-
-      function TC_Enum return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Enum, E);
-      end TC_Enum;
-
-      --------------
-      -- TC_Alias --
-      --------------
-
-      function TC_Alias return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Alias, E);
-      end TC_Alias;
+         return To_Ref (new Object (Tk_Enum));
+      end TCF_Enum;
 
       ---------------
-      -- TC_Except --
+      -- TCF_Alias --
       ---------------
 
-      function TC_Except return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TCF_Alias return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Except, E);
-      end TC_Except;
+         return To_Ref (new Object (Tk_Alias));
+      end TCF_Alias;
+
+      ----------------
+      -- TCF_Except --
+      ----------------
+
+      function TCF_Except return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Except));
+      end TCF_Except;
+
+      ----------------
+      -- TCF_Object --
+      ----------------
+
+      function TCF_Object return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Objref));
+      end TCF_Object;
 
       ---------------
-      -- TC_Object --
+      -- TCF_Fixed --
       ---------------
 
-      function TC_Object return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TCF_Fixed return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Objref, E);
-      end TC_Object;
-
-      --------------
-      -- TC_Fixed --
-      --------------
-
-      function TC_Fixed return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Fixed, E);
-      end TC_Fixed;
-
-      -----------------
-      -- TC_Sequence --
-      -----------------
-
-      function TC_Sequence return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Sequence, E);
-      end TC_Sequence;
-
-      --------------
-      -- TC_Array --
-      --------------
-
-      function TC_Array return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Array, E);
-      end TC_Array;
-
-      --------------
-      -- TC_Value --
-      --------------
-
-      function TC_Value return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Value, E);
-      end TC_Value;
-
-      -----------------
-      -- TC_Valuebox --
-      -----------------
-
-      function TC_Valuebox return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Valuebox, E);
-      end TC_Valuebox;
-
-      ---------------
-      -- TC_Native --
-      ---------------
-
-      function TC_Native return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Native, E);
-      end TC_Native;
-
-      ---------------------------
-      -- TC_Abstract_Interface --
-      ---------------------------
-
-      function TC_Abstract_Interface return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Abstract_Interface, E);
-      end TC_Abstract_Interface;
-
-      ------------------------
-      -- TC_Local_Interface --
-      ------------------------
-
-      function TC_Local_Interface return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
-      begin
-         return Build_Complex_TC (Tk_Local_Interface, E);
-      end TC_Local_Interface;
+         return To_Ref (new Object (Tk_Fixed));
+      end TCF_Fixed;
 
       ------------------
-      -- TC_Component --
+      -- TCF_Sequence --
       ------------------
 
-      function TC_Component return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TCF_Sequence return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Component, E);
-      end TC_Component;
+         return To_Ref (new Object (Tk_Sequence));
+      end TCF_Sequence;
 
-      -------------
-      -- TC_Home --
-      -------------
+      ---------------
+      -- TCF_Array --
+      ---------------
 
-      function TC_Home return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TCF_Array return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Home, E);
-      end TC_Home;
+         return To_Ref (new Object (Tk_Array));
+      end TCF_Array;
+
+      ---------------
+      -- TCF_Value --
+      ---------------
+
+      function TCF_Value return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Value));
+      end TCF_Value;
+
+      ------------------
+      -- TCF_Valuebox --
+      ------------------
+
+      function TCF_Valuebox return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Valuebox));
+      end TCF_Valuebox;
+
+      ----------------
+      -- TCF_Native --
+      ----------------
+
+      function TCF_Native return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Native));
+      end TCF_Native;
+
+      ----------------------------
+      -- TCF_Abstract_Interface --
+      ----------------------------
+
+      function TCF_Abstract_Interface return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Abstract_Interface));
+      end TCF_Abstract_Interface;
+
+      -------------------------
+      -- TCF_Local_Interface --
+      -------------------------
+
+      function TCF_Local_Interface return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Local_Interface));
+      end TCF_Local_Interface;
+
+      -------------------
+      -- TCF_Component --
+      -------------------
+
+      function TCF_Component return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Component));
+      end TCF_Component;
 
       --------------
-      -- TC_Event --
+      -- TCF_Home --
       --------------
 
-      function TC_Event return TypeCode.Local_Ref is
-         E : Empty_Any_Array;
+      function TCF_Home return TypeCode.Local_Ref is
       begin
-         return Build_Complex_TC (Tk_Event, E);
-      end TC_Event;
+         return To_Ref (new Object (Tk_Home));
+      end TCF_Home;
+
+      ---------------
+      -- TCF_Event --
+      ---------------
+
+      function TCF_Event return TypeCode.Local_Ref is
+      begin
+         return To_Ref (new Object (Tk_Event));
+      end TCF_Event;
 
       ------------
       -- To_Ref --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -90,7 +90,7 @@ package body PolyORB.Buffers is
       Alignment : Alignment_Type)
    is
       Padding : constant Stream_Element_Count :=
-                  Padding_Size (Buffer.CDR_Position, Alignment);
+        Padding_Size (Buffer.CDR_Position, Alignment);
    begin
       pragma Debug
         (C, O ("Align_Position: pos = "
@@ -291,8 +291,7 @@ package body PolyORB.Buffers is
    ---------------
 
    Null_Data : aliased Stream_Element_Array
-                 (1 .. 2 ** Alignment_Type'Pos (Alignment_Type'Last)) :=
-                 (others => 0);
+     (1 .. 2 ** Alignment_Type'Pos (Alignment_Type'Last)) := (others => 0);
    --  Null data used for padding
 
    procedure Pad_Align
@@ -300,7 +299,7 @@ package body PolyORB.Buffers is
       Alignment : Alignment_Type)
    is
       Padding : constant Stream_Element_Count :=
-                  Padding_Size (Buffer.CDR_Position, Alignment);
+        Padding_Size (Buffer.CDR_Position, Alignment);
       Padding_Space : Opaque_Pointer;
    begin
       pragma Debug
@@ -326,8 +325,8 @@ package body PolyORB.Buffers is
 
          declare
             Padding_Iovec : constant Iovec :=
-                              (Iov_Base => Null_Data'Address,
-                               Iov_Len  => Storage_Offset (Padding));
+              (Iov_Base => Null_Data'Address,
+               Iov_Len  => Storage_Offset (Padding));
          begin
             Append (Iovec_Pool => Buffer.Contents, An_Iovec => Padding_Iovec);
          end;
@@ -356,12 +355,17 @@ package body PolyORB.Buffers is
      (Pos       : Stream_Element_Offset;
       Alignment : Alignment_Type) return Stream_Element_Count
    is
-      subtype Alignment_Modular is System.Unsigned_Types.Long_Unsigned;
+      --  Note: we take advantage of the fact that the representation of
+      --  Alignment_Type is such that representation(Align_<n>) = <n>.
 
-      Alignment_Mask : constant Alignment_Modular :=
-                         Shift_Left (1, Alignment_Type'Pos (Alignment)) - 1;
-      Padding : constant Alignment_Modular :=
-                  (-Alignment_Modular (Pos)) and Alignment_Mask;
+      function To_SSU is
+        new Ada.Unchecked_Conversion (Alignment_Type, Short_Short_Unsigned);
+
+      Alignment_Mask : constant Long_Unsigned :=
+                         Long_Unsigned (To_SSU (Alignment) - 1);
+
+      Padding : constant Long_Unsigned :=
+        (-Long_Unsigned (Pos)) and Alignment_Mask;
    begin
       return Stream_Element_Count (Padding);
    end Padding_Size;
@@ -427,7 +431,7 @@ package body PolyORB.Buffers is
    is
       V                  : aliased Iovec;
       Saved_CDR_Position : constant Stream_Element_Offset :=
-                             Buffer.CDR_Position;
+        Buffer.CDR_Position;
 
    begin
       pragma Debug (C, O ("Receive_Buffer: Max =" & Max'Img));
@@ -496,7 +500,7 @@ package body PolyORB.Buffers is
    is
       Copy_Address     : Opaque_Pointer;
       Initial_Position : constant Stream_Element_Offset :=
-                           Buffer.CDR_Position;
+        Buffer.CDR_Position;
    begin
       Allocate_And_Insert_Cooked_Data
         (Buffer, Amount, Copy_Address);
@@ -581,7 +585,7 @@ package body PolyORB.Buffers is
       Nil_ASCII : constant ASCII_Line := (others => ' ');
 
       Hexa  : Hexa_Line  := Nil_Hexa;
-      ASCII : ASCII_Line := Nil_ASCII;
+      Line  : ASCII_Line := Nil_ASCII;
       Index_Hexa  : Natural := 1;
       Index_ASCII : Natural := 1;
    begin
@@ -593,9 +597,9 @@ package body PolyORB.Buffers is
          Index_Hexa := Index_Hexa + 3;
 
          if Octets (J) < 32 or else Octets (J) > 127 then
-            ASCII (Index_ASCII) := '.';
+            Line (Index_ASCII) := '.';
          else
-            ASCII (Index_ASCII) := Character'Val (Natural (Octets (J)));
+            Line (Index_ASCII) := Character'Val (Natural (Octets (J)));
          end if;
          Index_ASCII := Index_ASCII + 1;
 
@@ -603,21 +607,21 @@ package body PolyORB.Buffers is
             Hexa (Index_Hexa) := ' ';
             Hexa (Index_Hexa + 1) := ' ';
             Index_Hexa := Index_Hexa + 2;
-            ASCII (Index_ASCII) := ' ';
+            Line (Index_ASCII) := ' ';
             Index_ASCII := Index_ASCII + 1;
          end if;
 
          if Index_Hexa > Hexa'Length then
-            pragma Debug (C2, O2 (Hexa & "   " & ASCII));
+            pragma Debug (C2, O2 (Hexa & "   " & Line));
             Index_Hexa := 1;
             Hexa := Nil_Hexa;
             Index_ASCII := 1;
-            ASCII := Nil_ASCII;
+            Line := Nil_ASCII;
          end if;
       end loop;
 
       if Index_Hexa /= 1 then
-         pragma Debug (C2, O2 (Hexa & "   " & ASCII));
+         pragma Debug (C2, O2 (Hexa & "   " & Line));
          null;
       end if;
    end Show;
@@ -747,7 +751,7 @@ package body PolyORB.Buffers is
 
          declare
             Pool_Iovecs_Address : constant System.Address :=
-                                    Iovecs_Address (Iovec_Pool);
+              Iovecs_Address (Iovec_Pool);
             Pool_Iovecs : Iovec_Array (1 .. Iovec_Pool.Length);
             for Pool_Iovecs'Address use Pool_Iovecs_Address;
             pragma Import (Ada, Pool_Iovecs);
@@ -769,7 +773,7 @@ package body PolyORB.Buffers is
          for J in Iovecs'Range loop
             declare
                L : constant Stream_Element_Offset :=
-                     Stream_Element_Offset (Iovecs (J).Iov_Len);
+                 Stream_Element_Offset (Iovecs (J).Iov_Len);
 
                S_Addr : constant System.Address := Iovecs (J).Iov_Base;
                S : Stream_Element_Array (0 .. L - 1);
@@ -818,10 +822,10 @@ package body PolyORB.Buffers is
          if Require > Iovec_Pool.Length then
             declare
                New_Array : constant Iovec_Array_Access :=
-                             new Iovec_Array (1 .. Allocate);
+                 new Iovec_Array (1 .. Allocate);
 
                Old_Array_Address : constant System.Address :=
-                                     Iovecs_Address (Iovec_Pool);
+                 Iovecs_Address (Iovec_Pool);
                Old_Array : Iovec_Array (1 .. Iovec_Pool.Length);
                for Old_Array'Address use Old_Array_Address;
                pragma Import (Ada, Old_Array);
@@ -1067,7 +1071,7 @@ package body PolyORB.Buffers is
 
          declare
             Prefix_Iovecs_Address : constant System.Address :=
-                                      Iovecs_Address (Prefix);
+              Iovecs_Address (Prefix);
             Prefix_Iovecs : Iovec_Array (1 .. Prefix.Length);
             for Prefix_Iovecs'Address use Prefix_Iovecs_Address;
             pragma Import (Ada, Prefix_Iovecs);

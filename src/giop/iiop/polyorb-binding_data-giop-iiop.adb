@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Binding data concrete implementation for IIOP.
 
 with Ada.Streams;
@@ -141,7 +143,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag (Profile : IIOP_Profile_Type) return Profile_Tag is
+   overriding function Get_Profile_Tag
+     (Profile : IIOP_Profile_Type)
+     return Profile_Tag
+   is
       pragma Unreferenced (Profile);
 
    begin
@@ -152,7 +157,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Get_Profile_Preference --
    ----------------------------
 
-   function Get_Profile_Preference
+   overriding function Get_Profile_Preference
      (Profile : IIOP_Profile_Type)
      return Profile_Preference
    is
@@ -180,7 +185,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Create_Factory --
    --------------------
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out IIOP_Profile_Factory;
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access)
@@ -188,7 +193,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       pragma Unreferenced (ORB);
 
       MF : constant Transport_Mechanism_Factory_Access :=
-             new IIOP_Transport_Mechanism_Factory;
+        new IIOP_Transport_Mechanism_Factory;
 
    begin
       Create_Factory (MF.all, TAP);
@@ -199,7 +204,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Create_Profile --
    --------------------
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access IIOP_Profile_Factory;
       Oid :        Objects.Object_Id)
      return Profile_Access
@@ -282,7 +287,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          if Security_Fetch_Tagged_Component /= null then
             declare
                Sec_TC : constant Tagged_Component_Access :=
-                          Security_Fetch_Tagged_Component (Oid);
+                 Security_Fetch_Tagged_Component (Oid);
 
             begin
                if Sec_TC /= null then
@@ -318,7 +323,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Duplicate_Profile --
    -----------------------
 
-   function Duplicate_Profile (P : IIOP_Profile_Type) return Profile_Access is
+   overriding function Duplicate_Profile
+     (P : IIOP_Profile_Type)
+     return Profile_Access
+   is
       use PolyORB.QoS;
       use PolyORB.QoS.Tagged_Components;
 
@@ -377,11 +385,11 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       Result  : constant Profile_Access := new IIOP_Profile_Type;
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
       Address : constant Utils.Sockets.Socket_Name :=
-                  Common_Unmarshall_Profile_Body
-                    (Buffer,
-                     Result,
-                     Unmarshall_Object_Id         => True,
-                     Unmarshall_Tagged_Components => False);
+        Common_Unmarshall_Profile_Body
+          (Buffer,
+           Result,
+           Unmarshall_Object_Id         => True,
+           Unmarshall_Tagged_Components => False);
    begin
       --  Create primary transport mechanism
 
@@ -397,7 +405,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Image --
    -----------
 
-   function Image (Prof : IIOP_Profile_Type) return String is
+   overriding function Image (Prof : IIOP_Profile_Type) return String is
    begin
       return "Address : "
         & PolyORB.Utils.Sockets.Image (Get_Primary_IIOP_Address (Prof))
@@ -426,8 +434,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
       use Utils.Sockets;
       Result  : aliased Profile_Access := new IIOP_Profile_Type;
       Address : constant Socket_Name :=
-                  Common_IIOP_DIOP_Corbaloc_To_Profile (Str,
-                    IIOP_Version_Major, IIOP_Version_Minor, Result'Access);
+        Common_IIOP_DIOP_Corbaloc_To_Profile (Str,
+          IIOP_Version_Major, IIOP_Version_Minor, Result'Access);
    begin
       if Result /= null then
          --  Create primary transport mechanism

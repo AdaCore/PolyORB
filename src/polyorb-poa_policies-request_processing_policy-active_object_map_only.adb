@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 
 with PolyORB.POA;
@@ -55,7 +57,7 @@ is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Active_Map_Only_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -89,7 +91,7 @@ is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Active_Map_Only_Policy)
      return String
    is
@@ -105,7 +107,7 @@ is
    -- Id_To_Servant --
    -------------------
 
-   procedure Id_To_Servant
+   overriding procedure Id_To_Servant
      (Self    :        Active_Map_Only_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
@@ -149,7 +151,7 @@ is
    -- Set_Servant --
    -----------------
 
-   procedure Set_Servant
+   overriding procedure Set_Servant
      (Self    :        Active_Map_Only_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :        Servants.Servant_Access;
@@ -169,7 +171,7 @@ is
    -- Get_Servant --
    -----------------
 
-   procedure Get_Servant
+   overriding procedure Get_Servant
      (Self    :        Active_Map_Only_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :    out Servants.Servant_Access;
@@ -190,7 +192,7 @@ is
    -- Ensure_Servant_Manager --
    ----------------------------
 
-   procedure Ensure_Servant_Manager
+   overriding procedure Ensure_Servant_Manager
      (Self  :        Active_Map_Only_Policy;
       Error : in out PolyORB.Errors.Error_Container)
    is

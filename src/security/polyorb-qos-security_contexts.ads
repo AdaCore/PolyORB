@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Request Security Service Context
 
 with PolyORB.Security.Authorization_Elements;
@@ -95,7 +97,7 @@ package PolyORB.QoS.Security_Contexts is
    type QoS_Security_Context_Parameter_Access is
      access all QoS_Security_Context_Parameter;
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (QoS : access QoS_Security_Context_Parameter);
 
 end PolyORB.QoS.Security_Contexts;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 with System.Storage_Elements;
 
@@ -68,7 +70,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
    -- Accept_Connection --
    -----------------------
 
-   procedure Accept_Connection
+   overriding procedure Accept_Connection
      (TAP : TLS_Access_Point;
       TE  : out Transport_Endpoint_Access)
    is
@@ -95,7 +97,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
    -- Close --
    -----------
 
-   procedure Close (TE : access TLS_Endpoint) is
+   overriding procedure Close (TE : access TLS_Endpoint) is
    begin
       if TE.Closed then
          return;
@@ -157,24 +159,24 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
    -- Create_Event_Source --
    -------------------------
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TAP : access TLS_Access_Point) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TAP.Socket);
+        Create_Event_Source (TAP.Socket);
 
    begin
       Set_Handler (Ev_Src.all, TAP.Handler'Access);
       return Ev_Src;
    end Create_Event_Source;
 
-   function Create_Event_Source
+   overriding function Create_Event_Source
      (TE : access TLS_Endpoint) return Asynch_Ev_Source_Access
    is
       use PolyORB.Annotations;
 
       Ev_Src : constant Asynch_Ev_Source_Access :=
-                 Create_Event_Source (TE.TLS_Socket);
+        Create_Event_Source (TE.TLS_Socket);
 
    begin
       Set_Handler (Ev_Src.all, TE.Handler'Access);
@@ -236,7 +238,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
    -- Is_Data_Available --
    -----------------------
 
-   function Is_Data_Available
+   overriding function Is_Data_Available
      (TE : TLS_Endpoint;
       N  : Natural) return Boolean
    is
@@ -248,7 +250,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (TE     : in out TLS_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
@@ -328,7 +330,7 @@ package body PolyORB.Transport.Connected.Sockets.TLS is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (TE     : in out TLS_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Error  :    out Errors.Error_Container)

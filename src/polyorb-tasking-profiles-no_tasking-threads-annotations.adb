@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
@@ -41,7 +43,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations is
    -- Get_Current_Thread_Notepad --
    --------------------------------
 
-   function Get_Current_Thread_Notepad
+   overriding function Get_Current_Thread_Notepad
      (TAF : access No_Tasking_TAF)
      return PolyORB.Annotations.Notepad_Access
    is

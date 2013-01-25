@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
@@ -67,12 +69,12 @@ package body PolyORB.References.IOR is
 
    type IOR_Streamer is new Ref_Streamer with null record;
 
-   procedure Read
+   overriding procedure Read
      (R : access IOR_Streamer;
       S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Ref'Class);
 
-   procedure Write
+   overriding procedure Write
      (R : access IOR_Streamer;
       S : access Ada.Streams.Root_Stream_Type'Class;
       V : Ref'Class);
@@ -123,7 +125,7 @@ package body PolyORB.References.IOR is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (R : access IOR_Streamer;
       S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Ref'Class)
@@ -383,7 +385,7 @@ package body PolyORB.References.IOR is
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type)
    is
       Elt : constant Profile_Record :=
-              (Profile, Marshall_Profile_Body, Unmarshall_Profile_Body);
+        (Profile, Marshall_Profile_Body, Unmarshall_Profile_Body);
    begin
       Append (Callbacks, Elt);
    end Register;
@@ -392,7 +394,7 @@ package body PolyORB.References.IOR is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (R : access IOR_Streamer;
       S : access Ada.Streams.Root_Stream_Type'Class;
       V : Ref'Class)

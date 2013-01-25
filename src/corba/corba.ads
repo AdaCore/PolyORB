@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -57,24 +57,32 @@ package CORBA is
    --  appropriate language mapping. The following definitions may
    --  differ. See the mapping specification for more information.
 
+   --  Note that some of the names required by the CORBA standard duplicate
+   --  names in Standard, and GNAT warns about that, so we suppress the
+   --  warnings below.
+
    type    Short              is new Interfaces.Integer_16;
    type    Long               is new Interfaces.Integer_32;
    type    Long_Long          is new Interfaces.Integer_64;
    type    Unsigned_Short     is new Interfaces.Unsigned_16;
    type    Unsigned_Long      is new Interfaces.Unsigned_32;
    type    Unsigned_Long_Long is new Interfaces.Unsigned_64;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    type    Float              is new Interfaces.IEEE_Float_32;
+   pragma Warnings (On);
    type    Double             is new Interfaces.IEEE_Float_64;
    type    Long_Double        is new Interfaces.IEEE_Extended_Float;
    subtype Char               is Standard.Character;
    subtype Wchar              is Standard.Wide_Character;
    type    Octet              is new Interfaces.Unsigned_8;
+   pragma Warnings (Off); -- redefinition of entity in Standard
    subtype Boolean            is Standard.Boolean;
 
    type String is new PolyORB.Types.String;
 
    type    Wide_String        is
      new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+   pragma Warnings (On);
 
    --  Pointers on the previous types
 
@@ -751,7 +759,11 @@ package CORBA is
          --  True when Self has not been initialized to contain any typecode
          --  information.
 
-         procedure Disable_Reference_Counting (Self : CORBA.TypeCode.Object);
+         procedure Freeze (Self : CORBA.TypeCode.Object);
+         --  Indicate that no further parameters will be added to Self and that
+         --  optimizations can now be computed.
+
+         procedure Disable_Ref_Counting (Self : CORBA.TypeCode.Object);
          --  Disable reference counting on the underlying storage of Self
          --  (meant to be used for library-level typecode objects).
 

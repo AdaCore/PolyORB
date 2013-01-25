@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides a simple class of hashing functions for strings.
 
 --  Hash_Mul computes for string S = (Si)i the sum of the elements
@@ -54,17 +56,17 @@ package PolyORB.Utils.HFunctions.Mul is
 
    type Hash_Mul_Parameters is new Hash_Parameters with private;
 
-   function Hash
+   overriding function Hash
      (S     : String;
       Param : Hash_Mul_Parameters;
       Size  : Natural)
      return Natural;
 
-   function Default_Hash_Parameters
+   overriding function Default_Hash_Parameters
      return Hash_Mul_Parameters;
    pragma Inline (Default_Hash_Parameters);
 
-   function Next_Hash_Parameters
+   overriding function Next_Hash_Parameters
      (Param : Hash_Mul_Parameters)
      return Hash_Mul_Parameters;
 

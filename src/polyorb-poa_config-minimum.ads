@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A POA configuration corresponding to Minimum CORBA policies
 
 package PolyORB.POA_Config.Minimum is
@@ -38,9 +40,9 @@ package PolyORB.POA_Config.Minimum is
 
    type Minimum_Configuration is new Configuration_Type with private;
 
-   procedure Initialize (C : Minimum_Configuration);
+   overriding procedure Initialize (C : Minimum_Configuration);
 
-   function Default_Policies
+   overriding function Default_Policies
      (C : Minimum_Configuration) return PolyORB.POA_Policies.PolicyList;
 
 private

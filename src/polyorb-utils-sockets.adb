@@ -110,7 +110,9 @@ package body PolyORB.Utils.Sockets is
             end if;
       end Try_One_Address;
 
-      Host_Name        : String renames Remote_Name.Host_Name;
+      Host_Name : String renames Remote_Name.Host_Name;
+
+   --  Start of processing for Connect_Socket
 
    begin
       pragma Debug
@@ -131,9 +133,9 @@ package body PolyORB.Utils.Sockets is
       else
          declare
             Host_Entry       : constant Host_Entry_Type :=
-                                 Get_Host_By_Name (Host_Name);
+              Get_Host_By_Name (Host_Name);
             Addresses_Len : constant Natural :=
-                              PolyORB.Sockets.Addresses_Length (Host_Entry);
+              PolyORB.Sockets.Addresses_Length (Host_Entry);
          begin
             --  Iterate over all addresses associated with name
 

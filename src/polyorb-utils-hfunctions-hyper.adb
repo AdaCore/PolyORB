@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Utils.Random;
 
 package body PolyORB.Utils.HFunctions.Hyper is
@@ -74,7 +76,7 @@ package body PolyORB.Utils.HFunctions.Hyper is
    -- Hash --
    ----------
 
-   function Hash
+   overriding function Hash
      (S     : String;
       Param : Hash_Hyper_Parameters;
       Size  : Natural)
@@ -87,7 +89,7 @@ package body PolyORB.Utils.HFunctions.Hyper is
    -- Default_Hash_Parameters --
    -----------------------------
 
-   function Default_Hash_Parameters return Hash_Hyper_Parameters is
+   overriding function Default_Hash_Parameters return Hash_Hyper_Parameters is
    begin
       return Hash_Hyper_Parameters'(Seed => 42, Prime => Default_Prime);
    end Default_Hash_Parameters;
@@ -96,7 +98,7 @@ package body PolyORB.Utils.HFunctions.Hyper is
    -- Next_Hash_Parameters --
    --------------------------
 
-   function Next_Hash_Parameters
+   overriding function Next_Hash_Parameters
      (Param : Hash_Hyper_Parameters) return Hash_Hyper_Parameters
    is
    begin

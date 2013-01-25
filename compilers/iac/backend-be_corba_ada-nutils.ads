@@ -465,7 +465,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       Pragma_Style_Checks,
       Pragma_Suppress,
       Pragma_Unreferenced,
-      Pragma_Warnings);
+      Pragma_Warnings,
+      Pragma_Wide_Character_Encoding);
 
    GN : array (Pragma_Id) of Name_Id;
    --  Array of pragma identifiers

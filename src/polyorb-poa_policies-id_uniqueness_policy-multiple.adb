@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.POA;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
@@ -48,7 +50,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Multiple_Id_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -65,7 +67,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Multiple_Id_Policy)
      return String
    is
@@ -81,7 +83,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -- Ensure_Servant_Uniqueness --
    -------------------------------
 
-   procedure Ensure_Servant_Uniqueness
+   overriding procedure Ensure_Servant_Uniqueness
      (Self      :        Multiple_Id_Policy;
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;
@@ -100,7 +102,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -- Activate_Again --
    --------------------
 
-   procedure Activate_Again
+   overriding procedure Activate_Again
      (Self      :        Multiple_Id_Policy;
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;

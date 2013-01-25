@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Security.Credentials.Compound;
 with PolyORB.Security.Credentials.TLS;
 with PolyORB.Transport.Connected.Sockets.TLS;
@@ -80,7 +82,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
    -- Is_Supports --
    -----------------
 
-   function Is_Supports
+   overriding function Is_Supports
      (Mechanism   : access Client_TLS_Transport_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
       return Boolean
@@ -101,7 +103,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
    -- Set_Accepting_Credentials --
    -------------------------------
 
-   procedure Set_Accepting_Credentials
+   overriding procedure Set_Accepting_Credentials
      (Mechanism   : access Target_TLS_Transport_Mechanism;
       Credentials :        PolyORB.Security.Credentials.Credentials_Ref)
    is
@@ -121,7 +123,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
    -- Supported_Identity_Types --
    ------------------------------
 
-   function Supported_Identity_Types
+   overriding function Supported_Identity_Types
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Identity_Token_Type
    is
@@ -137,7 +139,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
    -- Supported_Naming_Mechanisms --
    ---------------------------------
 
-   function Supported_Naming_Mechanisms
+   overriding function Supported_Naming_Mechanisms
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.OID_Lists.List
    is
@@ -151,7 +153,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
    -- Target_Requires --
    ---------------------
 
-   function Target_Requires
+   overriding function Target_Requires
      (Mechanism : access Client_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options
    is
@@ -159,7 +161,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
       return Mechanism.Target_Requires;
    end Target_Requires;
 
-   function Target_Requires
+   overriding function Target_Requires
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options
    is
@@ -178,7 +180,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
    -- Target_Supports --
    ---------------------
 
-   function Target_Supports
+   overriding function Target_Supports
      (Mechanism : access Client_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options
    is
@@ -186,7 +188,7 @@ package body PolyORB.Security.Transport_Mechanisms.TLS is
       return Mechanism.Target_Supports;
    end Target_Supports;
 
-   function Target_Supports
+   overriding function Target_Supports
      (Mechanism : access Target_TLS_Transport_Mechanism)
       return PolyORB.Security.Types.Association_Options
    is

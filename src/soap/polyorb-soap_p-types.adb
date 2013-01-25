@@ -718,9 +718,9 @@ package body PolyORB.SOAP_P.Types is
 
       Result : Unbounded_String;
       Element_Type : constant PolyORB.Any.TypeCode.Local_Ref :=
-                                PolyORB.Any.TypeCode.To_Ref
-                                  (TypeCode.Content_Type
-                                   (Get_Unwound_Type (NV.Argument)));
+        PolyORB.Any.TypeCode.To_Ref
+          (TypeCode.Content_Type
+             (Get_Unwound_Type (NV.Argument)));
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       Append (Result, Tag (To_Standard_String (NV.Name), Start => True));
@@ -758,7 +758,7 @@ package body PolyORB.SOAP_P.Types is
 
       Result : Unbounded_String;
       Data_Type : constant PolyORB.Any.TypeCode.Object_Ptr :=
-                    Get_Unwound_Type (NV.Argument);
+        Get_Unwound_Type (NV.Argument);
       New_Line : constant String := ASCII.CR & ASCII.LF;
    begin
       pragma Debug (C, O ("XML_Record_Image: enter"));

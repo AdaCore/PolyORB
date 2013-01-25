@@ -36,29 +36,28 @@ package PolyORB.Binding_Data.DNS.MDNS is
    type MDNS_Profile_Type is new DNS_Profile_Type with private;
    type MDNS_Profile_Factory is new DNS_Profile_Factory with private;
 
-   function Create_Profile
+   overriding function Create_Profile
      (PF  : access MDNS_Profile_Factory;
-      Oid :        Objects.Object_Id)
-     return Profile_Access;
+      Oid : Objects.Object_Id) return Profile_Access;
 
-   function Duplicate_Profile
-     (P : MDNS_Profile_Type)
-     return Profile_Access;
+   overriding function Duplicate_Profile
+     (P : MDNS_Profile_Type) return Profile_Access;
 
-   function Get_Profile_Tag (Profile : MDNS_Profile_Type) return Profile_Tag;
+   overriding function Get_Profile_Tag
+     (Profile : MDNS_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
-   function Get_Profile_Preference
-     (Profile : MDNS_Profile_Type)
-     return Profile_Preference;
+   overriding function Get_Profile_Preference
+     (Profile : MDNS_Profile_Type) return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   function Is_Multicast_Profile (P : MDNS_Profile_Type) return Boolean;
+   overriding function Is_Multicast_Profile
+     (P : MDNS_Profile_Type) return Boolean;
 
-   procedure Create_Factory
+   overriding procedure Create_Factory
      (PF  : out MDNS_Profile_Factory;
-      TAP :     Transport.Transport_Access_Point_Access;
-      ORB :     Components.Component_Access);
+      TAP : Transport.Transport_Access_Point_Access;
+      ORB : Components.Component_Access);
 
 private
 

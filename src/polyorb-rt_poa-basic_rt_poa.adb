@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.Utils.Chained_Lists;
@@ -118,7 +120,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    -- Create_POA --
    ----------------
 
-   procedure Create_POA
+   overriding procedure Create_POA
      (Self         : access Basic_RT_Obj_Adapter;
       Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
@@ -148,7 +150,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    -- Export --
    ------------
 
-   procedure Export
+   overriding procedure Export
      (OA    : access Basic_RT_Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
@@ -191,7 +193,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    -- Get_Scheduling_Parameters --
    -------------------------------
 
-   procedure Get_Scheduling_Parameters
+   overriding procedure Get_Scheduling_Parameters
      (Self                     : access Basic_RT_Obj_Adapter;
       Id                       : Object_Id_Access;
       Model                    :    out Priority_Model;
@@ -254,7 +256,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    -- Create_Object_Identification_With_Priority --
    ------------------------------------------------
 
-   procedure Create_Object_Identification_With_Priority
+   overriding procedure Create_Object_Identification_With_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
       Hint                     :        Object_Id_Access;
       Server_ORB_Priority      : ORB_Priority;
@@ -309,7 +311,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    -- Activate_Object_With_Id_And_Priority --
    ------------------------------------------
 
-   procedure Activate_Object_With_Id_And_Priority
+   overriding procedure Activate_Object_With_Id_And_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
       P_Servant                :        Servants.Servant_Access;
       Hint                     :        Object_Id_Access;

@@ -298,7 +298,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
          if Unmarshall_Object_Id then
             declare
                Str : aliased constant Stream_Element_Array :=
-                       Unmarshall (Profile_Buffer);
+                 Unmarshall (Profile_Buffer);
             begin
                TResult.Object_Id := new Object_Id'(Object_Id (Str));
             end;

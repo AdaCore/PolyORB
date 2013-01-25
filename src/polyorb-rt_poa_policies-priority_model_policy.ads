@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Errors;
 with PolyORB.POA_Policies;
 with PolyORB.Servants;
@@ -55,9 +57,9 @@ package PolyORB.RT_POA_Policies.Priority_Model_Policy is
       Server_External_Priority : External_Priority)
      return Policy_Access;
 
-   function Policy_Id (Self : PriorityModelPolicy) return String;
+   overriding function Policy_Id (Self : PriorityModelPolicy) return String;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        PriorityModelPolicy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);

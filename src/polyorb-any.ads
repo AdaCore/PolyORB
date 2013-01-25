@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 --  Definition of the universal container/wrapper type 'Any'
 
@@ -170,6 +172,21 @@ package PolyORB.Any is
 
    package TypeCode is
 
+      type Object;
+
+      ------------------------------------------
+      -- Support for union member type lookup --
+      ------------------------------------------
+
+      type Union_TC_Map is limited interface;
+      type Union_TC_Map_Ptr is access all Union_TC_Map'Class;
+
+      function Label_To_Member
+        (Map   : access Union_TC_Map;
+         Label : Any_Container'Class) return Types.Long is abstract;
+      --  Return the field index corresponding to the given label, or -1 if
+      --  there is no field for this label.
+
       ----------
       -- Spec --
       ----------
@@ -178,9 +195,20 @@ package PolyORB.Any is
       pragma Preelaborable_Initialization (Local_Ref);
 
       type Object (Kind : TCKind) is
-        new Smart_Pointers.Non_Controlled_Entity
+        new Smart_Pointers.Non_Controlled_Entity and Union_TC_Map
       with record
          Parameters : Content_Ptr;
+         --  TypeCode parameters
+
+         Frozen     : Boolean := False;
+         --  When True, no parameter can be added or modified
+
+         case Kind is
+            when Tk_Union =>
+               Map : Union_TC_Map_Ptr := Object'Unchecked_Access;
+            when others =>
+               null;
+         end case;
       end record;
 
       type Object_Ptr is access all Object;
@@ -199,8 +227,17 @@ package PolyORB.Any is
       --  True if Self has not been set to designate any specific TypeCode
       --  object.
 
-      procedure Disable_Reference_Counting (Self : in out Object);
+      procedure Disable_Ref_Counting (Self : in out Object);
       --  Mark Self as not to be subjected to reference counting
+
+      procedure Freeze (Obj : Object_Ptr);
+      --  Indicate that the construction of Self is completed, and that no
+      --  further parameters will be added. Optimizations are then performed
+      --  on Self.
+
+      overriding function Label_To_Member
+        (Map   : access Object;
+         Label : Any_Container'Class) return Types.Long;
 
       Bounds       : exception;
       BadKind      : exception;
@@ -213,7 +250,9 @@ package PolyORB.Any is
       function Equal (Left, Right : Local_Ref) return Boolean;
       --  TypeCode equality
 
-      function "=" (Left, Right : Local_Ref) return Boolean renames Equal;
+      overriding function "="
+        (Left, Right : Local_Ref)
+        return Boolean renames Equal;
 
       function Equivalent (Left, Right : Object_Ptr) return Boolean;
       function Equivalent (Left, Right : Local_Ref) return Boolean;
@@ -375,7 +414,7 @@ package PolyORB.Any is
       procedure Add_Parameter (Self : Local_Ref; Param : Any);
       --  Append Param to Self's parameter list
 
-      procedure Finalize (Self : in out Object);
+      overriding procedure Finalize (Self : in out Object);
       --  Reclaim all storage associated with Self's parameters
 
       --  Standard typecode constants
@@ -398,6 +437,10 @@ package PolyORB.Any is
       function TC_Any                return Local_Ref;
       function TC_TypeCode           return Local_Ref;
 
+      --  Universal neutral object ref
+
+      function TC_RootObject         return Local_Ref;
+
       --  Unbounded string typecodes
 
       function TC_String             return Local_Ref;
@@ -405,24 +448,24 @@ package PolyORB.Any is
 
       --  Factories for complex typecodes
 
-      function TC_Principal          return Local_Ref;
-      function TC_Struct             return Local_Ref;
-      function TC_Union              return Local_Ref;
-      function TC_Enum               return Local_Ref;
-      function TC_Alias              return Local_Ref;
-      function TC_Except             return Local_Ref;
-      function TC_Object             return Local_Ref;
-      function TC_Fixed              return Local_Ref;
-      function TC_Sequence           return Local_Ref;
-      function TC_Array              return Local_Ref;
-      function TC_Value              return Local_Ref;
-      function TC_Valuebox           return Local_Ref;
-      function TC_Native             return Local_Ref;
-      function TC_Abstract_Interface return Local_Ref;
-      function TC_Local_Interface    return Local_Ref;
-      function TC_Component          return Local_Ref;
-      function TC_Home               return Local_Ref;
-      function TC_Event              return Local_Ref;
+      function TCF_Principal          return Local_Ref;
+      function TCF_Struct             return Local_Ref;
+      function TCF_Union              return Local_Ref;
+      function TCF_Enum               return Local_Ref;
+      function TCF_Alias              return Local_Ref;
+      function TCF_Except             return Local_Ref;
+      function TCF_Object             return Local_Ref;
+      function TCF_Fixed              return Local_Ref;
+      function TCF_Sequence           return Local_Ref;
+      function TCF_Array              return Local_Ref;
+      function TCF_Value              return Local_Ref;
+      function TCF_Valuebox           return Local_Ref;
+      function TCF_Native             return Local_Ref;
+      function TCF_Abstract_Interface return Local_Ref;
+      function TCF_Local_Interface    return Local_Ref;
+      function TCF_Component          return Local_Ref;
+      function TCF_Home               return Local_Ref;
+      function TCF_Event              return Local_Ref;
 
       --  Typecode objects for root types
 
@@ -443,14 +486,16 @@ package PolyORB.Any is
       PTC_Octet              : aliased Object (Tk_Octet);
       PTC_Any                : aliased Object (Tk_Any);
       PTC_TypeCode           : aliased Object (Tk_TypeCode);
+      PTC_String             : aliased Object (Tk_String);
+      PTC_Wide_String        : aliased Object (Tk_Wstring);
+      PTC_RootObject         : aliased Object (Tk_Objref);
 
       type Any_Array is array (Natural range <>) of Any;
 
       function Build_Complex_TC
         (Kind       : TCKind;
          Parameters : Any_Array) return Local_Ref;
-      --  Fill Base, a typecode with an empty parameter list as created by one
-      --  of the above factories, with the given Parameters.
+      --  Create a TypeCode with the given Kind and Parameters, then freeze it
 
       function Build_String_TC (Max : Types.Unsigned_Long) return Local_Ref;
       --  Build typcode for [bounded] strings
@@ -578,7 +623,7 @@ package PolyORB.Any is
    ---------
 
    function "=" (Left, Right : Any_Container'Class) return Boolean;
-   function "=" (Left, Right : Any) return Boolean;
+   overriding function "=" (Left, Right : Any) return Boolean;
    --  Equality on stored value
 
    function Get_Container (A : Any) return Any_Container_Ptr;
@@ -824,6 +869,9 @@ package PolyORB.Any is
    function From_Any (C : Any_Container'Class) return Standard.Wide_String;
    --  Special variant operating on both bounded and unbounded string anys
 
+   function Pos_From_Any (C : Any_Container'Class) return Types.Unsigned_Long;
+   --  For an Any of an enumration type, return the literal position
+
    function From_Any (A : Any) return Types.Short;
    function From_Any (A : Any) return Types.Long;
    function From_Any (A : Any) return Types.Long_Long;
@@ -980,23 +1028,21 @@ private
    --   - one field for the value
    --
    --  To be able to carry values of different types, the second field is a
-   --  pointer to an Content wrapper, which encapsulates a pointer to the
+   --  pointer to a Content wrapper, which encapsulates a pointer to the
    --  actual stored data. For every elementary type that can be stored in an
-   --  Any, there exsists derived type of Any_Container with appropriate
-   --  accessors.
+   --  Any, derived type of Content with appropriate accessors are provided.
    --
    --  For complex types (with several values, like structures, arrays...),
-   --  we use a special wrapper, Content_Aggregate, which has a field
-   --  pointing on a list of stored objects; various methods are provided
-   --  to manipulate this list.
+   --  we use a special wrapper, Content_Aggregate, which provides access to
+   --  indivivdula member fields.
 
    type Content is abstract tagged null record;
    type No_Content is new Content with null record;
 
-   function Clone
+   overriding function Clone
      (CC   : No_Content;
       Into : Content_Ptr := null) return Content_Ptr;
-   procedure Finalize_Value (CC : in out No_Content);
+   overriding procedure Finalize_Value (CC : in out No_Content);
    --  These operations should never be called on a No_Content value
 
    ------------------
@@ -1026,7 +1072,7 @@ private
 
       end record;
 
-   procedure Finalize (Self : in out Any_Container);
+   overriding procedure Finalize (Self : in out Any_Container);
    --  Finalize Container, deallocating associated resources if necessary
    --  (this is not Ada finalization, but the Finalize primitive of the
    --  Non_Controlled_Entity type).
@@ -1069,27 +1115,31 @@ private
 
    generic
       type T (<>) is private;
-      Kind : TCKind;
-   package Elementary_Any is
+      PTC : TypeCode.Object_Ptr;
 
+   package Elementary_Any is
       type T_Ptr is access all T;
       type T_Content is new Content with private;
 
-      function Clone
+      overriding function Clone
         (CC   : T_Content;
          Into : Content_Ptr := null) return Content_Ptr;
-      procedure Finalize_Value (CC : in out T_Content);
+      overriding procedure Finalize_Value (CC : in out T_Content);
+
+      function Unchecked_From_Any (C : Any_Container'Class) return T;
+      --  From_Any without any typecode check
 
       function From_Any (C : Any_Container'Class) return T;
       function From_Any is new From_Any_G (T, From_Any);
       pragma Inline (From_Any);
+      --  From_Any with check that C has the proper typecode kind
 
       procedure Set_Any_Value (X : T; C : in out Any_Container'Class);
       --  Note: this assumes that C has the proper typecode
 
       function Wrap (X : not null access T) return Content'Class;
 
-      function Unchecked_Get_V
+      overriding function Unchecked_Get_V
         (X : not null access T_Content) return System.Address;
       pragma Inline (Unchecked_Get_V);
 

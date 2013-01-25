@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A communication filter (a transport Data_Unit handler/forwarder).
 
 --  A protocol implementation can be considered as a stack of layers.
@@ -65,7 +67,7 @@ package PolyORB.Filters is
    type Filter is abstract new PC.Component with private;
    type Filter_Access is access all Filter'Class;
 
-   function Handle_Message
+   overriding function Handle_Message
      (F   : not null access Filter;
       Msg : Components.Message'Class) return Components.Message'Class;
    --  Implement default propagation: just transmit message to the appropriate
@@ -95,7 +97,7 @@ package PolyORB.Filters is
    --  Each filter factory implements a Create operation that instantiates
    --  the corresponding filter.
 
-   procedure Destroy (F : in out Filter);
+   overriding procedure Destroy (F : in out Filter);
 
    procedure Create_Filter_Chain
      (Factories :     Factory_Array;

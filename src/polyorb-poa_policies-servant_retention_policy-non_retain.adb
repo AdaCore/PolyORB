@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Tags;
 
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
@@ -51,7 +53,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Non_Retain_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container)
@@ -94,7 +96,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Policy_Id --
    ---------------
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Non_Retain_Policy)
      return String
    is
@@ -110,7 +112,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Retain_Servant_Association --
    --------------------------------
 
-   procedure Retain_Servant_Association
+   overriding procedure Retain_Servant_Association
      (Self      :        Non_Retain_Policy;
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;
@@ -132,7 +134,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Forget_Servant_Association --
    --------------------------------
 
-   procedure Forget_Servant_Association
+   overriding procedure Forget_Servant_Association
      (Self  :        Non_Retain_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid :        Unmarshalled_Oid;
@@ -152,7 +154,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Retained_Servant_To_Id --
    ----------------------------
 
-   function Retained_Servant_To_Id
+   overriding function Retained_Servant_To_Id
      (Self      : Non_Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servants.Servant_Access)
@@ -172,7 +174,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Retained_Id_To_Servant --
    ----------------------------
 
-   procedure Retained_Id_To_Servant
+   overriding procedure Retained_Id_To_Servant
      (Self    :        Non_Retain_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
@@ -193,7 +195,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Ensure_Servant_Manager_Type --
    ---------------------------------
 
-   procedure Ensure_Servant_Manager_Type
+   overriding procedure Ensure_Servant_Manager_Type
      (Self    :        Non_Retain_Policy;
       Manager :        ServantManager'Class;
       Error   : in out PolyORB.Errors.Error_Container)

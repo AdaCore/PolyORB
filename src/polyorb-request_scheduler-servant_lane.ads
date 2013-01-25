@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.Request_Scheduler.Servant_Lane is
 
    type Request_Scheduler_Servant_Lane is new Request_Scheduler with private;
@@ -37,7 +39,7 @@ package PolyORB.Request_Scheduler.Servant_Lane is
    type Request_Scheduler_Servant_Lane_Access is
      access all Request_Scheduler_Servant_Lane;
 
-   function Try_Queue_Request_Job
+   overriding function Try_Queue_Request_Job
      (Self   : access Request_Scheduler_Servant_Lane;
       Job    :        PolyORB.Jobs.Job_Access;
       Target :        PolyORB.References.Ref)
@@ -46,7 +48,7 @@ package PolyORB.Request_Scheduler.Servant_Lane is
    type Request_Scheduler_Servant_Lane_Factory is
      new Request_Scheduler_Factory with private;
 
-   function Create
+   overriding function Create
      (RCF : access Request_Scheduler_Servant_Lane_Factory)
      return Request_Scheduler_Access;
 

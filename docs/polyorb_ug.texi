@@ -3,6 +3,29 @@
 @c %**start of header
 
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+@c                                                                            o
+@c                          POLYORB DOCUMENTATION                             o
+@c                                                                            o
+@c                           P O L Y O R B _ U G                              o
+@c                                                                            o
+@c           Copyright (C) 2003-2013, Free Software Foundation, Inc.          o
+@c                                                                            o
+@c  GNAT is free software;  you can  redistribute it  and/or modify it under  o
+@c  terms of the  GNU General Public License as published  by the Free Soft-  o
+@c  ware  Foundation;  either version 2,  or (at your option) any later ver-  o
+@c  sion.  GNAT is distributed in the hope that it will be useful, but WITH-  o
+@c  OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY  o
+@c  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License  o
+@c  for  more details.  You should have  received  a copy of the GNU General  o
+@c  Public License  distributed with GNAT;  see file COPYING.  If not, write  o
+@c  to  the  Free Software Foundation,  51  Franklin  Street,  Fifth  Floor,  o
+@c  Boston, MA 02110-1301, USA.                                               o
+@c                                                                            o
+@c  PolyORB is maintained by AdaCore (http://www.adacore.com).                o
+@c                                                                            o
+@c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+@c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 @c
 @c                                Style Guide
 @c
@@ -62,7 +85,7 @@
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
 
-@set COPYRIGHT Copyright @copyright{} 2003-2010, Free Software Foundation
+@set COPYRIGHT Copyright @copyright{} 2003-2013, Free Software Foundation
 @set AUTHORS1 Robert Duff, J@'er@^ome Hugues, Laurent Pautet,
 @set AUTHORS2 Thomas Quinot, Samuel Tardieu
 
@@ -700,9 +723,9 @@ GNU tar is required to unpack PolyORB source packages.
 
 Ada compiler:
 @itemize @bullet
-@item GNAT Pro 6.0 or later
-@item GNAT GPL 2007 or later
-@item FSF GCC 4.3 or later
+@item GNAT Pro 6.2.* or later
+@item GNAT GPL 2009 or later
+@item FSF GCC 4.4 or later
 @end itemize
 
 For builds for cross targets, both a native and a cross compiler are
@@ -4940,8 +4963,8 @@ policies can be selected:
 @smallexample
 
 RECONNECTION_LITERAL ::= Reject_On_Restart  |
-                          Fail_Until_Restart |
-                          Block_Until_Restart
+                         Fail_Until_Restart |
+                         Block_Until_Restart
 
 REPRESENTATION_CLAUSE ::=
    @b{for} PARTITION_IDENTIFIER'Reconnection @b{use} RECONNECTION_LITERAL;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    type Transient_Policy is new LifespanPolicy with null record;
@@ -39,21 +41,21 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
    function Create
      return Transient_Policy_Access;
 
-   procedure Check_Compatibility
+   overriding procedure Check_Compatibility
      (Self           :        Transient_Policy;
       Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Errors.Error_Container);
 
-   function Policy_Id
+   overriding function Policy_Id
      (Self : Transient_Policy)
      return String;
 
-   function Get_Lifespan_Cookie
+   overriding function Get_Lifespan_Cookie
      (Self : Transient_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
      return Lifespan_Cookie;
 
-   procedure Ensure_Lifespan
+   overriding procedure Ensure_Lifespan
      (Self  :        Transient_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid :        Unmarshalled_Oid;

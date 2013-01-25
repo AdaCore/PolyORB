@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Security.Exported_Names;
 
 package PolyORB.Security.Identities.Principal_Name is
@@ -48,26 +50,26 @@ private
 
    --  Derived from Identity_Token_Type
 
-   function Get_Token_Type
+   overriding function Get_Token_Type
      (Self : access Principal_Name_Identity_Type)
       return PolyORB.Security.Types.Identity_Token_Type;
 
-   function Get_Printable_Name
+   overriding function Get_Printable_Name
      (Self : access Principal_Name_Identity_Type)
       return String;
 
-   function Duplicate
+   overriding function Duplicate
      (Self : access Principal_Name_Identity_Type)
       return Identity_Access;
 
-   procedure Release_Contents
+   overriding procedure Release_Contents
      (Self : access Principal_Name_Identity_Type);
 
-   function Encode
+   overriding function Encode
      (Self : access Principal_Name_Identity_Type)
       return Ada.Streams.Stream_Element_Array;
 
-   procedure Decode
+   overriding procedure Decode
      (Self  : access Principal_Name_Identity_Type;
       Item  :        Ada.Streams.Stream_Element_Array;
       Error : in out PolyORB.Errors.Error_Container);

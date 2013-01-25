@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides the definitions required by the IDL-to-Ada
 --  mapping specification for unbounded sequences. This package is
 --  instantiated for each IDL unbounded sequence type. This package
@@ -69,14 +71,7 @@ package PolyORB.Sequences.Unbounded is
    --  Can't be "of aliased Element" because Element may be an unconstrained
    --  mutable record type.
 
-   --  The element array below has a null index range, so no elements are
-   --  ever actually initialized, and we can safely ignore a warning about an
-   --  implicit call to Initialize (for a controlled element type) possibly
-   --  causing a Program_Error depending on elaboration order.
-
-   pragma Warnings (Off);
-   Null_Element_Array : Element_Array (1 .. 0);
-   pragma Warnings (On);
+   Null_Element_Array : constant Element_Array (1 .. 0) := (others => <>);
 
    type Element_Array_Access is access all Element_Array;
    procedure Free is
@@ -127,7 +122,7 @@ package PolyORB.Sequences.Unbounded is
       Low    : Positive;
       High   : Natural) return Element_Array;
 
-   function "="
+   overriding function "="
      (Left  : Sequence;
       Right : Sequence) return Boolean;
 
@@ -263,8 +258,8 @@ private
       Content : Element_Array_Access;
    end record;
 
-   procedure Initialize (X : in out Sequence);
-   procedure Adjust     (X : in out Sequence);
-   procedure Finalize   (X : in out Sequence);
+   overriding procedure Initialize (X : in out Sequence);
+   overriding procedure Adjust     (X : in out Sequence);
+   overriding procedure Finalize   (X : in out Sequence);
 
 end PolyORB.Sequences.Unbounded;

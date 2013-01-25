@@ -1,3 +1,10 @@
+.PHONY: all
+all: MANIFEST
+
+include ../Makefile.common
+
+srcdir=${top_srcdir}/docs
+
 info_TEXINFOS = polyorb_ug.texi polyorb_dg.texi
 man_MANS = po_names.1 idlac.1 iac.1 polyorb-config.1 polyorb.7
 
@@ -186,23 +193,8 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 %.txt : ${srcdir}/%.texi ${polyorb_ug_TEXINFOS}
 	-${MAKEINFO} -o $@ --force --no-split --plaintext --ifinfo --number-sections $<
 
-# Don't use -o $@ for PDF because it causes the doc build to be done in
-# a temporary directory, and Kpathsea doesn't know about PDF images.
 %.pdf: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_PDFFILES)
-	-${TEXI2DVI} --pdf $<
-
-# Setting the environment variable TEX to "tex" is needed on Windows,
-# to work around a problem with Cygwin.
-# Otherwise, we get an error like this:
-# ---! /var/lib/texmf/web2c/etex.fmt was written by pdfetex
-# (Fatal format file error; I'm stymied)
-# /usr/bin/texi2dvi: texinfo.tex appears to be broken, quitting.
-#See: http://www.mail-archive.com/bug-automake@gnu.org/msg00546.html
-%.dvi: ${srcdir}/%.texi ${polyorb_ug_TEXINFOS} $(FIG_EPSFILES)
-	TEX=tex \
-	TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
-	MAKEINFO='$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) -I $(srcdir)' \
-	$(TEXI2DVI) $<
+	pdftex $<
 
 #
 # Texi generation from .ads files
@@ -240,9 +232,8 @@ polyorb_ug_ref.aux: polyorb_ug_ref.tex polyorb_ug.bib
 # Local rules
 # 
 
-all-local: MANIFEST
-
-clean-local: maintainer-clean
+.PHONY: clean
+clean:
 	-@${RM} -f polyorb_ug.pdf polyorb_ug.txt polyorb_ug.info \
 		polyorb_ug_ref.aux polyorb_ug_ref.bbl polyorb_ug_ref.blg \
 		polyorb_ug_ref.dvi polyorb_ug_ref.log \
@@ -256,16 +247,16 @@ clean-local: maintainer-clean
 # the top-level Makefile with doc_build_dir pointing to the doc source
 # directory, to install pre-built documentation.
 
-install-data-local:
-	$(INSTALL) -d $(datadir)/doc/polyorb
-	$(INSTALL) -d $(datadir)/doc/polyorb/info
-	$(INSTALL) -d $(datadir)/doc/polyorb/ps
-	$(INSTALL) -d $(datadir)/doc/polyorb/pdf
-	$(INSTALL) -d $(datadir)/doc/polyorb/txt
-	$(INSTALL) -d $(datadir)/doc/polyorb/html
-	$(INSTALL) -d $(datadir)/doc/polyorb/html/polyorb_ug
+.PHONY: install
+install:
+	$(PINSTALL) -d $(datadir)/doc/polyorb
+	$(PINSTALL) -d $(datadir)/doc/polyorb/info
+	$(PINSTALL) -d $(datadir)/doc/polyorb/pdf
+	$(PINSTALL) -d $(datadir)/doc/polyorb/txt
+	$(PINSTALL) -d $(datadir)/doc/polyorb/html
+	$(PINSTALL) -d $(datadir)/doc/polyorb/html/polyorb_ug
 
-	for fmt in info ps pdf txt; \
+	for fmt in info pdf txt; \
 	do \
 		$(INSTALL_DATA) $(doc_build_dir)polyorb_ug.$$fmt $(datadir)/doc/polyorb/$$fmt/; \
 	done
@@ -273,18 +264,18 @@ install-data-local:
 	do \
 		$(INSTALL_DATA) $(doc_build_dir)$$f $(datadir)/doc/polyorb/html/polyorb_ug; \
 	done
-	$(INSTALL) -d $(datadir)/gps/plug-ins/
+	$(PINSTALL) -d $(datadir)/gps/plug-ins/
 	$(INSTALL_DATA) $(srcdir)/polyorb_gps.xml $(datadir)/gps/plug-ins/
 
-MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.ps polyorb_ug.txt \
-	polyorb_dg.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt polyorb_dg.ps
+MANIFEST: polyorb_ug.info polyorb_ug.html polyorb_ug.pdf polyorb_ug.txt \
+	polyorb_dg.info polyorb_dg.html polyorb_dg.pdf polyorb_dg.txt
 	-${RM} -f MANIFEST
 	echo polyorb_ug.info >> MANIFEST
-	echo polyorb_ug.ps >> MANIFEST
 	echo polyorb_ug.pdf >> MANIFEST
 	echo polyorb_ug.txt >> MANIFEST
 	echo polyorb_ug.html/* | tr ' ' '\012' >> MANIFEST
 
+.PHONY: release
 release: all
 	-${RM} -rf polyorb-doc
 	mkdir -p polyorb-doc/polyorb_ug.html
@@ -295,6 +286,7 @@ release: all
 	tar cvzf polyorb-doc.tar.gz polyorb-doc
 	-${RM} -rf polyorb-doc
 
+.PHONY: debug
 debug:
 	@echo "polyorb_ug_TEXINFOS=${polyorb_ug_TEXINFOS}"
 	@echo "FIG_PDFFILES=${FIG_PDFFILES}"

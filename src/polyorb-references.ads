@@ -30,14 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  References on object exported by the ORB.
+
+pragma Ada_2005;
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
-with PolyORB.Components;
+with PolyORB.Binding_Objects;
 with PolyORB.QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
@@ -100,16 +104,14 @@ package PolyORB.References is
    procedure Get_Binding_Info
      (R   :     Ref'Class;
       QoS :     PolyORB.QoS.QoS_Parameters;
-      BOC : out Components.Component_Access;
+      BO  : in out Binding_Objects.Ref;
       Pro : out Binding_Data.Profile_Access);
    --  Retrieve the binding object associated with R, if R is bound.
    --  Otherwise, return null. The caller is responsible for taking R's
    --  mutex.
 
-   procedure Enter_Mutex (R : Ref);
-   procedure Leave_Mutex (R : Ref);
-   --  Enter/release critical section associated with access to R's info
-   --  (notepad, binding info).
+   function Mutex_Of (R : Ref) return access Tasking.Mutexes.Mutex_Type'Class;
+   --  Return the mutex protecting R's critical section
 
    --------------------------------------
    -- Stream attributes for references --
@@ -192,7 +194,7 @@ private
    function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
    --  Obtain the object reference information from R.
 
-   procedure Finalize (RI : in out Reference_Info);
+   overriding procedure Finalize (RI : in out Reference_Info);
    --  When an object reference is bound (i.e. associated at runtime with a
    --  transport service endpoint and a protocol stack), it becomes associated
    --  with a Binding_Object which will remain in existence until all

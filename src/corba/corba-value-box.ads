@@ -35,6 +35,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 generic
    type Boxed is private;
    type Boxed_Access is access all Boxed;
@@ -55,7 +57,7 @@ package CORBA.Value.Box is
    function "-" (The_Boxed : Box_Ref) return Boxed_Access
      renames Contents;
 
-   procedure Release (The_Ref : in out Box_Ref);
+   overriding procedure Release (The_Ref : in out Box_Ref);
 
 private
 

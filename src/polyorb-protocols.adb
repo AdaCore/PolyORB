@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Support for object method invocation protocols.
 
 with Ada.Tags;
@@ -75,7 +77,7 @@ package body PolyORB.Protocols is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (Sess : not null access Session;
       S    : Components.Message'Class) return Components.Message'Class
    is
@@ -163,13 +165,11 @@ package body PolyORB.Protocols is
                   --  interface descriptor objet.
 
                   Args : constant Any.NVList.Ref :=
-                           Get_Empty_Arg_List (Desc,
-                                               Req.Target,
-                                               Req.Operation.all);
+                    Get_Empty_Arg_List (Desc, Req.Target, Req.Operation.all);
 
                   Reply : constant Components.Message'Class :=
-                            Components.Emit (Req.Deferred_Arguments_Session,
-                              Unmarshall_Arguments'(Args => Args));
+                    Components.Emit (Req.Deferred_Arguments_Session,
+                      Unmarshall_Arguments'(Args => Args));
 
                begin
                   pragma Assert (Reply in Unmarshalled_Arguments
@@ -193,7 +193,7 @@ package body PolyORB.Protocols is
 
                      declare
                         Error : Error_Container :=
-                                  Arguments_Error (Reply).Error;
+                          Arguments_Error (Reply).Error;
                      begin
                         Catch (Error);
                      end;

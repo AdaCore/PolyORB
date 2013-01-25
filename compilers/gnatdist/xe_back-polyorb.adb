@@ -209,7 +209,7 @@ package body XE_Back.PolyORB is
    --  the package).
 
    procedure Generate_Partition_Main_File (P : Partition_Id);
-   --  Create the main procedure for a partition: include dependencies for all
+   --  Create the main unit for a partition: include dependencies for all
    --  RCI and SP units assigned on the partition, and generate a call to
    --  Activate_RPC_Receivers (after partition elaboration is completed) and to
    --  the user-specified main procedure, if applicable.
@@ -470,7 +470,7 @@ package body XE_Back.PolyORB is
       Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
       I_Part_Dir    : String_Access;
       Comp_Args     : String_List (1 .. 9);
-      Make_Args     : String_List (1 .. 10);
+      Make_Args     : String_List (1 .. 11);
       Last          : Positive;
       Sfile         : File_Name_Type;
       Prj_Fname     : File_Name_Type;
@@ -545,26 +545,27 @@ package body XE_Back.PolyORB is
       Make_Args (4) := I_Current_Dir;
       Make_Args (5) := Bind_Only_Flag;
       Make_Args (6) := Link_Only_Flag;
-      Make_Args (7) := Output_Flag;
-      Make_Args (8) :=
+      Make_Args (7) := No_Main_Proc_Flag;
+      Make_Args (8) := Output_Flag;
+      Make_Args (9) :=
         new String'(Get_Name_String (Strip_Directory (Executable)));
 
       if Project_File_Name = null then
-         Last := 8;
+         Last := 9;
 
       else
-         Make_Args (9) := Project_File_Flag;
+         Make_Args (10) := Project_File_Flag;
          Prj_Fname := Dir (Partition_Dir, Part_Prj_File_Name);
-         Make_Args (10) := new String'(Get_Name_String (Prj_Fname));
-         Last := 10;
+         Make_Args (11) := new String'(Get_Name_String (Prj_Fname));
+         Last := 11;
       end if;
 
       Build (Sfile, Make_Args (1 .. Last), Fatal => True);
 
       Free (Make_Args (2));
-      Free (Make_Args (8));
-      if Make_Args (10) /= null then
-         Free (Make_Args (10));
+      Free (Make_Args (9));
+      if Make_Args (11) /= null then
+         Free (Make_Args (11));
       end if;
    end Generate_Executable_File;
 
@@ -844,41 +845,103 @@ package body XE_Back.PolyORB is
       Conf_Unit : Conf_Unit_Id;
       Unit      : Unit_Id;
 
-   begin
-      Filename := Partition_Main_File & ADB_Suffix_Id;
-      Filename := Dir (Current.Partition_Dir, Filename);
-      Create_File (File, Filename);
-      Set_Output  (File);
-      Write_Warnings_Pragmas;
+      procedure Start_File (Is_Body : Boolean);
+      --  Start to write source file
 
-      Write_With_Clause (RU (RU_PolyORB_ORB));
-      Write_With_Clause (RU (RU_PolyORB_Initialization));
-      Write_With_Clause (RU (RU_PolyORB_Setup));
-      Write_With_Clause (RU (RU_System_Partition_Interface));
-      Write_With_Clause (RU (RU_System_DSA_Services));
+      procedure Write_Declaration (Is_Body : Boolean);
+      --  Start package declaration or package body
+
+      procedure End_File;
+      --  Complete write of current source file
+
+      ----------------
+      -- Start_File --
+      ----------------
+
+      procedure Start_File (Is_Body : Boolean) is
+         Suffixes : constant array (Boolean) of File_Name_Type :=
+                      (False => ADS_Suffix_Id, True => ADB_Suffix_Id);
+      begin
+         Filename := Partition_Main_File & Suffixes (Is_Body);
+         Filename := Dir (Current.Partition_Dir, Filename);
+         Create_File (File, Filename);
+         Set_Output  (File);
+         Write_Warnings_Pragmas;
+      end Start_File;
+
+      -----------------------
+      -- Write_Declaration --
+      -----------------------
+
+      procedure Write_Declaration (Is_Body : Boolean) is
+      begin
+         Write_Str ("package ");
+         if Is_Body then
+            Write_Str ("body ");
+         end if;
+         Write_Name (Partition_Main_Name);
+         Write_Line (" is");
+      end Write_Declaration;
+
+      --------------
+      -- End_File --
+      --------------
+
+      procedure End_File is
+      begin
+         Write_Str  ("end ");
+         Write_Name (Partition_Main_Name);
+         Write_Line (";");
+
+         Close (File);
+         Set_Standard_Output;
+      end End_File;
+
+   --  Start of processing for Generate_Partition_Main_File
+
+   begin
+      Start_File (Is_Body => False);
+      Write_Declaration (Is_Body => False);
+      Increment_Indentation;
+      Write_Indentation;
+      Write_Line ("pragma Elaborate_Body;");
+      Decrement_Indentation;
+      End_File;
+
+      Start_File (Is_Body => True);
+
+      --  Generate WITH clauses for the PCS and all configured user units,
+      --  all with pragma Elaborate_All: the main unit must be the last
+      --  elaborated one.
+
+      Write_With_Clause (RU (RU_PolyORB_ORB),                E => True);
+      Write_With_Clause (RU (RU_PolyORB_Initialization),     E => True);
+      Write_With_Clause (RU (RU_PolyORB_Setup),              E => True);
+      Write_With_Clause (RU (RU_System_Partition_Interface), E => True);
+      Write_With_Clause (RU (RU_System_DSA_Services),        E => True);
 
       if Default_Name_Server = Multicast then
-         Write_With_Clause (RU (RU_PolyORB_DSA_P_Name_Service_mDNS));
-         Write_With_Clause (RU (RU_PolyORB_Protocols_DNS));
+         Write_With_Clause
+           (RU (RU_PolyORB_DSA_P_Name_Service_mDNS), E => True);
+         Write_With_Clause
+           (RU (RU_PolyORB_Protocols_DNS),           E => True);
       end if;
 
       --  Assign RCI or SP skels on the partition
 
       Conf_Unit := Current.First_Unit;
       while Conf_Unit /= No_Conf_Unit_Id loop
-         Write_With_Clause (Conf_Units.Table (Conf_Unit).Name);
+         Write_With_Clause (Conf_Units.Table (Conf_Unit).Name, E => True);
          Conf_Unit := Conf_Units.Table (Conf_Unit).Next_Unit;
       end loop;
 
       --  Assign the RCI or SP stubs to compare version with skels
 
       for J in Current.First_Stub .. Current.Last_Stub loop
-         Write_With_Clause (Stubs.Table (J));
+         Write_With_Clause (Stubs.Table (J), E => True);
       end loop;
 
-      Write_Str  ("procedure ");
-      Write_Name (Partition_Main_Name);
-      Write_Line (" is");
+      Write_Declaration (Is_Body => True);
       Write_Line ("begin");
       Increment_Indentation;
 
@@ -914,10 +977,9 @@ package body XE_Back.PolyORB is
       if Present (Current.Main_Subprogram) then
          Write_Call (Current.Main_Subprogram);
 
-      --  ??? We launch ORB.Run although this is only required for a
-      --  non-tasking server. Note that this can be considered as
-      --  incorrect since the env task becomes indirectly part of the
-      --  task pool.
+      --  We launch ORB.Run although this is only required for a non-tasking
+      --  server. Note that this can be considered as incorrect since the
+      --  environment task becomes indirectly part of the task pool???
 
       else
          Write_Call
@@ -927,13 +989,7 @@ package body XE_Back.PolyORB is
       end if;
 
       Decrement_Indentation;
-
-      Write_Str  ("end ");
-      Write_Name (Partition_Main_Name);
-      Write_Line (";");
-
-      Close (File);
-      Set_Standard_Output;
+      End_File;
    end Generate_Partition_Main_File;
 
    --------------------------------

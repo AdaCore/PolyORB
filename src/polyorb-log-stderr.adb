@@ -44,10 +44,14 @@ package body PolyORB.Log.Stderr is
    Enable_Timestamps   : Boolean := False;
    --  If set true, all messages are prefixed with a timestamp
 
+   Pid_Info            : Utils.Strings.String_Ptr;
+   --  If Pid display is enabled, pointer to the PID string, else pointer to
+   --  an empty string.
+
    Failed_Message      : constant String :=
-                           "polyorb.log.stderr: write failed" & ASCII.LF;
+     "polyorb.log.stderr: write failed" & ASCII.LF;
    Interrupted_Message : constant String :=
-                           "polyorb.log.stderr: write interrupted" & ASCII.LF;
+     "polyorb.log.stderr: write interrupted" & ASCII.LF;
 
    type Write_Status is (Success, Interrupted, Failed);
 
@@ -70,6 +74,10 @@ package body PolyORB.Log.Stderr is
       --  If timestamps are enabled, return a timestamp for this message,
       --  else return an empty string.
 
+      ---------------
+      -- Timestamp --
+      ---------------
+
       function Timestamp return String is
          Result : String := "0000-00-00 00:00:00  ";
          --  Note additional empty space at end of string to account for the
@@ -90,7 +98,7 @@ package body PolyORB.Log.Stderr is
          end if;
       end Timestamp;
 
-      SS : aliased constant String := Timestamp & S & ASCII.LF;
+      SS : aliased constant String := Timestamp & Pid_Info.all & S & ASCII.LF;
       X  : Write_Status;
       pragma Unreferenced (X);
 
@@ -169,6 +177,19 @@ package body PolyORB.Log.Stderr is
       end if;
 
       Enable_Timestamps := Get_Conf ("log", "timestamp", Default => False);
+      if Get_Conf ("log", "pid", Default => False) then
+         declare
+            function getpid return Integer;
+            pragma Import (C, getpid, "getpid");
+
+            Pid : constant String := getpid'Img;
+         begin
+            Pid_Info :=
+              new String'("[" & Pid (Pid'First + 1 .. Pid'Last) & "] ");
+         end;
+      else
+         Pid_Info := new String'("");
+      end if;
    end Initialize;
 
    use PolyORB.Initialization;

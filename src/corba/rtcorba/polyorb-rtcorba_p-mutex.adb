@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 package body PolyORB.RTCORBA_P.Mutex is
 
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize (Self : in out Mutex_Entity) is
+   overriding procedure Finalize (Self : in out Mutex_Entity) is
       use type PolyORB.Tasking.Mutexes.Mutex_Access;
 
    begin

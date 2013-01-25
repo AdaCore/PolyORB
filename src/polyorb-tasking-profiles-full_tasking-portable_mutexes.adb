@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of mutexes under the Full_Tasking profile.
 --  This is a variant that uses only standard Ada constructs. It is not
 --  used by default.
@@ -86,7 +88,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (MF   : access Full_Tasking_Mutex_Factory_Type;
       Name : String := "")
       return PTM.Mutex_Access
@@ -110,7 +112,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
    -- Destroy --
    -------------
 
-   procedure Destroy
+   overriding procedure Destroy
      (MF : access Full_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access)
    is
@@ -128,7 +130,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
    -- Enter --
    -----------
 
-   procedure Enter (M : access Full_Tasking_Mutex_Type) is
+   overriding procedure Enter (M : access Full_Tasking_Mutex_Type) is
    begin
       M.The_PO.Enter;
    end Enter;
@@ -137,7 +139,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
    -- Leave --
    -----------
 
-   procedure Leave (M : access Full_Tasking_Mutex_Type) is
+   overriding procedure Leave (M : access Full_Tasking_Mutex_Type) is
    begin
       M.The_PO.Leave;
    end Leave;

@@ -30,29 +30,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
+with PolyORB.Tasking.Mutexes;
 
 package body PolyORB.Binding_Object_QoS is
+
+   use Tasking.Mutexes;
 
    type Binding_Object_QoS_Note is new Annotations.Note with record
       QoS : PolyORB.QoS.QoS_Parameters;
    end record;
 
-   procedure Destroy (N : in out Binding_Object_QoS_Note);
+   overriding procedure Destroy (N : in out Binding_Object_QoS_Note);
 
-   Empty_Binding_Object_QoS_Note : constant Binding_Object_QoS_Note
-     := (Annotations.Note with QoS => (others => null));
+   Empty_Binding_Object_QoS_Note : constant Binding_Object_QoS_Note :=
+     (Annotations.Note with QoS => (others => null));
 
-   Registry : array (PolyORB.QoS.QoS_Kind) of QoS_Compatibility_Check_Proc;
+   Registry : array (QoS.QoS_Kind) of QoS_Compatibility_Check_Proc;
 
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy (N : in out Binding_Object_QoS_Note) is
+   overriding procedure Destroy (N : in out Binding_Object_QoS_Note) is
    begin
-      for J in PolyORB.QoS.QoS_Kind loop
-         PolyORB.QoS.Release (N.QoS (J));
+      for J in QoS.QoS_Kind loop
+         QoS.Release (N.QoS (J));
       end loop;
    end Destroy;
 
@@ -61,15 +66,16 @@ package body PolyORB.Binding_Object_QoS is
    ----------------------------
 
    function Get_Binding_Object_QoS
-     (BO  : access PolyORB.Binding_Objects.Binding_Object'Class)
-      return PolyORB.QoS.QoS_Parameters
+     (BO  : access Binding_Objects.Binding_Object'Class)
+      return QoS.QoS_Parameters
    is
       Note : Binding_Object_QoS_Note;
-
+      SL   : Scope_Lock (Binding_Objects.Mutex_Of (BO));
+      pragma Unreferenced (SL);
    begin
-      PolyORB.Annotations.Get_Note
-        (PolyORB.Binding_Objects.Notepad_Of
-         (PolyORB.Binding_Objects.Binding_Object_Access (BO)).all,
+      Annotations.Get_Note
+        (Binding_Objects.Notepad_Of
+         (Binding_Objects.Binding_Object_Access (BO)).all,
          Note,
          Empty_Binding_Object_QoS_Note);
 
@@ -81,11 +87,11 @@ package body PolyORB.Binding_Object_QoS is
    -------------------
 
    function Is_Compatible
-     (BO  : access PolyORB.Binding_Objects.Binding_Object'Class;
+     (BO  : access Binding_Objects.Binding_Object'Class;
       QoS : PolyORB.QoS.QoS_Parameters) return Boolean
    is
-      BO_QoS : constant PolyORB.QoS.QoS_Parameters
-        := Get_Binding_Object_QoS (BO);
+      BO_QoS : constant PolyORB.QoS.QoS_Parameters :=
+        Get_Binding_Object_QoS (BO);
 
    begin
       for J in PolyORB.QoS.QoS_Kind loop
@@ -104,7 +110,7 @@ package body PolyORB.Binding_Object_QoS is
    --------------
 
    procedure Register
-     (Kind : PolyORB.QoS.QoS_Kind;
+     (Kind : QoS.QoS_Kind;
       Proc : QoS_Compatibility_Check_Proc)
    is
    begin
@@ -116,39 +122,38 @@ package body PolyORB.Binding_Object_QoS is
    ----------------------------
 
    procedure Set_Binding_Object_QoS
-     (BO  : access PolyORB.Binding_Objects.Binding_Object'Class;
+     (BO  : access Binding_Objects.Binding_Object'Class;
       QoS :        PolyORB.QoS.QoS_Parameters)
    is
-      Note : Binding_Object_QoS_Note;
-
+      SL : Scope_Lock (Binding_Objects.Mutex_Of (BO));
+      pragma Unreferenced (SL);
    begin
-      Note.QoS := QoS;
-      PolyORB.Annotations.Set_Note
-        (PolyORB.Binding_Objects.Notepad_Of
-         (PolyORB.Binding_Objects.Binding_Object_Access (BO)).all,
-         Note);
+      Annotations.Set_Note
+        (Binding_Objects.Notepad_Of
+           (Binding_Objects.Binding_Object_Access (BO)).all,
+         Binding_Object_QoS_Note'(Annotations.Note with QoS => QoS));
    end Set_Binding_Object_QoS;
 
    procedure Set_Binding_Object_QoS
-     (BO   : access PolyORB.Binding_Objects.Binding_Object'Class;
+     (BO   : access Binding_Objects.Binding_Object'Class;
       Kind :        PolyORB.QoS.QoS_Kind;
       QoS  :        PolyORB.QoS.QoS_Parameter_Access)
    is
       Note : Binding_Object_QoS_Note;
-
+      SL   : Scope_Lock (Binding_Objects.Mutex_Of (BO));
+      pragma Unreferenced (SL);
    begin
-      PolyORB.Annotations.Get_Note
-        (PolyORB.Binding_Objects.Notepad_Of
-         (PolyORB.Binding_Objects.Binding_Object_Access (BO)).all,
-         Note,
-         Empty_Binding_Object_QoS_Note);
+      Annotations.Get_Note
+        (Binding_Objects.Notepad_Of
+          (Binding_Objects.Binding_Object_Access (BO)).all,
+          Note,
+          Empty_Binding_Object_QoS_Note);
 
       Note.QoS (Kind) := QoS;
 
-      PolyORB.Annotations.Set_Note
-        (PolyORB.Binding_Objects.Notepad_Of
-         (PolyORB.Binding_Objects.Binding_Object_Access (BO)).all,
-         Note);
+      Annotations.Set_Note
+        (Binding_Objects.Notepad_Of
+          (Binding_Objects.Binding_Object_Access (BO)).all, Note);
    end Set_Binding_Object_QoS;
 
 end PolyORB.Binding_Object_QoS;

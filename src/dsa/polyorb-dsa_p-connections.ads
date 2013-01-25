@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   P O L Y O R B . C O R B A _ P . I N I T I A L _ R E F E R E N C E S    --
+--            P O L Y O R B . D S A _ P . C O N N E C T I O N S             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2011-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,38 +30,45 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Support package for CORBA initial references.
+--  Connections management
 
-with CORBA.Object;
+pragma Ada_2005;
 
-with PolyORB.Utils.Strings.Lists;
+package PolyORB.DSA_P.Connections is
 
-package PolyORB.CORBA_P.Initial_References is
+   generic
+      type Object is abstract tagged limited private;
+      type RACW is access all Object'Class;
+      pragma Remote_Access_Type (RACW);
+      --  Must be a remote access to class-wide type
 
-   type Create_Ptr is access function return CORBA.Object.Ref;
-   --  Allocator type
+   package Connection_Manager is
+      function Is_Remote (X : RACW) return Boolean;
+      --  True if X designates a remote object
 
-   procedure Register_Initial_Reference
-     (Id        : Standard.String;
-      Allocator : Create_Ptr);
-   --  Register (Id, Allocator) tuple
+      function Is_Connected (X : RACW) return Boolean;
+      --  True if a valid connection to the partition of X is open (or X
+      --  X designates a local object).
 
-   procedure Register_Initial_Reference
-     (Id  : Standard.String;
-      Ref : CORBA.Object.Ref);
-   --  Register (Id, Ref) tuple
+      procedure Disconnect (X : RACW);
+      --  Forcibly close connection to the partition of X.
+      --  Note that this connection is usually shared between all RACWs for
+      --  objects on the same partition.
 
-   function Resolve_Initial_References
-     (Id : Standard.String)
-     return CORBA.Object.Ref;
-   --  Return a valid reference to an object if Id has been previously
-   --  registred.
-   --  If Id has been registred with a CORBA.Object.Ref, then returns it.
-   --  If Id has been registred with an allocator, use this allocator
-   --  to create a reference.
+      procedure On_Disconnect
+        (X        : RACW;
+         Callback : access procedure (X : RACW));
+      --  Call Callback (X) when connection to partition of X is closed
 
-   function List_Initial_Services
-     return PolyORB.Utils.Strings.Lists.List;
-   --  List all registered references.
+      procedure Unchecked_Forget (X : in out RACW);
+      --  Mark X as now unused by the application, causing associated stub
+      --  resources (if any) to be deallocated. Note that it is erroneous to
+      --  call this subprogram if the partition still holds other RACWs
+      --  designating the same object.
+      --  And what about the case where X designates a local object???
 
-end PolyORB.CORBA_P.Initial_References;
+   private
+      subtype Stub_Type is RACW'Stub_Type;
+   end Connection_Manager;
+
+end PolyORB.DSA_P.Connections;

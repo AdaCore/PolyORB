@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package provides glue codee between PolyORB's
 --  ServantActivator and CORBA specific ServantActivator.
 
@@ -54,14 +56,14 @@ package PolyORB.CORBA_P.ServantActivator is
      (Self : CORBA_ServantActivator)
      return PortableServer.ServantActivator.Local_Ref'Class;
 
-   procedure Incarnate
+   overriding procedure Incarnate
      (Self    : access CORBA_ServantActivator;
       Oid     :        PPT.Object_Id;
       Adapter : access PPT.Obj_Adapter'Class;
       Returns :    out PolyORB.Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Etherealize
+   overriding procedure Etherealize
      (Self                  : access CORBA_ServantActivator;
       Oid                   :        PPT.Object_Id;
       Adapter               : access PPT.Obj_Adapter'Class;

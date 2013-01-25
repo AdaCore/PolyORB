@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Code sets converters
 
 --  Each code set converter process conversion between native code set and
@@ -199,25 +201,25 @@ private
 
    type ISO88591_Native_Converter is new Converter with null record;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Char;
       Error  : in out Errors.Error_Container);
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.String;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_Native_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
@@ -225,25 +227,25 @@ private
 
    type ISO88591_UTF8_Converter is new Converter with null record;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Char;
       Error  : in out Errors.Error_Container);
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.String;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Char;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : ISO88591_UTF8_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.String;
@@ -251,25 +253,25 @@ private
 
    type UCS2_Native_Wide_Converter is new Wide_Converter with null record;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wchar;
       Error  : in out Errors.Error_Container);
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wide_String;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_Native_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;
@@ -277,25 +279,25 @@ private
 
    type UCS2_UTF16_Wide_Converter is new Wide_Converter with null record;
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wchar;
       Error  : in out Errors.Error_Container);
 
-   procedure Marshall
+   overriding procedure Marshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   : Types.Wide_String;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wchar;
       Error  : in out Errors.Error_Container);
 
-   procedure Unmarshall
+   overriding procedure Unmarshall
      (C      : UCS2_UTF16_Wide_Converter;
       Buffer : access Buffers.Buffer_Type;
       Data   :    out Types.Wide_String;

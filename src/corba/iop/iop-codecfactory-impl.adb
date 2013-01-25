@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,8 +31,9 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Impl;
-with PolyORB.CORBA_P.Initial_References;
+with PolyORB.Initial_References;
 with PolyORB.Initialization;
+with PolyORB.References;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
 with PolyORB.Utils.Strings.Lists;
@@ -44,7 +45,7 @@ package body IOP.CodecFactory.Impl is
 
    use PolyORB.Representations.CDR;
 
-   function Create return CORBA.Object.Ref;
+   function Create return PolyORB.References.Ref;
 
    procedure Deferred_Initialization;
 
@@ -52,14 +53,11 @@ package body IOP.CodecFactory.Impl is
    -- Create --
    ------------
 
-   function Create return CORBA.Object.Ref is
-      Result  : Local_Ref;
-      Current : constant CORBA.Impl.Object_Ptr := new Object;
-
+   function Create return PolyORB.References.Ref is
+      Result  : PolyORB.References.Ref;
    begin
-      Set (Result, Current);
-
-      return CORBA.Object.Ref (Result);
+      Result.Set (new Object);
+      return Result;
    end Create;
 
    ------------------
@@ -105,7 +103,7 @@ package body IOP.CodecFactory.Impl is
 
    procedure Deferred_Initialization is
    begin
-      PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
+      PolyORB.Initial_References.Register_Initial_Reference
         ("CodecFactory", Create'Access);
    end Deferred_Initialization;
 
@@ -137,7 +135,7 @@ begin
         (Module_Info'
          (Name      => +"ior.codecfactory.impl",
           Conflicts => Empty,
-          Depends   => +"corba.initial_references",
+          Depends   => +"initial_references",
           Provides  => Empty,
           Implicit  => False,
           Init      => Deferred_Initialization'Access,

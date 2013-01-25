@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Any conversion subprograms for sequences (both bounded and unbounded)
 
 with Ada.Unchecked_Deallocation;
@@ -48,7 +50,7 @@ package body PolyORB.Sequences.Helper is
    -- Clone --
    -----------
 
-   function Clone
+   overriding function Clone
      (ACC  : Sequence_Content;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
@@ -73,7 +75,7 @@ package body PolyORB.Sequences.Helper is
    -- Finalize_Value --
    --------------------
 
-   procedure Finalize_Value
+   overriding procedure Finalize_Value
      (ACC : in out Sequence_Content)
    is
       procedure Free is new Ada.Unchecked_Deallocation
@@ -91,7 +93,7 @@ package body PolyORB.Sequences.Helper is
       pragma Suppress (Discriminant_Check);
 
       Len : constant Integer :=
-              Integer (Types.Unsigned_Long'(Get_Aggregate_Element (Item, 0)));
+        Integer (Types.Unsigned_Long'(Get_Aggregate_Element (Item, 0)));
 
       Result : aliased Sequence := New_Sequence (Len);
 
@@ -110,7 +112,7 @@ package body PolyORB.Sequences.Helper is
    -- Get_Aggregate_Count --
    -------------------------
 
-   function Get_Aggregate_Count
+   overriding function Get_Aggregate_Count
      (ACC : Sequence_Content) return PolyORB.Types.Unsigned_Long is
    begin
       return PolyORB.Types.Unsigned_Long
@@ -121,7 +123,7 @@ package body PolyORB.Sequences.Helper is
    -- Get_Aggregate_Element --
    ---------------------------
 
-   function Get_Aggregate_Element
+   overriding function Get_Aggregate_Element
      (ACC   : not null access Sequence_Content;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
@@ -158,7 +160,7 @@ package body PolyORB.Sequences.Helper is
    -- Set_Aggregate_Count --
    -------------------------
 
-   procedure Set_Aggregate_Count
+   overriding procedure Set_Aggregate_Count
      (ACC   : in out Sequence_Content;
       Count : PolyORB.Types.Unsigned_Long) is
    begin
@@ -169,7 +171,7 @@ package body PolyORB.Sequences.Helper is
    -- Set_Aggregate_Element --
    ---------------------------
 
-   procedure Set_Aggregate_Element
+   overriding procedure Set_Aggregate_Element
      (ACC    : in out Sequence_Content;
       TC     : TypeCode.Object_Ptr;
       Index  : Types.Unsigned_Long;
@@ -213,7 +215,7 @@ package body PolyORB.Sequences.Helper is
    -- Unchecked_Get_V --
    ---------------------
 
-   function Unchecked_Get_V
+   overriding function Unchecked_Get_V
      (ACC : not null access Sequence_Content) return System.Address
    is
    begin

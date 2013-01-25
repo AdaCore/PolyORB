@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
@@ -62,7 +64,10 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
    -- Duplicate --
    ---------------
 
-   function Duplicate (C : TC_Policies) return Tagged_Component_Access is
+   overriding function Duplicate
+     (C : TC_Policies)
+     return Tagged_Component_Access
+   is
       Result : constant Tagged_Component_Access := new TC_Policies;
       Iter : Policy_Value_Seq.Iterator := Policy_Value_Seq.First (C.Policies);
 
@@ -123,7 +128,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C : access TC_Policies;
       Buffer : access Buffer_Type)
    is
@@ -158,7 +163,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Policies;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)
@@ -200,7 +205,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (C : access TC_Policies) is
+   overriding procedure Release_Contents (C : access TC_Policies) is
       procedure Free is
          new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
 

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Generic chained list
 
 package body PolyORB.Utils.Strings.Lists is
@@ -38,7 +40,7 @@ package body PolyORB.Utils.Strings.Lists is
    -- Empty --
    -----------
 
-   function Empty return List is
+   overriding function Empty return List is
       Empty_List : List;
    begin
       return Empty_List;
@@ -102,7 +104,7 @@ package body PolyORB.Utils.Strings.Lists is
    -- Deallocate --
    ----------------
 
-   procedure Deallocate (L : in out List) is
+   overriding procedure Deallocate (L : in out List) is
       I : Iterator := First (L);
    begin
       while not Last (I) loop

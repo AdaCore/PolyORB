@@ -99,7 +99,7 @@ package body RTCORBA.RTORB.Helper is
    function To_Any
      (Item : RTCORBA.RTORB.InvalidThreadpool_Members) return CORBA.Any is
       Result : constant CORBA.Any :=
-         CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidThreadpool);
+        CORBA.Internals.Get_Empty_Any_Aggregate (TC_InvalidThreadpool);
       pragma Warnings (Off);
       pragma Unreferenced (Item);
       pragma Warnings (On);
@@ -141,7 +141,7 @@ package body RTCORBA.RTORB.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/RTORB:1.0");
       begin
          TC_RTORB :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Object);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Object);
          CORBA.Internals.Add_Parameter (TC_RTORB, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_RTORB, CORBA.To_Any (Id));
       end;
@@ -151,7 +151,7 @@ package body RTCORBA.RTORB.Helper is
          Id : constant CORBA.String := CORBA.To_CORBA_String ("IDL:omg.org/RTCORBA/RTORB/InvalidThreadpool:1.0");
       begin
          TC_InvalidThreadpool :=
-           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Except);
+           CORBA.TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Except);
          CORBA.Internals.Add_Parameter (TC_InvalidThreadpool, CORBA.To_Any (Name));
          CORBA.Internals.Add_Parameter (TC_InvalidThreadpool, CORBA.To_Any (Id));
       end;

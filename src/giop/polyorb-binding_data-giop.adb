@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Objects;
 
 package body PolyORB.Binding_Data.GIOP is
@@ -45,7 +47,7 @@ package body PolyORB.Binding_Data.GIOP is
    -- Bind_Profile --
    ------------------
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
       The_ORB : Components.Component_Access;
       QoS     : PolyORB.QoS.QoS_Parameters;
@@ -113,7 +115,7 @@ package body PolyORB.Binding_Data.GIOP is
    -- Is_Colocated --
    ------------------
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : GIOP_Profile_Type;
       Right : Profile_Type'Class) return Boolean
    is
@@ -137,24 +139,23 @@ package body PolyORB.Binding_Data.GIOP is
    -- Is_Local_Profile --
    ----------------------
 
-   function Is_Local_Profile
+   overriding function Is_Local_Profile
      (PF : access GIOP_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean
+      P  : not null access Profile_Type'Class) return Boolean
    is
       use Transport_Mechanism_Lists;
       use Transport_Mechanism_Factory_Lists;
 
-      F_Iter : Transport_Mechanism_Factory_Lists.Iterator
-        := First (PF.Mechanisms);
+      F_Iter : Transport_Mechanism_Factory_Lists.Iterator :=
+        First (PF.Mechanisms);
 
    begin
       if P.all not in GIOP_Profile_Type'Class then
          return False;
       end if;
 
-      --  Profile designates a local object if at least one of its
-      --  transport mechanism is local.
+      --  Profile designates a local object if at least one of its transport
+      --  mechanisms is local.
 
       while not Last (F_Iter) loop
          declare
@@ -222,7 +223,7 @@ package body PolyORB.Binding_Data.GIOP is
    -- Release --
    -------------
 
-   procedure Release (P : in out GIOP_Profile_Type) is
+   overriding procedure Release (P : in out GIOP_Profile_Type) is
    begin
       Free (P.Object_Id);
       PolyORB.Annotations.Destroy (P.Notepad);

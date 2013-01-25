@@ -474,7 +474,8 @@ package body PolyORB.Termination_Manager is
       Thread_Acc := Run_In_Task
         (TF               => Get_Thread_Factory,
          Default_Priority => System.Any_Priority'First,
-         P                => Termination_Loop'Access);
+         P                => Termination_Loop'Access,
+         Name             => "Termination_Loop");
 
       pragma Assert (Thread_Acc /= null);
    end Start;

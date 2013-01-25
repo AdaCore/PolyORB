@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Utils.Strings;
@@ -66,7 +68,10 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
    -- Duplicate --
    ---------------
 
-   function Duplicate (C : TC_Code_Sets) return Tagged_Component_Access is
+   overriding function Duplicate
+     (C : TC_Code_Sets)
+     return Tagged_Component_Access
+   is
       Result : constant Tagged_Component_Access := new TC_Code_Sets;
 
    begin
@@ -105,7 +110,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents (C : access TC_Code_Sets) is
+   overriding procedure Release_Contents (C : access TC_Code_Sets) is
    begin
       Deallocate (C.For_Char_Data.Conversion_Code_Sets);
       Deallocate (C.For_Wchar_Data.Conversion_Code_Sets);
@@ -142,7 +147,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_Code_Sets;
       Buffer : access Buffer_Type)
    is
@@ -189,7 +194,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Code_Sets is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_Code_Sets;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)

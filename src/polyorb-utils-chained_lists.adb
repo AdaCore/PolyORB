@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Generic chained list
 
 with Ada.Unchecked_Deallocation;
@@ -155,7 +157,7 @@ package body PolyORB.Utils.Chained_Lists is
    -- Is_Empty --
    --------------
 
-   function Is_Empty (L : List) return Boolean is
+   overriding function Is_Empty (L : List) return Boolean is
    begin
       return Node_Lists.Is_Empty (Node_Lists.List (L));
    end Is_Empty;
@@ -173,7 +175,7 @@ package body PolyORB.Utils.Chained_Lists is
    -- Last --
    ----------
 
-   function Last (I : Iterator) return Boolean is
+   overriding function Last (I : Iterator) return Boolean is
    begin
       return Node_Lists.Last (Node_Lists.Iterator (I));
    end Last;
@@ -182,7 +184,7 @@ package body PolyORB.Utils.Chained_Lists is
    -- Length --
    ------------
 
-   function Length (L : List) return Natural is
+   overriding function Length (L : List) return Natural is
    begin
       return Node_Lists.Length (Node_Lists.List (L));
    end Length;
@@ -203,7 +205,7 @@ package body PolyORB.Utils.Chained_Lists is
    -- Next --
    ----------
 
-   procedure Next (I : in out Iterator) is
+   overriding procedure Next (I : in out Iterator) is
    begin
       Node_Lists.Next (Node_Lists.Iterator (I));
    end Next;

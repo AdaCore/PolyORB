@@ -237,7 +237,7 @@ package body AWS.Containers.Tables.Set is
             begin
                Free (Table.Data.Table (Index));
                Table.Data.Table (Index) :=
-                  new Element'
+                 new Element'
                        (Name_Length  => Name'Length,
                         Value_Length => Value'Length,
                         Name         => Name,

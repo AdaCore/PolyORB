@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 
 package body PolyORB.Asynch_Ev.Sockets.SSL is
@@ -52,7 +54,10 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
    -- AEM_Factory_Of --
    --------------------
 
-   function AEM_Factory_Of (AES : SSL_Event_Source) return AEM_Factory is
+   overriding function AEM_Factory_Of
+     (AES : SSL_Event_Source)
+     return AEM_Factory
+   is
       pragma Unreferenced (AES);
 
    begin
@@ -101,7 +106,7 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
    -- Register_Source --
    ---------------------
 
-   function Register_Source
+   overriding function Register_Source
      (AEM     : access SSL_Event_Monitor;
       AES     : Asynch_Ev_Source_Access) return Register_Source_Result
    is
@@ -127,7 +132,7 @@ package body PolyORB.Asynch_Ev.Sockets.SSL is
    -- Check_Sources --
    -------------------
 
-   function Check_Sources
+   overriding function Check_Sources
      (AEM     : access SSL_Event_Monitor;
       Timeout :        Duration)
      return AES_Array

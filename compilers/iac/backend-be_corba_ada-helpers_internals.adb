@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1359,12 +1359,14 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                begin
                   Spec := Wrap_Node (BE_Node (Identifier (E)));
 
-                  --  The first component
-
-                  N := Make_Type_Conversion
+                  N := Make_Qualified_Expression
                     (Subtype_Mark => Make_Identifier
                        (Map_Pointer_Type_Name (E)),
-                     Expression   => Make_Identifier (PN (P_X)));
+                     Operand      =>
+                       Make_Attribute_Reference
+                         (Make_Explicit_Dereference
+                            (Make_Identifier (PN (P_X))),
+                          A_Unchecked_Access));
                   N := Make_Component_Association
                     (Make_Defining_Identifier (CN (C_V)), N);
                   Append_To (Aggr_List, N);
@@ -2984,39 +2986,39 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                when K_Enumeration_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Enum)));
+                     New_List (RE (RE_TCF_Enum)));
 
                when
                  K_Forward_Interface_Declaration |
                  K_Interface_Declaration         =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Object_1)));
+                     New_List (RE (RE_TCF_Object)));
 
                when K_Fixed_Point_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Fixed)));
+                     New_List (RE (RE_TCF_Fixed)));
 
                when K_Complex_Declarator =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Array)));
+                     New_List (RE (RE_TCF_Array)));
 
                when K_Structure_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Struct)));
+                     New_List (RE (RE_TCF_Struct)));
 
                when K_Union_Type =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Union)));
+                     New_List (RE (RE_TCF_Union)));
 
                when K_Exception_Declaration =>
                   Expr := Make_Subprogram_Call
                     (RE (RE_To_CORBA_Object),
-                     New_List (RE (RE_TC_Except)));
+                     New_List (RE (RE_TCF_Except)));
 
                when K_Simple_Declarator =>
                   --  Ensure the original type specifier if E is
@@ -3217,7 +3219,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                           (Make_Defining_Identifier (TC_Name),
                            Make_Subprogram_Call
                            (RE (RE_To_CORBA_Object),
-                            New_List (RE (RE_TC_Array))));
+                            New_List (RE (RE_TCF_Array))));
                         Append_To (Statements, N);
 
                         --  For multi-dimensional arrays, we fill each
@@ -3316,7 +3318,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   --  variable.
 
                   N := Make_Subprogram_Call
-                    (RE (RE_Disable_Reference_Counting),
+                    (RE (RE_Disable_Ref_Counting),
                      New_List (Get_TC_Node (E)));
                   Append_To (Statements, N);
 
@@ -3808,15 +3810,22 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          end case;
 
          --  Disable reference counting on the TypeCode variable for
-         --  types who are different from sequences. For sequences,
-         --  this has been done earlier.
+         --  types other than sequences (for sequences this has been
+         --  done earlier) (where???)
 
          if FEN.Kind (E) /= K_Sequence_Type then
-            N := Make_Subprogram_Call
-              (RE (RE_Disable_Reference_Counting),
-               New_List (Get_TC_Node (E)));
-            Append_To (Statements, N);
+            Append_To (Statements,
+              Make_Subprogram_Call
+                (RE (RE_Disable_Ref_Counting),
+                 New_List (Get_TC_Node (E))));
          end if;
+
+         --  Mark typecode construction as completed. The typecode can
+         --  now be optimized.
+
+         Append_To (Statements,
+           Make_Subprogram_Call
+             (RE (RE_Freeze), New_List (Get_TC_Node (E))));
       end Initialize_Routine;
 
       -----------------------------

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   P O L Y O R B . C O R B A _ P . I N I T I A L _ R E F E R E N C E S    --
+--           P O L Y O R B . I N I T I A L _ R E F E R E N C E S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,7 +36,7 @@ with PolyORB.Log;
 with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
 
-package body PolyORB.CORBA_P.Initial_References is
+package body PolyORB.Initial_References is
 
    use PolyORB.Log;
 
@@ -55,7 +55,7 @@ package body PolyORB.CORBA_P.Initial_References is
    --  information.
 
    package Referenced_Objects_HTables is new PolyORB.Utils.HTables.Perfect
-     (CORBA.Object.Ref,
+     (PolyORB.References.Ref,
       PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
       PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
       PolyORB.Utils.HFunctions.Hyper.Hash,
@@ -80,7 +80,7 @@ package body PolyORB.CORBA_P.Initial_References is
 
    procedure Register_Initial_Reference
      (Id  : Standard.String;
-      Ref : CORBA.Object.Ref) is
+      Ref : PolyORB.References.Ref) is
    begin
       pragma Debug (C, O ("Register_Initial_Reference: id " & Id));
 
@@ -104,9 +104,9 @@ package body PolyORB.CORBA_P.Initial_References is
 
    function Resolve_Initial_References
      (Id : Standard.String)
-     return CORBA.Object.Ref
+     return PolyORB.References.Ref
    is
-      Nil_Ref : CORBA.Object.Ref;
+      Nil_Ref : PolyORB.References.Ref;
 
    begin
       pragma Debug (C, O ("Resolve_Initial_Reference: id " & Id));
@@ -116,12 +116,12 @@ package body PolyORB.CORBA_P.Initial_References is
       declare
          use Referenced_Objects_HTables;
 
-         Result : CORBA.Object.Ref;
+         Result : PolyORB.References.Ref;
 
       begin
          Result := Lookup (Referenced_Objects, Id, Nil_Ref);
 
-         if not CORBA.Object.Is_Nil (Result) then
+         if not PolyORB.References.Is_Nil (Result) then
             return Result;
          end if;
       end;
@@ -198,12 +198,10 @@ package body PolyORB.CORBA_P.Initial_References is
 
    procedure Initialize is
    begin
-
       --  Initialize hash tables
 
       Referenced_Objects_HTables.Initialize (Referenced_Objects);
       Referenced_Allocators_HTables.Initialize (Referenced_Allocators);
-
    end Initialize;
 
    use PolyORB.Initialization;
@@ -213,11 +211,11 @@ package body PolyORB.CORBA_P.Initial_References is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"polyorb.corba_p.initial_references",
+      (Name      => +"initial_references",
        Conflicts => Empty,
        Depends   => +"references?",
-       Provides  => +"corba.initial_references",
+       Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,
        Shutdown  => null));
-end PolyORB.CORBA_P.Initial_References;
+end PolyORB.Initial_References;

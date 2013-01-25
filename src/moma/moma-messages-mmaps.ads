@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MMap message type.
 --
 --  A MMap message contains a sequence of named value, similar to a bag
@@ -44,7 +46,7 @@ package MOMA.Messages.MMaps is
    function Create_Map_Message return Messages.MMaps.MMap;
    --  Create a MMap message.
 
-   function Image (Self : MMap) return String;
+   overriding function Image (Self : MMap) return String;
    --  Image function for MMap type.
 
    --  Accessors to MMap payload.

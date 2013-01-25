@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
@@ -50,7 +52,7 @@ package body PolyORB.Parameters.Environment is
 
    type Env_Source is new Parameters_Source with null record;
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access Env_Source;
       Section, Key : String) return String;
 
@@ -60,7 +62,7 @@ package body PolyORB.Parameters.Environment is
    -- Get_Conf --
    --------------
 
-   function Get_Conf
+   overriding function Get_Conf
      (Source       : access Env_Source;
       Section, Key : String) return String
    is

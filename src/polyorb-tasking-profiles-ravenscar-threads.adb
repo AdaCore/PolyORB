@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Implementation of Threads under the Ravenscar profile.
 
 --  WAG:601
@@ -374,7 +376,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Get_Current_Thread_Id --
    ---------------------------
 
-   function Get_Current_Thread_Id
+   overriding function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
      return Thread_Id
    is
@@ -390,7 +392,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Thread_Id_Image --
    ---------------------
 
-   function Thread_Id_Image
+   overriding function Thread_Id_Image
      (TF  : access Ravenscar_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String
@@ -414,7 +416,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Get_Thread_Id --
    -------------------
 
-   function Get_Thread_Id
+   overriding function Get_Thread_Id
      (T : access Ravenscar_Thread_Type)
       return Thread_Id is
    begin
@@ -425,7 +427,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Set_Priority --
    ------------------
 
-   procedure Set_Priority
+   overriding procedure Set_Priority
      (TF : access Ravenscar_Thread_Factory_Type;
       T  :        PTT.Thread_Id;
       P  :        System.Any_Priority)
@@ -443,7 +445,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Get_Priority --
    ------------------
 
-   function Get_Priority
+   overriding function Get_Priority
      (TF : access Ravenscar_Thread_Factory_Type;
       T  :        PTT.Thread_Id)
      return System.Any_Priority
@@ -651,9 +653,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  XXX TOO MUCH CODE DUPLICATION!
    --  Should be a simple call to the Runnable version!
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       P                : Parameterless_Procedure)
@@ -696,9 +698,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       end;
    end Run_In_Task;
 
-   function Run_In_Task
+   overriding function Run_In_Task
      (TF               : access Ravenscar_Thread_Factory_Type;
-      Name             : String := "";
+      Name             : String;
       Default_Priority : System.Any_Priority := System.Default_Priority;
       Storage_Size     : Natural := 0;
       R                : Runnable_Access) return Thread_Access
@@ -798,7 +800,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Relative_Delay --
    --------------------
 
-   procedure Relative_Delay
+   overriding procedure Relative_Delay
      (TF : access Ravenscar_Thread_Factory_Type; D : Duration)
    is
       pragma Unreferenced (TF);
@@ -814,7 +816,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Awake_Count --
    -----------------
 
-   function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
+   overriding function Awake_Count (TF : access Ravenscar_Thread_Factory_Type)
      return Natural
    is
    begin
@@ -832,7 +834,8 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    -- Independent_Count --
    -----------------------
 
-   function Independent_Count (TF : access Ravenscar_Thread_Factory_Type)
+   overriding function Independent_Count
+     (TF : access Ravenscar_Thread_Factory_Type)
      return Natural
    is
       pragma Unreferenced (TF);

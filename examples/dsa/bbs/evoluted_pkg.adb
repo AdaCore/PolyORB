@@ -51,7 +51,7 @@ package body Evoluted_Pkg is
    --  READ command
 
    procedure Cmd_Page;
-   --  PAGE commend
+   --  PAGE command
 
    type Command is access procedure;
    type String_Access is access String;

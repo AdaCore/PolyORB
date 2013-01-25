@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Simple implementation of a PolyORB Object Adapter.
 
 with PolyORB.Tasking.Mutexes;
@@ -41,29 +43,29 @@ package PolyORB.Obj_Adapters.Simple is
 
    type Simple_Obj_Adapter is new Obj_Adapter with private;
 
-   procedure Create (OA : access Simple_Obj_Adapter);
+   overriding procedure Create (OA : access Simple_Obj_Adapter);
 
-   procedure Destroy (OA : access Simple_Obj_Adapter);
+   overriding procedure Destroy (OA : access Simple_Obj_Adapter);
 
-   procedure Export
+   overriding procedure Export
      (OA    : access Simple_Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Unexport
+   overriding procedure Unexport
      (OA    : access Simple_Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container);
 
-   procedure Object_Key
+   overriding procedure Object_Key
      (OA      : access Simple_Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Get_QoS
+   overriding procedure Get_QoS
      (OA    : access Simple_Obj_Adapter;
       Id    :        Objects.Object_Id;
       QoS   :    out PolyORB.QoS.QoS_Parameters;
@@ -92,25 +94,25 @@ package PolyORB.Obj_Adapters.Simple is
       Id      : access Objects.Object_Id;
       If_Desc :        Interface_Description);
 
-   function Get_Empty_Arg_List
+   overriding function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
      return Any.NVList.Ref;
 
-   function Get_Empty_Result
+   overriding function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
      return Any.Any;
 
-   procedure Find_Servant
+   overriding procedure Find_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Errors.Error_Container);
 
-   procedure Release_Servant
+   overriding procedure Release_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access);

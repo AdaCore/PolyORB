@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Streams;
 
 with System.Address_Image;
@@ -143,7 +145,7 @@ package body PolyORB.Representations.CDR is
    --  previously marhsalled typecode.
 
    TC_Indirect              : constant PolyORB.Types.Unsigned_Long :=
-                                16#ffffffff#;
+     16#ffffffff#;
 
    --  Tags for ValueTypes marshalling
 
@@ -310,10 +312,10 @@ package body PolyORB.Representations.CDR is
       if TCK = Tk_Array or else TCK = Tk_Sequence then
          declare
             El_TC    : constant TypeCode.Object_Ptr :=
-                         Unwind_Typedefs (TypeCode.Content_Type (TC));
+              Unwind_Typedefs (TypeCode.Content_Type (TC));
 
             El_Size  : constant Types.Unsigned_Long :=
-                         Fast_Path_Element_Size (TypeCode.Kind (El_TC));
+              Fast_Path_Element_Size (TypeCode.Kind (El_TC));
 
             El_Count : Types.Unsigned_Long;
          begin
@@ -349,7 +351,7 @@ package body PolyORB.Representations.CDR is
               & Aggregate_Size'Img & " bytes ("
               & El_Count'Img & " elements) at "
               & System.Address_Image (Aggregate_Data)
-              & ", align on" & Aggregate_Alignment'Img));
+              & ", align on " & Aggregate_Alignment'Img));
          end;
       end if;
    end Fast_Path_Get_Info;
@@ -863,14 +865,14 @@ package body PolyORB.Representations.CDR is
    -- Marshall_From_Any --
    -----------------------
 
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access CDR_Representation;
       Buffer : access Buffer_Type;
       CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
       Data_Type : constant TypeCode.Object_Ptr :=
-                    Any.Unwind_Typedefs (Get_Type_Obj (CData));
+        Any.Unwind_Typedefs (Get_Type_Obj (CData));
 
       procedure Marshall_Aggregate_Element
         (TC    : TypeCode.Object_Ptr;
@@ -885,7 +887,7 @@ package body PolyORB.Representations.CDR is
       is
          El_M  : aliased Mechanism := By_Value;
          El_CC : aliased Content'Class :=
-                   Get_Aggregate_Element (ACC, TC, Index, El_M'Access);
+           Get_Aggregate_Element (ACC, TC, Index, El_M'Access);
          El_C : Any_Container;
       begin
          Set_Type (El_C, TC);
@@ -963,11 +965,11 @@ package body PolyORB.Representations.CDR is
                                  (Get_Value (CData).all);
 
                Label_TC : constant TypeCode.Object_Ptr :=
-                            Any.TypeCode.Discriminator_Type (Data_Type);
+                 Any.TypeCode.Discriminator_Type (Data_Type);
                Label_M  : aliased Mechanism := By_Value;
                Label_CC : aliased Content'Class :=
-                            Get_Aggregate_Element (ACC'Access, Label_TC, 0,
-                                                   Label_M'Access);
+                 Get_Aggregate_Element (ACC'Access, Label_TC, 0,
+                                        Label_M'Access);
                Label_C  : Any_Container;
             begin
                Set_Type (Label_C, Label_TC);
@@ -978,12 +980,11 @@ package body PolyORB.Representations.CDR is
                end if;
 
                pragma Debug (C, O ("Marshall_From_Any: "
-                 & "union label marshalled"));
+                 & "union label marshalled, value:" & Image (Label_C)));
 
                declare
                   Member_TC : constant Any.TypeCode.Object_Ptr :=
-                                Any.TypeCode.Member_Type_With_Label
-                                  (Data_Type, Label_C);
+                    Any.TypeCode.Member_Type_With_Label (Data_Type, Label_C);
                begin
 
                   --  Member_TC may be void in case there is no union member
@@ -1033,7 +1034,7 @@ package body PolyORB.Representations.CDR is
                El_TC : TypeCode.Object_Ptr;
 
                ACC : Aggregate_Content'Class renames
-                       Aggregate_Content'Class (Get_Value (CData).all);
+                 Aggregate_Content'Class (Get_Value (CData).all);
             begin
                --  Set Nb and El_TC
 
@@ -1132,10 +1133,10 @@ package body PolyORB.Representations.CDR is
                         Count_C  : Any_Container;
                         Count_M  : aliased Mechanism := By_Value;
                         Count_CC : aliased Content'Class :=
-                                     Any.Get_Aggregate_Element
-                                       (ACC'Access,
-                                        TypeCode.PTC_Unsigned_Long'Access,
-                                        0, Count_M'Access);
+                          Any.Get_Aggregate_Element
+                            (ACC'Access,
+                             TypeCode.PTC_Unsigned_Long'Access,
+                             0, Count_M'Access);
                      begin
                         Set_Type (Count_C, TypeCode.TC_Unsigned_Long);
                         Set_Value (Count_C, Count_CC'Unchecked_Access);
@@ -1327,7 +1328,7 @@ package body PolyORB.Representations.CDR is
    -- Release --
    -------------
 
-   procedure Release (Representation : in out CDR_Representation) is
+   overriding procedure Release (Representation : in out CDR_Representation) is
       use TC_Maps;
    begin
       Deallocate (Representation.TC_Map);
@@ -1446,8 +1447,7 @@ package body PolyORB.Representations.CDR is
 
       TypeCode_Id : constant Types.Unsigned_Long := Unmarshall (Buffer);
       Offset      : constant Types.Long :=
-                      Types.Long (CDR_Position (Buffer))
-                        - (TypeCode_Id'Size / 8);
+        Types.Long (CDR_Position (Buffer)) - (TypeCode_Id'Size / 8);
       --  Offset is the start position of TypeCode_Id in the buffer. Note that
       --  we cannot take the position before the call to Unmarshall, because
       --  we might need to skip some alignment padding first.
@@ -1496,10 +1496,10 @@ package body PolyORB.Representations.CDR is
             Data := TypeCode.TC_TypeCode;
 
          when TC_Principal_Id =>
-            Data := TypeCode.TC_Principal;
+            Data := TypeCode.TCF_Principal;
 
          when TC_Object_Id =>
-            Data := TypeCode.TC_Object;
+            Data := TypeCode.TCF_Object;
 
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
@@ -1518,7 +1518,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Struct_Id =>
-            Data := TypeCode.TC_Struct;
+            Data := TypeCode.TCF_Struct;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name      : Types.String;
@@ -1561,7 +1561,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Union_Id =>
-            Data := TypeCode.TC_Union;
+            Data := TypeCode.TCF_Union;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
 
@@ -1633,7 +1633,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Enum_Id =>
-            Data := TypeCode.TC_Enum;
+            Data := TypeCode.TCF_Enum;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
@@ -1672,14 +1672,14 @@ package body PolyORB.Representations.CDR is
          when TC_String_Id =>
             declare
                Length : constant PolyORB.Types.Unsigned_Long :=
-                          Unmarshall (Buffer);
+                 Unmarshall (Buffer);
             begin
                Data := Build_Complex_TC
-                         (Tk_String, (1 .. 1 => To_Any (Length)));
+                 (Tk_String, (1 .. 1 => To_Any (Length)));
             end;
 
          when TC_Sequence_Id =>
-            Data := TypeCode.TC_Sequence;
+            Data := TypeCode.TCF_Sequence;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Length : PolyORB.Types.Unsigned_Long;
@@ -1703,7 +1703,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Array_Id =>
-            Data := TypeCode.TC_Array;
+            Data := TypeCode.TCF_Array;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Length : PolyORB.Types.Unsigned_Long;
@@ -1726,7 +1726,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Alias_Id =>
-            Data := TypeCode.TC_Alias;
+            Data := TypeCode.TCF_Alias;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
@@ -1755,7 +1755,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Except_Id =>
-            Data := TypeCode.TC_Except;
+            Data := TypeCode.TCF_Except;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
@@ -1811,26 +1811,26 @@ package body PolyORB.Representations.CDR is
          when TC_Wide_String_Id =>
             declare
                Length : constant PolyORB.Types.Unsigned_Long :=
-                          Unmarshall (Buffer);
+                 Unmarshall (Buffer);
             begin
                Data := Build_Complex_TC
                          (Tk_Wstring, (1 .. 1 => To_Any (Length)));
             end;
 
          when TC_Fixed_Id =>
-            Data := TypeCode.TC_Fixed;
+            Data := TypeCode.TCF_Fixed;
             declare
                Fixed_Digits : PolyORB.Types.Unsigned_Short;
-               Fixed_Scale : PolyORB.Types.Short;
+               Fixed_Scale  : PolyORB.Types.Short;
             begin
                Fixed_Digits := Unmarshall (Buffer);
-               Fixed_Scale := Unmarshall (Buffer);
+               Fixed_Scale  := Unmarshall (Buffer);
                TypeCode.Add_Parameter (Data, To_Any (Fixed_Digits));
                TypeCode.Add_Parameter (Data, To_Any (Fixed_Scale));
             end;
 
          when TC_Value_Id =>
-            Data := TypeCode.TC_Value;
+            Data := TypeCode.TCF_Value;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
@@ -1889,7 +1889,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Valuebox_Id =>
-            Data := TypeCode.TC_Valuebox;
+            Data := TypeCode.TCF_Valuebox;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
@@ -1919,7 +1919,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Native_Id =>
-            Data := TypeCode.TC_Native;
+            Data := TypeCode.TCF_Native;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
@@ -1936,7 +1936,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Abstract_Interface_Id =>
-            Data := TypeCode.TC_Abstract_Interface;
+            Data := TypeCode.TCF_Abstract_Interface;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
@@ -1953,7 +1953,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Local_Interface_Id =>
-            Data := TypeCode.TC_Local_Interface;
+            Data := TypeCode.TCF_Local_Interface;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
@@ -1970,7 +1970,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Component_Id =>
-            Data := TypeCode.TC_Component;
+            Data := TypeCode.TCF_Component;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name : PolyORB.Types.String;
@@ -1987,7 +1987,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Home_Id =>
-            Data := TypeCode.TC_Home;
+            Data := TypeCode.TCF_Home;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name      : PolyORB.Types.String;
@@ -2004,7 +2004,7 @@ package body PolyORB.Representations.CDR is
             end;
 
          when TC_Event_Id =>
-            Data := TypeCode.TC_Event;
+            Data := TypeCode.TCF_Event;
             declare
                Complex_Encap : aliased Encapsulation := Unmarshall (Buffer);
                Id, Name, Member_Name : PolyORB.Types.String;
@@ -2057,7 +2057,7 @@ package body PolyORB.Representations.CDR is
          when TC_Indirect =>
             declare
                Current : constant Types.Long :=
-                           Types.Long (CDR_Position (Buffer));
+                 Types.Long (CDR_Position (Buffer));
                Offset  : constant Types.Long := Unmarshall (Buffer);
             begin
                if Offset >= -4 then
@@ -2091,14 +2091,14 @@ package body PolyORB.Representations.CDR is
    -- Unmarshall_To_Any --
    -----------------------
 
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access CDR_Representation;
       Buffer : access Buffer_Type;
       CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
       TC  : constant TypeCode.Object_Ptr :=
-              Unwind_Typedefs (Get_Type_Obj (CData));
+        Unwind_Typedefs (Get_Type_Obj (CData));
       TCK : constant TCKind := TypeCode.Kind (TC);
    begin
       pragma Debug
@@ -2246,7 +2246,7 @@ package body PolyORB.Representations.CDR is
                   when Tk_Sequence =>
                      declare
                         Max_Length : constant Types.Unsigned_Long :=
-                                       TypeCode.Length (TC);
+                          TypeCode.Length (TC);
                      begin
                         Nb := Unmarshall (Buffer);
                         if Max_Length > 0 and then Nb > Max_Length then
@@ -2279,7 +2279,7 @@ package body PolyORB.Representations.CDR is
                   use type System.Address;
 
                   ACC : Aggregate_Content'Class renames
-                          Aggregate_Content'Class (Get_Value (CData).all);
+                    Aggregate_Content'Class (Get_Value (CData).all);
 
                   Val_TC : TypeCode.Object_Ptr;
                   --  Value typecode, computed from label TC in case of a union
@@ -2331,10 +2331,10 @@ package body PolyORB.Representations.CDR is
                      declare
                         Len_M  : aliased Mechanism := By_Reference;
                         Len_CC : aliased Content'Class :=
-                                   Get_Aggregate_Element
-                                     (ACC'Access,
-                                      TypeCode.PTC_Unsigned_Long'Access,
-                                      0, Len_M'Access);
+                          Get_Aggregate_Element
+                            (ACC'Access,
+                             TypeCode.PTC_Unsigned_Long'Access,
+                             0, Len_M'Access);
                         Len_C : Any_Container;
                      begin
                         Set_Type (Len_C, TypeCode.TC_Unsigned_Long);
@@ -2431,8 +2431,8 @@ package body PolyORB.Representations.CDR is
                         El_C  : Any_Container;
                         El_M  : aliased Mechanism := By_Reference;
                         El_CC : aliased Content'Class :=
-                                  Get_Aggregate_Element (ACC'Access, El_TC, J,
-                                                         El_M'Access);
+                          Get_Aggregate_Element (ACC'Access, El_TC, J,
+                                                 El_M'Access);
                      begin
                         Set_Type (El_C, El_TC);
                         if El_CC not in No_Content then
@@ -2516,7 +2516,7 @@ package body PolyORB.Representations.CDR is
 
                declare
                   Bound : constant Types.Unsigned_Long :=
-                            TypeCode.Length (TC);
+                    TypeCode.Length (TC);
                begin
                   if Bound = 0 then
                      Set_Any_Value (S, CData);
@@ -2576,7 +2576,7 @@ package body PolyORB.Representations.CDR is
 
                declare
                   Bound : constant Types.Unsigned_Long :=
-                            TypeCode.Length (TC);
+                    TypeCode.Length (TC);
                begin
                   if Bound = 0 then
                      Set_Any_Value (Ws, CData);
@@ -2654,10 +2654,10 @@ package body PolyORB.Representations.CDR is
                         El_M  : aliased Mechanism := By_Reference;
                         El_CC : aliased Content'Class :=
                           Get_Aggregate_Element
-                          (ACC'Access,
-                           TypeCode.Content_Type (TC),
-                           0,
-                           El_M'Access);
+                            (ACC'Access,
+                             TypeCode.Content_Type (TC),
+                             0,
+                             El_M'Access);
 
                      begin
                         Set_Type (El_C, TypeCode.Content_Type (TC));

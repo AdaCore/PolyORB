@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Task_Attributes;
 with Ada.Unchecked_Deallocation;
 
@@ -46,7 +48,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
       Notepad : PolyORB.Annotations.Notepad_Access := null;
    end record;
 
-   procedure Finalize (Object : in out Notepad_Entity);
+   overriding procedure Finalize (Object : in out Notepad_Entity);
 
    Nil_Ref : Ref;
 
@@ -58,7 +60,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
    -- Finalize --
    --------------
 
-   procedure Finalize (Object : in out Notepad_Entity) is
+   overriding procedure Finalize (Object : in out Notepad_Entity) is
       procedure Free is new Ada.Unchecked_Deallocation
         (Notepad, Notepad_Access);
    begin
@@ -72,7 +74,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
    -- Get_Current_Thread_Notepad --
    --------------------------------
 
-   function Get_Current_Thread_Notepad
+   overriding function Get_Current_Thread_Notepad
      (TAF : access Full_Tasking_TAF)
      return PolyORB.Annotations.Notepad_Access
    is

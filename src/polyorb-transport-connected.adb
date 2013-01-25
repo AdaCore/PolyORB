@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Abstract connected transport service access points and transport
 --  endpoints.
 
@@ -54,7 +56,7 @@ package body PolyORB.Transport.Connected is
    -- Handle_Event --
    ------------------
 
-   procedure Handle_Event
+   overriding procedure Handle_Event
      (H : access Connected_TAP_AES_Event_Handler)
    is
       use PolyORB.Components;
@@ -101,7 +103,7 @@ package body PolyORB.Transport.Connected is
    -- Handle_Message --
    --------------------
 
-   function Handle_Message
+   overriding function Handle_Message
      (TE  : not null access Connected_Transport_Endpoint;
       Msg : Components.Message'Class) return Components.Message'Class
    is

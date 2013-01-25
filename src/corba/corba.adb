@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 with Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
@@ -93,7 +95,7 @@ package body CORBA is
          return TC;
       end if;
 
-      TC := TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Enum);
+      TC := TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TCF_Enum);
       Internals.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("completion_status")));
       Internals.Add_Parameter
@@ -104,7 +106,7 @@ package body CORBA is
          Internals.Add_Parameter
            (TC, To_Any (To_PolyORB_String (Completion_Status'Image (C))));
       end loop;
-      TypeCode.Internals.Disable_Reference_Counting (TC);
+      TypeCode.Internals.Disable_Ref_Counting (TC);
 
       return TC;
    end TC_Completion_Status;
@@ -905,7 +907,7 @@ package body CORBA is
    function To_Any (Item : Completion_Status) return CORBA.Any
    is
       Result : CORBA.Any :=
-                 Internals.Get_Empty_Any_Aggregate (TC_Completion_Status);
+        Internals.Get_Empty_Any_Aggregate (TC_Completion_Status);
    begin
       CORBA.Internals.Add_Aggregate_Element
         (Result, To_Any (Unsigned_Long (Completion_Status'Pos (Item))));
@@ -1533,7 +1535,7 @@ package body CORBA is
       -- "=" --
       ---------
 
-      function "=" (Left, Right : Object) return Boolean is
+      overriding function "=" (Left, Right : Object) return Boolean is
       begin
          return PolyORB.Any.TypeCode."="
            (Internals.To_PolyORB_Object (Left),
@@ -1544,7 +1546,7 @@ package body CORBA is
       -- Equivalent --
       ----------------
 
-      function Equivalent (Left, Right : Object) return Boolean
+      overriding function Equivalent (Left, Right : Object) return Boolean
         renames "=";
 
       --------------------------
@@ -1562,7 +1564,7 @@ package body CORBA is
       -- Kind --
       ----------
 
-      function Kind (Self : Object) return TCKind is
+      overriding function Kind (Self : Object) return TCKind is
       begin
          return PolyORB.Any.TypeCode.Kind (Internals.To_PolyORB_Object (Self));
       end Kind;
@@ -1649,7 +1651,7 @@ package body CORBA is
       -- Discriminator_Type --
       ------------------------
 
-      function Discriminator_Type (Self : Object) return Object is
+      overriding function Discriminator_Type (Self : Object) return Object is
       begin
          return Internals.To_CORBA_Object
            (PolyORB.Any.TypeCode.Discriminator_Type
@@ -1682,7 +1684,7 @@ package body CORBA is
       -- Content_Type --
       ------------------
 
-      function Content_Type (Self : Object) return Object is
+      overriding function Content_Type (Self : Object) return Object is
       begin
          return Internals.To_CORBA_Object
            (PolyORB.Any.TypeCode.Content_Type
@@ -1731,7 +1733,7 @@ package body CORBA is
       -- Type_Modifier --
       -------------------
 
-      function Type_Modifier (Self : Object) return ValueModifier is
+      overriding function Type_Modifier (Self : Object) return ValueModifier is
       begin
          return PolyORB.Any.TypeCode.Type_Modifier
            (Internals.To_PolyORB_Object (Self));
@@ -1741,7 +1743,7 @@ package body CORBA is
       -- Concrete_Base_Type --
       ------------------------
 
-      function Concrete_Base_Type (Self : Object) return Object is
+      overriding function Concrete_Base_Type (Self : Object) return Object is
       begin
          return Internals.To_CORBA_Object
            (PolyORB.Any.TypeCode.Concrete_Base_Type
@@ -1769,7 +1771,7 @@ package body CORBA is
             Parent   : Object) return Object
          is
             Res : constant PolyORB.Any.TypeCode.Local_Ref :=
-                    PolyORB.Any.TypeCode.TC_Alias;
+                    PolyORB.Any.TypeCode.TCF_Alias;
          begin
             PolyORB.Any.TypeCode.Add_Parameter (Res, PolyORB.Any.Any
               (To_Any (Name)));
@@ -1814,15 +1816,23 @@ package body CORBA is
                (PolyORB.Types.Unsigned_Long (Max)));
          end Build_Wstring_TC;
 
-         --------------------------------
-         -- Disable_Reference_Counting --
-         --------------------------------
+         --------------------------
+         -- Disable_Ref_Counting --
+         --------------------------
 
-         procedure Disable_Reference_Counting (Self : CORBA.TypeCode.Object) is
+         procedure Disable_Ref_Counting (Self : CORBA.TypeCode.Object) is
          begin
-            PolyORB.Any.TypeCode.Disable_Reference_Counting
-              (Object_Of (Self).all);
-         end Disable_Reference_Counting;
+            PolyORB.Any.TypeCode.Disable_Ref_Counting (Object_Of (Self).all);
+         end Disable_Ref_Counting;
+
+         ------------
+         -- Freeze --
+         ------------
+
+         procedure Freeze (Self : CORBA.TypeCode.Object) is
+         begin
+            PolyORB.Any.TypeCode.Freeze (Object_Of (Self));
+         end Freeze;
 
          ------------
          -- Is_Nil --

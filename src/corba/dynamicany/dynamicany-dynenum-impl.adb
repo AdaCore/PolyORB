@@ -59,11 +59,11 @@ package body DynamicAny.DynEnum.Impl is
 
       declare
          Value : constant PolyORB.Any.Any :=
-                   PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
+           PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
          TC    : constant PolyORB.Any.TypeCode.Local_Ref := Get_Type (Value);
          Index : constant PolyORB.Types.Unsigned_Long :=
-                   From_Any (Get_Aggregate_Element (Value,
-                               PolyORB.Any.TC_Unsigned_Long, 0));
+           From_Any (Get_Aggregate_Element (Value,
+                     PolyORB.Any.TC_Unsigned_Long, 0));
 
       begin
          return CORBA.String (Member_Name (TC, Index));
@@ -82,7 +82,7 @@ package body DynamicAny.DynEnum.Impl is
 
       declare
          Value : constant PolyORB.Any.Any :=
-                   PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
+           PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
 
       begin
          return
@@ -200,13 +200,11 @@ package body DynamicAny.DynEnum.Impl is
 
       declare
          Val        : constant PolyORB.Any.Any :=
-                        PolyORB.Any.Any
-                          (DynAny.Impl.Internals.Get_Value (Self));
+           PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
          TC         : constant PolyORB.Any.TypeCode.Local_Ref :=
-                        Get_Type (Val);
+           Get_Type (Val);
          Enum_Value : constant PolyORB.Any.Any :=
-                        Get_Aggregate_Element (Val,
-                          PolyORB.Any.TC_Unsigned_Long, 0);
+           Get_Aggregate_Element (Val, PolyORB.Any.TC_Unsigned_Long, 0);
 
       begin
          for J in 0 .. Member_Count (TC) - 1 loop
@@ -236,13 +234,11 @@ package body DynamicAny.DynEnum.Impl is
 
       declare
          Val        : constant PolyORB.Any.Any :=
-                        PolyORB.Any.Any
-                          (DynAny.Impl.Internals.Get_Value (Self));
+           PolyORB.Any.Any (DynAny.Impl.Internals.Get_Value (Self));
          TC         : constant PolyORB.Any.TypeCode.Local_Ref :=
-                        Get_Type (Val);
+           Get_Type (Val);
          Enum_Value : constant PolyORB.Any.Any :=
-                        Get_Aggregate_Element (Val,
-                          PolyORB.Any.TC_Unsigned_Long, 0);
+           Get_Aggregate_Element (Val, PolyORB.Any.TC_Unsigned_Long, 0);
 
       begin
          if PolyORB.Types.Unsigned_Long (Value) < Member_Count (TC) then

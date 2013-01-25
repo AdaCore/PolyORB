@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Constants;
 with PolyORB.Initialization;
 with PolyORB.Parameters;
@@ -97,7 +99,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
    -- Abort_Run --
    ---------------
 
-   procedure Abort_Run (AR : not null access ATC_Abortable) is
+   overriding procedure Abort_Run (AR : not null access ATC_Abortable) is
    begin
       AR.P.Signal;
    end Abort_Run;
@@ -106,7 +108,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
    -- Create --
    ------------
 
-   function Create
+   overriding function Create
      (R : not null access PTT.Runnable'Class) return ATC_Abortable
    is
    begin
@@ -132,7 +134,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
    -- Run --
    ---------
 
-   procedure Run (AR : not null access ATC_Abortable) is
+   overriding procedure Run (AR : not null access ATC_Abortable) is
    begin
       select
          AR.P.Wait;
@@ -145,7 +147,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
    -- Run_With_Timeout --
    ----------------------
 
-   procedure Run_With_Timeout
+   overriding procedure Run_With_Timeout
      (AR      : not null access ATC_Abortable;
       Timeout : Duration;
       Expired : out Boolean)

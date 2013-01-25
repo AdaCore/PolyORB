@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.GIOP_P.Transport_Mechanisms;
 with PolyORB.Protocols.GIOP;
@@ -42,26 +44,26 @@ package PolyORB.Binding_Data.GIOP is
    type GIOP_Profile_Type is abstract new Profile_Type with private;
    type GIOP_Profile_Factory is abstract new Profile_Factory with private;
 
-   procedure Bind_Profile
+   overriding procedure Bind_Profile
      (Profile : access GIOP_Profile_Type;
       The_ORB : Components.Component_Access;
       QoS     : PolyORB.QoS.QoS_Parameters;
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Errors.Error_Container);
 
-   procedure Release (P : in out GIOP_Profile_Type);
+   overriding procedure Release (P : in out GIOP_Profile_Type);
 
    function Get_Component
      (P : GIOP_Profile_Type;
       C : PGTC.Tag_Value) return PGTC.Tagged_Component_Access;
 
-   function Is_Colocated
+   overriding function Is_Colocated
      (Left  : GIOP_Profile_Type;
       Right : Profile_Type'Class) return Boolean;
 
-   function Is_Local_Profile
+   overriding function Is_Local_Profile
      (PF : access GIOP_Profile_Factory;
-      P  : access Profile_Type'Class) return Boolean;
+      P  : not null access Profile_Type'Class) return Boolean;
 
    function Get_GIOP_Version
      (P : GIOP_Profile_Type) return Protocols.GIOP.GIOP_Version;

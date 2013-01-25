@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  Special Object Adapter to manage group servants
 
 with PolyORB.Binding_Data;
@@ -55,7 +57,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Create --
    ------------
 
-   procedure Create (GOA : access Group_Object_Adapter) is
+   overriding procedure Create (GOA : access Group_Object_Adapter) is
    begin
       Initialize (GOA.Registered_Groups);
       Create (GOA.Lock);
@@ -65,7 +67,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Destroy --
    -------------
 
-   procedure Destroy (GOA : access Group_Object_Adapter) is
+   overriding procedure Destroy (GOA : access Group_Object_Adapter) is
    begin
       Finalize (GOA.Registered_Groups);
       Destroy (GOA.Lock);
@@ -80,7 +82,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Export --
    ------------
 
-   procedure Export
+   overriding procedure Export
      (GOA   : access Group_Object_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
@@ -129,7 +131,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Unexport --
    --------------
 
-   procedure Unexport
+   overriding procedure Unexport
      (GOA   : access Group_Object_Adapter;
       Id    :        Objects.Object_Id_Access;
       Error : in out PolyORB.Errors.Error_Container)
@@ -164,7 +166,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Object_Key --
    ----------------
 
-   procedure Object_Key
+   overriding procedure Object_Key
      (GOA     : access Group_Object_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
@@ -187,7 +189,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Get_QoS --
    -------------
 
-   procedure Get_QoS
+   overriding procedure Get_QoS
      (OA    : access Group_Object_Adapter;
       Id    :        Objects.Object_Id;
       QoS   :    out PolyORB.QoS.QoS_Parameters;
@@ -207,7 +209,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Get_Empty_Arg_List --
    ------------------------
 
-   function Get_Empty_Arg_List
+   overriding function Get_Empty_Arg_List
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
@@ -228,7 +230,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Get_Empty_Result --
    ----------------------
 
-   function Get_Empty_Result
+   overriding function Get_Empty_Result
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
       Method :        String)
@@ -249,7 +251,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Find_Servant --
    ------------------
 
-   procedure Find_Servant
+   overriding procedure Find_Servant
      (GOA     : access Group_Object_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
@@ -281,7 +283,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    -- Release_Servant --
    ---------------------
 
-   procedure Release_Servant
+   overriding procedure Release_Servant
      (GOA     : access Group_Object_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access)
@@ -321,7 +323,7 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       for J in Profs'Range loop
          declare
             OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                          Get_OA (Profs (J).all);
+              Get_OA (Profs (J).all);
          begin
             if OA_Entity /= null
               and then OA_Entity.all in Group_Object_Adapter'Class

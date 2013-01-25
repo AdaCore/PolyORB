@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Log;
 
 package body PolyORB.Any.NVList is
@@ -78,7 +80,7 @@ package body PolyORB.Any.NVList is
    -- Finalize --
    --------------
 
-   procedure Finalize
+   overriding procedure Finalize
      (X : in out Object) is
    begin
       Internals.NV_Lists.Deallocate (X.List);
@@ -150,7 +152,7 @@ package body PolyORB.Any.NVList is
       is
          use type PolyORB.Smart_Pointers.Entity_Ptr;
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
-                    Entity_Of (NVList);
+           Entity_Of (NVList);
       begin
          if Entity /= null then
             return Object_Ptr (Entity_Of (NVList)).List'Access;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  A POA configuration corresponding to minimumCORBA policies
 
 with PolyORB.POA_Policies;
@@ -52,7 +54,7 @@ package body PolyORB.POA_Config.Minimum is
    -- Initialize --
    ----------------
 
-   procedure Initialize (C : Minimum_Configuration) is
+   overriding procedure Initialize (C : Minimum_Configuration) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
@@ -94,7 +96,7 @@ package body PolyORB.POA_Config.Minimum is
    -- Default_Policies --
    ----------------------
 
-   function Default_Policies
+   overriding function Default_Policies
      (C : Minimum_Configuration) return PolyORB.POA_Policies.PolicyList is
    begin
       if not Initialized then

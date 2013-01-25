@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MAny message type.
 --
 --  A MAny message's payload is a PolyORB Any. It's an 'all purpose' message
@@ -45,7 +47,7 @@ package MOMA.Messages.MAnys is
    function Create_Any_Message return Messages.MAnys.MAny;
    --  Create a MAny message.
 
-   function Image (Self : MAny) return String;
+   overriding function Image (Self : MAny) return String;
    --  Image function for MAny type.
 
    --  Accessors to MAny payload.

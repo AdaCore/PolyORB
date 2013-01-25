@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  This package is based on Tree_Reader from the XMLada package. It is used
 --  to create a DOM object using the SAX parser.
 
@@ -53,27 +55,27 @@ private
       Internal_Encoding : Unicode.CES.Encoding_Scheme;
    end record;
 
-   procedure Start_Document
+   overriding procedure Start_Document
      (Handler : in out Tree_Reader);
 
-   procedure Start_Element
+   overriding procedure Start_Element
      (Handler       : in out Tree_Reader;
       Namespace_URI : Unicode.CES.Byte_Sequence       := "";
       Local_Name    : Unicode.CES.Byte_Sequence       := "";
       Qname         : Unicode.CES.Byte_Sequence       := "";
       Atts          : Sax.Attributes.Attributes'Class);
 
-   procedure End_Element
+   overriding procedure End_Element
      (Handler       : in out Tree_Reader;
       Namespace_URI : Unicode.CES.Byte_Sequence := "";
       Local_Name    : Unicode.CES.Byte_Sequence := "";
       Qname         : Unicode.CES.Byte_Sequence := "");
 
-   procedure Characters
+   overriding procedure Characters
      (Handler : in out Tree_Reader;
       Ch      : Unicode.CES.Byte_Sequence);
 
-   procedure Ignorable_Whitespace
+   overriding procedure Ignorable_Whitespace
      (Handler : in out Tree_Reader;
       Ch      : Unicode.CES.Byte_Sequence);
 

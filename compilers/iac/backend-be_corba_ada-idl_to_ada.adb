@@ -180,7 +180,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when FEN.K_Wide_String         => return RE (RE_TC_Wide_String);
          when FEN.K_Boolean             => return RE (RE_TC_Boolean);
          when FEN.K_Octet               => return RE (RE_TC_Octet);
-         when FEN.K_Object              => return RE (RE_TC_Object_0);
+         when FEN.K_Object              => return RE (RE_TC_Object);
          when FEN.K_Any                 => return RE (RE_TC_Any);
          when others                    =>
             raise Program_Error with "Not a base type: "
@@ -1955,7 +1955,7 @@ package body Backend.BE_CORBA_Ada.IDL_To_Ada is
          when RE_Octet =>
             return RE (RE_TC_Octet, Withed);
          when RE_Ref_2 =>
-            return RE (RE_TC_Object_0, Withed);
+            return RE (RE_TC_Object, Withed);
          when RE_Object =>
             return RE (RE_TC_TypeCode, Withed);
          when RE_Ref_11 =>

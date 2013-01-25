@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 --  MIOP filter for data which arrive from network to ORB
 --  This filter MUST be under a GIOP Session
 
@@ -42,7 +44,7 @@ package PolyORB.Filters.MIOP.MIOP_In is
 
    type MIOP_In_Factory is new Factory with private;
 
-   procedure Create
+   overriding procedure Create
      (Fact     : access MIOP_In_Factory;
       MIOP_In :    out Filter_Access);
 
@@ -81,7 +83,7 @@ private
       Payload          : Types.Unsigned_Short;
    end record;
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access MIOP_In_Filter;
       S : Components.Message'Class) return Components.Message'Class;
 

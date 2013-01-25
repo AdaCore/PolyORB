@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1990,7 +1990,7 @@ package body Ada_Be.Idl2Ada.Helper is
          end loop;
       end;
 
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -2136,7 +2136,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -2259,7 +2259,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "CORBA.Internals.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -2407,7 +2407,7 @@ package body Ada_Be.Idl2Ada.Helper is
                 & "_Name));");
          end loop;
       end;
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -2794,7 +2794,7 @@ package body Ada_Be.Idl2Ada.Helper is
             end;
          end loop;
       end;
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -2886,7 +2886,7 @@ package body Ada_Be.Idl2Ada.Helper is
              & Img (Expr_Value (Bound (Node))) & ");");
       end if;
 
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -3285,7 +3285,7 @@ package body Ada_Be.Idl2Ada.Helper is
          end loop;
       end;
 
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -3422,7 +3422,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Gen_Array_TC (CU, Type_Node, Node);
       end if;
 
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       DI (CU);
@@ -3788,7 +3788,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "  CORBA.TypeCode.Internals.Build_Sequence_TC");
       PL (CU, "    (" & Elt_TC_Name & ", " & Img (B_Value) & ");");
 
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Node) & ");");
 
       if not Has_Local_Component (Node) then
@@ -3893,7 +3893,7 @@ package body Ada_Be.Idl2Ada.Helper is
           & ", CORBA.To_Any (CORBA.Short (");
       Gen_Constant_Value (CU, Expr => Scale (Fixed_Node), Typ => No_Node);
       PL (CU, ")));");
-      PL (CU, "CORBA.TypeCode.Internals.Disable_Reference_Counting ("
+      PL (CU, "CORBA.TypeCode.Internals.Disable_Ref_Counting ("
               & Ada_TC_Name (Decl_Node) & ");");
       Divert (CU, Visible_Declarations);
    end Gen_Fixed_Body;

@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
@@ -282,7 +284,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
       return Result;
    end Duplicate;
 
-   function Duplicate (C : TC_CSI_Sec_Mech_List)
+   overriding function Duplicate (C : TC_CSI_Sec_Mech_List)
      return Tagged_Component_Access
    is
       Result : constant TC_CSI_Sec_Mech_List_Access
@@ -788,7 +790,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    -- Marshall_Component_Data --
    -----------------------------
 
-   procedure Marshall_Component_Data
+   overriding procedure Marshall_Component_Data
      (C      : access TC_CSI_Sec_Mech_List;
       Buffer : access Buffer_Type)
    is
@@ -882,7 +884,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
       end;
    end Release_Contents;
 
-   procedure Release_Contents (C : access TC_CSI_Sec_Mech_List) is
+   overriding procedure Release_Contents (C : access TC_CSI_Sec_Mech_List) is
 
       procedure Free is
         new Ada.Unchecked_Deallocation (Mechanism, Mechanism_Access);
@@ -1006,7 +1008,7 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    -- Unmarshall_Component_Data --
    -------------------------------
 
-   procedure Unmarshall_Component_Data
+   overriding procedure Unmarshall_Component_Data
      (C      : access TC_CSI_Sec_Mech_List;
       Buffer : access Buffer_Type;
       Error  : out PolyORB.Errors.Error_Container)

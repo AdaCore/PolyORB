@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
 
@@ -40,6 +42,6 @@ package PolyORB.RTCORBA_P.Mutex is
         Mutex : PolyORB.Tasking.Mutexes.Mutex_Access;
      end record;
 
-   procedure Finalize (Self : in out Mutex_Entity);
+   overriding procedure Finalize (Self : in out Mutex_Entity);
 
 end PolyORB.RTCORBA_P.Mutex;
