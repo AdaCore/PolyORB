@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -567,11 +567,11 @@ package body XE_List is
    procedure Load_ALIs (Output : File_Name_Type) is
       use Parser;
 
-      My_ALI      : ALI_Id         := No_ALI_Id;
-      My_Unit     : Unit_Id        := No_Unit_Id;
-      My_With     : With_Id        := No_With_Id;
-      My_Sdep     : Sdep_Id        := No_Sdep_Id;
-      Afile       : File_Name_Type;
+      My_ALI  : ALI_Id         := No_ALI_Id;
+      My_Unit : Unit_Id        := No_Unit_Id;
+      My_With : With_Id        := No_With_Id;
+      My_Sdep : Sdep_Id        := No_Sdep_Id;
+      Afile   : File_Name_Type;
 
       function File_Name (N : Natural) return File_Name_Type;
       --  Get the line contents starting with the Nth field and up to end of
@@ -588,6 +588,8 @@ package body XE_List is
 
          return Id (Format_Pathname (Parser.Field (-N), UNIX));
       end File_Name;
+
+   --  Start of processing for Load_ALIs
 
    begin
       Parser.Open (Get_Name_String (Output));
