@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -410,8 +410,7 @@ package body XE_Parse is
       Create_Variable    (TV, Variable_Name);
       Set_Variable_Type  (TV, Variable_Type);
 
-      --  This type is a record, allocate the record (but not
-      --  attributes).
+      --  This type is a record, allocate the record (but not attributes)
 
       if Is_Type_Composite (Variable_Type)
         and then Get_Array_Length (Variable_Type) = 0
@@ -581,13 +580,13 @@ package body XE_Parse is
          Next_Subprogram_Parameter (Formal_Node);
       end loop;
 
-      --  At the beginning, convention is unknown.
+      --  At the beginning, convention is unknown
 
       if N_Parameter <= 0 then
          return;
       end if;
 
-      --  Look forward to find the convention.
+      --  Look forward to find the convention
 
       Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
       Location := Get_Token_Location;
@@ -601,7 +600,7 @@ package body XE_Parse is
       end if;
       Set_Token_Location (Location);
 
-      --  Do the real matching once the convention is known.
+      --  Do the real matching once the convention is known
 
       Formal_Name := No_Name;
       loop
@@ -648,7 +647,7 @@ package body XE_Parse is
 
          elsif Token = Tok_Identifier then
 
-            --  Does this actual parameter really exist ?
+            --  Does this actual parameter really exist?
 
             Search_Actual_Parameter (Actual_Name, Formal_Type, Actual_Node);
             if Actual_Node = Null_Variable then
@@ -657,7 +656,7 @@ package body XE_Parse is
 
          else
 
-            --  This is a literal aggregate.
+            --  This is a literal aggregate
 
             Declare_Variable
               (New_Variable_Name,
@@ -665,7 +664,7 @@ package body XE_Parse is
                Location,
                Actual_Node);
 
-            --  Reset the location to read the first left parenthesis.
+            --  Reset the location to read the first left parenthesis
 
             Set_Token_Location (Location);
             P_Aggregate_Assignment (Actual_Node);
@@ -686,13 +685,11 @@ package body XE_Parse is
       end loop;
    end Match_Actual_With_Formal;
 
-   -----------------------------
+   ----------------------------
    -- P_Aggregate_Assignment --
-   -----------------------------
+   ----------------------------
 
-   procedure P_Aggregate_Assignment
-     (Variable_Node : Variable_Id)
-   is
+   procedure P_Aggregate_Assignment (Variable_Node : Variable_Id) is
       Expression_Name   : Name_Id;
       Expression_Node   : Variable_Id;
       Expression_Sloc   : Location_Type;
@@ -700,9 +697,10 @@ package body XE_Parse is
       Component_Node    : Component_Id;
       Component_Type    : Type_Id;
       Array_Length      : Int;
-   begin
 
-      --  Only aggregates are allowed at this point.
+   begin
+      --  Only aggregates are allowed at this point
+
       Variable_Type := Get_Variable_Type (Variable_Node);
       if not Is_Type_Composite (Variable_Type) then
          Write_Error_Message
@@ -749,7 +747,7 @@ package body XE_Parse is
 
          if Token = Tok_Identifier then
 
-            --  Ada unit names are allowed.
+            --  Ada unit names are allowed
 
             P_Full_Ada_Identifier;
             Expression_Name := Token_Name;
@@ -763,7 +761,7 @@ package body XE_Parse is
                   Expression_Node);
             end if;
 
-         --  Tok_String_Literal.
+         --  Tok_String_Literal
 
          elsif Token = Tok_String_Literal then
 
@@ -773,7 +771,7 @@ package body XE_Parse is
                Expression_Sloc,
                Expression_Node);
 
-         --  Tok_Numeric_Literal.
+         --  Tok_Numeric_Literal
 
          elsif Token = Tok_Numeric_Literal then
 
@@ -790,26 +788,22 @@ package body XE_Parse is
                Expression_Sloc,
                Expression_Node);
 
-            --  Reset the location to read the first left parenthesis.
+            --  Reset the location to read the first left parenthesis
 
             Set_Token_Location (Expression_Sloc);
             P_Aggregate_Assignment (Expression_Node);
          end if;
 
-         --  Do this variable have the appropriate type.
+         --  Do this variable have the appropriate type
 
          if Get_Variable_Type (Expression_Node) /= Component_Type then
             Write_Error_Message
               (Get_Token_Location, "incorrect element type in aggregate");
          end if;
 
-         --  ???
-
-         --  Variable_Is_Initialized (Expression_Node, True);
-
          if Array_Length /= 0 then
 
-            --  We declare a component with an anonymous name.
+            --  We declare a component with an anonymous name
 
             Declare_Variable_Component
               (Variable_Node,
@@ -862,7 +856,7 @@ package body XE_Parse is
                end if;
                T_Colon_Equal;
 
-               --  Read the ada units aggregate.
+               --  Read the units aggregate
 
                P_Aggregate_Assignment (Variable_Node);
                T_Semicolon;
@@ -889,7 +883,7 @@ package body XE_Parse is
       Conf_Node : Configuration_Id;
    begin
 
-      --  Use "private" configuration to start.
+      --  Use "private" configuration to start
 
       T_Configuration;
       T_Identifier;
@@ -898,7 +892,7 @@ package body XE_Parse is
 
       Check_Not_Declared   (Conf_Name, Conf_Sloc);
 
-      --  We have the real configuration node. Let's use this one.
+      --  We have the real configuration node
 
       Create_Configuration (Conf_Node, Conf_Name);
       Set_Node_Location    (Node_Id (Conf_Node), Conf_Sloc);
@@ -908,7 +902,7 @@ package body XE_Parse is
       Add_Configuration_Declaration
         (Conf_Node, Node_Id (Configuration_Node));
 
-      --  Now, the new configuration is the root configuration.
+      --  Now, the new configuration is the root configuration
 
       Configuration_Node := Conf_Node;
 
@@ -982,6 +976,7 @@ package body XE_Parse is
       Para_Type_Sloc : Location_Type;
       Para_Type_Node : Type_Id;
       Para_Type_Kind : Predefined_Type;
+
    begin
 
       --  The following is the only allowed signature :
@@ -1068,8 +1063,7 @@ package body XE_Parse is
    -- P_Pragma --
    --------------
 
-   procedure P_Pragma
-   is
+   procedure P_Pragma is
       Pragma_Kind : Pragma_Type;
       Pragma_Node : Subprogram_Id;
       Pragma_Name : Name_Id;
@@ -1077,17 +1071,16 @@ package body XE_Parse is
       Invoke_Sloc : Location_Type;
       Context     : Context_Type;
    begin
-
-      --  Token PRAGMA has already been parsed.
+      --  Token PRAGMA has already been parsed
 
       T_Identifier;
 
-      --  Known pragmas are prefixed by Pragma_Prefix.
+      --  Known pragmas are prefixed by Pragma_Prefix
 
       Pragma_Name := Token_Name;
       Pragma_Sloc := Get_Token_Location;
 
-      --  Is this pragma a known pragma.
+      --  Is this pragma a known pragma?
 
       Search_Pragma (Pragma_Prefix & Pragma_Name, Pragma_Kind, Pragma_Node);
       if Pragma_Node = Null_Subprogram then
@@ -1145,7 +1138,7 @@ package body XE_Parse is
 
       Fatal_Error := True;
 
-      --  When successful, declare the procedure call node.
+      --  When successful, declare the procedure call node
 
       Declare_Procedure_Call (Pragma_Node, Pragma_Sloc);
       T_Semicolon;
@@ -1155,8 +1148,7 @@ package body XE_Parse is
    -- P_Procedure_Declaration --
    -----------------------------
 
-   procedure P_Procedure_Declaration
-   is
+   procedure P_Procedure_Declaration is
       Ada_Unit_Node  : Variable_Id;
       Constant_True  : Variable_Id;
       Partition_Name : Name_Id;
@@ -1166,9 +1158,10 @@ package body XE_Parse is
       Procedure_Name : Name_Id;
       Procedure_Node : Subprogram_Id;
       Component_Node : Component_Id;
+
    begin
 
-      --  Token PROCEDURE has already been parsed.
+      --  Token PROCEDURE has already been parsed
 
       T_Identifier;
       Procedure_Sloc := Get_Token_Location;
@@ -1196,7 +1189,7 @@ package body XE_Parse is
 
          T_In;
 
-         --  This should be an already declared variable.
+         --  This should be an already declared variable
 
          T_Identifier;
          Partition_Name := Token_Name;
@@ -1249,8 +1242,7 @@ package body XE_Parse is
    -- P_Representation_Clause --
    -----------------------------
 
-   procedure P_Representation_Clause
-   is
+   procedure P_Representation_Clause is
       Direct_Name : Name_Id;
       Direct_Node : Node_Id;
       Direct_Type : Type_Id;
@@ -1272,7 +1264,7 @@ package body XE_Parse is
       Direct_Name := Token_Name;
       Search_Declaration (Direct_Name, Direct_Node);
 
-      --  This identifier has to be already declared.
+      --  This identifier has to be already declared
 
       if Direct_Node /= Null_Node then
 
@@ -1286,7 +1278,7 @@ package body XE_Parse is
             Direct_Type := Type_Id (Direct_Node);
             Is_A_Type := True;
 
-         --  Only variables and types are subject to representation clause.
+         --  Only variables and types are subject to representation clause
 
          else
             Write_Error_Message
@@ -1326,8 +1318,7 @@ package body XE_Parse is
          Next_Node : Component_Id := Attr_Node;
       begin
          Search_Next_Component
-           (Attribute_Prefix & Attr_Name,
-            Next_Node);
+           (Attribute_Prefix & Attr_Name, Next_Node);
          Fatal_Error := (Next_Node = Null_Component);
       end;
 
@@ -1377,7 +1368,7 @@ package body XE_Parse is
                Set_Token_Location (Expr_Sloc);
                P_Aggregate_Assignment (Expr_Node);
 
-            --  If aggregate literal, declare an anonymous variable.
+            --  If numeric literal, declare an anonymous variable.
 
             elsif Token = Tok_Numeric_Literal then
                Declare_Literal
@@ -1386,7 +1377,7 @@ package body XE_Parse is
                   Expr_Sloc,
                   Variable_Id (Expr_Node));
 
-            --  Otherwise, retrieve the declaration.
+            --  Otherwise, retrieve the declaration
 
             else
                Search_Variable (Expr_Name, Expr_Node);
@@ -1396,9 +1387,11 @@ package body XE_Parse is
             end if;
 
             --  Check that the expression has the correct type
+
             Expr_Type := Get_Variable_Type (Expr_Node);
 
             --  Special case for functions and procedures
+
             if Expr_Type = Ada_Unit_Type_Node
               and then Is_Variable_Initialized (Expr_Node)
             then
@@ -1419,7 +1412,8 @@ package body XE_Parse is
                end;
             end if;
 
-            --  Is this the expected type ?
+            --  Is this the expected type?
+
             if Expr_Type /= Attr_Type then
                Write_Type_Error
                  (Get_Token_Location,
@@ -1448,6 +1442,7 @@ package body XE_Parse is
          exception when Matching_Error =>
 
             --  Reset context and location
+
             Jump_Context (Context);
             Set_Token_Location (Expr_Sloc);
 
@@ -1484,10 +1479,11 @@ package body XE_Parse is
       Var_Type_Node : Type_Id;
       Var_Type_Kind : Predefined_Type;
       Var_Type_Sloc : Location_Type;
+
    begin
       Take_Token ((Tok_Comma, Tok_Colon));
 
-      --  Is it a list of identifiers ?
+      --  Is it a list of identifiers?
 
       if Token = Tok_Comma then
 
@@ -1504,9 +1500,8 @@ package body XE_Parse is
             Previous_Sloc,
             Previous_Node);
 
-         --  Call recursively P_Variable_List_Declaration until the
-         --  end of list. Variable_Node is a node for the next
-         --  declared variable.
+         --  Call recursively P_Variable_List_Declaration until the end of the
+         --  Variable_Node is a node for the next declared variable.
 
          P_Variable_List_Declaration (Variable_Name, Variable_Sloc);
 
@@ -1521,14 +1516,13 @@ package body XE_Parse is
          Duplicate_Variable (Variable_Node, Previous_Node);
 
       else
-
-         --  The following identifier is a type.
+         --  The following identifier is a type
 
          T_Identifier;
          Var_Type_Name := Token_Name;
          Var_Type_Sloc := Get_Token_Location;
 
-         --  Has this type been declared ?
+         --  Has this type been declared?
 
          Search_Type (Var_Type_Name, Var_Type_Kind, Var_Type_Node);
 
@@ -1536,14 +1530,14 @@ package body XE_Parse is
             Write_Type_Error (Var_Type_Sloc, Var_Type_Name);
          end if;
 
-         --  Declare this new variable of type Var_Type_Node.
+         --  Declare this new variable of type Var_Type_Node
 
          Declare_Variable
            (Previous_Name, Var_Type_Node, Previous_Sloc, Previous_Node);
 
          Take_Token ((Tok_Semicolon, Tok_Colon_Equal));
 
-         --  Is there an initialization ?
+         --  Is there an initialization?
 
          if Token = Tok_Colon_Equal then
             P_Aggregate_Assignment (Previous_Node);
@@ -1913,10 +1907,6 @@ package body XE_Parse is
       Component_Node := C;
    end Search_Component;
 
-   ----------------------
-   -- Search_Component --
-   ----------------------
-
    procedure Search_Component
      (Component_Name : Name_Id;
       Variable_Node  : Variable_Id;
@@ -2174,8 +2164,7 @@ package body XE_Parse is
       Node : Node_Id;
    begin
       Search_Declaration (Variable_Name, Node);
-      if Node /= Null_Node  and then
-         not Is_Variable (Node) then
+      if Node /= Null_Node and then not Is_Variable (Node) then
          Node := Null_Node;
       end if;
       Variable_Node := Variable_Id (Node);
