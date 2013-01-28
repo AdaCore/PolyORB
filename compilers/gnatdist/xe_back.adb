@@ -77,6 +77,13 @@ package body XE_Back is
    function Get_Absolute_Command return String;
    --  Get the absolute path of the command being executed
 
+   function Needs_Stub (A : ALI_Id) return Boolean;
+   --  True if A is the LI Id for a unit requiring stubs (i.e. a non-generic
+   --  RCI or Shared passive unit).
+
+   procedure Do_Rename (Source, Target : File_Name_Type);
+   --  Call Rename_File (Source, Target), and show a message if in debug mode
+
    -----------
    -- "and" --
    -----------
@@ -128,6 +135,19 @@ package body XE_Back is
       end loop;
    end Apply_Casing_Rules;
 
+   ---------------
+   -- Do_Rename --
+   ---------------
+
+   procedure Do_Rename (Source, Target : File_Name_Type) is
+   begin
+      if Debug_Mode then
+         Message ("renaming", Source, "to", Target);
+      end if;
+      Delete_File (Target);
+      Rename_File (Source, Target);
+   end Do_Rename;
+
    --------
    -- Eq --
    --------
@@ -173,17 +193,7 @@ package body XE_Back is
          --  Create stub files. Create skel files as well when we have to build
          --  the partition on which this unit is mapped.
 
-         if not Units.Table (Unit).Is_Generic
-           and then (Units.Table (Unit).RCI
-                     or else Units.Table (Unit).Shared_Passive)
-         then
-            --  Remove the original object and ALI files so that the monolithic
-            --  version of the unit is ignored. Note that Ofile is an absolute
-            --  path, whereas Afile is just a filename.
-
-            Delete_File (ALIs.Table (J).Ofile);
-            Delete_File (Dir (Monolithic_Obj_Dir, ALIs.Table (J).Afile));
-
+         if Needs_Stub (J) then
             Uname := Name (Units.Table (Unit).Uname);
             PID   := Get_Partition_Id (Uname);
 
@@ -396,8 +406,8 @@ package body XE_Back is
 
       --  Determination of skel ALI file name
 
-      Skel_ALI       := Dir (Directory, Strip_Directory (Full_ALI_File));
-      Skel_Object    := To_Ofile (Skel_ALI);
+      Skel_ALI    := Dir (Directory, Strip_Directory (Full_ALI_File));
+      Skel_Object := To_Ofile (Skel_ALI);
 
       --  Do we need to generate the skel files
 
@@ -766,19 +776,6 @@ package body XE_Back is
                           Dir (Stub_Dir_Name, Full_ALI_Base);
             Final_Object : constant File_Name_Type := To_Ofile (Final_ALI);
 
-            procedure Do_Rename (Src, Target : File_Name_Type);
-            --  Call Rename_File (Src, Target), also outputting a message
-            --  if in debug mode.
-
-            procedure Do_Rename (Src, Target : File_Name_Type) is
-            begin
-               if Debug_Mode then
-                  Message ("renaming", Src, "to", Target);
-               end if;
-               Delete_File (Target);
-               Rename_File (Src, Target);
-            end Do_Rename;
-
          begin
             Do_Rename (Stub_ALI,    Final_ALI);
             Do_Rename (Stub_Object, Final_Object);
@@ -865,6 +862,34 @@ package body XE_Back is
       return Hash (S.all);
    end Hash;
 
+   ------------------------
+   -- Hide_Stubbed_Units --
+   ------------------------
+
+   procedure Hide_Stubbed_Units (Hide : Boolean := True) is
+      type What is (ALI, Object);
+      Filenames : array (Boolean, What) of File_Name_Type;
+   begin
+      for J in ALIs.First .. ALIs.Last loop
+         if Needs_Stub (J) then
+            Filenames :=
+              (False =>  --  Visible paths
+                 (ALI    => Dir (Monolithic_Obj_Dir, ALIs.Table (J).Afile),
+                  Object => ALIs.Table (J).Ofile),
+
+               True =>   --  Hidden paths
+                 (ALI    => Dir (Hidden_Stubs_Dir, ALIs.Table (J).Afile),
+                  Object => Dir (Hidden_Stubs_Dir,
+                                 Strip_Directory (ALIs.Table (J).Ofile))));
+
+            for F in What loop
+               Do_Rename (Source => Filenames (not Hide, F),
+                          Target => Filenames (Hide, F));
+            end loop;
+         end if;
+      end loop;
+   end Hide_Stubbed_Units;
+
    ----------------
    -- Initialize --
    ----------------
@@ -897,6 +922,19 @@ package body XE_Back is
       end loop;
       return Quote (Name_Find);
    end Location_List_Image;
+
+   ----------------
+   -- Needs_Stub --
+   ----------------
+
+   function Needs_Stub (A : ALI_Id) return Boolean is
+      Unit : constant Unit_Id := ALIs.Table (A).Last_Unit;
+   begin
+      return (Units.Table (Unit).RCI
+                or else
+              Units.Table (Unit).Shared_Passive)
+        and then not Units.Table (Unit).Is_Generic;
+   end Needs_Stub;
 
    ------------------------
    -- Partition_Dir_Flag --

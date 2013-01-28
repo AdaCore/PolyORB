@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -166,6 +166,12 @@ private
    function Partition_Dir_Flag (P : Partition_Id) return String;
    --  Return a gnatmake command line flag setting external variable
    --  PARTITION_DIR for partition P.
+
+   procedure Hide_Stubbed_Units (Hide : Boolean := True);
+   procedure Unhide_Stubbed_Units (Hide : Boolean := False)
+     renames Hide_Stubbed_Units;
+   --  Move away from visibility/back into visibility the ALI and object files
+   --  from the monolithic build for any units that has stubs.
 
    Build_Stamp_File    : File_Name_Type;
    Partition_Main_File : File_Name_Type;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -71,7 +71,9 @@ package XE_Utils is
    Monolithic_Obj_Name      : File_Name_Type;
 
    Monolithic_Obj_Dir       : File_Name_Type;
-   --  Object dir for the monolithic application
+   Hidden_Stubs_Dir         : File_Name_Type;
+   --  Object dir for the monolithic application, and temporary directory to
+   --  hide stubbed units from gnatmake.
 
    --  Project file for the complete application (set by Set_Application_Names)
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -592,7 +592,8 @@ package body XE_Utils is
       I_Current_Dir  := new String'("-I.");
       E_Current_Dir  := new String'("-I-");
 
-      Monolithic_Obj_Dir  := Dir (Root_Id, Id ("obj"));
+      Monolithic_Obj_Dir := Dir (Root_Id, Id ("obj"));
+      Hidden_Stubs_Dir   := Dir (Monolithic_Obj_Dir, Id ("monolithic"));
 
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
@@ -634,6 +635,7 @@ package body XE_Utils is
       Install_Int_Handler (Sigint_Intercepted'Access);
 
       Create_Dir (Monolithic_Obj_Dir);
+      Create_Dir (Hidden_Stubs_Dir);
       Create_Dir (Stub_Dir_Name);
       Create_Dir (Part_Dir_Name);
 
