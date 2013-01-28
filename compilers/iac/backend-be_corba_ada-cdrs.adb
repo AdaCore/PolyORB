@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -629,8 +629,7 @@ package body Backend.BE_CORBA_Ada.CDRs is
                 Make_Identifier (PN (P_Data_Alignment))));
             Append_To (Server_Statements, N);
 
-            --  the operation does not have OUT or INOUT parameters,
-            --  there is no need to this
+            --  No need to align if the operation has no OUT or IN OUT formals
 
             if Contains_Out_Parameters (E) then
                N := Make_Assignment_Statement
