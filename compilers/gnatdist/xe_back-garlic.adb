@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -607,7 +607,14 @@ package body XE_Back.GARLIC is
       Make_Args (11) :=
         new String'(Get_Name_String (Strip_Directory (Executable)));
 
+      --  While binding and linking partitions, the original (monolithic)
+      --  objects and ALIs must be moved out of the builder's visibility,
+      --  so that they can be replaced by the stubbed versions supplied
+      --  through directories specified on the command line.
+
+      Hide_Stubbed_Units;
       Build (Sfile, Make_Args, Fatal => True);
+      Unhide_Stubbed_Units;
 
       Free (Comp_Args (6));
       Free (Comp_Args (7));
