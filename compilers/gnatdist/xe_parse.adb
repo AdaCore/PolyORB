@@ -1871,12 +1871,11 @@ package body XE_Parse is
    is
       Actual : Node_Id;
    begin
-
-      --  Scan the configuration to find variable Actual_Name.
+      --  Scan the configuration to find variable Actual_Name
 
       First_Configuration_Declaration (Configuration_Node, Actual);
       while Actual /= Null_Node loop
-         if Is_Variable       (Actual)
+         if Is_Variable (Actual)
            and then Get_Node_Name     (Actual) = Actual_Name
            and then Get_Variable_Type (Variable_Id (Actual)) = Actual_Type
          then
