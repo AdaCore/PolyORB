@@ -883,8 +883,10 @@ package body XE_Back is
                                  Strip_Directory (ALIs.Table (J).Ofile))));
 
             for F in What loop
-               Do_Rename (Source => Filenames (not Hide, F),
-                          Target => Filenames (Hide, F));
+               if Is_Regular_File (Filenames (not Hide, F)) then
+                  Do_Rename (Source => Filenames (not Hide, F),
+                             Target => Filenames (Hide, F));
+               end if;
             end loop;
          end if;
       end loop;
