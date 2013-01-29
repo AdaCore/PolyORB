@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,11 +26,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with XE_Types;     use XE_Types;
-with XE;        use XE;
-with XE_Parse;  use XE_Parse;
-with XE_Scan;   use XE_Scan;
-with XE_Utils;  use XE_Utils;
+with XE_Types; use XE_Types;
+with XE;       use XE;
+with XE_Parse; use XE_Parse;
+with XE_Scan;  use XE_Scan;
+with XE_Utils; use XE_Utils;
 
 package body XE_Stdcnf is
 
@@ -42,13 +42,12 @@ package body XE_Stdcnf is
    ----------------
 
    procedure Initialize is
-
       Variable_Node  : Variable_Id;
 
    begin
 
-      --  As a naming convention, we use the reserved keyword "private"
-      --  for the standard configuration name.
+      --  As a naming convention, we use the reserved keyword "private" for
+      --  the standard configuration name.
 
       Create_Configuration (Configuration_Node, Id ("private"));
 
@@ -505,7 +504,7 @@ package body XE_Stdcnf is
          Pragma_Starter_Node,
          Null_Location);
 
-      --  type Name_Server is (Embedded, Standalone, Multicast);
+      --  type Name_Server is (None, Embedded, Standalone, Multicast);
 
       Declare_Type
         (Type_Name    => Type_Prefix & "name_server",
