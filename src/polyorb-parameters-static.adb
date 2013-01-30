@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -60,10 +60,10 @@ package body PolyORB.Parameters.Static is
    --  the unresolved symbol is weak. This external name was chosen to avoid
    --  alarming the user when this happen instead of a more descriptive one.
 
-   type Partition_Source is new Parameters_Source with null record;
+   type Static_Source is new Parameters_Source with null record;
 
    overriding function Get_Conf
-     (Source       : access Partition_Source;
+     (Source       : access Static_Source;
       Section, Key : String) return String;
 
    procedure Initialize;
@@ -73,7 +73,7 @@ package body PolyORB.Parameters.Static is
    --------------
 
    overriding function Get_Conf
-      (Source       : access Partition_Source;
+      (Source       : access Static_Source;
        Section, Key : String) return String
    is
       pragma Unreferenced (Source);
@@ -88,7 +88,7 @@ package body PolyORB.Parameters.Static is
       return "";
    end Get_Conf;
 
-   The_Static_Source : aliased Partition_Source;
+   The_Static_Source : aliased Static_Source;
 
    ----------------
    -- Initialize --
@@ -119,10 +119,10 @@ package body PolyORB.Parameters.Static is
    use PolyORB.Utils.Strings;
 
 begin
-      --  The static parameters source depends on parameters_sources.runtime
-      --  so that its values can be overridden at run time.
+   --  The static parameters source depends on parameters_sources.runtime
+   --  so that its values can be overridden at run time.
 
-      Register_Module
+   Register_Module
       (Module_Info'
          (Name      => +"parameters.static",
           Conflicts => Empty,
