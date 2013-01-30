@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,8 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Common;
-with Output;
+with PO_Catref.Common;
+with PO_Catref.Output;
 
 with PolyORB.Binding_Data.Print;
 with PolyORB.Initialization;
@@ -41,8 +41,8 @@ package body PolyORB.Binding_Data.SOAP.Print is
    ------------------------
 
    procedure Print_SOAP_Profile (Prof : Profile_Access) is
-      use Common;
-      use Output;
+      use PO_Catref.Common;
+      use PO_Catref.Output;
 
       SOAP_Prof : SOAP_Profile_Type renames SOAP_Profile_Type (Prof.all);
 

@@ -41,12 +41,14 @@ project PolyORB_tools_po_catref is
    for Source_Dirs use (Obj_Dir, PolyORB_Common.Source_Dir & Dir);
 
    package Compiler is
-
       for Default_Switches ("Ada")
          use PolyORB_Common.Compiler'Default_Switches ("Ada");
-
    end Compiler;
 
-   for Main use ("po_catref.adb");
+   package Builder is
+      for Executable ("po_catref-main.adb") use "po_catref";
+   end Builder;
+
+   for Main use ("po_catref-main.adb");
 
 end PolyORB_tools_po_catref;

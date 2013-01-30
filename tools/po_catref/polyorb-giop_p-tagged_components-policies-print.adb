@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Output;
+with PO_Catref.Output;
 
 with PolyORB.GIOP_P.Tagged_Components.Print;
 with PolyORB.Initialization;
@@ -66,7 +66,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
    ---------------
 
    procedure Output_TC (TC : TC_Policies) is
-      use Standard.Output;
+      use PO_Catref.Output;
       use Policy_Value_Seq;
       use PolyORB.Representations.CDR.Common;
       use PolyORB.Types;

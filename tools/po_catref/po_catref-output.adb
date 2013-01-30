@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               O U T P U T                                --
+--                     P O _ C A T R E F . O U T P U T                      --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,21 +26,66 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Output functions
+with Ada.Text_IO;
+with Ada.Strings.Unbounded;
 
-package Output is
+package body PO_Catref.Output is
 
-   procedure Inc_Indent;
-   procedure Dec_Indent;
-   --  Increment or decrement the indentation level
+   use Ada.Text_IO;
+   use Ada.Strings.Unbounded;
 
-   procedure Put_Line (Tag_C : String; Information : String);
-   --  Append a Information to output, prepended by Tag_C
+   Indent_Size : constant Natural := 3;
+   Indent_Level : Natural := 0;
 
-   procedure New_Line;
-   --  Append a blank line
+   Text : Unbounded_String;
 
-   procedure Flush;
-   --  Real output function: output everything on Standard Output
+   ----------------
+   -- Inc_Indent --
+   ----------------
 
-end Output;
+   procedure Inc_Indent is
+   begin
+      Indent_Level := Indent_Level + 1;
+   end Inc_Indent;
+
+   ----------------
+   -- Dec_Indent --
+   ----------------
+
+   procedure Dec_Indent is
+   begin
+      Indent_Level := Indent_Level - 1;
+   end Dec_Indent;
+
+   --------------
+   -- Put_Line --
+   --------------
+
+   procedure Put_Line (Tag_C : String; Information : String) is
+      Indent_String : constant String
+        (1 .. Indent_Size * Indent_Level) := (others => ' ');
+
+   begin
+      Append (Text, Indent_String);
+      Append (Text, Tag_C & ": " & Information & ASCII.LF);
+   end Put_Line;
+
+   --------------
+   -- New_Line --
+   --------------
+
+   procedure New_Line is
+   begin
+      Append (Text, ASCII.LF);
+   end New_Line;
+
+   -----------
+   -- Flush --
+   -----------
+
+   procedure Flush is
+   begin
+      Ada.Text_IO.Put (To_String (Text));
+   end Flush;
+
+end PO_Catref.Output;

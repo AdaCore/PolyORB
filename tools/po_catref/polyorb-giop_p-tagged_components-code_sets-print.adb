@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,7 +28,7 @@
 
 with Ada.Text_IO;
 
-with Output;
+with PO_Catref.Output;
 with PolyORB.GIOP_P.Code_Sets;
 with PolyORB.GIOP_P.Code_Sets.Description_Data;
 with PolyORB.GIOP_P.Tagged_Components.Print;
@@ -37,7 +37,7 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.GIOP_P.Tagged_Components.Code_Sets.Print is
 
-   use Output;
+   use PO_Catref.Output;
    use PolyORB.GIOP_P.Code_Sets;
    use PolyORB.GIOP_P.Code_Sets.Code_Set_Id_Lists;
 

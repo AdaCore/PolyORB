@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               C O M M O N                                --
+--                     P O _ C A T R E F . O U T P U T                      --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,30 +26,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Output;
+--  Output functions
 
-package body Common is
+package PO_Catref.Output is
 
-   use Output;
+   procedure Inc_Indent;
+   procedure Dec_Indent;
+   --  Increment or decrement the indentation level
 
-   --------------------------------
-   -- Output_Address_Information --
-   --------------------------------
+   procedure Put_Line (Tag_C : String; Information : String);
+   --  Append a Information to output, prepended by Tag_C
 
-   procedure Output_Address_Information
-     (Addr : PolyORB.Utils.Sockets.Socket_Name)
-   is
-   begin
-      Put_Line ("Address", PolyORB.Utils.Sockets.Image (Addr));
-   end Output_Address_Information;
+   procedure New_Line;
+   --  Append a blank line
 
-   -------------------------------
-   -- Output_Object_Information --
-   -------------------------------
+   procedure Flush;
+   --  Real output function: output everything on Standard Output
 
-   procedure Output_Object_Information (Obj : PolyORB.Objects.Object_Id) is
-   begin
-      Put_Line ("Object_Id", PolyORB.Objects.Image (Obj));
-   end Output_Object_Information;
-
-end Common;
+end PO_Catref.Output;

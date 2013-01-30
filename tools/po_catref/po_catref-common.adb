@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                            P O _ C A T R E F                             --
+--                     P O _ C A T R E F . C O M M O N                      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,87 +26,30 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility tool to display information held in a stringified
---  reference, e.g.  CORBA IOR, corbaloc or URI.
+with PO_Catref.Output;
 
-with Ada.Command_Line;
-with Ada.Text_IO;
+package body PO_Catref.Common is
 
-with Output;
+   use PO_Catref.Output;
 
-with PolyORB.References;
+   --------------------------------
+   -- Output_Address_Information --
+   --------------------------------
 
-with PolyORB.Setup.Client;
-pragma Warnings (Off, PolyORB.Setup.Client);
-
-with PolyORB.Initialization;
-
-with PolyORB.Binding_Data.Print;
-
-with PolyORB.Types; use PolyORB.Types;
-
-with PO_CatRef_Setup;
-pragma Warnings (Off, PO_CatRef_Setup);
-
-procedure PO_CatRef is
-
-   use Ada.Command_Line;
-
-   use Output;
-
-   use PolyORB.References;
-   use PolyORB.Binding_Data;
-
-   use PolyORB.Binding_Data.Print;
-
-   Obj_Ref : Ref;
-
-begin
-   PolyORB.Initialization.Initialize_World;
-
-   if Argument_Count /= 1 then
-      Ada.Text_IO.Put_Line ("usage: po_catref <string_ref>");
-      Ada.Text_IO.Put_Line (" <string_ref> is a stringified reference:"
-                            & " CORBA IOR, corbaloc or URI");
-
-      return;
-   end if;
-
-   Put_Line ("Parsing stringified reference", Ada.Command_Line.Argument (1));
-   New_Line;
-
+   procedure Output_Address_Information
+     (Addr : PolyORB.Utils.Sockets.Socket_Name)
+   is
    begin
-      String_To_Object (Ada.Command_Line.Argument (1), Obj_Ref);
-   exception
-      when others =>
-         Put_Line ("Error", "Invalid reference !");
-         Flush;
-         return;
-   end;
+      Put_Line ("Address", PolyORB.Utils.Sockets.Image (Addr));
+   end Output_Address_Information;
 
-   if Is_Nil (Obj_Ref) then
-      Put_Line ("Error", "Null reference !");
+   -------------------------------
+   -- Output_Object_Information --
+   -------------------------------
 
-      Flush;
-      return;
-   end if;
-
-   declare
-      Profiles : constant Profile_Array := Profiles_Of (Obj_Ref);
-
+   procedure Output_Object_Information (Obj : PolyORB.Objects.Object_Id) is
    begin
-      Put_Line ("Type Id", Type_Id_Of (Obj_Ref));
-      New_Line;
+      Put_Line ("Object_Id", PolyORB.Objects.Image (Obj));
+   end Output_Object_Information;
 
-      Put_Line ("Found", Profiles'Length'Img & " profiles in IOR");
-      New_Line;
-
-      for J in Profiles'Range loop
-         Put_Line ("Profile number", Trimmed_Image (Long_Long (J)));
-         Print_Profile (Profiles (J));
-         New_Line;
-      end loop;
-   end;
-
-   Flush;
-end PO_CatRef;
+end PO_Catref.Common;

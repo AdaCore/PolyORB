@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,14 +28,14 @@
 
 with Ada.Strings.Unbounded;
 
-with Common;
-with Output;
+with PO_Catref.Common;
+with PO_Catref.Output;
 
 package body PolyORB.GIOP_P.Tagged_Components.SSL_Sec_Trans.Print is
 
    use Ada.Strings.Unbounded;
-   use Common;
-   use Output;
+   use PO_Catref.Common;
+   use PO_Catref.Output;
 
    function Image (Options : Association_Options) return String;
 

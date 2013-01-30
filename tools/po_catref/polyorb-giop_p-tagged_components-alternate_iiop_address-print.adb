@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,13 +30,13 @@ with PolyORB.GIOP_P.Tagged_Components.Print;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-with Common;
-with Output;
+with PO_Catref.Common;
+with PO_Catref.Output;
 
 package body PolyORB.GIOP_P.Tagged_Components.Alternate_IIOP_Address.Print is
 
-   use Common;
-   use Output;
+   use PO_Catref.Common;
+   use PO_Catref.Output;
 
    procedure Output (Item : Tagged_Component'Class);
 

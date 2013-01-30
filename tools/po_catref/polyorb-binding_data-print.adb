@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,11 +28,11 @@
 
 with PolyORB.Utils.Chained_Lists;
 
-with Output;
+with PO_Catref.Output;
 
 package body PolyORB.Binding_Data.Print is
 
-   use Output;
+   use PO_Catref.Output;
 
    type Node is record
       Profile : Profile_Tag;

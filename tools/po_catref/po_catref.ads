@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               C O M M O N                                --
+--                            P O _ C A T R E F                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,16 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Common output routines
+--  Utility tool to display information from a stringified referenced
+--  (CORBA IOR, corbaloc, or URI).
 
-with PolyORB.Objects;
-with PolyORB.Utils.Sockets;
-
-package Common is
-
-   procedure Output_Address_Information
-     (Addr : PolyORB.Utils.Sockets.Socket_Name);
-
-   procedure Output_Object_Information (Obj : PolyORB.Objects.Object_Id);
-
-end Common;
+package PO_Catref is
+   pragma Pure;
+end PO_Catref;

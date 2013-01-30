@@ -2933,11 +2933,12 @@ testsuite/tests/run-test.py
 testsuite/tests/test_utils.py
 testsuite/testsuite.py
 tools/README
-tools/po_catref/common.adb
-tools/po_catref/common.ads
-tools/po_catref/output.adb
-tools/po_catref/output.ads
-tools/po_catref/po_catref.adb
+tools/po_catref/po_catref-common.adb
+tools/po_catref/po_catref-common.ads
+tools/po_catref/po_catref-main.adb
+tools/po_catref/po_catref-output.adb
+tools/po_catref/po_catref-output.ads
+tools/po_catref/po_catref.ads
 tools/po_catref/po_catref_setup.adb.in
 tools/po_catref/po_catref_setup.ads
 tools/po_catref/polyorb-binding_data-giop-diop-print.adb
