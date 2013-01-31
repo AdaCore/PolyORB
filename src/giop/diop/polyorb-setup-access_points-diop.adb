@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,8 +75,7 @@ package body PolyORB.Setup.Access_Points.DIOP is
 
    procedure Initialize_Access_Points;
 
-   procedure Initialize_Access_Points
-   is
+   procedure Initialize_Access_Points is
       use PolyORB.Parameters;
 
    begin
@@ -97,10 +96,10 @@ package body PolyORB.Setup.Access_Points.DIOP is
             Initialize_Unicast_Socket (DIOP_Access_Point, Port_Hint, Addr);
 
             Register_Access_Point
-              (ORB    => The_ORB,
-               TAP    => DIOP_Access_Point.SAP,
-               Chain  => DIOP_Factories'Access,
-               PF     => DIOP_Access_Point.PF);
+              (ORB   => The_ORB,
+               TAP   => DIOP_Access_Point.SAP,
+               Chain => DIOP_Factories'Access,
+               PF    => DIOP_Access_Point.PF);
          end;
       end if;
    end Initialize_Access_Points;
