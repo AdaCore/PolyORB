@@ -946,8 +946,14 @@ or newer.
 @noindent
 Solaris (all versions):
 
-/usr/ucb/tr is not suitable to build PolyORB. Your PATH must
-be set to that tr(1) is /usr/bin/tr, /use/xpg4/bin/tr or GNU tr.
+/usr/ucb/tr and /usr/bin/tr are not suitable to build PolyORB. Your PATH must
+be set to that tr(1) is /use/xpg4/bin/tr or GNU tr. (However note that
+if you have GNU make in /usr/local/bin, then /usr/xpg4/bin must occur
+@emph{after} /usr/local/bin in your PATH, since /usr/xpg4/bin/make is
+not suitable to build PolyORB.
+
+So, assuming GNU make is installed in /usr/local/bin, a suitable PATH
+setting would be: PATH=/usr/local/bin:/usr/xpg4/bin:/usr/ccs/bin:/usr/bin.
 
 @noindent
 Tru64 5.1A:
