@@ -31,7 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--# require HAVE_SSL
+
 with "polyorb_common", "polyorb_src", "polyorb_src_security", "polyorb_src_security_x509";
+
 
 library project PolyORB_src_security_tls is
 

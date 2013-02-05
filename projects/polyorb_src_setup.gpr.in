@@ -40,7 +40,6 @@
 --  this one.
 
 with "polyorb_common", "polyorb_src";
-@NO_SSL@with "polyorb_src_ssl";
 @WITH_PROTO_PRJS@
 @WITH_APPLI_PRJS@
 

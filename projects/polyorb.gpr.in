@@ -31,8 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_common", "polyorb_src_setup";
-@NO_SSL@with "polyorb_src_setup_security";
+with "polyorb_common";
+@WITH_SETUP_PRJS@
 @WITH_SERVICE_PRJS@
 
 project PolyORB is

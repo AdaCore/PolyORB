@@ -35,6 +35,8 @@
 
 --  @configure_input@
 
+@WITH_EXTRA_PRJS@
+
 project PolyORB_Config is
 
    Top_Source_Dir := "@abs_top_srcdir@/";

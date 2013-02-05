@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--# require HAVE_SSL
+
 with "polyorb_common", "polyorb_src", "polyorb_src_corba", "polyorb_src_corba_iop", "polyorb_src_security";
 
 library project PolyORB_src_corba_security is

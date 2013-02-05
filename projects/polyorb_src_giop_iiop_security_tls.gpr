@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--# require HAVE_SSL
+
 with "polyorb_common", "polyorb_src", "polyorb_src_giop", "polyorb_src_giop_iiop", "polyorb_src_giop_iiop_security", "polyorb_src_security", "polyorb_src_security_tls", "polyorb_src_security_x509";
 
 library project PolyORB_src_giop_iiop_security_tls is

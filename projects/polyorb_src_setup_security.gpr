@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--# require HAVE_SSL
+
 --  Pre-canned setups for security subsystem
 
 --  See src_setup for purpose and usage rules

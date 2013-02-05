@@ -415,11 +415,145 @@ AC_MSG_RESULT(${LIBS_LIST})
 AC_SUBST(LIBS_LIST)
 
 ##########################################
-# Update Makefiles' subdirectory lists
+# gnatdist flags 
+##########################################
+
+PCSNAME="polyorb"
+AC_SUBST(PCSNAME)
+
+#
+# Remote shell command
+#
+AC_CHECK_PROGS(DEFAULT_RSH_CMD, [remsh rsh ssh], rsh)
+AC_MSG_CHECKING(for remote shell command to use)
+AC_ARG_WITH(rshcmd,
+ AS_HELP_STRING([--with-rshcmd=command], [Set alternate remote shell command]),
+ [RSH_CMD="${withval}"],
+ [RSH_CMD="${DEFAULT_RSH_CMD}"])
+AC_SUBST(RSH_CMD)
+AC_MSG_RESULT([${RSH_CMD}])
+
+#
+# Remote shell flags
+#
+AC_MSG_CHECKING(for remote shell options to use)
+AC_ARG_WITH(rshopt,
+ AS_HELP_STRING([--with-rshopt=command], [Set remote shell options]),
+ [RSH_OPT="${withval}"],
+ [RSH_OPT=""])
+AC_SUBST(RSH_OPT)
+AC_MSG_RESULT([${RSH_OPT}])
+
+#
+# Default storage location.
+#
+DEFSTORAGENAME="dsm"
+DEFSTORAGEDATA=""
+AC_SUBST(DEFSTORAGENAME)
+AC_SUBST(DEFSTORAGEDATA)
+
+DEFPROTOCOLNAME="tcp"
+DEFPROTOCOLDATA=""
+AC_SUBST(DEFPROTOCOLDATA)
+AC_SUBST(DEFPROTOCOLNAME)
+
+#
+# Check whether we remove support for RPC abortion
+#
+AC_ARG_ENABLE(rpc-abortion,
+AS_HELP_STRING([--enable-rpc-abortion], [Enable RPC abortion even when not supported]),
+[SUPPORT_RPC_ABORTION="True"],
+[SUPPORT_RPC_ABORTION="Default"])
+AM_SUPPORT_RPC_ABORTION
+AC_MSG_CHECKING(whether we support RPC abortion)
+if test "$SUPPORT_RPC_ABORTION" = "True"; then
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+fi
+AC_SUBST(SUPPORT_RPC_ABORTION)
+
+##########################################
+# Check for exception model
+##########################################
+
+AC_MSG_CHECKING(for exception model to use)
+AC_MSG_RESULT($EXCEPTION_MODEL)
+AC_SUBST(GNAT_RTS_FLAG)
+
+#
+# If ATC or dynamic priorities are not supported, remove corresponding units.
+# Note: can't use a multi-line value for an AC_SUBST variable, this works only
+# with recent versions of autoconf (which use awk(1) for all substitutions).
+# Older versions that rely on sed(1) don't handle multi-line substitutions
+# correctly.
+#
+
+EXCLUDED_SOURCE_FILES=config.excluded_source_files
+rm -f $EXCLUDED_SOURCE_FILES
+
+if $HAVE_ADA_ATC; then
+  : No excluded files
+else
+  cat <<__EOF__
+polyorb-tasking-profiles-full_tasking_atc.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.ads
+polyorb-tasking-profiles-full_tasking_atc-abortables.adb
+__EOF__
+fi >> ${EXCLUDED_SOURCE_FILES}
+
+if $HAVE_ADA_DYNAMIC_PRIORITIES; then
+  : No excluded files
+else
+  cat <<__EOF__
+polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.ads
+polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
+__EOF__
+fi >> ${EXCLUDED_SOURCE_FILES}
+
+##########################################
+# XML/Ada
+##########################################
+
+dnl Projects-based build infrastructure: find XML/Ada project in project path
+
+soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
+
+if test x"$soap_enabled" = xyes; then
+  AC_MSG_CHECKING([for XML/Ada])
+  AM_HAS_GNAT_PROJECT([xmlada])
+  if test x"$HAVE_GNAT_PROJECT_xmlada" != xyes; then
+    AC_MSG_ERROR(["Protocol personality SOAP requires XML/Ada"])
+  fi
+fi
+
+##########################################
+# SSL/TLS Support with OpenSSL
+##########################################
+
+AM_WITH_OPENSSL
+AM_CONDITIONAL(HAVE_SSL, [test "x$HAVE_SSL" = "xyes"])
+
+##########################################
+# Identify projects to be built
 ##########################################
 
 get_perso_prjs() {
-  eval "(cd ${srcdir}/projects && echo polyorb_src_$1*.gpr)"
+(
+  cd ${srcdir}/projects
+  for p in polyorb_src_$1*.gpr; do
+    output=true
+    for var in `sed -n '/^--# *require */s///p' < $p`; do
+      eval "val=\${$var}"
+      if test "x${val}" != "xyes"; then
+        output=false
+      fi
+    done
+    if $output; then
+      echo -n " $p"
+    fi
+  done
+)
 }
 
 with_projects() {
@@ -510,6 +644,12 @@ AC_SUBST(SERVICE_EXES)
 AC_SUBST(SERVICE_PRJS)
 AC_SUBST(WITH_SERVICE_PRJS)
 
+SETUP_PRJS=`get_perso_prjs setup`
+WITH_SETUP_PRJS=`with_projects $SETUP_PRJS`
+
+AC_SUBST(SETUP_PRJS)
+AC_SUBST(WITH_SETUP_PRJS)
+
 LIBS_DIRS=""
 LIBS_INCS=""
 LIBS_LIBS=""
@@ -527,139 +667,6 @@ AC_SUBST(LIBS_DIRS)
 AC_SUBST(LIBS_INCS)
 AC_SUBST(LIBS_LIBS)
 AC_SUBST(LIBS_EXES)
-
-##########################################
-# gnatdist flags 
-##########################################
-
-PCSNAME="polyorb"
-AC_SUBST(PCSNAME)
-
-#
-# Remote shell command
-#
-AC_CHECK_PROGS(DEFAULT_RSH_CMD, [remsh rsh ssh], rsh)
-AC_MSG_CHECKING(for remote shell command to use)
-AC_ARG_WITH(rshcmd,
- AS_HELP_STRING([--with-rshcmd=command], [Set alternate remote shell command]),
- [RSH_CMD="${withval}"],
- [RSH_CMD="${DEFAULT_RSH_CMD}"])
-AC_SUBST(RSH_CMD)
-AC_MSG_RESULT([${RSH_CMD}])
-
-#
-# Remote shell flags
-#
-AC_MSG_CHECKING(for remote shell options to use)
-AC_ARG_WITH(rshopt,
- AS_HELP_STRING([--with-rshopt=command], [Set remote shell options]),
- [RSH_OPT="${withval}"],
- [RSH_OPT=""])
-AC_SUBST(RSH_OPT)
-AC_MSG_RESULT([${RSH_OPT}])
-
-#
-# Default storage location.
-#
-DEFSTORAGENAME="dsm"
-DEFSTORAGEDATA=""
-AC_SUBST(DEFSTORAGENAME)
-AC_SUBST(DEFSTORAGEDATA)
-
-DEFPROTOCOLNAME="tcp"
-DEFPROTOCOLDATA=""
-AC_SUBST(DEFPROTOCOLDATA)
-AC_SUBST(DEFPROTOCOLNAME)
-
-#
-# Check whether we remove support for RPC abortion
-#
-AC_ARG_ENABLE(rpc-abortion,
-AS_HELP_STRING([--enable-rpc-abortion], [Enable RPC abortion even when not supported]),
-[SUPPORT_RPC_ABORTION="True"],
-[SUPPORT_RPC_ABORTION="Default"])
-AM_SUPPORT_RPC_ABORTION
-AC_MSG_CHECKING(whether we support RPC abortion)
-if test "$SUPPORT_RPC_ABORTION" = "True"; then
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
-AC_SUBST(SUPPORT_RPC_ABORTION)
-
-#
-# Check for exception model
-#
-
-AC_MSG_CHECKING(for exception model to use)
-AC_MSG_RESULT($EXCEPTION_MODEL)
-AC_SUBST(GNAT_RTS_FLAG)
-
-#
-# If ATC or dynamic priorities are not supported, remove corresponding units.
-# Note: can't use a multi-line value for an AC_SUBST variable, this works only
-# with recent versions of autoconf (which use awk(1) for all substitutions).
-# Older versions that rely on sed(1) don't handle multi-line substitutions
-# correctly.
-#
-
-EXCLUDED_SOURCE_FILES=config.excluded_source_files
-
-if $HAVE_ADA_ATC; then
-  : No excluded files
-else
-  cat <<__EOF__
-polyorb-tasking-profiles-full_tasking_atc.ads
-polyorb-tasking-profiles-full_tasking_atc-abortables.ads
-polyorb-tasking-profiles-full_tasking_atc-abortables.adb
-__EOF__
-fi > ${EXCLUDED_SOURCE_FILES}
-
-if $HAVE_ADA_DYNAMIC_PRIORITIES; then
-  : No excluded files
-else
-  cat <<__EOF__
-polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.ads
-polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
-__EOF__
-fi >> ${EXCLUDED_SOURCE_FILES}
-
-AC_SUBST_FILE(EXCLUDED_SOURCE_FILES)
-
-##########################################
-# XML/Ada
-##########################################
-
-dnl Projects-based build infrastructure: find XML/Ada project in project path
-
-soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
-
-if test x"$soap_enabled" = xyes; then
-  AC_MSG_CHECKING([for XML/Ada])
-  AM_HAS_GNAT_PROJECT([xmlada])
-  if test x"$HAVE_GNAT_PROJECT_xmlada" != xyes; then
-    AC_MSG_ERROR(["Protocol personality SOAP requires XML/Ada"])
-  fi
-fi
-
-##########################################
-# SSL/TLS Support with OpenSSL
-##########################################
-
-AM_WITH_OPENSSL
-AM_CONDITIONAL(HAVE_SSL, [test "x$HAVE_SSL" = "xyes"])
-
-##########################################
-# Test : if a CORBA COS is built
-#        then CORBA must be built
-##########################################
-
-corba_enabled=`echo ${APPLI_LIST} | ${AWK} '/corba/{print "yes"}'`
-
-if test x"$SERVICE_LIST" != x" " -a x$corba_enabled != xyes
-then
-   AC_MSG_ERROR("CORBA COS require CORBA application personality")
-fi
 
 ##########################################
 # Extra gnatmake parameters provided by the user
@@ -832,8 +839,16 @@ AC_SUBST_FILE(PO_CREATEREF_WITHS)
 # Consistency checks
 #################################################
 
+# Shared libs build requires gprbuild
+
 AS_IF(test "$HAVE_GPRBUILD:${enable_shared:-no}" = "no:yes",
  [AC_MSG_FAILURE("--enable-shared requires gprbuild")])
+
+# COS require CORBA
+
+corba_enabled=`echo ${APPLI_LIST} | ${AWK} '/corba/{print "yes"}'`
+AS_IF(test x"$SERVICE_LIST" != x" " -a x$corba_enabled != xyes,
+ [AC_MSG_FAILURE("CORBA COS require CORBA application personality")])
 
 #################################################
 # Build code fragments to be substituted in
@@ -860,6 +875,15 @@ AC_SUBST_FILE(LOCAL_MAKEFILES)
 
 GNATDIST_VERSION="$POLYORB_VERSION"
 AC_SUBST(GNATDIST_VERSION)
+
+##########################################
+# Last orders
+##########################################
+
+AC_SUBST_FILE(EXCLUDED_SOURCE_FILES)
+
+WITH_EXTRA_PRJS=`with_projects $EXTRA_PRJS`
+AC_SUBST(WITH_EXTRA_PRJS)
 
 ##########################################
 # Output generated files
