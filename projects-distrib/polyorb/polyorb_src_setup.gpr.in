@@ -38,10 +38,11 @@
 --  WITH clauses for the PolyORB components.
 
 with "polyorb_common", "polyorb_src";
-@NO_SSL@with "polyorb_src_ssl";
 @WITH_PROTO_PRJS@
 @WITH_APPLI_PRJS@
 @WITH_SERVICE_PRJS@
+@WITH_SETUP_PRJS@
+@WITH_EXTRA_PRJS@
 
 project PolyORB_src_setup is
 
