@@ -528,6 +528,22 @@ if test x"$soap_enabled" = xyes; then
 fi
 
 ##########################################
+# GNATColl
+##########################################
+
+AM_HAS_GNAT_PROJECT([gnatcoll])
+
+if test "x$HAVE_GNAT_PROJECT_gnatcoll" = xyes; then
+  PLATFORM_BASE_LIST="$PLATFORM_BASE_LIST PolyORB.Parameters.Macros"
+  EXTRA_PRJS="$EXTRA_PRJS gnatcoll"
+else
+  cat <<__EOF__
+polyorb-parameters-macros.ads
+polyorb-parameters-macros.adb
+__EOF__
+fi >> ${EXCLUDED_SOURCE_FILES}
+
+##########################################
 # SSL/TLS Support with OpenSSL
 ##########################################
 

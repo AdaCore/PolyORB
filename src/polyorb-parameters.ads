@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -112,18 +112,25 @@ package PolyORB.Parameters is
 
    procedure Register_Source (Source : Parameters_Source_Access);
    --  Register one source of configuration parameters. Sources are queried
-   --  at run time in the order they were registered.
+   --  at run time in the order they were registered, and first match wins,
+   --  so sources registered earlier take precedence over sources registered
+   --  later.
 
 private
 
    type Parameters_Source is abstract tagged limited null record;
 
-   type Fetch_From_File_T is access function (Key : String) return String;
-   Fetch_From_File_Hook : Fetch_From_File_T := null;
+   type Conf_Filter is access function (Val : String) return String;
+
+   Fetch_From_File_Hook : Conf_Filter := null;
    --  The fetch-from-file hook allows the value of a configuration parameter
    --  to be loaded indirectly from a file; this is independent of the use of a
    --  PolyORB configuration file as a source of configuration parameters (but
    --  both facilities are provided by the PolyORB.Parameters.File package).
+
+   Expand_Macros_Hook : Conf_Filter := null;
+   --  The expand-macros hook allows macros to be subsituted within the value
+   --  of a configuration parameter.
 
    procedure Initialize;
    --  Complete the initialization of the configuration parameters framework,

@@ -1509,6 +1509,8 @@ src/polyorb-parameters-file.adb
 src/polyorb-parameters-file.ads
 src/polyorb-parameters-initialization.adb
 src/polyorb-parameters-initialization.ads
+src/polyorb-parameters-macros.adb
+src/polyorb-parameters-macros.ads
 src/polyorb-parameters-static.adb
 src/polyorb-parameters-static.ads
 src/polyorb-parameters.adb

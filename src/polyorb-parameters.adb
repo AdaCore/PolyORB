@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -57,21 +57,42 @@ package body PolyORB.Parameters is
    function Fetch (Key : String) return String;
    --  Get the string from a file (if Key starts with file: and the file
    --  exists, otherwise it is an empty string), or the string itself
-   --  otherwise.
+   --  otherwise. Also expands macros in the returned value if the
+   --  Expand_Macros hook is not null.
 
    -----------
    -- Fetch --
    -----------
 
    function Fetch (Key : String) return String is
-   begin
-      if PolyORB.Utils.Has_Prefix (Key, "file:")
-        and then Fetch_From_File_Hook /= null
-      then
-         return Fetch_From_File_Hook.all (Key);
 
+      function Fetch_From_File return String;
+      --  Helper function to fetch the value from a file, if necessary
+
+      ---------------------
+      -- Fetch_From_File --
+      ---------------------
+
+      function Fetch_From_File return String is
+      begin
+         if PolyORB.Utils.Has_Prefix (Key, "file:")
+           and then Fetch_From_File_Hook /= null
+         then
+            return Fetch_From_File_Hook (Key);
+         else
+            return Key;
+         end if;
+      end Fetch_From_File;
+
+      Val : constant String := Fetch_From_File;
+
+   --  Start of processing for Fetch
+
+   begin
+      if Expand_Macros_Hook /= null then
+         return Expand_Macros_Hook (Val);
       else
-         return Key;
+         return Val;
       end if;
    end Fetch;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,7 +35,7 @@ pragma Ada_2005;
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
-
+with PolyORB.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Configuration_File;
 
@@ -143,8 +143,19 @@ package body PolyORB.Parameters.File is
 
    procedure Initialize is
    begin
+      --  Set up configuration table and initialize intrinsic defaults
+
       Initialize (Configuration_Table);
+      Insert (Configuration_Table,
+        Make_Global_Key ("macros", "hostname"),
+        new String'(Sockets.Host_Name));
+
+      --  Load configuration file
+
       Load_Configuration_File (Configuration_File_Name);
+
+      --  Register parameter source in configuration framework
+
       Register_Source (The_File_Source'Access);
 
       Fetch_From_File_Hook := Fetch_From_File'Access;
