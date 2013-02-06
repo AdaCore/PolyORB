@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -135,8 +135,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
    -- Retrieve_Context --
    ----------------------
 
-   function Retrieve_Context (Name : CosNaming.Name) return Ref
-   is
+   function Retrieve_Context (Name : CosNaming.Name) return Ref is
       Cur : NamingContext.Ref :=
               To_Ref (CORBA.ORB.Resolve_Initial_References
                       (CORBA.ORB.To_CORBA_String ("NamingService")));
