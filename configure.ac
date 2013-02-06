@@ -520,10 +520,9 @@ dnl Projects-based build infrastructure: find XML/Ada project in project path
 soap_enabled=`echo ${PROTO_LIST} | ${AWK} '/soap/ {print "yes"}'`
 
 if test x"$soap_enabled" = xyes; then
-  AC_MSG_CHECKING([for XML/Ada])
   AM_HAS_GNAT_PROJECT([xmlada])
   if test x"$HAVE_GNAT_PROJECT_xmlada" != xyes; then
-    AC_MSG_ERROR(["Protocol personality SOAP requires XML/Ada"])
+    AC_MSG_ERROR(["SOAP protocol personality requires XML/Ada"])
   fi
 fi
 
