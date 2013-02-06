@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -60,7 +60,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
    overriding procedure Create_Factory
      (MF  : out IIOP_Transport_Mechanism_Factory;
-      TAP :     Transport.Transport_Access_Point_Access);
+      TAP : access Transport.Transport_Access_Point'Class);
 
    overriding function Is_Local_Mechanism
      (MF : access IIOP_Transport_Mechanism_Factory;

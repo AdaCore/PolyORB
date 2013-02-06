@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,7 +33,6 @@
 --  Helper subprograms to set up access points based on SSL sockets
 --  for a PolyORB server.
 
-with PolyORB.Binding_Data;
 with PolyORB.Sockets;
 with PolyORB.SSL;
 with PolyORB.Transport;
@@ -43,23 +42,12 @@ package PolyORB.Utils.SSL_Access_Points is
 
    use PolyORB.Utils.Socket_Access_Points;
 
-   ----------------------------------
-   -- Access_Point_Info descriptor --
-   ----------------------------------
-
-   type Access_Point_Info is record
-      Socket   : Sockets.Socket_Type;
-      Address  : Sockets.Sock_Addr_Type;
-      SAP      : Transport.Transport_Access_Point_Access;
-      PF       : Binding_Data.Profile_Factory_Access;
-   end record;
-
    procedure Initialize_Socket
-     (API       : out Access_Point_Info;
+     (SAP       : Transport.Transport_Access_Point_Access;
       Address   : Sockets.Inet_Addr_Type;
       Port_Hint : Port_Interval;
       Context   : SSL.SSL_Context_Type);
-   --  Initialize API.Socket and bind it to a free port, using one of
+   --  Initialize a socket for SAP and bind it to a free port, using one of
    --  the address corresponding to hostname, or use Address and
    --  Port_Hint if possible.
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -185,19 +185,18 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Create_Factory --
    --------------------
 
-   overriding procedure Create_Factory
-     (PF  : out IIOP_Profile_Factory;
-      TAP :     Transport.Transport_Access_Point_Access;
-      ORB :     Components.Component_Access)
+   overriding function Create_Factory
+     (TAP : not null access Transport.Transport_Access_Point'Class)
+      return IIOP_Profile_Factory
    is
-      pragma Unreferenced (ORB);
-
       MF : constant Transport_Mechanism_Factory_Access :=
         new IIOP_Transport_Mechanism_Factory;
 
    begin
-      Create_Factory (MF.all, TAP);
-      Append (PF.Mechanisms, MF);
+      return PF : IIOP_Profile_Factory do
+         Create_Factory (MF.all, TAP);
+         Append (PF.Mechanisms, MF);
+      end return;
    end Create_Factory;
 
    --------------------

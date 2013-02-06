@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup for IIOP access point.
+--  Setup for IIOP access point
 
 with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
@@ -45,7 +45,7 @@ with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Sockets;
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TCP_Access_Points;
@@ -59,18 +59,14 @@ package body PolyORB.Setup.Access_Points.IIOP is
    use PolyORB.GIOP_P.Transport_Mechanisms.IIOP;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Utils;
    use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
 
    --  The IIOP access point
 
-   Primary_IIOP_Access_Point : Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Factory);
+   Primary_IIOP_AP : Transport.Transport_Access_Point_Access;
+   Primary_IIOP_Profile_Factory : Binding_Data.Profile_Factory_Access;
 
    Sli : aliased Slicer_Factory;
    Pro : aliased Protocols.GIOP.IIOP.IIOP_Protocol;
@@ -81,10 +77,9 @@ package body PolyORB.Setup.Access_Points.IIOP is
    -- Get_Profile_Factory --
    -------------------------
 
-   function Get_Profile_Factory
-     return PolyORB.Binding_Data.Profile_Factory_Access is
+   function Get_Profile_Factory return Binding_Data.Profile_Factory_Access is
    begin
-      return Primary_IIOP_Access_Point.PF;
+      return Primary_IIOP_Profile_Factory;
    end Get_Profile_Factory;
 
    ------------------------------
@@ -112,7 +107,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
                     What  => ':');
 
             --  default_port is <port-interval>
-            --  If present, it overrides any <port-interval> from default_addr
+            --  If present, it pro any <port-interval> from default_addr
 
             Port_Hint : Port_Interval := To_Port_Interval
                           (Get_Conf
@@ -140,8 +135,9 @@ package body PolyORB.Setup.Access_Points.IIOP is
                                                 .. Primary_Addr_Str'Last)));
             end if;
 
-            Initialize_Socket
-              (Primary_IIOP_Access_Point, Primary_Addr, Port_Hint);
+            Initialize_Socket (Primary_IIOP_AP, Primary_Addr, Port_Hint);
+            Primary_IIOP_Profile_Factory :=
+              new IIOP_Profile_Factory'(Create_Factory (Primary_IIOP_AP));
 
             if Get_Conf
                ("ssliop",
@@ -152,17 +148,17 @@ package body PolyORB.Setup.Access_Points.IIOP is
             end if;
 
             Register_Access_Point
-              (ORB    => The_ORB,
-               TAP    => Primary_IIOP_Access_Point.SAP,
-               Chain  => IIOP_Factories'Access,
-               PF     => Primary_IIOP_Access_Point.PF);
+              (ORB   => The_ORB,
+               TAP   => Primary_IIOP_AP,
+               Chain => IIOP_Factories'Access,
+               PF    => Primary_IIOP_Profile_Factory);
 
             if Alternate_Listen_Addresses /= "" then
                declare
                   Factory : constant Transport_Mechanism_Factory_Access
                     := Get_Primary_Transport_Mechanism_Factory
                     (IIOP_Profile_Factory
-                     (Primary_IIOP_Access_Point.PF.all));
+                     (Primary_IIOP_Profile_Factory.all));
                   First   : Positive := Alternate_Listen_Addresses'First;
                   Last    : Natural  := 0;
                   Delim   : Natural  := 0;
@@ -205,11 +201,8 @@ package body PolyORB.Setup.Access_Points.IIOP is
                      --  access point and register it.
 
                      declare
-                        Alternate_IIOP_Access_Point : Access_Point_Info :=
-                          (Socket  => No_Socket,
-                           Address => No_Sock_Addr,
-                           SAP     => new Socket_Access_Point,
-                           PF      => null);
+                        Alternate_IIOP_Access_Point :
+                          Transport.Transport_Access_Point_Access;
 
                         Alternate_Addr : constant Inet_Addr_Type :=
                           Inet_Addr
@@ -232,13 +225,16 @@ package body PolyORB.Setup.Access_Points.IIOP is
                               Alternate_Addr,
                               Alternate_Port);
 
+                           --  Add alternate AP name to the mechanism factory
+                           --  of the primary profile factory.
+
                            Create_Factory
                              (IIOP_Transport_Mechanism_Factory (Factory.all),
-                              Alternate_IIOP_Access_Point.SAP);
+                              Alternate_IIOP_Access_Point);
 
                            Register_Access_Point
                              (ORB   => The_ORB,
-                              TAP   => Alternate_IIOP_Access_Point.SAP,
+                              TAP   => Alternate_IIOP_Access_Point,
                               Chain => IIOP_Factories'Access,
                               PF    => null);
                         end if;

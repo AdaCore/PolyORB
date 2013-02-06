@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,16 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Components;
-with PolyORB.Setup;
---  with PolyORB.TLS;
 with PolyORB.Transport.Connected.Sockets.TLS;
 
 package body PolyORB.Utils.TLS_Access_Points is
 
-   use PolyORB.Binding_Data;
    use PolyORB.Sockets;
---   use PolyORB.TLS;
    use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets.TLS;
 
@@ -48,15 +43,17 @@ package body PolyORB.Utils.TLS_Access_Points is
    -----------------------
 
    procedure Initialize_Socket
-     (DAP       : out Access_Point_Info;
+     (DAP       : Transport.Transport_Access_Point_Access;
       Address   : Inet_Addr_Type := Any_Inet_Addr;
       Port_Hint : Port_Type      := Any_Port)
    is
       Port : Port_Type := Port_Hint;
+      Addr : Sock_Addr_Type;
+      Socket : Socket_Type;
    begin
-      Create_Socket (DAP.Socket);
+      Create_Socket (Socket);
 
-      DAP.Address :=
+      Addr :=
         Sock_Addr_Type'(Addr   => Address,
                         Port   => Port,
                         Family => Family_Inet);
@@ -64,22 +61,18 @@ package body PolyORB.Utils.TLS_Access_Points is
       --  Allow reuse of local addresses
 
       Set_Socket_Option
-        (DAP.Socket,
+        (Socket,
          Socket_Level,
          (Reuse_Address, True));
 
-      if DAP.SAP = null then
-         DAP.SAP := new TLS_Access_Point;
-      end if;
-
       loop
-         DAP.Address.Port := Port;
+         Addr.Port := Port;
 
          begin
             Create
-              (TLS_Access_Point (DAP.SAP.all),
-               DAP.Socket,
-               DAP.Address);
+              (TLS_Access_Point (DAP.all),
+               Socket,
+               Addr);
 
             exit;
 
@@ -94,11 +87,6 @@ package body PolyORB.Utils.TLS_Access_Points is
                end if;
          end;
       end loop;
-
-      if DAP.PF /= null then
-         Create_Factory
-           (DAP.PF.all, DAP.SAP, Components.Component_Access (Setup.The_ORB));
-      end if;
    end Initialize_Socket;
 
 end PolyORB.Utils.TLS_Access_Points;

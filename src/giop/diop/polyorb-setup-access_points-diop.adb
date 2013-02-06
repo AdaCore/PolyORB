@@ -43,7 +43,7 @@ with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets;
+with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.UDP_Access_Points;
@@ -54,15 +54,10 @@ package body PolyORB.Setup.Access_Points.DIOP is
    use PolyORB.Filters.Fragmenter;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.UDP_Access_Points;
 
-   DIOP_Access_Point : UDP_Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new PolyORB.Binding_Data.GIOP.DIOP.DIOP_Profile_Factory);
+   DIOP_Access_Point : Transport.Transport_Access_Point_Access;
 
    Fra : aliased Fragmenter_Factory;
    Pro : aliased Protocols.GIOP.DIOP.DIOP_Protocol;
@@ -76,7 +71,8 @@ package body PolyORB.Setup.Access_Points.DIOP is
    procedure Initialize_Access_Points;
 
    procedure Initialize_Access_Points is
-      use PolyORB.Parameters;
+      use Parameters;
+      use Binding_Data.GIOP.DIOP;
 
    begin
       if Get_Conf ("access_points", "diop", True) then
@@ -97,9 +93,10 @@ package body PolyORB.Setup.Access_Points.DIOP is
 
             Register_Access_Point
               (ORB   => The_ORB,
-               TAP   => DIOP_Access_Point.SAP,
+               TAP   => DIOP_Access_Point,
                Chain => DIOP_Factories'Access,
-               PF    => DIOP_Access_Point.PF);
+               PF    => new DIOP_Profile_Factory'
+                              (Create_Factory (DIOP_Access_Point)));
          end;
       end if;
    end Initialize_Access_Points;

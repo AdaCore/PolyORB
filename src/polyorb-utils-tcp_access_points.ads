@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,14 +33,12 @@
 --  Helper subprograms to set up access points based on TCP sockets
 --  for a PolyORB server.
 
-with PolyORB.Binding_Data;
 with PolyORB.Sockets;
 with PolyORB.Transport;
 with PolyORB.Utils.Socket_Access_Points;
 
 package PolyORB.Utils.TCP_Access_Points is
 
-   use PolyORB.Binding_Data;
    use PolyORB.Sockets;
    use PolyORB.Transport;
    use PolyORB.Utils.Socket_Access_Points;
@@ -49,21 +47,22 @@ package PolyORB.Utils.TCP_Access_Points is
    -- Access_Point_Info descriptor --
    ----------------------------------
 
-   type Access_Point_Info is record
-      Socket  : Socket_Type;
-      Address : Sock_Addr_Type;
-
-      SAP : Transport_Access_Point_Access;
-      PF  : Profile_Factory_Access;
-   end record;
-
    procedure Initialize_Socket
-     (API       : in out Access_Point_Info;
+     (SAP       : out Transport_Access_Point_Access;
       Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Interval);
+      Port_Hint : Port_Interval;
+      Publish   : String := "");
    --  Initialize API.Socket and bind it to a free port, using one of
    --  the address corresponding to hostname, or use Address, and within
    --  the range given by Port_Hint if applicable (if Port_Hint.Lo is
-   --  Any_Port, then Port_Hing.Hi is ignored).
+   --  Any_Port, then Port_Hint.Hi is ignored).
+
+   type AP_Infos is array (Positive range <>) of Transport_Access_Point_Access;
+   function Initialize_Access_Points
+     (Listen_Spec : String;
+      Default_Ports : Port_Interval := (Any_Port, Any_Port)) return AP_Infos;
+   pragma Unreferenced (Initialize_Access_Points);
+   --  Needs documentation???
+   --  Not used yet???
 
 end PolyORB.Utils.TCP_Access_Points;

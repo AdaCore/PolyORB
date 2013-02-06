@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,7 +43,7 @@ with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets;
+with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
@@ -54,17 +54,11 @@ package body PolyORB.Setup.Access_Points.UIPMC is
    use PolyORB.Filters.MIOP.MIOP_In;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.UDP_Access_Points;
 
    --  Just one UIPMC AP supported???
 
-   UIPMC_Access_Point : UDP_Access_Point_Info
-     := (Socket        => No_Socket,
-         Address       => No_Sock_Addr,
-         SAP           => new Socket_Access_Point,
-         PF            =>
-           new PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Factory);
+   UIPMC_Access_Point : Transport.Transport_Access_Point_Access;
 
    Fra : aliased Fragmenter_Factory;
    Min : aliased MIOP_In_Factory;
@@ -80,7 +74,8 @@ package body PolyORB.Setup.Access_Points.UIPMC is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Parameters;
+      use Parameters;
+      use Binding_Data.GIOP.UIPMC;
 
       Addr : constant String :=
         Get_Conf ("miop", "polyorb.miop.multicast_addr", "");
@@ -97,13 +92,15 @@ package body PolyORB.Setup.Access_Points.UIPMC is
          end if;
 
          Initialize_Multicast_Socket
-           (UIPMC_Access_Point, Inet_Addr (Addr), Port);
+           (UIPMC_Access_Point,
+            Inet_Addr (Addr), Port);
 
          Register_Access_Point
            (ORB   => The_ORB,
-            TAP   => UIPMC_Access_Point.SAP,
+            TAP   => UIPMC_Access_Point,
             Chain => UIPMC_Factories'Access,
-            PF    => UIPMC_Access_Point.PF);
+            PF    => new UIPMC_Profile_Factory'
+                           (Create_Factory (UIPMC_Access_Point)));
       end if;
 
    end Initialize_Access_Points;

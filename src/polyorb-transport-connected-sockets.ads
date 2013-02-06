@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,6 +44,7 @@ package PolyORB.Transport.Connected.Sockets is
    pragma Elaborate_Body;
 
    use PolyORB.Sockets;
+   use PolyORB.Utils.Sockets;
 
    type Socket_Access_Point
       is new Connected_Transport_Access_Point with private;
@@ -52,13 +53,15 @@ package PolyORB.Transport.Connected.Sockets is
 
    procedure Create
      (SAP     : in out Socket_Access_Point;
-      Socket  :        Socket_Type;
-      Address : in out Sock_Addr_Type);
-   --  Initialise SAP: bind Socket to Address, listen on it,
-   --  and set up the corresponding Socket_Access_Point.
-   --  On entry, Address.Port may be Any_Port, in which case the system
-   --  will assign an available port number itself. On return,
-   --  Address is always set to the actual address used.
+      Socket  : Socket_Type;
+      Address : Sock_Addr_Type;
+      Publish : String := "");
+   --  Initialise SAP: bind Socket to Address, listen on it, and set up the
+   --  corresponding Socket_Access_Point.
+   --  On entry, Address.Port may be Any_Port, in which case the system will
+   --  assign an available port number itself. On return, Address is always
+   --  set to the actual address used. If Publish is provided, it overrides
+   --  the name returned by Address_Of.
 
    overriding function Create_Event_Source
      (TAP : access Socket_Access_Point)
@@ -67,6 +70,8 @@ package PolyORB.Transport.Connected.Sockets is
    overriding procedure Accept_Connection
      (TAP : Socket_Access_Point;
       TE  : out Transport_Endpoint_Access);
+
+   overriding procedure Destroy (TAP : in out Socket_Access_Point);
 
    function Address_Of
      (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name;
@@ -108,8 +113,9 @@ private
 
    type Socket_Access_Point is new Connected_Transport_Access_Point
      with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
+        Socket  : Socket_Type := No_Socket;
+        Addr    : Sock_Addr_Type;
+        Publish : Socket_Name_Ptr;
      end record;
 
    type Socket_Endpoint is new Connected_Transport_Endpoint

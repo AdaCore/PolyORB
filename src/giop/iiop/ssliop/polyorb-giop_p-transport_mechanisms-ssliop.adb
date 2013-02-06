@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -166,7 +166,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
    overriding procedure Create_Factory
      (MF  : out SSLIOP_Transport_Mechanism_Factory;
-      TAP :     Transport.Transport_Access_Point_Access)
+      TAP : access Transport.Transport_Access_Point'Class)
    is
    begin
       MF.Address := new Socket_Name'(Address_Of (SSL_Access_Point (TAP.all)));

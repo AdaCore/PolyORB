@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -64,10 +64,9 @@ package PolyORB.Binding_Data.SRP is
 
    type SRP_Profile_Factory is new Profile_Factory with private;
 
-   overriding procedure Create_Factory
-     (PF  : out SRP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
-      ORB : Components.Component_Access);
+   overriding function Create_Factory
+     (TAP : not null access Transport.Transport_Access_Point'Class)
+      return SRP_Profile_Factory;
 
    overriding function Create_Profile
      (PF  : access SRP_Profile_Factory;

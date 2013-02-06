@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,8 @@
 
 --  Setup socket for UDNS
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data.DNS.UDNS;
 with PolyORB.Filters;
 
@@ -41,7 +43,7 @@ with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols.DNS;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets;
+with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
@@ -50,15 +52,10 @@ package body PolyORB.Setup.Access_Points.UDNS is
    use PolyORB.Filters;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.UDP_Access_Points;
    use PolyORB.Utils.Socket_Access_Points;
-   UDNS_Access_Point : UDP_Access_Point_Info
-     := (Socket        => No_Socket,
-         Address       => No_Sock_Addr,
-         SAP           => new Socket_Access_Point,
-         PF            =>
-           new PolyORB.Binding_Data.DNS.UDNS.UDNS_Profile_Factory);
+
+   UDNS_Access_Point : Transport.Transport_Access_Point_Access;
 
    Pro : aliased Protocols.DNS.DNS_Protocol;
    UDNS_Factories : aliased Filters.Factory_Array := (0 => Pro'Access);
@@ -71,7 +68,8 @@ package body PolyORB.Setup.Access_Points.UDNS is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Parameters;
+      use Parameters;
+      use Binding_Data.DNS.UDNS;
 
 --        Addr : constant String :=
 --                 Get_Conf ("udns", "polyorb.udns.multicast_addr", "");
@@ -92,14 +90,13 @@ package body PolyORB.Setup.Access_Points.UDNS is
    begin
 
       if Get_Conf ("access_points", "udns", True) then
---           Initialize_Multicast_Socket
---             (UDNS_Access_Point, Inet_Addr (Addr), Port);
          Initialize_Unicast_Socket (UDNS_Access_Point, Port_Hint, Addr);
          Register_Access_Point
            (ORB   => The_ORB,
-            TAP   => UDNS_Access_Point.SAP,
+            TAP   => UDNS_Access_Point,
             Chain => UDNS_Factories'Access,
-            PF    => UDNS_Access_Point.PF);
+            PF    => new UDNS_Profile_Factory'
+                       (Create_Factory (UDNS_Access_Point)));
       end if;
    end Initialize_Access_Points;
 

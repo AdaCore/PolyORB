@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,15 +32,18 @@
 
 --  Utility routines to set up TCP listening sockets
 
+pragma Ada_2005;
+
 with Ada.Exceptions;
 
-with PolyORB.Components;
+with GNAT.Regpat;
+
 with PolyORB.Log;
-with PolyORB.Setup;
 with PolyORB.Transport.Connected.Sockets;
 
 package body PolyORB.Utils.TCP_Access_Points is
 
+   use GNAT.Regpat;
    use PolyORB.Log;
    use PolyORB.Transport.Connected.Sockets;
 
@@ -51,47 +54,134 @@ package body PolyORB.Utils.TCP_Access_Points is
    --  function C (Level : Log_Level := Debug) return Boolean
    --    renames L.Enabled;
 
+   Listen_Matcher : constant Pattern_Matcher :=
+                      Compile ("^([^:\]]*)(\[[^\]]*\])?(:[0-9-]*)?");
+   subtype Listen_Match is Match_Array (0 .. Paren_Count (Listen_Matcher));
+
+   ------------------------------
+   -- Initialize_Access_Points --
+   ------------------------------
+
+   function Initialize_Access_Points
+     (Listen_Spec   : String;
+      Default_Ports : Port_Interval := (Any_Port, Any_Port)) return AP_Infos
+   is
+      M : Listen_Match;
+   begin
+      Match (Listen_Matcher, Listen_Spec, M);
+
+      declare
+         Bind_Spec : constant String :=
+                       Listen_Spec (M (1).First .. M (1).Last);
+         --  Specification of address to bind to:
+         --  * IP address (dotted quad)
+         --  * host name (bind to all associated addresses)
+         --  * empty, bind to Any_Inet_Addr
+
+         function Pub_Spec return String;
+         --  Name to be published in profiles:
+         --  * defaults to Bind_Spec
+         --  * if empty, publish primary non-loopback IP address
+
+         --------------
+         -- Pub_Spec --
+         --------------
+
+         function Pub_Spec return String is
+         begin
+            if M (2).Last > M (2).First then
+               return Listen_Spec (M (2).First + 1 .. M (2).Last - 1);
+            else
+               return Bind_Spec;
+            end if;
+         end Pub_Spec;
+
+         Port_Hint : Port_Interval;
+
+      --  Start of processing for Initialize_Access_Points
+
+      begin
+         --  If the Listen_Spec specifies a port [interval], use it, else
+         --  use Default_Ports.
+
+         if M (3).Last > M (3).First then
+            Port_Hint := To_Port_Interval
+              (To_Interval (Listen_Spec (M (3).First + 1 .. M (3).Last)));
+         else
+            Port_Hint := Default_Ports;
+         end if;
+
+         --  If a Bind_Spec is present, resolve and bind to all returned
+         --  addresses.
+
+         if Bind_Spec /= "" then
+            declare
+               H : constant Host_Entry_Type := Get_Host_By_Name (Bind_Spec);
+            begin
+               return APIs : AP_Infos (1 .. H.Addresses_Length) do
+                  for J in 1 .. H.Addresses_Length loop
+                     Initialize_Socket
+                       (APIs (J),
+                        Addresses (H, J), Port_Hint,
+                        Pub_Spec);
+                  end loop;
+               end return;
+            end;
+
+         --  Here if no Bind_Spec: bind to Any_Inet_Addr
+
+         else
+            return APIs : AP_Infos (1 .. 1) do
+               Initialize_Socket
+                 (APIs (1), Any_Inet_Addr, Port_Hint, Pub_Spec);
+            end return;
+         end if;
+      end;
+   end Initialize_Access_Points;
+
    -----------------------
    -- Initialize_Socket --
    -----------------------
 
    procedure Initialize_Socket
-     (API       : in out Access_Point_Info;
+     (SAP       : out Transport_Access_Point_Access;
       Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Interval)
+      Port_Hint : Port_Interval;
+      Publish   : String := "")
    is
+      Socket  : Socket_Type;
+      S_Addr  : Sock_Addr_Type;
    begin
-      Create_Socket (API.Socket);
+      Create_Socket (Socket);
 
-      API.Address :=
+      S_Addr :=
         Sock_Addr_Type'(Addr   => Address,
                         Port   => Port_Hint.Lo,
                         Family => Family_Inet);
 
       --  Allow reuse of local addresses
 
-      Set_Socket_Option (API.Socket, Socket_Level, (Reuse_Address, True));
+      Set_Socket_Option (Socket, Socket_Level, (Reuse_Address, True));
 
-      if API.SAP = null then
-         API.SAP := new Socket_Access_Point;
-      end if;
+      SAP := new Socket_Access_Point;
 
       loop
          begin
             Create
-              (Socket_Access_Point (API.SAP.all),
-               API.Socket,
-               API.Address);
+              (Socket_Access_Point (SAP.all),
+               Socket,
+               S_Addr,
+               Publish);
             exit;
          exception
             when E : Sockets.Socket_Error =>
 
                --  If a specific port range was given, try next port in range
 
-               if API.Address.Port /= Any_Port
-                 and then API.Address.Port < Port_Hint.Hi
+               if S_Addr.Port /= Any_Port
+                 and then S_Addr.Port < Port_Hint.Hi
                then
-                  API.Address.Port := API.Address.Port + 1;
+                  S_Addr.Port := S_Addr.Port + 1;
                else
                   O ("bind failed: " & Ada.Exceptions.Exception_Message (E),
                      Notice);
@@ -100,15 +190,6 @@ package body PolyORB.Utils.TCP_Access_Points is
 
          end;
       end loop;
-
-      --  Create profile factory
-
-      if API.PF /= null then
-         Create_Factory
-           (API.PF.all,
-            API.SAP,
-            Components.Component_Access (Setup.The_ORB));
-      end if;
    end Initialize_Socket;
 
 end PolyORB.Utils.TCP_Access_Points;

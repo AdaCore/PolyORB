@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,7 +32,6 @@
 
 --  Setup socket for MDNS
 
-with PolyORB.Binding_Data.DNS.MDNS;
 with PolyORB.Filters;
 
 with PolyORB.Initialization;
@@ -40,7 +39,7 @@ with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols.DNS;
 with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets;
+with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.UDP_Access_Points;
 
@@ -49,15 +48,9 @@ package body PolyORB.Setup.Access_Points.MDNS is
    use PolyORB.Filters;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets;
    use PolyORB.Utils.UDP_Access_Points;
 
-   MDNS_Access_Point : UDP_Access_Point_Info
-     := (Socket        => No_Socket,
-         Address       => No_Sock_Addr,
-         SAP           => new Socket_Access_Point,
-         PF            =>
-           new PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Factory);
+   MDNS_Access_Point : Transport.Transport_Access_Point_Access;
 
    Pro : aliased Protocols.DNS.DNS_Protocol;
    MDNS_Factories : aliased Filters.Factory_Array := (0 => Pro'Access);
@@ -70,7 +63,7 @@ package body PolyORB.Setup.Access_Points.MDNS is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Parameters;
+      use Parameters;
 
       Addr : constant String :=
         Get_Conf ("mdns", "polyorb.mdns.multicast_addr", "");
@@ -87,11 +80,12 @@ package body PolyORB.Setup.Access_Points.MDNS is
          end if;
 
          Initialize_Multicast_Socket
-           (MDNS_Access_Point, Inet_Addr (Addr), Port);
+           (MDNS_Access_Point,
+            Inet_Addr (Addr), Port);
 
          Register_Access_Point
            (ORB   => The_ORB,
-            TAP   => MDNS_Access_Point.SAP,
+            TAP   => MDNS_Access_Point,
             Chain => MDNS_Factories'Access,
             PF    => null);
 

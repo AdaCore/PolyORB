@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -60,11 +60,8 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
 
    --  The SSLIOP access point
 
-   SSLIOP_Access_Point : Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new SSL_Access_Point,
-         PF      => null);
+   SSLIOP_Access_Point : constant Transport.Transport_Access_Point_Access :=
+                           new SSL_Access_Point;
 
    Sli : aliased Slicer_Factory;
    Pro : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
@@ -143,13 +140,18 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
                Load_Client_CA (Cont, CA_File);
             end if;
 
-            Initialize_Socket (SSLIOP_Access_Point, Addr, Port_Hint, Cont);
+            --  Initialize AP, with no associated profile factory (the SSL
+            --  AP is registered as an additional transport mechanism on the
+            --  primary IIOP profile factory).
+
+            Initialize_Socket
+              (SSLIOP_Access_Point, Addr, Port_Hint, Cont);
 
             --  Create TM factory
 
             Create_Factory
               (SSLIOP_Transport_Mechanism_Factory (Factory.all),
-               SSLIOP_Access_Point.SAP);
+               SSLIOP_Access_Point);
 
             --  Retrieve primary IIOP profile factory
 
@@ -173,7 +175,7 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
 
             Register_Access_Point
               (ORB    => The_ORB,
-               TAP    => SSLIOP_Access_Point.SAP,
+               TAP    => SSLIOP_Access_Point,
                Chain  => SSLIOP_Factories'Access,
                PF     => Profile_Factory);
 

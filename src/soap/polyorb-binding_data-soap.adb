@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -225,18 +225,15 @@ package body PolyORB.Binding_Data.SOAP is
    -- Create_Factory --
    --------------------
 
-   overriding procedure Create_Factory
-     (PF : out SOAP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
-      ORB : PolyORB.Components.Component_Access)
+   overriding function Create_Factory
+     (TAP : not null access Transport.Transport_Access_Point'Class)
+      return SOAP_Profile_Factory
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (ORB);
-      pragma Warnings (On);
-
    begin
-      PF.Address :=
-        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+      return PF : SOAP_Profile_Factory do
+         PF.Address :=
+           new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+      end return;
    end Create_Factory;
 
    --------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -52,7 +52,6 @@ package body PolyORB.Transport.Connected.Sockets is
    use PolyORB.Log;
    use PolyORB.Parameters;
    use PolyORB.Tasking.Mutexes;
-   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.connected.sockets");
@@ -98,7 +97,7 @@ package body PolyORB.Transport.Connected.Sockets is
      (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name
    is
    begin
-      return Image (SAP.Addr.Addr) + SAP.Addr.Port;
+      return SAP.Publish.all;
    end Address_Of;
 
    ------------
@@ -108,32 +107,50 @@ package body PolyORB.Transport.Connected.Sockets is
    procedure Create
      (SAP     : in out Socket_Access_Point;
       Socket  : Socket_Type;
-      Address : in out Sock_Addr_Type)
+      Address : Sock_Addr_Type;
+      Publish : String := "")
    is
+      function Publish_Name return String;
+      --  Return Publish if set, else image of primary (non-loopback) IP
+      --  address for SAP.
+
+      ------------------
+      -- Publish_Name --
+      ------------------
+
+      function Publish_Name return String is
+      begin
+         if Publish /= "" then
+            return Publish;
+         else
+            declare
+               Addr : constant Sock_Addr_Type := Get_Socket_Name (Socket);
+            begin
+               --  If bound to a specific IP address, return it
+
+               if Addr.Addr /= Any_Inet_Addr then
+                  return Image (Addr.Addr);
+
+               --  Else return our best guess for our own address
+
+               else
+                  return Image (Local_Inet_Address);
+               end if;
+            end;
+         end if;
+      end Publish_Name;
+
+   --  Start of processing for Create
+
    begin
       pragma Debug (C, O ("Create: listening on " & Image (Address)));
       Bind_Socket (Socket, Address);
       Listen_Socket (Socket);
 
       SAP.Socket := Socket;
+      SAP.Addr   := Get_Socket_Name (Socket);
 
-      if Address.Addr = Any_Inet_Addr then
-
-         --  Address is unspecified, choose one IP for the SAP looking up
-         --  local host name.
-         --  ??? Instead SAP.Addr should be a Socket_Name, and we should keep
-         --  Host_Name unresolved.
-
-         SAP.Addr.Addr := Local_Inet_Address;
-         Address := SAP.Addr;
-
-      else
-         --  Use specified IP address for SAP
-
-         SAP.Addr := Address;
-      end if;
-
-      SAP.Addr.Port := Get_Socket_Name (Socket).Port;
+      SAP.Publish := new Socket_Name'(Publish_Name + SAP.Addr.Port);
    end Create;
 
    -------------------------
@@ -184,6 +201,15 @@ package body PolyORB.Transport.Connected.Sockets is
       Set_Handler (Ev_Src.all, TE.Handler'Access);
       return Ev_Src;
    end Create_Event_Source;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   overriding procedure Destroy (TAP : in out Socket_Access_Point) is
+   begin
+      Free (TAP.Publish);
+   end Destroy;
 
    -----------------------
    -- Is_Data_Available --

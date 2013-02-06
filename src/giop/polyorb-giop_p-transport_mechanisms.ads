@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -76,7 +76,7 @@ package PolyORB.GIOP_P.Transport_Mechanisms is
 
    procedure Create_Factory
      (MF  : out Transport_Mechanism_Factory;
-      TAP :     Transport.Transport_Access_Point_Access) is abstract;
+      TAP : access Transport.Transport_Access_Point'Class) is abstract;
    --  Initialize MF to act as transport mechanism factory for
    --  transport access point TAP
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -42,7 +42,7 @@ with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Sockets;
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.TCP_Access_Points;
 
@@ -51,16 +51,11 @@ package body PolyORB.Setup.Access_Points.SRP is
    use PolyORB.Filters;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Utils.TCP_Access_Points;
 
    --  The 'SRP' access point.
 
-   SRP_Access_Point : Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.SRP.SRP_Profile_Factory);
+   SRP_Access_Point : Transport.Transport_Access_Point_Access;
 
    SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
    SRP_Factories : aliased Filters.Factory_Array
@@ -74,7 +69,9 @@ package body PolyORB.Setup.Access_Points.SRP is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Parameters;
+      use Parameters;
+      use Binding_Data.SRP;
+
    begin
       if Get_Conf ("access_points", "srp", True) then
 
@@ -82,10 +79,11 @@ package body PolyORB.Setup.Access_Points.SRP is
            (SRP_Access_Point, Any_Inet_Addr, (Any_Port, Any_Port));
 
          Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => SRP_Access_Point.SAP,
-            Chain  => SRP_Factories'Access,
-            PF     => SRP_Access_Point.PF);
+           (ORB   => The_ORB,
+            TAP   => SRP_Access_Point,
+            Chain => SRP_Factories'Access,
+            PF    => new SRP_Profile_Factory'
+                           (Create_Factory (SRP_Access_Point)));
          --  Register socket with ORB object, associating a protocol
          --  to the transport service access point.
       end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -42,7 +42,7 @@ with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Sockets;
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TCP_Access_Points;
@@ -52,17 +52,13 @@ package body PolyORB.Setup.Access_Points.SOAP is
    use PolyORB.Filters;
    use PolyORB.ORB;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
 
    --  The SOAP access point
 
-   SOAP_Access_Point : Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
+   SOAP_Access_Point : Transport.Transport_Access_Point_Access;
+
    HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
    SOAP_Protocol : aliased Protocols.SOAP_Pr.SOAP_Protocol;
    --  XXX
@@ -91,6 +87,8 @@ package body PolyORB.Setup.Access_Points.SOAP is
       if Get_Conf ("access_points", "soap", True) then
 
          declare
+            use Binding_Data.SOAP;
+
             Port_Hint : constant Port_Interval := To_Port_Interval
                           (Get_Conf
                            ("soap",
@@ -107,10 +105,11 @@ package body PolyORB.Setup.Access_Points.SOAP is
             Initialize_Socket (SOAP_Access_Point, Addr, Port_Hint);
 
             Register_Access_Point
-              (ORB    => The_ORB,
-               TAP    => SOAP_Access_Point.SAP,
-               Chain  => SOAP_Factories'Access,
-               PF     => SOAP_Access_Point.PF);
+              (ORB   => The_ORB,
+               TAP   => SOAP_Access_Point,
+               Chain => SOAP_Factories'Access,
+               PF    => new SOAP_Profile_Factory'
+                              (Create_Factory (SOAP_Access_Point)));
             --  Register socket with ORB object, associating a protocol
             --  to the transport service access point.
          end;

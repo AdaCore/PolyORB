@@ -124,13 +124,10 @@ package PolyORB.Binding_Data is
    type Profile_Factory is abstract tagged limited private;
    type Profile_Factory_Access is access all Profile_Factory'Class;
 
-   procedure Create_Factory
-     (PF  : out Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
-      ORB : Components.Component_Access)
-      is abstract;
+   function Create_Factory
+     (TAP : not null access Transport.Transport_Access_Point'Class)
+      return Profile_Factory is abstract;
    --  Initialize PF to act as profile factory for transport access point TAP
-   --  managed by ORB.
 
    function Create_Profile
      (PF  : access Profile_Factory;

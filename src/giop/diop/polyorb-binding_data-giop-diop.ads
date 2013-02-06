@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -63,10 +63,9 @@ package PolyORB.Binding_Data.GIOP.DIOP is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   overriding procedure Create_Factory
-     (PF  : out DIOP_Profile_Factory;
-      TAP :     Transport.Transport_Access_Point_Access;
-      ORB :     Components.Component_Access);
+   overriding function Create_Factory
+     (TAP : not null access Transport.Transport_Access_Point'Class)
+     return DIOP_Profile_Factory;
 
    procedure Marshall_DIOP_Profile_Body
      (Buf     : access Buffer_Type;

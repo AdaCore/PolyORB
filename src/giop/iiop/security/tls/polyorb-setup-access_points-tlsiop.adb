@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -62,10 +62,8 @@ package body PolyORB.Setup.Access_Points.TLSIOP is
 
    function Create_Target_Transport_Mechanism
      (Section_Name : String)
-     return
-       PolyORB.Security.Transport_Mechanisms.Target_Transport_Mechanism_Access
+     return Security.Transport_Mechanisms.Target_Transport_Mechanism_Access
    is
-
       use PolyORB.Parameters;
       use PolyORB.Security.Transport_Mechanisms;
       use PolyORB.Security.Transport_Mechanisms.TAP_Lists;
@@ -80,11 +78,8 @@ package body PolyORB.Setup.Access_Points.TLSIOP is
       Port      : Port_Type      := Any_Port;
       Result    : constant Target_Transport_Mechanism_Access
         := new Target_TLS_Transport_Mechanism;
-      Point     : Access_Point_Info
-        := (Socket  => No_Socket,
-            Address => No_Sock_Addr,
-            SAP     => null,
-            PF      => null);
+      Point     : Transport.Transport_Access_Point_Access
+                    := new TLS_Access_Point;
 
    begin
       if Addresses = "" then
@@ -92,13 +87,13 @@ package body PolyORB.Setup.Access_Points.TLSIOP is
 
          PolyORB.ORB.Register_Access_Point
            (ORB   => PolyORB.Setup.The_ORB,
-            TAP   => Point.SAP,
+            TAP   => Point,
             Chain => IIOP_Factories'Access,
             PF    => null);
 
-         Set_Transport_Mechanism (TLS_Access_Point (Point.SAP.all), Result);
+         Set_Transport_Mechanism (TLS_Access_Point (Point.all), Result);
 
-         Append (Target_TLS_Transport_Mechanism (Result.all).TAP, Point.SAP);
+         Append (Target_TLS_Transport_Mechanism (Result.all).TAP, Point);
 
       else
          declare
@@ -150,23 +145,22 @@ package body PolyORB.Setup.Access_Points.TLSIOP is
                   Port      := Any_Port;
                end if;
 
-               Point := (No_Socket, No_Sock_Addr, null, null);
-
                if Addr /= No_Inet_Addr then
+                  Point := new TLS_Access_Point;
+
                   Initialize_Socket (Point, Addr, Port);
 
                   PolyORB.ORB.Register_Access_Point
                     (ORB   => PolyORB.Setup.The_ORB,
-                     TAP   => Point.SAP,
+                     TAP   => Point,
                      Chain => IIOP_Factories'Access,
                      PF    => null);
 
                   Set_Transport_Mechanism
-                    (TLS_Access_Point (Point.SAP.all), Result);
+                    (TLS_Access_Point (Point.all), Result);
 
                   Append
-                    (Target_TLS_Transport_Mechanism (Result.all).TAP,
-                     Point.SAP);
+                    (Target_TLS_Transport_Mechanism (Result.all).TAP, Point);
                end if;
 
                First := Last + 1;

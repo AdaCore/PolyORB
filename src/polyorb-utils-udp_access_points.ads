@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,7 +32,6 @@
 
 --  Helper subprograms to set up access points based on UDP sockets
 
-with PolyORB.Binding_Data;
 with PolyORB.Sockets;
 with PolyORB.Transport;
 with PolyORB.Utils.Socket_Access_Points;
@@ -41,21 +40,13 @@ package PolyORB.Utils.UDP_Access_Points is
 
    use PolyORB.Utils.Socket_Access_Points;
 
-   type UDP_Access_Point_Info is record
-      Socket  : Sockets.Socket_Type;
-      Address : Sockets.Sock_Addr_Type;
-
-      SAP     : Transport.Transport_Access_Point_Access;
-      PF      : Binding_Data.Profile_Factory_Access;
-   end record;
-
    procedure Initialize_Unicast_Socket
-     (AP_Info   : in out UDP_Access_Point_Info;
+     (SAP       : out Transport.Transport_Access_Point_Access;
       Port_Hint : Port_Interval;
       Address   : Sockets.Inet_Addr_Type := Sockets.Any_Inet_Addr);
 
    procedure Initialize_Multicast_Socket
-     (AP_Info : in out UDP_Access_Point_Info;
+     (SAP     : out Transport.Transport_Access_Point_Access;
       Address : Sockets.Inet_Addr_Type;
       Port    : Sockets.Port_Type);
 
