@@ -530,7 +530,7 @@ fi
 # GNATColl
 ##########################################
 
-AM_HAS_GNAT_PROJECT([gnatcoll])
+AM_WITH_GNATCOLL
 
 if test "x$HAVE_GNAT_PROJECT_gnatcoll" = xyes; then
   PLATFORM_BASE_LIST="$PLATFORM_BASE_LIST PolyORB.Parameters.Macros"

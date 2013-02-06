@@ -547,7 +547,7 @@ done
 AC_SUBST($1_GPR)])
 
 dnl Usage: AM_WITH_GPRBUILD
-dnl Test for presence of gprbuild
+dnl Build using gprbuild
 
 define([GPRBUILD_DEFAULT], [no])
 dnl Change to [check] to use gprbuild automatically if present
@@ -557,7 +557,7 @@ AC_DEFUN([AM_WITH_GPRBUILD],
 AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_ARG_WITH([gprbuild],
             [AS_HELP_STRING([--with-gprbuild[=PROG]],
-              [build using gprbuild @<:@default=GPRBUILD_DEFAULT@:>@])],
+              [build using gprbuild @<:@default=]GPRBUILD_DEFAULT[@:>@])],
             [AS_IF([test "x$with_gprbuild" = "xyes"],
                    [gprbuild_cmd=gprbuild],
                    [gprbuild_cmd=$with_gprbuild])],
@@ -577,4 +577,28 @@ AS_IF([test "$with_gprbuild" != no],
   ])
 AC_SUBST(GPRBUILD_FOR_TARGET)
 AC_SUBST(HAVE_GPRBUILD)
+])
+
+dnl Usage: AM_WITH_GNATCOLL
+dnl Enable GNATColl based modules, if available
+
+define([GNATCOLL_DEFAULT], [no])
+dnl Change to [yes] to use gnatcoll automatically if present
+
+AC_DEFUN([AM_WITH_GNATCOLL],
+[
+AC_ARG_WITH([gnatcoll],
+            [AS_HELP_STRING([--with-gnatcoll],
+              [Build with gnatcoll @<:@default=]GNATCOLL_DEFAULT[@:>@])],
+            [with_gnatcoll=${withval}],
+            [with_gnatcoll=GNATCOLL_DEFAULT])
+AS_IF([test "$with_gnatcoll" != no],
+  [
+   AM_HAS_GNAT_PROJECT([gnatcoll])
+   AS_IF([test "$with_gnatcoll" != "check" -a "$HAVE_GNAT_PROJECT_gnatcoll" = no ],
+         [AC_MSG_FAILURE(
+            [--with-gnatcoll was given, but gnatcoll is missing])])
+
+  ],
+  [HAVE_GNAT_PROJECT_gnatcoll=no])
 ])
