@@ -573,9 +573,12 @@ get_perso_prjs() {
 
 with_projects() {
   WITH_PRJS=
+  case "$1" in
+    --prefix=*) prj_prefix=${1#--prefix=}; shift ;;
+  esac
   if test x"$1" != x; then
     for gpr in $*; do
-      prj='"'`basename $gpr .gpr`'"'
+      prj="\"${prj_prefix}`basename $gpr .gpr`\""
       if test "x$WITH_PRJS" = x; then
         WITH_PRJS="with $prj"
       else
@@ -661,9 +664,11 @@ AC_SUBST(WITH_SERVICE_PRJS)
 
 SETUP_PRJS=`get_perso_prjs setup`
 WITH_SETUP_PRJS=`with_projects $SETUP_PRJS`
+WITH_DISTRIB_SETUP_PRJS=`with_projects --prefix=polyorb/ $SETUP_PRJS`
 
 AC_SUBST(SETUP_PRJS)
 AC_SUBST(WITH_SETUP_PRJS)
+AC_SUBST(WITH_DISTRIB_SETUP_PRJS)
 
 LIBS_DIRS=""
 LIBS_INCS=""

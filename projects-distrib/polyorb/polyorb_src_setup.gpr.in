@@ -41,7 +41,6 @@ with "polyorb_common", "polyorb_src";
 @WITH_PROTO_PRJS@
 @WITH_APPLI_PRJS@
 @WITH_SERVICE_PRJS@
-@WITH_SETUP_PRJS@
 @WITH_EXTRA_PRJS@
 
 project PolyORB_src_setup is
