@@ -29,7 +29,7 @@ import logging
 import os
 import re
 
-DEFAULT_TIMEOUT = 60
+DEFAULT_TIMEOUT = 300
 
 logger = logging.getLogger('polyorb.testsuite')
 
