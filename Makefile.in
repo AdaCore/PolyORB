@@ -474,7 +474,7 @@ libpolyorb-corba-cos-notification.a: polyorb_idls_cos_notification.gpr
 .PHONY: libpolyorb-corba-cos-time.a
 libpolyorb-corba-cos-time.a: polyorb_idls_cos_time.gpr
 .PHONY: libpolyorb.a
-libpolyorb.a: polyorb_src.gpr
+libpolyorb.a: polyorb.gpr polyorb_src.gpr
 .PHONY: libpolyorb-corba.a
 libpolyorb-corba.a: polyorb_src_corba.gpr
 .PHONY: libpolyorb-corba-dynamicany.a
@@ -547,13 +547,13 @@ libpolyorb-web_common.a: polyorb_src_web_common.gpr
 # Additional dependencies between projects
 polyorb_src_corba.gpr: polyorb_src_corba_dynamicany.gpr polyorb_src_corba_iop.gpr polyorb_src_corba_messaging.gpr polyorb_src_corba_portableinterceptor.gpr polyorb_src_corba_rtcorba.gpr
 
-polyorb_src_setup.gpr: @APPLI_PRJS@ @PROTO_PRJS@ @SERVICE_PRJS@
+polyorb_src_setup.gpr: @APPLI_PRJS@ @PROTO_PRJS@
+
+polyorb.gpr: @SERVICE_PRJS@ @SETUP_PRJS@
 
 ifeq (${HAVE_SSL},yes)
 polyorb_src_giop_iiop.gpr: polyorb_src_giop_iiop_security.gpr polyorb_src_giop_iiop_security_tls.gpr
-polyorb_src_setup.gpr: polyorb_src_ssl.gpr polyorb_src_setup_security.gpr
 polyorb_src_corba.gpr: polyorb_src_corba_security.gpr polyorb_src_corba_security_gssup.gpr
-polyorb_src.gpr: polyorb_src_security.gpr polyorb_src_security_gssup.gpr polyorb_src_security_x509.gpr polyorb_src_security_tls.gpr
 
 C_FILES += 					\
 	src/ssl/polyorb_ssl.c			\
