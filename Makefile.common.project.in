@@ -75,7 +75,7 @@ POLYORB_LIBS=	libpolyorb.a \
 		libpolyorb-setup.a
 
 ifeq (${HAVE_SSL},yes)
-POLYORB_LIBS += libpolyorb-ssl.a
+POLYORB_LIBS += libpolyorb-ssl.a libpolyorb-security.a libpolyorb-security-gssup.a libpolyorb-security-tls.a libpolyorb-security-x509.a
 endif
 
 dsa_lib=libpolyorb-dsa.a
