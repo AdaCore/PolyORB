@@ -2,7 +2,7 @@
 
 define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.10.0w]))
 
-AC_PREREQ(2.57)
+AC_PREREQ(2.60)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
 
 AC_CONFIG_SRCDIR(src/polyorb.ads)

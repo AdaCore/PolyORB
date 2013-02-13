@@ -40,7 +40,7 @@ NOTE: Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should run the
 script support/reconfig from within the top-level source dir for this
 purpose. This should be done after each update from the repository.
-In addition to the requirements above, they will need autoconf 2.57 or
+In addition to the requirements above, they will need autoconf 2.60 or
 newer.
 
 To install PolyORB, execute:
