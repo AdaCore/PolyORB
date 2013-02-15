@@ -2,7 +2,10 @@
 """
 %prog [OPTIONS] [TEST_PATH]
 
-Run the PolyORB testsuite
+Run the PolyORB testsuite.
+
+Current directory must be the testsuite source directory.
+Rlimit must be on the PATH.
 
 To run only core tests:
     %prog core/
@@ -135,6 +138,11 @@ def main():
     env.options = m.options
     env.log_dir = os.path.join(os.getcwd(), 'log')
     env.store(os.environ['TEST_CONFIG'])
+
+    if len(test_list) == 0:
+	logger.error ("No matching test found")
+	return
+
     MainLoop(test_list, run_testcase, collect_result, m.options.mainloop_jobs)
 
     # Generate the report file
