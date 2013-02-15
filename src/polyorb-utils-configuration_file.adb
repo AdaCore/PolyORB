@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -77,8 +77,7 @@ package body PolyORB.Utils.Configuration_File is
 
    procedure Make_Global_List (K : String; V : String_Ptr);
 
-   procedure Reset_Table
-     (Table : in out Configuration_Table.Table_Instance);
+   procedure Reset_Table (Table : in out Configuration_Table.Table_Instance);
    --  Reset configuration table
 
    --------------------
@@ -143,6 +142,10 @@ package body PolyORB.Utils.Configuration_File is
       procedure Set_Current_Section (S : String);
       --  Enter a new section named S
 
+      -------------------------
+      -- Set_Current_Section --
+      -------------------------
+
       procedure Set_Current_Section (S : String) is
       begin
          Free (Current_Section);
@@ -156,12 +159,9 @@ package body PolyORB.Utils.Configuration_File is
 
       use PolyORB.Utils;
 
+   --  Start of processing for Load_Configuration_Table
+
    begin
-      --  Reset the table and the sections list
-
-      Reset_Table (Table);
-      Reset_Sections_List;
-
       if not GNAT.OS_Lib.Is_Regular_File (Configuration_Filename) then
          if not Is_Default then
             O (Configuration_Filename & " is not a regular file", Error);
