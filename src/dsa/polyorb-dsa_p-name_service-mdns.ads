@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -42,6 +42,7 @@ package PolyORB.DSA_P.Name_Service.mDNS is
      PolyORB.DSA_P.Name_Service.Name_Server with null record;
    --  Concrete mDNS implementation of the abstract Name_Server type
 
+   overriding
    procedure Nameserver_Register
      (Name_Ctx : access MDNS_Name_Server;
       Name : String;
@@ -51,6 +52,7 @@ package PolyORB.DSA_P.Name_Service.mDNS is
    --  procedure. In the context of mDNS this procedure is used on server side
    --  to populate the mDNS servant's list of local RCI/SP package infos.
 
+   overriding
    function Nameserver_Lookup
      (Context : access MDNS_Name_Server;
       Name    : String;
