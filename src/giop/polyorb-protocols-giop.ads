@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -76,19 +76,23 @@ package PolyORB.Protocols.GIOP is
    -- Session primitives --
    ------------------------
 
+   overriding
    procedure Create
      (Proto   : access GIOP_Protocol;
       Session :    out Filter_Access);
 
+   overriding
    procedure Invoke_Request
      (Sess : access GIOP_Session;
       R    :        Requests.Request_Access;
       Pro  : access Binding_Data.Profile_Type'Class);
 
+   overriding
    procedure Abort_Request
      (Sess : access GIOP_Session;
       R    :        Requests.Request_Access);
 
+   overriding
    procedure Send_Reply
      (Sess : access GIOP_Session;
       R    :        Requests.Request_Access);
@@ -98,25 +102,31 @@ package PolyORB.Protocols.GIOP is
       Profile : Binding_Data.Profile_Access;
       Error   : in out Errors.Error_Container);
 
+   overriding
    procedure Handle_Connect_Indication
      (Sess : access GIOP_Session);
 
+   overriding
    procedure Handle_Connect_Confirmation
      (Sess : access GIOP_Session);
 
+   overriding
    procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
       Data_Amount : Stream_Element_Count;
       Error       : in out Errors.Error_Container);
 
+   overriding
    procedure Handle_Disconnect
      (Sess : access GIOP_Session; Error : Errors.Error_Container);
 
+   overriding
    procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;
       Args  : in out Any.NVList.Ref;
       Error : in out Errors.Error_Container);
 
+   overriding
    procedure Handle_Flush (Sess : access GIOP_Session);
 
    ----------------
@@ -482,7 +492,7 @@ private
    type GIOP_Session_Access is access all GIOP_Session;
 
    procedure Initialize (S : in out GIOP_Session);
-   procedure Destroy (S : in out GIOP_Session);
+   overriding procedure Destroy (S : in out GIOP_Session);
 
    --  Magic identifier: 4 bytes at the begining of every GIOP message
 
