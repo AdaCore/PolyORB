@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,12 +50,14 @@ package PolyORB.Representations.CDR is
    --  the Any, not the Any type itself (i.e. they do not marshall Data's
    --  typecode).
 
+   overriding
    procedure Marshall_From_Any
      (R      : access CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
       CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
+   overriding
    procedure Unmarshall_To_Any
      (R      : access CDR_Representation;
       Buffer : access Buffers.Buffer_Type;
@@ -133,7 +135,7 @@ package PolyORB.Representations.CDR is
       Minor : Types.Octet) return CDR_Representation_Access;
    --  Create Representation object for requested version
 
-   procedure Release (Representation : in out CDR_Representation);
+   overriding procedure Release (Representation : in out CDR_Representation);
 
    --  'Any' type
 

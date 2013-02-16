@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -60,6 +60,7 @@ package PolyORB.Protocols is
    type Session is abstract new Filters.Filter with private;
    type Session_Access is access all Session'Class;
 
+   overriding
    procedure Create
      (Proto   : access Protocol;
       Session :    out Filter_Access)
@@ -147,6 +148,7 @@ package PolyORB.Protocols is
    -- Message demuxer --
    ---------------------
 
+   overriding
    function Handle_Message
      (Sess : not null access Session;
       S    : Components.Message'Class) return Components.Message'Class;
