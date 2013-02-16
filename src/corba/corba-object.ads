@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -50,12 +50,13 @@ package CORBA.Object is
 
    function Get_Interface (Self : Ref) return CORBA.Object.Ref'Class;
 
-   function Is_Nil  (Self : Ref) return CORBA.Boolean;
-   function Is_Null (Self : Ref) return CORBA.Boolean renames Is_Nil;
+   overriding function Is_Nil  (Self : Ref) return CORBA.Boolean;
+   overriding function Is_Null (Self : Ref) return CORBA.Boolean
+                renames Is_Nil;
 
    procedure Duplicate (Self : in out Ref);
 
-   procedure Release (Self : in out Ref);
+   overriding procedure Release (Self : in out Ref);
 
    function Is_A
      (Self            : Ref;

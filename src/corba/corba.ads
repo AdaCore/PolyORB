@@ -683,7 +683,7 @@ package CORBA is
         (From : Ada.Exceptions.Exception_Occurrence;
          To   : out BadKind_Members);
 
-      function "=" (Left, Right : Object) return Boolean;
+      overriding function "=" (Left, Right : Object) return Boolean;
       function Equal (Left, Right : Object) return Boolean
         renames "=";
 
