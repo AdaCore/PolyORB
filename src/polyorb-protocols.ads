@@ -30,7 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Support for object method invocation protocols.
+--  Support for object method invocation protocols
+
+pragma Ada_2005;
 
 with Ada.Streams;
 

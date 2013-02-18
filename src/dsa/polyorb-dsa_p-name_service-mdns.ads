@@ -32,6 +32,8 @@
 
 --  This package implements the multicast DNS unit discovery for DSA
 
+pragma Ada_2005;
+
 with PolyORB.DSA_P.Name_Service;
 with PolyORB.POA_Policies;
 with PolyORB.References;
@@ -42,8 +44,7 @@ package PolyORB.DSA_P.Name_Service.mDNS is
      PolyORB.DSA_P.Name_Service.Name_Server with null record;
    --  Concrete mDNS implementation of the abstract Name_Server type
 
-   overriding
-   procedure Nameserver_Register
+   overriding procedure Nameserver_Register
      (Name_Ctx : access MDNS_Name_Server;
       Name : String;
       Kind : String;
@@ -52,8 +53,7 @@ package PolyORB.DSA_P.Name_Service.mDNS is
    --  procedure. In the context of mDNS this procedure is used on server side
    --  to populate the mDNS servant's list of local RCI/SP package infos.
 
-   overriding
-   function Nameserver_Lookup
+   overriding function Nameserver_Lookup
      (Context : access MDNS_Name_Server;
       Name    : String;
       Kind    : String;
@@ -76,5 +76,6 @@ package PolyORB.DSA_P.Name_Service.mDNS is
 
    function Get_MDNS_Servant return PolyORB.References.Ref;
    --  Offered to the user, used by the partition main file in order to
-   --  retrieve the default mDNS servant and assign it to the DNS protocol
+   --  retrieve the default mDNS servant and assign it to the DNS protocol.
+
 end PolyORB.DSA_P.Name_Service.mDNS;
