@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -189,7 +189,7 @@ package PolyORB.Representations.SRP is
 
    overriding procedure Marshall_From_Any
      (R      : access Rep_SRP;
-      Buffer : access Buffers.Buffer_Type;
+      Buffer : not null access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
@@ -199,7 +199,7 @@ package PolyORB.Representations.SRP is
 
    overriding procedure Unmarshall_To_Any
      (R      : access Rep_SRP;
-      Buffer : access Buffers.Buffer_Type;
+      Buffer : not null access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 

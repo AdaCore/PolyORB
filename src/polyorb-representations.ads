@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -49,7 +49,7 @@ package PolyORB.Representations is
 
    procedure Marshall_From_Any
      (R      : access Representation;
-      Buffer : access Buffers.Buffer_Type;
+      Buffer : not null access Buffers.Buffer_Type;
       Data   : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container) is abstract;
    --  Store a representation of Data into Buffer according to representation
@@ -57,7 +57,7 @@ package PolyORB.Representations is
 
    procedure Unmarshall_To_Any
      (R      : access Representation;
-      Buffer : access Buffers.Buffer_Type;
+      Buffer : not null access Buffers.Buffer_Type;
       Data   : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container) is abstract;
    --  Set the value of Data from the representation stored in Buffer according

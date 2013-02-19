@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -867,7 +867,7 @@ package body PolyORB.Representations.CDR is
 
    overriding procedure Marshall_From_Any
      (R      : access CDR_Representation;
-      Buffer : access Buffer_Type;
+      Buffer : not null access Buffer_Type;
       CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is
@@ -2093,7 +2093,7 @@ package body PolyORB.Representations.CDR is
 
    overriding procedure Unmarshall_To_Any
      (R      : access CDR_Representation;
-      Buffer : access Buffer_Type;
+      Buffer : not null access Buffer_Type;
       CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container)
    is

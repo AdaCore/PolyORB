@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,6 +33,8 @@
 --  HTTP protocol implementation (as a filter so higher-level protocol
 --  engines can be plugged on it.)
 
+pragma Ada_2005;
+
 with Ada.Streams;
 
 with PolyORB.Buffers;
@@ -46,7 +48,7 @@ package PolyORB.Filters.HTTP is
 
    type HTTP_Filter_Factory is new Factory with private;
 
-   procedure Create
+   overriding procedure Create
      (Fact   : access HTTP_Filter_Factory;
       Filt   : out Filter_Access);
 
@@ -291,9 +293,9 @@ private
    --  initialization values.
 
    procedure Initialize (F : in out HTTP_Filter);
-   procedure Destroy (F : in out HTTP_Filter);
+   overriding procedure Destroy (F : in out HTTP_Filter);
 
-   function Handle_Message
+   overriding function Handle_Message
      (F : not null access HTTP_Filter;
       S : Components.Message'Class) return Components.Message'Class;
 

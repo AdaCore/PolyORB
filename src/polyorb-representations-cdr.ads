@@ -43,8 +43,6 @@ with PolyORB.Utils.Dynamic_Tables;
 
 package PolyORB.Representations.CDR is
 
---   pragma Elaborate_Body;
-
    type CDR_Representation is abstract new Representation with private;
    type CDR_Representation_Access is access all CDR_Representation'Class;
 
@@ -52,17 +50,15 @@ package PolyORB.Representations.CDR is
    --  the Any, not the Any type itself (i.e. they do not marshall Data's
    --  typecode).
 
-   overriding
-   procedure Marshall_From_Any
+   overriding procedure Marshall_From_Any
      (R      : access CDR_Representation;
-      Buffer : access Buffers.Buffer_Type;
+      Buffer : not null access Buffers.Buffer_Type;
       CData  : Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
-   overriding
-   procedure Unmarshall_To_Any
+   overriding procedure Unmarshall_To_Any
      (R      : access CDR_Representation;
-      Buffer : access Buffers.Buffer_Type;
+      Buffer : not null access Buffers.Buffer_Type;
       CData  : in out Any.Any_Container'Class;
       Error  : in out Errors.Error_Container);
 
