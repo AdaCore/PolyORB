@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.DSA_P.NAME_SERVICE.COS_NAMING                   --
+--      P O L Y O R B . D S A _ P . N A M E _ S E R V I C E . N O N E       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
+--           Copyright (C) 2013, Free Software Foundation, Inc.             --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,40 +32,25 @@
 
 pragma Ada_2005;
 
---  This package represents the CORBA COS Naming context, that uses the
---  concept of a centralized name server.
+package PolyORB.DSA_P.Name_Service.None is
 
-with PolyORB.References;
-with PolyORB.DSA_P.Name_Service;
-with PolyORB.Services.Naming;
-package PolyORB.DSA_P.Name_Service.COS_Naming is
-
-   type COS_Name_Server is new Name_Server with null record;
+   type None_Name_Server is new Name_Server with null record;
 
    overriding procedure Initialize
-     (Name_Ctx : access COS_Name_Server;
-      Location : String);
+     (Name_Ctx : access None_Name_Server;
+      Location : String) is null;
 
    overriding procedure Nameserver_Register
-     (Name_Ctx : access COS_Name_Server;
+     (Name_Ctx : access None_Name_Server;
       Name     : String;
       Kind     : String;
-      Obj      : PolyORB.References.Ref);
-   --  Register object with the specified (Name, Kind) pair into the
-   --  DSA naming context.
+      Obj      : PolyORB.References.Ref) is null;
 
    overriding function Nameserver_Lookup
-     (Name_Ctx : access COS_Name_Server;
+     (Name_Ctx : access None_Name_Server;
       Name     : String;
       Kind     : String;
       Initial  : Boolean := True) return PolyORB.References.Ref;
-   --  Look up the specified (Name, Kind) pair from the DSA naming context.
-   --  If Initial is True, repeat lookup until a valid reference is obtained,
-   --  and raise an exception if maximum retry count is reached, else just
-   --  return an empty ref if name server retruns an empty or invalid result.
+   --  No name server: raises COMMUNICATION_ERROR
 
-   function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name;
-   --  Construct a name consisting of a single name component with the given
-   --  id and kind.
-
-end PolyORB.DSA_P.Name_Service.COS_Naming;
+end PolyORB.DSA_P.Name_Service.None;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1043,9 +1043,10 @@ package body XE is
 
       Name_Server_Img
         := (No_Name_Server => Id ("Undefined name server kind"),
-            Embedded       => Id ("Embedded"),
-            Standalone     => Id ("Standalone"),
-            Multicast      => Id ("Multicast"));
+            None_NS        => Id ("None"),
+            Embedded_NS    => Id ("Embedded"),
+            Standalone_NS  => Id ("Standalone"),
+            Multicast_NS   => Id ("Multicast"));
    end Initialize;
 
    ------------------

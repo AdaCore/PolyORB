@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -780,7 +780,7 @@ package body XE_Sem is
       end if;
 
       A := Get_ALI_Id (N);
-      if A = No_ALI_Id or else ALIs.Table (A).Main_Program = None then
+      if A = No_ALI_Id or else ALIs.Table (A).Main_Program = No_Main then
          Message ("", Quote (N), "is not a main program");
          Success := False;
       end if;

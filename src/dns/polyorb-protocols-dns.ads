@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -120,11 +120,6 @@ package PolyORB.Protocols.DNS is
      (Sess             : access DNS_Session;
       Request_Id       : Types.Unsigned_Long;
       RC     : Rcode);
-
-   procedure Set_Default_Servant
-     (The_Ref : PolyORB.References.Ref);
-   function Get_Default_Servant return PolyORB.References.Ref;
-   --  Set/Get the user specified default servant
 
 private
    Object_Reference : PolyORB.References.Ref;

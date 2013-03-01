@@ -44,6 +44,10 @@ package PolyORB.DSA_P.Name_Service.mDNS is
      PolyORB.DSA_P.Name_Service.Name_Server with null record;
    --  Concrete mDNS implementation of the abstract Name_Server type
 
+   overriding procedure Initialize
+     (Name_Ctx : access MDNS_Name_Server;
+      Location : String);
+
    overriding procedure Nameserver_Register
      (Name_Ctx : access MDNS_Name_Server;
       Name : String;
@@ -68,14 +72,10 @@ package PolyORB.DSA_P.Name_Service.mDNS is
 
    procedure Initiate_MDNS_Context
      (MDNS_Reference : String;
-      Context        : out Name_Server_Access);
+      Context        : out MDNS_Name_Server);
    --  Initiates the mDNS Name Context by initizalizing the servant object,
    --  and setting is as a default servant for a newly created child_POA.
    --  A stringified reference is assigned to Context.Stringified_Reference
    --  which is used to create the Context.Base_Ref in Nameserver_Lookup
-
-   function Get_MDNS_Servant return PolyORB.References.Ref;
-   --  Offered to the user, used by the partition main file in order to
-   --  retrieve the default mDNS servant and assign it to the DNS protocol.
 
 end PolyORB.DSA_P.Name_Service.mDNS;

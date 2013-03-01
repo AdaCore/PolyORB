@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -225,8 +225,10 @@ package XE_Parse is
    procedure Search_Actual_Parameter
      (Actual_Name : Name_Id;
       Actual_Type : Type_Id;
-      Actual_Node : out Variable_Id);
-   --  Similar to Search_Variable but check name *and* type
+      Actual_Node : out Variable_Id;
+      Required    : Boolean := True);
+   --  Similar to Search_Variable but check name *and* type. If Required is
+   --  True, give an error message if not found.
 
    procedure Search_Component
      (Component_Name : Name_Id;

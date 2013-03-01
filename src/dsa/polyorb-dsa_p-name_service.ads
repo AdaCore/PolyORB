@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -46,22 +46,30 @@ package PolyORB.DSA_P.Name_Service is
    --  Nameserver_Lookup in order to initialize the remote Base_Ref field.
 
    type Name_Server_Access is access all Name_Server'Class;
-
    Name_Ctx : PolyORB.DSA_P.Name_Service.Name_Server_Access;
+
+   procedure Initialize
+     (Name_Ctx : access Name_Server;
+      Location : String) is abstract;
+   --  Initialize naming context from given location information
 
    function Nameserver_Lookup
      (Name_Ctx : access Name_Server;
       Name     : String;
       Kind     : String;
       Initial  : Boolean := True) return PolyORB.References.Ref is abstract;
-   --  abstract declaration of Nameserver_Lookup
+   --  Look up Name. Initial is set True for an initial lookup, False for a
+   --  subsequent lookup to refresh a reference that has become invalid.
+   --  In the first case lookup is retried until a valid reference is obtained,
+   --  and raise an exception if maximum retry count is reached, else just
+   --  return an empty ref if name server retruns an empty or invalid result.
 
    procedure Nameserver_Register
      (Name_Ctx : access Name_Server;
-      Name : String;
-      Kind : String;
-      Obj  : PolyORB.References.Ref) is abstract;
-   --  abstract declaration of Nameserver_Register
+      Name     : String;
+      Kind     : String;
+      Obj      : PolyORB.References.Ref) is abstract;
+   --  Register Obj as associated with the given name and kind
 
    procedure Initialize_Name_Server;
    --  Called by the System.Partition_Interface.Initialize procedure, during

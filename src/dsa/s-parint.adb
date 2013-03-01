@@ -101,14 +101,14 @@ package body System.Partition_Interface is
    package PTT    renames PolyORB.Tasking.Threads;
    package PUCFCT renames PolyORB.Utils.Configuration_File.Configuration_Table;
 
+   subtype String_Ptr is PolyORB.Utils.Strings.String_Ptr;
+   use type String_Ptr;
+
    function To_Lower (S : String) return String
      renames Ada.Characters.Handling.To_Lower;
 
    function Make_Global_Key (Section, Key : String) return String
      renames PolyORB.Parameters.Make_Global_Key;
-
-   function "+" (S : String) return PolyORB.Utils.Strings.String_Ptr
-     renames PolyORB.Utils.Strings."+";
 
    --  An opaque octet sequence
 
@@ -241,14 +241,31 @@ package body System.Partition_Interface is
 
    The_DSA_Source : aliased DSA_Source;
 
-   type RCI_Attribute is (Local, Reconnection);
+   --  DSA configuration manages attributes that apply to RCI units, or to
+   --  partitions. All attributes have names of the form
+   --  <rci-or-partition-name>'<attribute>
 
-   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String;
-   --  Some parameters in section DSA describe attributes of RCI units.
-   --  Their names are of the force RCI_Name'Attribute_Name.
+   type DSA_Attribute is (Partition, Reconnection, Location);
+
+   subtype RCI_Attribute is
+     DSA_Attribute range Partition .. Reconnection;
+   subtype Partition_Attribute is
+     DSA_Attribute range Location  .. Location;
+
+   function DSA_Attr (Name : String; Attr : DSA_Attribute) return String;
+
+   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String
+     renames DSA_Attr;
+
+   function Partition_Attr
+     (Name : String; Attr : Partition_Attribute) return String
+     renames DSA_Attr;
 
    RPC_Timeout : Duration;
    --  Default timeout applied to all remote calls
+
+   Local_Partition_Name : String_Ptr;
+   --  Name of the local partition
 
    ------------------------
    -- Internal functions --
@@ -292,6 +309,9 @@ package body System.Partition_Interface is
    --  Construct a name consisting of a single name component with the given
    --  id and kind.
 
+   function Get_DSA_Conf (Var : String) return String;
+   --  Return Var from configuration section [dsa]
+
    ------------------------------------------
    -- List of all RPC receivers (servants) --
    ------------------------------------------
@@ -309,6 +329,21 @@ package body System.Partition_Interface is
    procedure Activate_RPC_Receiver (Default_Servant : Servant_Access);
    --  Activate one RPC receiver (i.e. enable the processing of incoming remote
    --  subprogram calls to that servant).
+
+   ---------------
+   -- Locations --
+   ---------------
+
+   use GNAT.Regpat;
+
+   Loc_Regex   : constant String := "tcp://(.*):([0-9]*)";
+   Loc_Matcher : constant Pattern_Matcher := Compile (Loc_Regex);
+   subtype Loc_Matches is Match_Array (0 .. Paren_Count (Loc_Matcher));
+
+   function Make_Corbaloc
+     (Loc : String;
+      Obj : String) return String;
+   --  Convert a DSA location and object identifier to a corbaloc URL
 
    ---------------------------
    -- Activate_RPC_Receiver --
@@ -472,14 +507,8 @@ package body System.Partition_Interface is
       use PolyORB.Errors;
       use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
-      Last : Integer := Typ'Last;
-
       Error : Error_Container;
    begin
-      if Last in Typ'Range and then Typ (Last) = ASCII.NUL then
-         Last := Last - 1;
-      end if;
-
       if Addr /= Null_Address then
          pragma Assert (Receiver.Object_Adapter /= null);
 
@@ -509,7 +538,7 @@ package body System.Partition_Interface is
 
             PolyORB.ORB.Create_Reference
               (PolyORB.Setup.The_ORB,
-               Oid, "DSA:" & Typ (Typ'First .. Last), Ref);
+               Oid, "DSA:" & Typ & ":1.0", Ref);
 
             PolyORB.Objects.Free (Oid);
          end;
@@ -690,7 +719,7 @@ package body System.Partition_Interface is
                package ISNC renames
                  PolyORB.Services.Naming.SEQUENCE_NameComponent;
 
-               n             : PolyORB.Services.Naming.Name;
+               n           : PolyORB.Services.Naming.Name;
 
                Arg_Name_n  : constant PolyORB.Types.Identifier :=
                  To_PolyORB_String ("n");
@@ -717,11 +746,21 @@ package body System.Partition_Interface is
 
                --  Call implementation
 
-               Get_RAS_Info
-                 (Self.Impl_Info.Name.all,
-                  PolyORB.Services.Naming.To_Standard_String
-                    (ISNC.Get_Element (ISNC.Sequence (n), 1).id),
-                     Result);
+               declare
+                  Subprogram_Name : constant String :=
+                    PolyORB.Services.Naming.To_Standard_String
+                      (ISNC.Get_Element (ISNC.Sequence (n), 1).id);
+               begin
+                  if Subprogram_Name'Length > 0 then
+                     Get_RAS_Info
+                       (Self.Impl_Info.Name.all, Subprogram_Name, Result);
+                  else
+                     --  Special case: when looking up an empty name, just
+                     --  return the RCI base ref.
+
+                     Result := Self.Impl_Info.Base_Ref;
+                  end if;
+               end;
 
                --  Set Result
 
@@ -962,8 +1001,8 @@ package body System.Partition_Interface is
 
    function Get_Active_Partition_ID (Name : Unit_Name) return RPC.Partition_ID
    is
-      Is_Local : constant Boolean :=
-        PolyORB.Parameters.Get_Conf ("dsa", RCI_Attr (Name, Local));
+      Is_Local : constant Boolean := Get_DSA_Conf (RCI_Attr (Name, Partition))
+                                       = Get_Local_Partition_Name;
       Info     : RCI_Info_Access;
    begin
 
@@ -1026,8 +1065,6 @@ package body System.Partition_Interface is
       Section, Key : String) return String
    is
       pragma Unreferenced (Source);
-      subtype String_Ptr is PolyORB.Utils.Strings.String_Ptr;
-      use type String_Ptr;
       V : constant String_Ptr :=
         PUCFCT.Lookup (Conf_Table, Make_Global_Key (Section, Key), null);
    begin
@@ -1037,6 +1074,15 @@ package body System.Partition_Interface is
          return "";
       end if;
    end Get_Conf;
+
+   ------------------
+   -- Get_DSA_Conf --
+   ------------------
+
+   function Get_DSA_Conf (Var : String) return String is
+   begin
+      return PolyORB.Parameters.Get_Conf ("dsa", Var);
+   end Get_DSA_Conf;
 
    -----------------------
    -- Get_Local_Address --
@@ -1208,8 +1254,7 @@ package body System.Partition_Interface is
 
    function Get_Local_Partition_Name return String is
    begin
-      return PolyORB.Parameters.Get_Conf
-        (Section => "dsa", Key => "partition_name", Default => "NO NAME");
+      return Local_Partition_Name.all;
    end Get_Local_Partition_Name;
 
    --------------------------------
@@ -1326,6 +1371,18 @@ package body System.Partition_Interface is
       return Stub_Acc.all'Address;
    end Get_RACW;
 
+   function Resolve_RCI_Entity
+     (Base_Ref : Object_Ref;
+      Name     : String;
+      Kind     : String) return Object_Ref;
+   --  Resolve Name in the RCI package naming context Base_Ref. Name can
+   --  be either the name of an RCI subprogram (kind SUBP, case of obtaining a
+   --  reference for a RAS), or the empty string (kind RCI), in which case the
+   --  reference of the base RCI object itself is returned. (Note: in the
+   --  latter case, the returned ref is not necessarily identical to Base_Ref,
+   --  in particular the returned ref has accurate version information that
+   --  might not be present in Base_Ref).
+
    ------------------
    -- Get_RAS_Info --
    ------------------
@@ -1408,14 +1465,8 @@ package body System.Partition_Interface is
          end;
 
       else
-         declare
-            Ctx_Ref : PSNNC.Ref;
-         begin
-            PSNNC.Set (Ctx_Ref, Entity_Of (Info.Base_Ref));
-
-            Subp_Ref := PSNNC.Client.Resolve
-                          (Ctx_Ref, To_Name (Subprogram_Name, "SUBP"));
-         end;
+         Subp_Ref :=
+           Resolve_RCI_Entity (Info.Base_Ref, Subprogram_Name, "SUBP");
       end if;
    end Get_RAS_Info;
 
@@ -1540,6 +1591,12 @@ package body System.Partition_Interface is
            Key     => "rpc_timeout",
            Default => 0.0);
 
+      Local_Partition_Name :=
+        new String'(PolyORB.Parameters.Get_Conf
+                      (Section => "dsa",
+                       Key     => "partition_name",
+                       Default => "NO NAME"));
+
       --  Set up DSA name server
 
       Initialize_Name_Server;
@@ -1558,14 +1615,6 @@ package body System.Partition_Interface is
       --  Parse location Loc and set is as the current partition's location
       --  (if Self is True), and/or as the boot partition location (if Boot is
       --  True).
-
-      --  Regex matcher for Set_Location
-
-      use GNAT.Regpat;
-
-      Loc_Regex   : constant String := "tcp://(.*):([0-9]*)";
-      Loc_Matcher : constant Pattern_Matcher := Compile (Loc_Regex);
-      subtype Loc_Matches is Match_Array (0 .. Paren_Count (Loc_Matcher));
 
       --------------
       -- Set_Conf --
@@ -1614,11 +1663,8 @@ package body System.Partition_Interface is
          end if;
 
          if Boot then
-            Set_Conf ("dsa", "name_service", "corbaloc:iiop:"
-                      & Loc (M (1).First .. M (1).Last)
-                      & ":"
-                      & Loc (M (2).First .. M (2).Last)
-                      & "/_NameService");
+            Set_Conf ("dsa", "name_service",
+                      Make_Corbaloc (Loc, "_NameService"));
          end if;
       end Set_Location;
 
@@ -1639,10 +1685,10 @@ package body System.Partition_Interface is
          Is_Main_Partition : constant Boolean :=
            Get_Conf ("dsa", "main_partition", False);
          Has_Embedded_Nameserver : constant Boolean :=
-           Ada.Characters.Handling.To_Upper
-             (Get_Conf ("dsa", "name_server_kind", "")) = "EMBEDDED";
-         Boot_Loc : constant String := Get_Conf ("dsa", "boot_location", "");
-         Self_Loc : constant String := Get_Conf ("dsa", "self_location", "");
+           Ada.Characters.Handling.To_Upper (Get_DSA_Conf ("name_server_kind"))
+             = "EMBEDDED";
+         Boot_Loc : constant String := Get_DSA_Conf ("boot_location");
+         Self_Loc : constant String := Get_DSA_Conf ("self_location");
       begin
 
          if Boot_Loc /= "" then
@@ -1656,6 +1702,33 @@ package body System.Partition_Interface is
          end if;
       end;
    end Initialize_Parameters;
+
+   -------------------
+   -- Make_Corbaloc --
+   -------------------
+
+   function Make_Corbaloc
+     (Loc : String;
+      Obj : String) return String
+   is
+      M : Loc_Matches;
+   begin
+      pragma Debug (C,
+        O ("Make_Corbaloc: enter, object " & Obj & " at " & Loc));
+
+      Match (Loc_Matcher, Loc, M);
+      if M (M'First) = No_Match then
+         pragma Debug (C, O ("Make_Corbaloc: leave, invalid loc"));
+         return "";
+      end if;
+
+      return
+        "corbaloc:iiop:"
+          & Loc (M (1).First .. M (1).Last)
+          & ":"
+          & Loc (M (2).First .. M (2).Last)
+          & "/" & Obj;
+   end Make_Corbaloc;
 
    --------------
    -- Make_Ref --
@@ -1681,6 +1754,32 @@ package body System.Partition_Interface is
       Ada.Exceptions.Raise_Exception
         (Program_Error'Identity, Ada.Exceptions.Exception_Message (E));
    end Raise_Program_Error_Unknown_Tag;
+
+   -----------------
+   -- RCI_Locator --
+   -----------------
+
+   package body RCI_Locator is
+
+      Info : RCI_Info_Access;
+      --  Cached access to RCI_Info to avoid extra hash table lookups on
+      --  subsequent calls.
+
+      -------------------------
+      -- Get_RCI_Package_Ref --
+      -------------------------
+
+      function Get_RCI_Package_Ref return Object_Ref is
+      begin
+         Retrieve_RCI_Info (RCI_Name, Info);
+
+         --  In case of failure to obtain a valid reference, Retrieve_RCI_Info
+         --  raises Communication_Error, so here we know we have one.
+
+         pragma Assert (not Is_Nil (Info.Base_Ref));
+         return Info.Base_Ref;
+      end Get_RCI_Package_Ref;
+   end RCI_Locator;
 
    ----------
    -- Read --
@@ -1710,32 +1809,6 @@ package body System.Partition_Interface is
       end;
    end Read;
 
-   -----------------
-   -- RCI_Locator --
-   -----------------
-
-   package body RCI_Locator is
-
-      Info : RCI_Info_Access;
-      --  Cached access to RCI_Info to avoid extra hash table lookups on
-      --  subsequent calls.
-
-      -------------------------
-      -- Get_RCI_Package_Ref --
-      -------------------------
-
-      function Get_RCI_Package_Ref return Object_Ref is
-      begin
-         Retrieve_RCI_Info (RCI_Name, Info);
-
-         --  In case of failure to obtain a valid reference, Retrieve_RCI_Info
-         --  raises Communication_Error, so here we know we have one.
-
-         pragma Assert (not Is_Nil (Info.Base_Ref));
-         return Info.Base_Ref;
-      end Get_RCI_Package_Ref;
-   end RCI_Locator;
-
    ---------------------------------
    -- Register_Obj_Receiving_Stub --
    ---------------------------------
@@ -1748,12 +1821,11 @@ package body System.Partition_Interface is
       use Receiving_Stub_Lists;
       Stub : Private_Info renames Receiver.Impl_Info;
    begin
-      pragma Assert (Name (Name'Last) = ASCII.NUL);
       Receiver.Handler := Handler;
 
       Stub :=
         (Kind                => Obj_Stub,
-         Name                => +Name (Name'First .. Name'Last - 1),
+         Name                => +Name (Name'First .. Name'Last),
          Receiver            => Receiver,
          Version             => null,
          Subp_Info           => Null_Address,
@@ -1765,6 +1837,24 @@ package body System.Partition_Interface is
       pragma Debug (C, O ("Setting up RPC receiver: " & Stub.Name.all));
       Setup_Object_RPC_Receiver (Stub.Name.all, Stub.Receiver);
    end Register_Obj_Receiving_Stub;
+
+   ------------------------
+   -- Resolve_RCI_Entity --
+   ------------------------
+
+   function Resolve_RCI_Entity
+     (Base_Ref : Object_Ref;
+      Name     : String;
+      Kind     : String) return Object_Ref
+   is
+      Ctx_Ref : PSNNC.Ref;
+   begin
+      PSNNC.Set (Ctx_Ref, Entity_Of (Base_Ref));
+      return PSNNC.Client.Resolve (Ctx_Ref, To_Name (Name, Kind));
+   exception
+      when others =>
+         return Nil_Ref;
+   end Resolve_RCI_Entity;
 
    -------------------------
    -- Find_Receiving_Stub --
@@ -1794,13 +1884,13 @@ package body System.Partition_Interface is
    end Find_Receiving_Stub;
 
    --------------
-   -- RCI_Attr --
+   -- DSA_Attr --
    --------------
 
-   function RCI_Attr (Name : String; Attr : RCI_Attribute) return String is
+   function DSA_Attr (Name : String; Attr : DSA_Attribute) return String is
    begin
       return To_Lower (Name & "'" & Attr'Img);
-   end RCI_Attr;
+   end DSA_Attr;
 
    ------------------------------
    -- Register_Passive_Package --
@@ -1858,7 +1948,6 @@ package body System.Partition_Interface is
 
          U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
          Oid : PolyORB.POA_Types.Object_Id_Access;
-         Ref : PolyORB.References.Ref;
 
       begin
          pragma Debug (C, O ("Setting up RPC receiver: " & Stub.Name.all));
@@ -1888,7 +1977,7 @@ package body System.Partition_Interface is
            (The_ORB,
             Oid,
             "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
-            Ref);
+            Receiver.Impl_Info.Base_Ref);
 
          PolyORB.Objects.Free (Oid);
 
@@ -1897,7 +1986,7 @@ package body System.Partition_Interface is
          Known_RCIs.Register
            (To_Lower (Stub.Name.all),
             new RCI_Info'
-              (Base_Ref            => Ref,
+              (Base_Ref            => Receiver.Impl_Info.Base_Ref,
                Is_Local            => True,
                Reconnection_Policy => Default_Reconnection_Policy,
                State               => Live,
@@ -1909,7 +1998,7 @@ package body System.Partition_Interface is
            (Name_Ctx => Get_Name_Server,
             Name     => To_Lower (Stub.Name.all),
             Kind     => "RCI",
-            Obj      => Ref);
+            Obj      => Receiver.Impl_Info.Base_Ref);
       end;
 
    exception
@@ -2141,11 +2230,65 @@ package body System.Partition_Interface is
          if (Is_Nil (Info.Base_Ref) and then not Entry_Pending)
                or else not Is_Reference_Valid (Info.Base_Ref)
          then
-            Info.Base_Ref :=
-              Nameserver_Lookup
-                (Get_Name_Server, LName, "RCI",
-                   Initial => Info.State = Initial);
-            Info.State := Live;
+            declare
+               Loc : constant String :=
+                       Get_DSA_Conf
+                         (Partition_Attr
+                            (Get_DSA_Conf
+                               (RCI_Attr (LName, Partition)), Location));
+            begin
+               --  If we have a location from configuration, use it
+
+               if Loc /= "" then
+                  pragma Debug (C, O ("Configured location: " & Loc));
+                  declare
+                     Typed_Base_Ref : PolyORB.References.Ref;
+                     --  Object reference with type id, returned by the RCI
+                     --  unit, needed for the RCI version check.
+
+                  begin
+                     --  Note: the object key for an RCI root object is the
+                     --  RCI name in uppercase.
+
+                     String_To_Object
+                       (Make_Corbaloc (Loc,
+                          Ada.Characters.Handling.To_Upper (Name)),
+                        Info.Base_Ref);
+
+                     --  Now we can contact the RCI base object to obtain
+                     --  its actual reference with a proper type id, which
+                     --  we can use to check the version
+
+                     for Retry in 1 .. Max_Requests loop
+                        Typed_Base_Ref := Resolve_RCI_Entity
+                                           (Base_Ref => Info.Base_Ref,
+                                            Name     => "",
+                                            Kind     => "RCI");
+                        exit when not Typed_Base_Ref.Is_Nil;
+
+                        if Retry < Max_Requests then
+                           PTT.Relative_Delay (Time_Between_Requests);
+                        end if;
+                     end loop;
+
+                     --  We want to keep the original Base_Ref (because it
+                     --  may have different profiles than the one returned
+                     --  by the RCI), but we propagate the type information
+                     --  for the benefit of the RCI version check.
+
+                     Set_Type_Id (Info.Base_Ref, Type_Id_Of (Typed_Base_Ref));
+                  end;
+
+               --  Else do a name server lookup
+
+               else
+                  Info.Base_Ref :=
+                    Nameserver_Lookup
+                      (Get_Name_Server, LName, "RCI",
+                       Initial => Info.State = Initial);
+               end if;
+               Info.State := Live;
+            end;
          end if;
 
          if Is_Nil (Info.Base_Ref) then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,6 +37,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Objects;
 with PolyORB.Errors;
 with PolyORB.Filters.Iface;
+with PolyORB.Initial_References;
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.ORB.Iface;
@@ -54,6 +55,7 @@ package body PolyORB.Protocols.DNS is
    use PolyORB.Binding_Objects;
    use PolyORB.Annotations;
    use PolyORB.Components;
+   use PolyORB.Initial_References;
    use PolyORB.Log;
    use PolyORB.References.Binding;
    use PolyORB.ORB;
@@ -706,7 +708,7 @@ package body PolyORB.Protocols.DNS is
 
       --  Retrieve the default servant, specified by user
 
-      Target := Get_Default_Servant;
+      Target := Resolve_Initial_References ("mDNSResponder");
 
       Create_Request
          (Target    => Target,
@@ -1187,26 +1189,5 @@ package body PolyORB.Protocols.DNS is
                   (Req => Current_Req.Req));
       end case;
    end Reply_Received;
-
-   -------------------------
-   -- Set_Default_Servant --
-   -------------------------
-
-   procedure Set_Default_Servant
-     (The_Ref : PolyORB.References.Ref)
-   is
-   begin
-      Object_Reference := The_Ref;
-   end Set_Default_Servant;
-
-   -------------------------
-   -- Get_Default_Servant --
-   -------------------------
-
-   function Get_Default_Servant return PolyORB.References.Ref
-   is
-   begin
-      return Object_Reference;
-   end Get_Default_Servant;
 
 end PolyORB.Protocols.DNS;

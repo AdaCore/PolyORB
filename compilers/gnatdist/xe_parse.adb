@@ -39,7 +39,7 @@ package body XE_Parse is
    --  a literal does not match the expected type, no error message is printed,
    --  an exception is raised and handled in order to try another matching.
 
-   Fatal_Error    : Boolean := True;
+   Fatal_Error : Boolean := True;
 
    procedure Print_Node (Node : Node_Id);
    --  Print only this node.
@@ -406,7 +406,13 @@ package body XE_Parse is
       SC : Component_Id;
       TC : Component_Id;
    begin
-      Check_Not_Declared (Variable_Name, Variable_Sloc);
+      --  Allow overloaded variables in the predefined declarations. This
+      --  allows the literal "None" to be used for different attributes.
+
+      if Variable_Sloc /= Null_Location then
+         Check_Not_Declared (Variable_Name, Variable_Sloc);
+      end if;
+
       Create_Variable    (TV, Variable_Name);
       Set_Variable_Type  (TV, Variable_Type);
 
@@ -1380,7 +1386,18 @@ package body XE_Parse is
             --  Otherwise, retrieve the declaration
 
             else
-               Search_Variable (Expr_Name, Expr_Node);
+               --  First try with specific attribute type
+
+               Search_Actual_Parameter
+                 (Expr_Name, Attr_Type, Expr_Node, Required => False);
+
+               --  Fall back to ignoring type, in this case the lookup can
+               --  return a subprogram node.
+
+               if Expr_Node = Null_Variable then
+                  Search_Variable (Expr_Name, Expr_Node);
+               end if;
+
                if Expr_Node = Null_Variable then
                   Write_Declaration_Error (Expr_Sloc, Expr_Name);
                end if;
@@ -1867,10 +1884,14 @@ package body XE_Parse is
    procedure Search_Actual_Parameter
      (Actual_Name : Name_Id;
       Actual_Type : Type_Id;
-      Actual_Node : out Variable_Id)
+      Actual_Node : out Variable_Id;
+      Required    : Boolean := True)
    is
       Actual : Node_Id;
+
    begin
+      Actual_Node := Null_Variable;
+
       --  Scan the configuration to find variable Actual_Name
 
       First_Configuration_Declaration (Configuration_Node, Actual);
@@ -1884,7 +1905,12 @@ package body XE_Parse is
          end if;
          Next_Configuration_Declaration (Actual);
       end loop;
-      Write_Declaration_Error (Get_Token_Location, Actual_Name);
+
+      --  Here if not found
+
+      if Required then
+         Write_Declaration_Error (Get_Token_Location, Actual_Name);
+      end if;
    end Search_Actual_Parameter;
 
    ----------------------

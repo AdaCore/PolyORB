@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -154,7 +154,7 @@ package XE_Units is
 
    --  Each ALI file read generates an entry in the ALIs table
 
-   type Main_Program_Type is (None, Proc, Func);
+   type Main_Program_Type is (No_Main, Proc, Func);
    --  Indicator of whether unit can be used as main program
 
    type ALIs_Record is record
@@ -212,7 +212,7 @@ package XE_Units is
       Last_Unit     => No_Unit_Id,
       First_Sdep    => First_Sdep_Id,
       Last_Sdep     => No_Sdep_Id,
-      Main_Program  => None,
+      Main_Program  => No_Main,
       Tasking       => Unknown_Tasking,
       Stamp_Checked => False);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,24 +30,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling;
-
-with PolyORB.DSA_P.Name_Service.mDNS;
-with PolyORB.DSA_P.Name_Service.COS_Naming;
-with PolyORB.Parameters;
-with PolyORB.Binding_Data;
 with System.RPC;
-with PolyORB.Log;
-with PolyORB.Utils;
-with PolyORB.Errors;
+
+with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Setup;
+with PolyORB.Errors;
+with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.References.Binding;
+with PolyORB.Setup;
+with PolyORB.Utils;
 
 package body PolyORB.DSA_P.Name_Service is
 
    use PolyORB.Log;
-   use PolyORB.DSA_P.Name_Service.mDNS;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.dsa_p.name_service");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -73,24 +69,14 @@ package body PolyORB.DSA_P.Name_Service is
         Parameters.Get_Conf
           (Section => "dsa",
            Key     => "name_service");
+
    begin
       pragma Debug (C, O ("Initialize_Name_Server: enter"));
 
-      if Ada.Characters.Handling.To_Upper (Nameservice_Kind) = "MULTICAST" then
-
-         --  mDNS
-
-         Name_Ctx := new PolyORB.DSA_P.Name_Service.mDNS.MDNS_Name_Server;
-         PolyORB.DSA_P.Name_Service.mDNS.Initiate_MDNS_Context
-           (Nameservice_Location, Name_Ctx);
-
-      else
-         --  CORBA COS Naming (either embedded or standalone)
-
-         Name_Ctx := new PolyORB.DSA_P.Name_Service.COS_Naming.COS_Name_Server;
-         PolyORB.References.String_To_Object
-            (Nameservice_Location, Name_Ctx.Base_Ref);
-      end if;
+      Name_Ctx.Initialize
+        (Parameters.Get_Conf
+           (Section => "dsa",
+            Key     => "name_service"));
 
       Time_Between_Requests :=
         PolyORB.Parameters.Get_Conf
