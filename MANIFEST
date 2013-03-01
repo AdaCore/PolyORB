@@ -1182,6 +1182,8 @@ src/dsa/polyorb-dsa_p-name_service-mdns-servant.adb
 src/dsa/polyorb-dsa_p-name_service-mdns-servant.ads
 src/dsa/polyorb-dsa_p-name_service-mdns.adb
 src/dsa/polyorb-dsa_p-name_service-mdns.ads
+src/dsa/polyorb-dsa_p-name_service-none.adb
+src/dsa/polyorb-dsa_p-name_service-none.ads
 src/dsa/polyorb-dsa_p-name_service.adb
 src/dsa/polyorb-dsa_p-name_service.ads
 src/dsa/polyorb-dsa_p-partitions.adb
