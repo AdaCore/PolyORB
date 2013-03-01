@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,17 +30,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-   with Ada.Streams;
-   with PolyORB.Initialization;
-   with PolyORB.Log;
-   with GNAT.Byte_Swapping;
-   with PolyORB.Utils.Strings;
-   with PolyORB.Utils.Buffers;
-   with PolyORB.DNS.Helper;
-   with PolyORB.Utils;
-   pragma Elaborate_All (PolyORB.Utils.Buffers);
+with Ada.Streams;
+with PolyORB.Initialization;
+with PolyORB.Log;
+with GNAT.Byte_Swapping;
+with PolyORB.Utils.Strings;
+with PolyORB.Utils.Buffers;
+with PolyORB.DNS.Helper;
+with PolyORB.Utils;
+
+pragma Elaborate_All (PolyORB.Utils.Buffers);
 
 package body PolyORB.Representations.DNS is
+
    use Ada.Streams;
    use PolyORB.Any.TypeCode;
    use PolyORB.Log;
@@ -49,11 +51,16 @@ package body PolyORB.Representations.DNS is
    use GNAT.Byte_Swapping;
    use PolyORB.Utils;
    use PolyORB.DNS.Helper;
+
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.dns");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+
+   -----------------------
+   -- Marshall_From_Any --
+   -----------------------
 
    procedure Marshall_From_Any
      (Buffer : Buffer_Access; Argument : Any.Any;
@@ -127,6 +134,7 @@ package body PolyORB.Representations.DNS is
    -----------------------
    -- Unmarshall_To_Any --
    -----------------------
+
    procedure Unmarshall_To_Any
      (Buffer   : Buffer_Access;
       Arg      : Any.Any;
@@ -206,7 +214,9 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("After Copy_Any_Value"));
    end Unmarshall_To_Any;
 
-      --  Marshalling of a Boolean
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -219,7 +229,20 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Marshall (Boolean) : end"));
    end Marshall;
 
-   --  Marshalling of a Character
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : PolyORB.Types.Octet)
+   is
+   begin
+      pragma Debug (C, O ("Marshall (Octet) : enter"));
+      Align_Marshall_Copy (Buffer, (1 => Stream_Element
+                           (PolyORB.Types.Octet'(Data))), Align_1);
+      pragma Debug (C, O ("Marshall (Octet) : end"));
+   end Marshall;
+
+   ---------------------------
+   -- Marshall_Latin_1_Char --
+   ---------------------------
 
    procedure Marshall_Latin_1_Char
      (Buffer : access Buffer_Type;
@@ -231,6 +254,10 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Marshall (Char) : end"));
    end Marshall_Latin_1_Char;
 
+   -----------------------------
+   -- Unmarshall_Latin_1_Char --
+   -----------------------------
+
    function Unmarshall_Latin_1_Char
      (Buffer : access Buffer_Type) return PolyORB.Types.Char
    is
@@ -239,18 +266,10 @@ package body PolyORB.Representations.DNS is
       return PolyORB.Types.Char'Val
         (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall_Latin_1_Char;
-   --  Marshalling of an Octet
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : PolyORB.Types.Octet)
-   is
-   begin
-      pragma Debug (C, O ("Marshall (Octet) : enter"));
-      Align_Marshall_Copy (Buffer, (1 => Stream_Element
-                           (PolyORB.Types.Octet'(Data))), Align_1);
-      pragma Debug (C, O ("Marshall (Octet) : end"));
-   end Marshall;
+   -----------------------------
+   -- Marshall_Latin_1_String --
+   -----------------------------
 
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
@@ -271,8 +290,6 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Marshall (String) : end"));
    end Marshall_Latin_1_String;
 
-   --  Marshalling of a PolyORB.Types.String
-
    procedure Marshall_Latin_1_String
      (Buffer : access Buffer_Type;
       Data   : PolyORB.Types.String)
@@ -284,6 +301,10 @@ package body PolyORB.Representations.DNS is
       pragma Debug (C, O ("Marshall (PolyORB.Types.String) : end"));
    end Marshall_Latin_1_String;
 
+   -------------------------
+   -- Marshall_DNS_String --
+   -------------------------
+
    procedure Marshall_DNS_String
      (Buffer : access Buffer_Type;
       Data   : Standard.String)
@@ -293,7 +314,7 @@ package body PolyORB.Representations.DNS is
       Index2  : Integer;
       Label : PolyORB.Types.String;
    begin
-      pragma Debug (C, O ("Marshall DNS string : enter"));
+      pragma Debug (C, O ("Marshall_DNS_String: enter"));
       Index := S'First;
       Index2 := Find (S, Index, '.');
       while Index2 > Index loop
@@ -305,8 +326,12 @@ package body PolyORB.Representations.DNS is
          Index2 := Find (S, Index, '.');
       end loop;
       Marshall (Buffer, Types.Octet (0));
-      pragma Debug (C, O ("Marshall DNS string: end"));
+      pragma Debug (C, O ("Marshall_DNS_String: end"));
    end Marshall_DNS_String;
+
+   -------------------------
+   -- Marshall_TXT_String --
+   -------------------------
 
    procedure Marshall_TXT_String
      (Buffer : access Buffer_Type;
@@ -316,11 +341,12 @@ package body PolyORB.Representations.DNS is
       Index   : Integer;
       Index2  : Integer;
       Label : PolyORB.Types.String;
+
    begin
-      pragma Debug (C, O ("Marshall TXT string : enter"));
+      pragma Debug (C, O ("Marshall_TXT_String: enter"));
       Index := S'First;
       Index2 := Find (S, Index, '\') + 1;
-      while Index2 > Index and Index /= S'Last + 3   loop
+      while Index2 > Index and then Index /= S'Last + 3   loop
          Label := To_PolyORB_String (S (Index .. Index2 - 2));
          Marshall_Latin_1_String (Buffer, Label);
          pragma Debug (C, O ("Marshall TXT string :label " &
@@ -330,22 +356,24 @@ package body PolyORB.Representations.DNS is
          pragma Debug (C, O ("Index2=" & Index2'Img & " > Index="
            & Index'Img));
       end loop;
-      pragma Debug (C, O ("Marshall TXT string: end"));
+      pragma Debug (C, O ("Marshall_TXT_String: end"));
    end Marshall_TXT_String;
+
+   ---------------------------
+   -- Unmarshall_TXT_String --
+   ---------------------------
 
    function Unmarshall_TXT_String
      (Buffer      : access Buffer_Type;
-      Data_Length : PolyORB.Types.Unsigned_Short)
-      return PolyORB.Types.String
+      Data_Length : PolyORB.Types.Unsigned_Short) return PolyORB.Types.String
    is
-      Length : PolyORB.Types.Octet
-        := Unmarshall (Buffer);
+      Length         : PolyORB.Types.Octet := Unmarshall (Buffer);
       Current_Length : PolyORB.Types.Unsigned_Short := 0;
-      Label : Types.String := To_PolyORB_String ("");
+      Label          : Types.String := To_PolyORB_String ("");
    begin
-      pragma Debug (C, O ("Unmarshall TXT: enter"));
-      pragma Debug (C, O ("Unmarshall TXT: length is " &
-                    PolyORB.Types.Octet'Image (Length)));
+      pragma Debug
+        (C, O ("Unmarshall_TXT_String: enter, Length =" & Length'Img));
+
       if Length = 0 then
          pragma Debug (C, O ("Unmarshall TXT: returning empty"));
          return To_PolyORB_String ("");
@@ -376,9 +404,12 @@ package body PolyORB.Representations.DNS is
       return Label;
    end Unmarshall_TXT_String;
 
+   ---------------------------
+   -- Unmarshall_DNS_String --
+   ---------------------------
+
    function Unmarshall_DNS_String
-     (Buffer : access Buffer_Type)
-      return PolyORB.Types.String
+     (Buffer : access Buffer_Type) return PolyORB.Types.String
    is
       Length : PolyORB.Types.Octet
         := Unmarshall (Buffer);
@@ -414,6 +445,10 @@ package body PolyORB.Representations.DNS is
         To_Standard_String (Label)));
       return Label;
    end Unmarshall_DNS_String;
+
+   -------------------------------
+   -- Unmarshall_Latin_1_String --
+   -------------------------------
 
    function Unmarshall_Latin_1_String
      (Buffer : access Buffer_Type)

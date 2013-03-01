@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A data representation implementing the DNS Data Representation.
+--  A data representation implementing the DNS Data Representation
 
 with PolyORB.Types;
 with PolyORB.Buffers;
@@ -39,6 +39,7 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 
 package PolyORB.Representations.DNS is
+
    use PolyORB.Types;
    use PolyORB.Buffers;
    use PolyORB.Protocols.DNS;
@@ -98,8 +99,8 @@ package PolyORB.Representations.DNS is
       Data   :  PolyORB.Types.Unsigned_Short);
    function Unmarshall
      (Buffer : access Buffer_Type)
-      return PolyORB.Types.Unsigned_Short
-   ;
+      return PolyORB.Types.Unsigned_Short;
+
    --  'String' type
    procedure Marshall_DNS_String
      (Buffer : access Buffer_Type;
