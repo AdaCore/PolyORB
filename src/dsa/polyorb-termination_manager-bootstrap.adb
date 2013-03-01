@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -323,11 +323,11 @@ package body PolyORB.Termination_Manager.Bootstrap is
    -- Term_Manager_Access_To_Ref --
    --------------------------------
 
-   function Term_Manager_Access_To_Ref (TM : Term_Manager_Access)
-     return References.Ref
+   function Term_Manager_Access_To_Ref
+     (TM : Term_Manager_Access) return References.Ref
    is
-      Receiver     : System.Partition_Interface.Servant_Access;
-      Result       : References.Ref;
+      Receiver : System.Partition_Interface.Servant_Access;
+      Result   : References.Ref;
    begin
 
       --  We retrieve the receiver stub of Term_Manager RACW for this partition
