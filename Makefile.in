@@ -72,7 +72,7 @@ GPRBUILD_FOR_TARGET	:= @GPRBUILD_FOR_TARGET@
 CFLAGS                  = @CFLAGS@
 ADAFLAGS                = @ADAFLAGS@
 CPPFLAGS                = @CPPFLAGS@
-PARALLEL_GNATMAKE_FLAGS = -j4
+PARALLEL_GNATMAKE_FLAGS = -j0
 EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
