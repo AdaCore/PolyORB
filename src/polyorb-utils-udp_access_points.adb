@@ -37,6 +37,7 @@ with Ada.Exceptions;
 with PolyORB.Log;
 with PolyORB.Platform;
 with PolyORB.Transport.Datagram.Sockets;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.Utils.UDP_Access_Points is
 
@@ -61,7 +62,7 @@ package body PolyORB.Utils.UDP_Access_Points is
 
    procedure Initialize_Socket (Socket : in out Socket_Type) is
    begin
-      Create_Socket (Socket, Family_Inet, Socket_Datagram);
+      Utils.Sockets.Create_Socket (Socket, Family_Inet, Socket_Datagram);
 
       --  Allow reuse of local addresses
 

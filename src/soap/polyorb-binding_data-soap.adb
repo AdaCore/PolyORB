@@ -143,7 +143,7 @@ package body PolyORB.Binding_Data.SOAP is
         new Socket_Endpoint;
 
    begin
-      Create_Socket (Sock);
+      Utils.Sockets.Create_Socket (Sock);
       Utils.Sockets.Connect_Socket (Sock, Profile.Address.all);
       Create (Socket_Endpoint (TE.all), Sock);
 

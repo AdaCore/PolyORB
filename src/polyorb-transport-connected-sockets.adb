@@ -85,6 +85,7 @@ package body PolyORB.Transport.Connected.Sockets is
         (Server  => TAP.Socket,
          Socket  => New_Socket,
          Address => New_Address);
+      Set_Close_On_Exec (New_Socket);
       pragma Debug (C, O ("Accept_Connection: from " & Image (New_Address)));
       Create (Socket_Endpoint (TE.all), New_Socket);
    end Accept_Connection;

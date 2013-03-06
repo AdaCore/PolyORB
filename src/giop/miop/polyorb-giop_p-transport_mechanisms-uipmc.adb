@@ -101,9 +101,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
          return;
       end if;
 
-      Create_Socket (Socket => Sock,
-                     Family => Family_Inet,
-                     Mode   => Socket_Datagram);
+      Utils.Sockets.Create_Socket (Socket => Sock,
+                                   Family => Family_Inet,
+                                   Mode   => Socket_Datagram);
 
       Set_Socket_Option
         (Sock,

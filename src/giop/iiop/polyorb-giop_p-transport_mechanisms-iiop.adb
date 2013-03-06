@@ -105,7 +105,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
               new Socket_Endpoint;
 
          begin
-            Create_Socket (Sock);
+            Utils.Sockets.Create_Socket (Sock);
             Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
             Create (Socket_Endpoint (TE.all), Sock);
 

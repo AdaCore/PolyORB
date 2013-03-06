@@ -1,0 +1,24 @@
+===============================
+Known problems in PolyORB 2.9.1
+===============================
+
+Copyright (C) 2013, AdaCore
+
+The following is a listing of known problems in release 2.9. Except where
+specifically noted, all these problems have been corrected in the final
+release of the 2.10 technology. This means they are corrected in release
+2.10 and in any wavefront issued subsequent to the date specified (in
+ISO format YYYY-MM-DD) in the status line. This can be used to determine
+if a given wavefront has the fix identified in the entry.
+
+KP-291-IB11-005 Application with Ada starter hangs
+
+  Problem:    The network access points opened by the main partition were
+              incorrectly inherited by slave partitions when using an Ada
+              starter, causing the slave partitions to fail to connect to
+              the master partition, depending on which partition would
+              receive the incoming connection notification.
+
+  Status:     This was fixed in 2.10 on 2013-03-06
+
+  Workaround: Do not use an Ada starter.

@@ -93,9 +93,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
          return;
       end if;
 
-      Create_Socket (Socket => Sock,
-                     Family => Family_Inet,
-                     Mode   => Socket_Datagram);
+      Utils.Sockets.Create_Socket (Socket => Sock,
+                                   Family => Family_Inet,
+                                   Mode   => Socket_Datagram);
 
       TE := new Socket_Endpoint;
       Create

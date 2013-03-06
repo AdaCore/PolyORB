@@ -40,19 +40,21 @@ with GNAT.Regpat;
 
 with PolyORB.Log;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.Utils.TCP_Access_Points is
 
    use GNAT.Regpat;
    use PolyORB.Log;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.utils.tcp_access_points");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
-   --  function C (Level : Log_Level := Debug) return Boolean
-   --    renames L.Enabled;
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
 
    Listen_Matcher : constant Pattern_Matcher :=
                       Compile ("^([^:\]]*)(\[[^\]]*\])?(:[0-9-]*)?");
@@ -145,14 +147,14 @@ package body PolyORB.Utils.TCP_Access_Points is
 
    procedure Initialize_Socket
      (SAP       : out Transport_Access_Point_Access;
-      Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
+      Address   : PolyORB.Sockets.Inet_Addr_Type := Any_Inet_Addr;
       Port_Hint : Port_Interval;
       Publish   : String := "")
    is
       Socket  : Socket_Type;
       S_Addr  : Sock_Addr_Type;
    begin
-      Create_Socket (Socket);
+      Utils.Sockets.Create_Socket (Socket);
 
       S_Addr :=
         Sock_Addr_Type'(Addr   => Address,
@@ -174,7 +176,7 @@ package body PolyORB.Utils.TCP_Access_Points is
                Publish);
             exit;
          exception
-            when E : Sockets.Socket_Error =>
+            when E : PolyORB.Sockets.Socket_Error =>
 
                --  If a specific port range was given, try next port in range
 
@@ -190,6 +192,9 @@ package body PolyORB.Utils.TCP_Access_Points is
 
          end;
       end loop;
+
+      pragma Debug (C, O ("Created TCP AP: "
+         & Image (Address_Of (Socket_Access_Point (SAP.all)))));
    end Initialize_Socket;
 
 end PolyORB.Utils.TCP_Access_Points;
