@@ -97,7 +97,7 @@ package body PolyORB.Binding_Data.SRP is
       S : Socket_Type;
       TE : constant Transport_Endpoint_Access := new Socket_Endpoint;
    begin
-      Create_Socket (S);
+      Utils.Sockets.Create_Socket (S);
       Utils.Sockets.Connect_Socket (S, Profile.Address.all);
       Create (Socket_Endpoint (TE.all), S);
 
