@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
