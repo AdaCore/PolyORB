@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -76,8 +76,6 @@ package body PolyORB.Parameters.Command_Line is
             if F_Len <= A_Len
               and then Flag = Arg (Arg'First .. Arg'First + F_Len - 1)
             then
-               --  System.IO.Put_Line ("arg  = " & Arg);
-               --  System.IO.Put_Line ("flag = " & Flag);
                if F_Len = A_Len then
                   return "true";
 
