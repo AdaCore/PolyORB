@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -71,6 +71,12 @@ package PolyORB.ORB.No_Tasking is
      (P   : access No_Tasking;
       ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
+
+   overriding procedure Handle_Validate_TE
+     (P  : access No_Tasking;
+      TE : Transport_Endpoint_Access);
+   --  Force a validity check on TE, which might have gone invalid since the
+   --  last time we polled for I/O.
 
    overriding procedure Idle
      (P         : access No_Tasking;

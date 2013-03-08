@@ -107,7 +107,7 @@ package PolyORB.Transport.Connected.Sockets is
    overriding procedure Close (TE : access Socket_Endpoint);
    overriding procedure Destroy (TE : in out Socket_Endpoint);
 
-   procedure Check_Validity (TE : access Socket_Endpoint);
+   overriding procedure Check_Validity (TE : access Socket_Endpoint);
 
 private
 

@@ -11,7 +11,18 @@ release of the 2.10 technology. This means they are corrected in release
 ISO format YYYY-MM-DD) in the status line. This can be used to determine
 if a given wavefront has the fix identified in the entry.
 
-KP-291-IB11-005 Application with Ada starter hangs
+KP-291-M308-031 Application with tasking hands in RCI call
+
+  Problem:    If a DSA partition has tasking, then in rare cases a race
+              condition may cause a remote call to a remote RCI subprogram
+              may hang indefinitely.
+
+  Status:     This was fixed in 2.10 on 2013-03-08
+
+  Workaround: Use a select statement with asynchronous transfer of control
+              to protect RCI calls with a timeout.
+
+KP-291-M308-030 Application with Ada starter hangs
 
   Problem:    The network access points opened by the main partition were
               incorrectly inherited by slave partitions when using an Ada
