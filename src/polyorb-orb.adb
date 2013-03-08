@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -263,7 +263,7 @@ package body PolyORB.ORB is
      (ORB       : access ORB_Type;
       This_Task : in out Task_Info.Task_Info);
    pragma Inline (Try_Check_Sources);
-   --  Check ORB's AES attached to A_Monitor for any incoming event.
+   --  Check ORB AESs attached to This_Task's Selector for any incoming event.
    --  Precondition:  Must be called from within ORB critical section.
    --  Postcondition: On exit, ORB critical section has been reasserted.
    --  Note: tasks running this function may exit ORB critical section
@@ -288,8 +288,8 @@ package body PolyORB.ORB is
          Events : constant AES_Array :=
            Check_Sources (Selector (This_Task), Task_Info.Timeout (This_Task));
          --  This_Task will block on this action until an event occurs on a
-         --  source monitored by A_Monitor, or Abort_Check_Sources is called
-         --  on A_Monitor.
+         --  source monitored by the selector, or Abort_Check_Sources is called
+         --  on it.
 
       begin
 
