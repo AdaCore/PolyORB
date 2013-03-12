@@ -354,7 +354,7 @@ package body PolyORB.Smart_Pointers is
      (The_Ref    : in out Ref;
       The_Entity : Entity_Ptr)
    is
-      Prev_Entity : constant Entity_Ptr := The_Ref.A_Ref;
+      Prev_Entity : Entity_Ptr := The_Ref.A_Ref;
    begin
       if The_Ref.A_Ref = The_Entity then
          --  Same entity: no-op
