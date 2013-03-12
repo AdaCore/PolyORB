@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -55,16 +55,15 @@ package PolyORB.Transport.Handlers is
      abstract new Transport_Event_Handler with
       record
          TAP : PolyORB.Transport.Transport_Access_Point_Access;
-         --  Factory of Transport_Endpoint components.
+         --  Factory of Transport_Endpoint components
 
          Filter_Factory_Chain : Filters.Factories_Access;
-         --  Factory of Filter (protocol stack) components.
+         --  Factory of Filter (protocol stack) components
 
          Profile_Factory : Binding_Data.Profile_Factory_Access;
-         --  Factory of profiles capable of associating the
-         --  address of TAP and the specification of the
-         --  protocol implemented by Filter_Factory_Chain
-         --  with an object id.
+         --  Factory of profiles capable of associating the address of TAP and
+         --  the specification of the protocol implemented by
+         --  Filter_Factory_Chain with an object id.
       end record;
 
    ----------------------------
@@ -75,7 +74,7 @@ package PolyORB.Transport.Handlers is
      new Transport_Event_Handler with
       record
          TE : PolyORB.Transport.Transport_Endpoint_Access;
-         --  Back pointer to the corresponding endpoint.
+         --  Back pointer to the corresponding endpoint
       end record;
 
    overriding procedure Handle_Event (H : access TE_AES_Event_Handler);
