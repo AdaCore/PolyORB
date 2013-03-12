@@ -89,7 +89,8 @@ package PolyORB.Smart_Pointers is
       The_Entity : Entity_Ptr);
    --  Make The_Ref designate The_Entity, and increment The_Entity's usage
    --  counter. The_Entity's reference counter is allowed to be 0 only when
-   --  creating the first reference to it.
+   --  creating the first reference to it. This procedure guarantees that
+   --  The_Ref does not transiently become Nil during the operation.
 
    procedure Reuse_Entity
      (The_Ref    : in out Ref;

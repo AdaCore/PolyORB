@@ -352,7 +352,9 @@ package body PolyORB.Smart_Pointers is
 
    procedure Set
      (The_Ref    : in out Ref;
-      The_Entity : Entity_Ptr) is
+      The_Entity : Entity_Ptr)
+   is
+      Prev_Entity : constant Entity_Ptr := The_Ref.A_Ref;
    begin
       if The_Ref.A_Ref = The_Entity then
          --  Same entity: no-op
@@ -360,9 +362,11 @@ package body PolyORB.Smart_Pointers is
          return;
       end if;
 
-      Finalize (The_Ref);
+      Inc_Usage (The_Entity);
       The_Ref.A_Ref := The_Entity;
-      Adjust (The_Ref);
+      if Prev_Entity /= null then
+         Dec_Usage (Prev_Entity);
+      end if;
    end Set;
 
    -----------------
