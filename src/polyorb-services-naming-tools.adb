@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -253,15 +253,12 @@ package body PolyORB.Services.Naming.Tools is
    -- Unregister --
    ----------------
 
-   procedure Unregister
-     (Name   : String)
-   is
-      N   : PolyORB.Services.Naming.Name;
-      NC  : NameComponent;
+   procedure Unregister (Name : String) is
+      N : PolyORB.Services.Naming.Name;
    begin
-      NC.kind := To_PolyORB_String ("");
-      NC.id   := To_PolyORB_String (Name);
-      Append (N, NC);
+      Append (N,
+        NameComponent'
+          (id => To_PolyORB_String (Name), kind => To_PolyORB_String ("")));
       Unbind (RNS, N);
    end Unregister;
 
