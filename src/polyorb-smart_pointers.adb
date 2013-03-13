@@ -362,8 +362,11 @@ package body PolyORB.Smart_Pointers is
          return;
       end if;
 
-      Inc_Usage (The_Entity);
+      if The_Entity /= null then
+         Inc_Usage (The_Entity);
+      end if;
       The_Ref.A_Ref := The_Entity;
+
       if Prev_Entity /= null then
          Dec_Usage (Prev_Entity);
       end if;
