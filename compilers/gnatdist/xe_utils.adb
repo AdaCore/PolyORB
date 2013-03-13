@@ -712,11 +712,6 @@ package body XE_Utils is
          Flags (N_Flags) := Readonly_Flag;
       end if;
 
-      --  -q (because gnatmake is verbose instead of gcc)
-
-      N_Flags := N_Flags + 1;
-      Flags (N_Flags) := Quiet_Flag;
-
       for I in Arguments'Range loop
          N_Flags := N_Flags + 1;
          Flags (N_Flags) := Arguments (I);
