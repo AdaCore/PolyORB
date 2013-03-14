@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -105,22 +105,47 @@ package PolyORB.Tasking.Mutexes is
    procedure Destroy (M : in out Mutex_Access);
 
    type Scope_Lock (M : access Mutex_Type'Class) is
-     new Ada.Finalization.Limited_Controlled with private;
+     new Mutex_Type with private;
    --  Scope lock: Initialize enters M, Finalize leaves M. Using a Scope_Lock
    --  ensures that a given critical section is held for the duration of
    --  a given scope, and that it is exited when the scope is left, whether
    --  because it has completed, or an exception was raised, or the task was
    --  aborted.
 
-   overriding procedure Initialize (SL : in out Scope_Lock);
-   overriding procedure Finalize (SL : in out Scope_Lock);
-   --  Enter/leave SL.M
+   --  The Scope_Lock's Enter and Leave operations call those of the underlying
+   --  mutex, and leep track of whether the critical section has been left or
+   --  re-entered. This is done with abortion deferred, so that the flag
+   --  tracking whether we are in the critical section remains consistent with
+   --  the actual state of the mutex.
+
+   --  The critical section can thus be exited temporarily during the lifespan
+   --  of the Scope_Lock, in an abort-safe manner. (If the task is aborted
+   --  and the flag indicates that we have left the critical section, then
+   --  the mutex is not released again upon finalization).
+
+   --  Note that this can be done not only using a pair of explicit Leave/Enter
+   --  calls; it is also possible to pass the scope lock object (instead of
+   --  its underlying mutex) to a call to the Wait operation of a condition
+   --  variable. A task can thus be suspended in an abort safe way while in
+   --  critical section.
 
 private
 
-   type Mutex_Type is abstract tagged limited null record;
+   type Mutex_Type is abstract new Ada.Finalization.Limited_Controlled
+     with null record;
 
-   type Scope_Lock (M : access Mutex_Type'Class) is
-     new Ada.Finalization.Limited_Controlled with null record;
+   type Scope_Lock (M : access Mutex_Type'Class) is new Mutex_Type with record
+      Locked : Boolean;
+   end record;
+
+   overriding procedure Enter (SL : access Scope_Lock);
+   overriding procedure Initialize (SL : in out Scope_Lock);
+   --  Enter SL.M
+
+   overriding procedure Leave (SL : access Scope_Lock);
+   --  Leave SL.M
+
+   overriding procedure Finalize (SL : in out Scope_Lock);
+   --  Leave SL.M if not already left
 
 end PolyORB.Tasking.Mutexes;

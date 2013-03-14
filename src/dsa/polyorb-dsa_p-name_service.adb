@@ -145,6 +145,12 @@ package body PolyORB.DSA_P.Name_Service is
       Pro          : PolyORB.Binding_Data.Profile_Access;
       Error        : PolyORB.Errors.Error_Container;
    begin
+      --  A nil ref is never valid
+
+      if R.Is_Nil then
+         return False;
+      end if;
+
       --  Bind the reference to ensure validity
 
       Bind (R          => R,

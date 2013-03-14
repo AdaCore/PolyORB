@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -78,13 +78,28 @@ package body PolyORB.Tasking.Mutexes is
       Destroy (My_Factory, M);
    end Destroy;
 
+   -----------
+   -- Enter --
+   -----------
+
+   overriding procedure Enter (SL : access Scope_Lock) is
+   begin
+      pragma Abort_Defer;
+
+      pragma Assert (not SL.Locked);
+      Enter (SL.M);
+      SL.Locked := True;
+   end Enter;
+
    --------------
    -- Finalize --
    --------------
 
    overriding procedure Finalize (SL : in out Scope_Lock) is
    begin
-      Leave (SL.M);
+      if SL.Locked then
+         Leave (SL.M);
+      end if;
    end Finalize;
 
    ----------------
@@ -94,7 +109,21 @@ package body PolyORB.Tasking.Mutexes is
    overriding procedure Initialize (SL : in out Scope_Lock) is
    begin
       Enter (SL.M);
+      SL.Locked := True;
    end Initialize;
+
+   -----------
+   -- Leave --
+   -----------
+
+   overriding procedure Leave (SL : access Scope_Lock) is
+   begin
+      pragma Abort_Defer;
+
+      pragma Assert (SL.Locked);
+      SL.Locked := False;
+      Leave (SL.M);
+   end Leave;
 
    ----------------------------
    -- Register_Mutex_Factory --

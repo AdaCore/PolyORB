@@ -11,6 +11,18 @@ release of the 2.10 technology. This means they are corrected in release
 ISO format YYYY-MM-DD) in the status line. This can be used to determine
 if a given wavefront has the fix identified in the entry.
 
+KP-291-M313-015 Unsafe concurrent RCI lookups
+
+  Problem:    When concurrent tasks attempt to retrieve the base reference
+              for a remote RCI unit, incorrect coordination and unsafe
+              concurrent accesses to shared data can cause spurious lookup
+              failures to be reported to application code.
+
+  Status:     This was fixed in 2.10 on 2013-03-14
+
+  Workaround: Guard RCI calls with handlers for System.RPC.Communication_Error
+              and retry failed calls.
+
 KP-291-M308-031 Application with tasking hands in RCI call
 
   Problem:    If a DSA partition has tasking, then in rare cases a race
