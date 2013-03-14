@@ -75,7 +75,15 @@ package PolyORB.Transport.Handlers is
       record
          TE : PolyORB.Transport.Transport_Endpoint_Access;
          --  Back pointer to the corresponding endpoint
+
+         Dependent_Binding_Object : Smart_Pointers.Ref;
+         --  Binding object associated with TE
+         --  Set only while processing an event, to ensure that the BO does
+         --  not disappear prematurely.
       end record;
+
+   overriding function Stabilize
+     (H : access TE_AES_Event_Handler) return Boolean;
 
    overriding procedure Handle_Event (H : access TE_AES_Event_Handler);
 
