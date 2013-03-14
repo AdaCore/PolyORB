@@ -675,10 +675,10 @@ package body XE_Utils is
       Fatal     : Boolean := True)
    is
       Length  : constant Natural :=
-        Sources'Length + 4
-        + Arguments'Length
-        + List_Switches.Last
-        - List_Switches.First;
+                  Sources'Length + 4
+                   + Arguments'Length
+                   + List_Switches.Last
+                   - List_Switches.First;
       Flags   : Argument_List (1 .. Length);
       N_Flags : Natural := 0;
       File    : GNAT.OS_Lib.File_Descriptor;
@@ -1066,9 +1066,9 @@ package body XE_Utils is
                   --  Switch is passed to gnatmake later on
 
                when others =>
-                  --  Pass unrecognized switches to gnat make and gnat ls
 
-                  Add_List_Switch (Argv);
+                  --  Pass unrecognized one character switches to gnat make
+
                   Add_Make_Switch (Argv);
             end case;
 
@@ -1087,10 +1087,9 @@ package body XE_Utils is
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
 
-         --  Pass all unrecognized switches on to gnat make and gnat ls
+         --  Pass all other unrecognized switches to gnat make
 
          else
-            Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
          end if;
 
