@@ -18,6 +18,14 @@ NF-210-M315-027 Executable name in traces (2013-03-15)
    logged to standard error. This feature is enabled by setting "exe_name=true"
    in section [log] of the PolyORB configuration.
 
+NF-210-M301-038 DSA application without name server (2013-03-15)
+
+   Facilities are now provided to override the location of RCI units using
+   run-time configuration parameters (from configuration file, command line,
+   or environment variables). When all RCI locations are provided through
+   configuration, the DSA name server can be disabled altogether, by specifying
+   "None" as the name server type in the gnatdist configuration.
+
 NF-210-M116-036 Performance improvements for unions (2013-01-23)
 
    Several adjustments have been made to the circuitry that handles the
