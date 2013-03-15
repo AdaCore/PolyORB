@@ -12,6 +12,12 @@ This date shows the implementation date of the feature. Any 2.10 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-210-M315-027 Executable name in traces (2013-03-15)
+
+   The name of the executable can now optionally be included in trace messages
+   logged to standard error. This feature is enabled by setting "exe_name=true"
+   in section [log] of the PolyORB configuration.
+
 NF-210-M116-036 Performance improvements for unions (2013-01-23)
 
    Several adjustments have been made to the circuitry that handles the
