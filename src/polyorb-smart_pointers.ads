@@ -100,8 +100,9 @@ package PolyORB.Smart_Pointers is
    --  It is the caller's responsibility to ensure that The_Entity points
    --  to a valid Entity object (even in the latter case). This allows a
    --  reference to be reconstructed from a saved Entity_Ptr value, ensuring
-   --  that the designated entity is not being finalized.
-   --  The_Ref is expected to be nil before the call.
+   --  that the designated entity is not being finalized. The_Ref is expected
+   --  to be nil before the call. Caller must ensure that no concurrent calls
+   --  to Reuse_Entity are made on the same Entity_Ptr.
 
    procedure Use_Entity
      (The_Ref    : in out Ref;
