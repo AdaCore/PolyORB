@@ -1138,9 +1138,13 @@ package body System.Partition_Interface is
                      --  handled specifically.
 
                      Addr := The_TM_Address;
-                  else
 
+                  elsif Key'Length = Local_Oid'Length then
                      Addr := To_Address (Key (Key'Range));
+
+                  else
+                     Addr := Null_Address;
+
                   end if;
 
                   PolyORB.Objects.Free (Key);
