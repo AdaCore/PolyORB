@@ -1210,13 +1210,17 @@ package body PolyORB.ORB is
 
                Req.Requesting_Component := Component_Access (ORB);
                Run_Request (ORB, Req);
+
             else
+               --  Case of a request received from a remote node (requestor
+               --  is the Session).
+
                Req.Requesting_Component := QR.Requestor;
                declare
                   J : constant Job_Access :=
                     new Request_Job'(Job with
-                                     ORB       => ORB_Access (ORB),
-                                     Request   => Req);
+                                     ORB     => ORB_Access (ORB),
+                                     Request => Req);
                begin
                   Handle_Request_Execution
                     (ORB.Tasking_Policy,
