@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -573,22 +573,22 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end case;
 
       Create_Request
-        (Target    => Target,
-         Operation => To_Standard_String (Operation),
-         Arg_List  => Args,
-         Result    => Result,
+        (Target                     => Target,
+         Operation                  => To_Standard_String (Operation),
+         Arg_List                   => Args,
+         Result                     => Result,
          Deferred_Arguments_Session => Def_Args,
-         Req       => Req,
-         Req_Flags => Req_Flags,
-         Dependent_Binding_Object =>
-           Smart_Pointers.Entity_Ptr
-             (S.Dependent_Binding_Object));
+         Req                        => Req,
+         Req_Flags                  => Req_Flags,
+         Dependent_Binding_Object   =>
+           Smart_Pointers.Entity_Ptr (S.Dependent_Binding_Object));
 
       Add_Request_QoS
         (Req.all,
          GIOP_Addressing_Mode,
          new QoS_GIOP_Addressing_Mode_Parameter'
-         (Kind => GIOP_Addressing_Mode, Mode => AM));
+               (Kind => GIOP_Addressing_Mode,
+                Mode => AM));
 
       Add_Request_QoS
         (Req.all,
@@ -601,8 +601,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          (Req.all,
           Transport_Security,
           Fetch_Secure_Transport_QoS
-          (PolyORB.Transport.Transport_Endpoint_Access
-           (Lower (Filter_Access (Lower (S))))));
+            (PolyORB.Transport.Transport_Endpoint_Access
+           .I  (Lower (Filter_Access (Lower (S))))));
          --  XXX Should be reimplemented!
       end if;
 
