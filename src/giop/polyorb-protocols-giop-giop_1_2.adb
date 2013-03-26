@@ -602,7 +602,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
           Transport_Security,
           Fetch_Secure_Transport_QoS
             (PolyORB.Transport.Transport_Endpoint_Access
-           .I  (Lower (Filter_Access (Lower (S))))));
+              (Lower (Filter_Access (Lower (S))))));
          --  XXX Should be reimplemented!
       end if;
 
