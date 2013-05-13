@@ -33,6 +33,11 @@ NF-210-M116-036 Performance improvements for unions (2013-01-23)
    with enum discriminant. This results in a significant performance
    improvement when handling such data.
 
+NF-210-LC17-026 Use host name instead of IP address in CORBA IORs (2013-05-13)
+
+   IIOP listening endpoint addresses can now be specified to be published
+   by host name (rather than by IP address) in IORs.
+
 NF-210-K811-013 Make predefined packages compatible with UTF-8 (2012-12-21)
 
    IAC generates pragma Wide_Character_Encoding to allow usage of prodefined

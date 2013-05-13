@@ -5738,6 +5738,66 @@ instances.
 #polyorb.protocols.iiop.giop.1.0.locate_then_request=true
 @end smallexample
 
+@code{default_addr} specifies a listening endpoint address, and
+@code{alternate_listen_addresses} specifies a whitespace-separated list
+of additional listening endpoint addresses. The value of @code{default_addr},
+and each element of @code{alternate_listen_addresses}, have a similar
+format: @code{{@it <bind-addr>}[{@it <pub-addr>}]:{@it <port-hint>}}
+
+@code{@it bind-addr} is the address on which to listen to, as passed
+to the bind(2) system call. The default value is 0.0.0.0 (i.e., listen
+for incoming connections on all addresses of the local host). If an
+IP address is specified, it will be used instead. If a host name is specified,
+it will be resolved, and connections will be listened for on each
+returned IP address.
+
+@code{@it pub-addr} is the address to be published in constructed object
+references. In particular, this is what appears in IORs produced by
+the @code{Object_To_String} CORBA function. If not specified, this
+defaults to the same as @code{@it bind-addr}, except if @code{@it bind-addr} 
+is 0.0.0.0 (the default value), in which case the default @code{@it pub-addr}
+is the first non-loopback IP address found to be associated with the local
+host name.
+
+@code{@it <port-hint>} may be a specific port number, or a range of ports
+separated by an hyphen. If specified, the listening port will be assigned in
+the indicated range. If not, a random port will be selected by the operating
+system.
+
+Any of the three components can be omitted. The following are examples
+of valid listening address specifications:
+
+@smallexample
+0.0.0.0
+# Bind on 0.0.0.0, publish first IP address of local host
+
+1.2.3.4
+# Bind on 1.2.3.4, publish "1.2.3.4"
+
+1.2.3.4[server.example.com]
+# Bind on 1.2.3.4, publish as "server.example.com", no specified port
+
+server.example.com
+# Bind on all IP addresses associated with "server.example.com", publish
+# "server.example.com"
+
+[server.example.com]
+# Bind on 0.0.0.0, publish "server.example.com"
+@end smallexample
+
+If PolyORB is compiled with GNATcoll support, macro substitution may
+be used in listening address specifications. For example, the following
+setting directs PolyORB to listen on port 1234 on all local addresses,
+and publish the local host name:
+
+@smallexample
+[iiop]
+polyorb.protocols.iiop.default_addr=[$hostname]:1234
+# <bind-addr> is unspecified, so defaults to 0.0.0.0
+# <pub-addr> is the local hostname, from built-in macro $hostname
+# <port-hint> is specified explicitly as 1234
+@end smallexample
+
 @c -------------------------------------------------------------------
 @node SSLIOP Configuration Parameters
 @subsection SSLIOP Configuration Parameters

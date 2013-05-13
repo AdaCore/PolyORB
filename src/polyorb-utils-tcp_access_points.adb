@@ -57,7 +57,7 @@ package body PolyORB.Utils.TCP_Access_Points is
      renames L.Enabled;
 
    Listen_Matcher : constant Pattern_Matcher :=
-                      Compile ("^([^:\]]*)(\[[^\]]*\])?(:[0-9-]*)?");
+                      Compile ("^([^:\[]*)(\[[^\]]*\])?(:[0-9-]*)?");
    subtype Listen_Match is Match_Array (0 .. Paren_Count (Listen_Matcher));
 
    ------------------------------
@@ -66,7 +66,7 @@ package body PolyORB.Utils.TCP_Access_Points is
 
    function Initialize_Access_Points
      (Listen_Spec   : String;
-      Default_Ports : Port_Interval := (Any_Port, Any_Port)) return AP_Infos
+      Default_Ports : Port_Interval := (Any_Port, Any_Port)) return APs
    is
       M : Listen_Match;
    begin
@@ -113,14 +113,22 @@ package body PolyORB.Utils.TCP_Access_Points is
             Port_Hint := Default_Ports;
          end if;
 
-         --  If a Bind_Spec is present, resolve and bind to all returned
+         --  If Bind_Spec is an IP address, use it
+
+         if Is_IP_Address (Bind_Spec) then
+            return APIs : APs (1 .. 1) do
+               Initialize_Socket
+                 (APIs (1), Inet_Addr (Bind_Spec), Port_Hint, Pub_Spec);
+            end return;
+
+         --  If Bind_Spec is a name, resolve and bind to all returned
          --  addresses.
 
-         if Bind_Spec /= "" then
+         elsif Bind_Spec /= "" then
             declare
                H : constant Host_Entry_Type := Get_Host_By_Name (Bind_Spec);
             begin
-               return APIs : AP_Infos (1 .. H.Addresses_Length) do
+               return APIs : APs (1 .. H.Addresses_Length) do
                   for J in 1 .. H.Addresses_Length loop
                      Initialize_Socket
                        (APIs (J),
@@ -133,7 +141,7 @@ package body PolyORB.Utils.TCP_Access_Points is
          --  Here if no Bind_Spec: bind to Any_Inet_Addr
 
          else
-            return APIs : AP_Infos (1 .. 1) do
+            return APIs : APs (1 .. 1) do
                Initialize_Socket
                  (APIs (1), Any_Inet_Addr, Port_Hint, Pub_Spec);
             end return;
