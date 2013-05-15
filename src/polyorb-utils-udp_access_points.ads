@@ -43,7 +43,7 @@ package PolyORB.Utils.UDP_Access_Points is
    procedure Initialize_Unicast_Socket
      (SAP       : out Transport.Transport_Access_Point_Access;
       Port_Hint : Port_Interval;
-      Address   : Sockets.Inet_Addr_Type := Sockets.Any_Inet_Addr);
+      Address   : Sockets.Inet_Addr_Type);
 
    procedure Initialize_Multicast_Socket
      (SAP     : out Transport.Transport_Access_Point_Access;

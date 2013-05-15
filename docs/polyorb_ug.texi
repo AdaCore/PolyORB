@@ -162,7 +162,6 @@ entitled ``GNU Free Documentation License''.
 * RT-CORBA::
 * DSA::
 * MOMA::
-* AWS::
 * GIOP::
 * SOAP::
 * Tools::
@@ -204,7 +203,6 @@ Overview of PolyORB personalities
 * CORBAoverview::
 * DSAoverview::
 * MOMAoverview::
-* AWSoverview::
 
 * Protocol personalities::
 
@@ -346,9 +344,6 @@ Distributed Systems Annex.
 
 @item @ref{MOMA} describes PolyORB's implementation of MOMA, the
 Message Oriented Middleware for Ada.
-
-@item @ref{AWS} describes the integration of the Ada Web Server (AWS)
-framework into PolyORB.
 
 @item @ref{GIOP} describes PolyORB's implementation of GIOP, the
 protocol defined as part of CORBA.
@@ -840,7 +835,7 @@ Available options for the 'configure' script include:
 
 @item  @option{--with-appli-perso="..."}: application personalities to build
 
-      Available personalities: AWS, CORBA, DSA, MOMA
+      Available personalities: CORBA, DSA, MOMA
 
       e.g.   @option{--with-appli-perso="corba moma"} to build both the CORBA
              and MOMA personalities
@@ -1018,7 +1013,6 @@ remote entities.
 * CORBAoverview::
 * DSAoverview::
 * MOMAoverview::
-* AWSoverview::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -1066,19 +1060,6 @@ MOMA (Message Oriented Middleware for Ada) provides message passing
 mechanisms. It is an Ada adaptation of Sun's Java Message Service
 (JMS) @cite{[SUN99]}, a standardized API for common message passing
 models.
-
-@c -------------------------------------------------------------------
-@node AWSoverview
-@subsection Ada Web Server (AWS)
-@cindex AWS, Ada Web Server
-@c -------------------------------------------------------------------
-
-@noindent
-The Web Server personality provides the same API as the Ada Web Server
-project (AWS) @cite{[Obr03]}. It allows for the implementation of web
-services, web server applications, or classical web pages. AWS-based
-servers allow the programmer to directly interact with incoming or
-outgoing @code{HTTP} and @code{SOAP} requests.
 
 @c -------------------------------------------------------------------
 @node Protocol personalities
@@ -4548,7 +4529,8 @@ pass to the remote shell command.
 @smallexample
 
 NAME_SERVER_LITERAL ::= Embedded   |
-                       Standalone
+                        Standalone |
+                        None
 
 PRAGMA ::=
    @b{pragma} Name_Server ([Name_Server_Kind =>] NAME_SERVER_LITERAL);
@@ -4563,6 +4545,11 @@ A pragma Name_Server with parameter Embedded can be used to request the
 PCS to instead set up a name server within the main partition. If the
 Ada starter is used, the location of the name server is passed automatically
 to slave partitions.
+
+A pragma Name_Server with parameter None specifies that no name server is
+present in the application. In this case the location of each partition
+must be specified in the @t{po_gnatdist} configuration file, or in
+PolyORB run-time configuration.
 
 @node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Name_Server, The Configuration Language
 @subsubsection Pragma Boot_Location
@@ -4607,9 +4594,11 @@ Except for the boot partition on which the boot server is located, a
 partition is reachable through a dynamically computed location (for
 instance, the partition looks for a free port when the protocol is
 tcp). The user may want such a partition to be reachable from a given
-location, especially if the user wants to make this partition a boot
-mirror. To do so, he can force the partition location with self_location
-feature.
+fixed location defined in configuration.
+@c especially if the user wants to make this partition a boot mirror.
+This is achieved by setting the Self_Location attribute for the partition.
+In particular a location must be defined for the main partition, and each
+partition on which an RCI is assigned, if no name server is used.
 
 @smallexample
 
@@ -5326,12 +5315,14 @@ Some of these features are not configurable by the user.
 @node Application Startup, Heterogeneous System, PolyORB PCS Internals, PolyORB PCS Internals
 @subsubsection Application Startup
 
-A name server needs to be started prior to starting any application
+A name server normally needs to be started prior to starting any application
 partition. Once the name server is started, its location must be passed
 to all partitions as the @t{name_service} runtime parameter in the
 @t{[dsa]} section of the configuration. When using an Ada starter, it is
 sufficient to pass the name server location to the starter, and it will be
-propagated automatically to all partitions.
+propagated automatically to all partitions. When using an embedded name
+server, the name server is part of the main partition, and does not need
+to be passed explicitly.
 
 Upon elaboration, each partition registers its RCI packages with the
 name server. Once this is done, remote calls to RCI subprograms can proceed.
@@ -5339,7 +5330,30 @@ Partitions cache the replies from the name server so that during the
 course of normal execution, inter-partition calls only involve the caller
 and callee partitions (not the name server).
 
-RCI units can then act as ``clearinghouses'' for other partitions to exchange
+When the name server kind is set to None, no name server is started, and
+no attempt is made to register RCI units. Their locations must then be
+set in the @t{po_gnatdist} configuration file using Self_Location attributes
+for all partitions, or overridden in run-time configuration by setting the
+@t{<partition>'location} parameter in the @t{[dsa]} section. A location
+pair @t{(<protocol-name>, <protocol-data>)} is encoded as a URI:
+@t{<protocol-name>://<protocol-data>}.
+
+For example, to specify that a partition @t{server_part} is to be reachable
+using TCP on host @t{somehost}, port 5555, either use the following
+setting in the @t{gnatdist} configuration file:
+
+@smallexample
+   for server_part'Self_Location use ("tcp", "somehost:5555");
+@end smallexample
+
+or the following settings in PolyORB runtime configuration:
+
+@smallexample
+[dsa]
+server_part'location=tcp://somehost:5555
+@end smallexample
+
+RCI units then act as ``clearinghouses'' for other partitions to exchange
 RACWs and set up dynamic communication paths.
 
 @node Heterogeneous System, Allocating Partition Ids, Application Startup, PolyORB PCS Internals
@@ -5499,16 +5513,6 @@ the user may use.
 packages shall not be used when building your application.
 
 @end enumerate
-
-@c -------------------------------------------------------------------
-@node AWS
-@chapter Ada Web Server (AWS)
-@cindex AWS, Ada Web Server
-@c -------------------------------------------------------------------
-
-@noindent
-@i{The documentation of this personality will appear in a future
-revision of PolyORB.}
 
 @c -------------------------------------------------------------------
 @node GIOP
@@ -5732,6 +5736,66 @@ instances.
 
 # Set to True to send a locate message prior to the request
 #polyorb.protocols.iiop.giop.1.0.locate_then_request=true
+@end smallexample
+
+@code{default_addr} specifies a listening endpoint address, and
+@code{alternate_listen_addresses} specifies a whitespace-separated list
+of additional listening endpoint addresses. The value of @code{default_addr},
+and each element of @code{alternate_listen_addresses}, have a similar
+format: @code{{@it <bind-addr>}[{@it <pub-addr>}]:{@it <port-hint>}}
+
+@code{@it bind-addr} is the address on which to listen to, as passed
+to the bind(2) system call. The default value is 0.0.0.0 (i.e., listen
+for incoming connections on all addresses of the local host). If an
+IP address is specified, it will be used instead. If a host name is specified,
+it will be resolved, and connections will be listened for on each
+returned IP address.
+
+@code{@it pub-addr} is the address to be published in constructed object
+references. In particular, this is what appears in IORs produced by
+the @code{Object_To_String} CORBA function. If not specified, this
+defaults to the same as @code{@it bind-addr}, except if @code{@it bind-addr} 
+is 0.0.0.0 (the default value), in which case the default @code{@it pub-addr}
+is the first non-loopback IP address found to be associated with the local
+host name.
+
+@code{@it <port-hint>} may be a specific port number, or a range of ports
+separated by an hyphen. If specified, the listening port will be assigned in
+the indicated range. If not, a random port will be selected by the operating
+system.
+
+Any of the three components can be omitted. The following are examples
+of valid listening address specifications:
+
+@smallexample
+0.0.0.0
+# Bind on 0.0.0.0, publish first IP address of local host
+
+1.2.3.4
+# Bind on 1.2.3.4, publish "1.2.3.4"
+
+1.2.3.4[server.example.com]
+# Bind on 1.2.3.4, publish as "server.example.com", no specified port
+
+server.example.com
+# Bind on all IP addresses associated with "server.example.com", publish
+# "server.example.com"
+
+[server.example.com]
+# Bind on 0.0.0.0, publish "server.example.com"
+@end smallexample
+
+If PolyORB is compiled with GNATcoll support, macro substitution may
+be used in listening address specifications. For example, the following
+setting directs PolyORB to listen on port 1234 on all local addresses,
+and publish the local host name:
+
+@smallexample
+[iiop]
+polyorb.protocols.iiop.default_addr=[$hostname]:1234
+# <bind-addr> is unspecified, so defaults to 0.0.0.0
+# <pub-addr> is the local hostname, from built-in macro $hostname
+# <port-hint> is specified explicitly as 1234
 @end smallexample
 
 @c -------------------------------------------------------------------

@@ -54,10 +54,9 @@ package body PolyORB.Setup.Access_Points.DIOP is
    use PolyORB.Filters.Fragmenter;
    use PolyORB.ORB;
    use PolyORB.Sockets;
+   use PolyORB.Transport;
    use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.UDP_Access_Points;
-
-   DIOP_Access_Point : Transport.Transport_Access_Point_Access;
 
    Fra : aliased Fragmenter_Factory;
    Pro : aliased Protocols.GIOP.DIOP.DIOP_Protocol;
@@ -77,26 +76,42 @@ package body PolyORB.Setup.Access_Points.DIOP is
    begin
       if Get_Conf ("access_points", "diop", True) then
          declare
-            Port_Hint : constant Port_Interval := To_Port_Interval
-                          (Get_Conf
-                           ("diop",
-                            "polyorb.protocols.diop.default_port",
-                            (Integer (Any_Port), Integer (Any_Port))));
+            function Initialize_DIOP_AP
+              (Addr      : Inet_Addr_Type;
+               Port_Hint : Port_Interval) return Transport_Access_Point_Access;
 
-            Addr : constant Inet_Addr_Type :=
-              Inet_Addr (String'(Get_Conf
-                                   ("diop",
-                                    "polyorb.protocols.diop.default_addr",
-                                    Image (No_Inet_Addr))));
+            function Initialize_DIOP_AP
+              (Addr      : Inet_Addr_Type;
+               Port_Hint : Port_Interval) return Transport_Access_Point_Access
+            is
+            begin
+               return AP : Transport_Access_Point_Access do
+                  Initialize_Unicast_Socket (AP, Port_Hint, Addr);
+               end return;
+            end Initialize_DIOP_AP;
+
+            Created_APs : constant APs :=
+              Initialize_Access_Points
+                (Get_Conf
+                     ("diop",
+                      "polyorb.protocols.diop.default_addr",
+                      Image (No_Inet_Addr)),
+                 To_Port_Interval
+                   (Get_Conf
+                      ("diop",
+                       "polyorb.protocols.diop.default_port",
+                       (Integer (Any_Port), Integer (Any_Port)))),
+                 Initialize_DIOP_AP'Access);
+
          begin
-            Initialize_Unicast_Socket (DIOP_Access_Point, Port_Hint, Addr);
-
-            Register_Access_Point
-              (ORB   => The_ORB,
-               TAP   => DIOP_Access_Point,
-               Chain => DIOP_Factories'Access,
-               PF    => new DIOP_Profile_Factory'
-                              (Create_Factory (DIOP_Access_Point)));
+            for J in Created_APs'Range loop
+               Register_Access_Point
+                 (ORB   => The_ORB,
+                  TAP   => Created_APs (J),
+                  Chain => DIOP_Factories'Access,
+                  PF    => new DIOP_Profile_Factory'
+                                 (Create_Factory (Created_APs (J))));
+            end loop;
          end;
       end if;
    end Initialize_Access_Points;

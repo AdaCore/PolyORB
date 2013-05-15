@@ -306,11 +306,18 @@ package body PolyORB.ORB is
          --  Queue events, if any
 
          for J in Events'Range loop
-            Notify_Event
-              (ORB.ORB_Controller,
-               Event'(Kind      => Queue_Event_Job,
-                      Event_Job => Job_Access (Handler (Events (J).all)),
-                      By_Task   => Id (This_Task)));
+            declare
+               H : constant access Asynch_Ev.AES_Event_Handler'Class :=
+                     Handler (Events (J).all);
+            begin
+               if H.Stabilize then
+                  Notify_Event
+                    (ORB.ORB_Controller,
+                     Event'(Kind      => Queue_Event_Job,
+                            Event_Job => Job_Access'(H.all'Unchecked_Access),
+                            By_Task   => Id (This_Task)));
+               end if;
+            end;
          end loop;
 
          --  Notify ORB controller of completion
@@ -1002,6 +1009,10 @@ package body PolyORB.ORB is
                            Servants.Iface.Executed_Request'(Req => Req));
 
             Req.Completed := True;
+
+            --  At this point Req might have been destroyed, this would make
+            --  any further access to it erroneous???
+
          end if;
 
          --  Bind target reference to a servant if this is a local reference,
@@ -1086,21 +1097,16 @@ package body PolyORB.ORB is
             else
                pragma Debug (C, O ("Run_Request: task " & Image (Current_Task)
                                  & " processed request"));
-               begin
-                  Emit_No_Reply (Req.Requesting_Component, Result);
+               Emit_No_Reply (Req.Requesting_Component, Result);
 
-                  --  XXX issue: if we are on the server side, and the
-                  --  transport layer has detected a disconnection while we
-                  --  were processing the request, the Requestor (Session)
-                  --  object here could have become invalid. For now we hack
-                  --  around this issue in an ugly fashion by catching all
-                  --  exceptions.
-
-               exception
-                  when E : others =>
-                     O ("Got exception sending Executed_Request:" & ASCII.LF
-                        & Ada.Exceptions.Exception_Information (E), Error);
-               end;
+               --  Note: On the server side, the transport layer might detect
+               --  a disconnect while we are processing a request. However,
+               --  the request contains a reference to the session (as part
+               --  of its Dependent_Binding_Object), so here we know that
+               --  the Requesting_Component is still valid (has not been
+               --  destroyed yet). We used to have an exception handler here
+               --  because requestes formely lacked this reference to the
+               --  binding object.
             end if;
          end;
       end;
@@ -1203,13 +1209,17 @@ package body PolyORB.ORB is
 
                Req.Requesting_Component := Component_Access (ORB);
                Run_Request (ORB, Req);
+
             else
+               --  Case of a request received from a remote node (requestor
+               --  is the Session).
+
                Req.Requesting_Component := QR.Requestor;
                declare
                   J : constant Job_Access :=
                     new Request_Job'(Job with
-                                     ORB       => ORB_Access (ORB),
-                                     Request   => Req);
+                                     ORB     => ORB_Access (ORB),
+                                     Request => Req);
                begin
                   Handle_Request_Execution
                     (ORB.Tasking_Policy,

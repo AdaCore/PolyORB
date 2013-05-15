@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . A S Y N C H _ E V                     --
+--            P O L Y O R B . T R A N S P O R T . S O C K E T S             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--           Copyright (C) 2013, Free Software Foundation, Inc.             --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,90 +32,18 @@
 
 pragma Ada_2005;
 
---  Abstract data type for an asynchrous event source.
-
-pragma Ada_2005;
-
-with Ada.Unchecked_Deallocation;
-
-package body PolyORB.Asynch_Ev is
-
-   ------------
-   -- AEM_Of --
-   ------------
-
-   function AEM_Of (AES : Asynch_Ev_Source) return Asynch_Ev_Monitor_Access is
-   begin
-      return AES.Monitor;
-   end AEM_Of;
-
-   -------------
-   -- Handler --
-   -------------
-
-   function Handler
-     (AES : Asynch_Ev_Source'Class) return access AES_Event_Handler'Class is
-   begin
-      return AES.Handler;
-   end Handler;
-
-   -----------------
-   -- Set_Handler --
-   -----------------
-
-   procedure Set_Handler
-     (AES : in out Asynch_Ev_Source'Class;
-      H   : access AES_Event_Handler'Class)
-   is
-   begin
-      AES.Handler := H;
-   end Set_Handler;
-
-   ---------------
-   -- Stabilize --
-   ---------------
-
-   function Stabilize (H : access AES_Event_Handler) return Boolean is
-      pragma Unreferenced (H);
-   begin
-      return True;
-   end Stabilize;
+package body PolyORB.Transport.Sockets is
 
    -----------------------
-   -- Unregister_Source --
+   -- Socket_AP_Address --
    -----------------------
 
-   function Unregister_Source (AES : Asynch_Ev_Source_Access) return Boolean is
-      Success : Boolean;
-   begin
-      pragma Assert (AES /= null and then AES.Monitor /= null);
-      Unregister_Source (AES.Monitor.all, AES, Success);
-      return Success;
-   end Unregister_Source;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy
-     (AES : in out Asynch_Ev_Source_Access)
+   function Socket_AP_Address
+     (SAP : Socket_Access_Point'Class) return Socket_Name
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Asynch_Ev_Source'Class, Asynch_Ev_Source_Access);
+      S_Addr : constant Sock_Addr_Type := SAP.Socket_AP_Address;
    begin
-      Free (AES);
-   end Destroy;
+      return Image (S_Addr.Addr) + S_Addr.Port;
+   end Socket_AP_Address;
 
-   ---------
-   -- Run --
-   ---------
-
-   overriding procedure Run (AEH : not null access AES_Event_Handler) is
-   begin
-      --  Redispatch on Handle_Event operation.
-      --  Note: this may destroy AEH.
-
-      Handle_Event (AES_Event_Handler'Class (AEH.all)'Access);
-   end Run;
-
-end PolyORB.Asynch_Ev;
+end PolyORB.Transport.Sockets;

@@ -39,10 +39,14 @@ with PolyORB.Security.Security_Manager;
 with PolyORB.Security.Transport_Mechanisms.TLS;
 with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets.TLS;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TLS_Access_Points;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Setup.Access_Points.TLSIOP is
+
+   use PolyORB.Transport;
+   use PolyORB.Utils.Socket_Access_Points;
 
    procedure Initialize;
 
@@ -72,101 +76,51 @@ package body PolyORB.Setup.Access_Points.TLSIOP is
       use PolyORB.Transport.Connected.Sockets.TLS;
       use PolyORB.Utils.TLS_Access_Points;
 
-      Addresses : constant String
-        := Get_Conf (Section_Name, "addresses", "");
-      Addr      : Inet_Addr_Type := No_Inet_Addr;
-      Port      : Port_Type      := Any_Port;
-      Result    : constant Target_Transport_Mechanism_Access
-        := new Target_TLS_Transport_Mechanism;
-      Point     : Transport.Transport_Access_Point_Access
-                    := new TLS_Access_Point;
+      Addresses : constant String :=
+                    Get_Conf (Section_Name, "addresses", "");
+
+      Result    : constant Target_Transport_Mechanism_Access :=
+                    new Target_TLS_Transport_Mechanism;
+
+      function Initialize_TLS_AP
+        (Addr      : Inet_Addr_Type;
+         Port_Hint : Port_Interval) return Transport_Access_Point_Access;
+      --  Initialize TLS access point
+
+      -----------------------
+      -- Initialize_TLS_AP --
+      -----------------------
+
+      function Initialize_TLS_AP
+        (Addr      : Inet_Addr_Type;
+         Port_Hint : Port_Interval) return Transport_Access_Point_Access
+      is
+      begin
+         return AP : constant Transport_Access_Point_Access :=
+           new TLS_Access_Point
+         do
+            Initialize_Socket (AP, Addr, Port_Hint);
+         end return;
+      end Initialize_TLS_AP;
+
+      Created_APs : constant APs :=
+        Initialize_Access_Points
+          (Addresses, (Any_Port, Any_Port), Initialize_TLS_AP'Access);
 
    begin
-      if Addresses = "" then
-         Initialize_Socket (Point, Addr, Port);
-
+      for J in Created_APs'Range loop
          PolyORB.ORB.Register_Access_Point
            (ORB   => PolyORB.Setup.The_ORB,
-            TAP   => Point,
+            TAP   => Created_APs (J),
             Chain => IIOP_Factories'Access,
             PF    => null);
 
-         Set_Transport_Mechanism (TLS_Access_Point (Point.all), Result);
+         Set_Transport_Mechanism
+           (TLS_Access_Point (Created_APs (J).all), Result);
 
-         Append (Target_TLS_Transport_Mechanism (Result.all).TAP, Point);
-
-      else
-         declare
-            First : Positive := Addresses'First;
-            Last  : Natural  := 0;
-            Delim : Natural  := 0;
-
-         begin
-            while First <= Addresses'Last loop
-               --  Skip all spaces
-
-               while First <= Addresses'Last
-                 and then Addresses (First) = ' '
-               loop
-                  First := First + 1;
-               end loop;
-
-               --  Find end of address
-
-               for J in First .. Addresses'Last loop
-                  if Addresses (J) = ' ' then
-                     Last := J - 1;
-                     exit;
-
-                  elsif J = Addresses'Last then
-                     Last := J;
-                  end if;
-               end loop;
-
-               --  Find host/port delimiter
-
-               Delim := Last + 1;
-
-               for J in First .. Last loop
-                  if Addresses (J) = ':' then
-                     Delim := J;
-                     exit;
-                  end if;
-               end loop;
-
-               --  Create transport access point and register it
-
-               Addr  := Inet_Addr (Addresses (First .. Delim - 1));
-
-               if Delim < Last then
-                  Port := Port_Type'Value (Addresses (Delim + 1 .. Last));
-
-               else
-                  Port      := Any_Port;
-               end if;
-
-               if Addr /= No_Inet_Addr then
-                  Point := new TLS_Access_Point;
-
-                  Initialize_Socket (Point, Addr, Port);
-
-                  PolyORB.ORB.Register_Access_Point
-                    (ORB   => PolyORB.Setup.The_ORB,
-                     TAP   => Point,
-                     Chain => IIOP_Factories'Access,
-                     PF    => null);
-
-                  Set_Transport_Mechanism
-                    (TLS_Access_Point (Point.all), Result);
-
-                  Append
-                    (Target_TLS_Transport_Mechanism (Result.all).TAP, Point);
-               end if;
-
-               First := Last + 1;
-            end loop;
-         end;
-      end if;
+         Append
+           (Target_TLS_Transport_Mechanism (Result.all).TAP, Created_APs (J));
+      end loop;
 
       return Result;
    end Create_Target_Transport_Mechanism;

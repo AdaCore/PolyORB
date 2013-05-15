@@ -326,8 +326,13 @@ package body PolyORB.Smart_Pointers is
       pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
       Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, 1);
 
+      --  Note: race condition here, one must absolutely avoid concurrent
+      --  calls to Reuse_Entity, otherwise both calls might increment
+      --  The_Entity.Counter, and one might thus fail to notice that
+      --  it was null prior to the two calls.
+
       if Counter = 1 then
-         --  Was 0, can't reuse entity, reset counter
+         --  Was 0, can't reuse entity, reset counter.
 
          pragma Debug (C, Trace_Event (Dec_Usage, The_Entity));
          Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, -1);
@@ -352,7 +357,9 @@ package body PolyORB.Smart_Pointers is
 
    procedure Set
      (The_Ref    : in out Ref;
-      The_Entity : Entity_Ptr) is
+      The_Entity : Entity_Ptr)
+   is
+      Prev_Entity : Entity_Ptr := The_Ref.A_Ref;
    begin
       if The_Ref.A_Ref = The_Entity then
          --  Same entity: no-op
@@ -360,9 +367,14 @@ package body PolyORB.Smart_Pointers is
          return;
       end if;
 
-      Finalize (The_Ref);
+      if The_Entity /= null then
+         Inc_Usage (The_Entity);
+      end if;
       The_Ref.A_Ref := The_Entity;
-      Adjust (The_Ref);
+
+      if Prev_Entity /= null then
+         Dec_Usage (Prev_Entity);
+      end if;
    end Set;
 
    -----------------

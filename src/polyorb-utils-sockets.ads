@@ -85,11 +85,13 @@ package PolyORB.Utils.Sockets is
    --  non-loopback addresses over loopback ones.
 
    procedure Create_Socket
-     (Socket : out Socket_Type;
-      Family : Family_Type := Family_Inet;
-      Mode   : Mode_Type   := Socket_Stream);
+     (Socket        : out Socket_Type;
+      Family        : Family_Type := Family_Inet;
+      Mode          : Mode_Type   := Socket_Stream;
+      Reuse_Address : Boolean     := False);
    --  Wrapper for PolyORB.Sockets.Create_Socket that also marks the
-   --  newly-created socket as close-on-exec
+   --  newly-created socket as close-on-exec. If Reuse_Address is true,
+   --  the option is set on the socket.
 
    procedure Set_Close_On_Exec (Socket : Socket_Type);
    --  Mark S as not to be inherited by child processes

@@ -33,6 +33,7 @@
 pragma Ada_2005;
 
 with Ada.Characters.Handling;
+with Ada.Finalization;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
@@ -98,6 +99,7 @@ package body System.Partition_Interface is
    package PSNNC  renames PolyORB.Services.Naming.NamingContext;
    package PTC    renames PolyORB.Tasking.Condition_Variables;
    package PTM    renames PolyORB.Tasking.Mutexes;
+   package PTCV   renames PolyORB.Tasking.Condition_Variables;
    package PTT    renames PolyORB.Tasking.Threads;
    package PUCFCT renames PolyORB.Utils.Configuration_File.Configuration_Table;
 
@@ -175,7 +177,7 @@ package body System.Partition_Interface is
    -- Map of all known RCI units --
    --------------------------------
 
-   type RCI_State is (Initial, Live, Dead);
+   type RCI_State is (Initial, Invalid, Pending, Live, Dead);
 
    type RCI_Info is limited record
       Is_All_Calls_Remote : Boolean := True;
@@ -183,6 +185,10 @@ package body System.Partition_Interface is
 
       Base_Ref            : Object_Ref;
       --  Main reference for package
+
+      Lookup_Done         : PTCV.Condition_Access;
+      --  Condition variable used for callers to block while Base_Ref is
+      --  being looked up from the name server.
 
       Is_Local            : Boolean := False;
       --  True if the package is assigned on local partition
@@ -1132,9 +1138,13 @@ package body System.Partition_Interface is
                      --  handled specifically.
 
                      Addr := The_TM_Address;
-                  else
 
+                  elsif Key'Length = Local_Oid'Length then
                      Addr := To_Address (Key (Key'Range));
+
+                  else
+                     Addr := Null_Address;
+
                   end if;
 
                   PolyORB.Objects.Free (Key);
@@ -1992,7 +2002,8 @@ package body System.Partition_Interface is
                State               => Live,
                Is_All_Calls_Remote => Stub.Is_All_Calls_Remote,
                Known_Partition_ID  => False,
-               RCI_Partition_ID    => RPC.Partition_ID'First));
+               RCI_Partition_ID    => RPC.Partition_ID'First,
+               others              => <>));
 
          Nameserver_Register
            (Name_Ctx => Get_Name_Server,
@@ -2180,144 +2191,209 @@ package body System.Partition_Interface is
    -- Retrieve_RCI_Info --
    -----------------------
 
+   type Lookup_Witness (Info : access RCI_Info; SL : access PTM.Scope_Lock) is
+     new Ada.Finalization.Limited_Controlled with
+   record
+      Set_State : RCI_State;
+      --  State to be set upon lookup completion
+
+      LU_Ref : Ref;
+      --  Reference from name service lookup
+   end record;
+
+   overriding procedure Initialize (W : in out Lookup_Witness);
+   overriding procedure Finalize (W : in out Lookup_Witness);
+
+   procedure Initialize (W : in out Lookup_Witness) is
+   begin
+      pragma Assert (W.Info.State /= Pending);
+      pragma Debug
+        (C, O ("Lookup_Witness: initialize, saved state " & W.Info.State'Img));
+      W.Set_State  := Invalid;
+      W.Info.State := Pending;
+      W.SL.Leave;
+   end Initialize;
+
+   procedure Finalize (W : in out Lookup_Witness) is
+   begin
+      W.SL.Enter;
+      pragma Assert (W.Info.State = Pending);
+
+      pragma Debug
+        (C, O ("Lookup_Witness: finalize, set state to " & W.Set_State'Img));
+      W.Info.State := W.Set_State;
+      W.Info.Base_Ref.Set (W.LU_Ref.Entity_Of);
+      PTCV.Broadcast (W.Info.Lookup_Done);
+   end Finalize;
+
    procedure Retrieve_RCI_Info
      (Name : String;
       Info : in out RCI_Info_Access)
    is
-      LName : constant String := To_Lower (Name);
-      Entry_Pending : Boolean := False;
+      LName     : constant String := To_Lower (Name);
+      SL        : aliased PTM.Scope_Lock (Critical_Section);
+
+      Do_Lookup : Boolean := True;
+      --  Set false if no lookup required
+
    begin
       pragma Debug (C, O ("Retrieve_RCI_Info: enter, Name = " & Name));
 
-      PTM.Enter (Critical_Section);
-
       if Info = null then
          Info := Known_RCIs.Lookup (LName, null);
+      end if;
 
-         if Info = null then
-            --  Here for a new remote RCI
+      if Info = null then
+         --  Here for a new remote RCI
 
-            Info := new RCI_Info'
-                      (Base_Ref            => <>,
-                       Is_Local            => False,
-                       Reconnection_Policy => Get_Reconnection_Policy (Name),
-                       State               => Initial,
-                       Is_All_Calls_Remote => True,
-                       Known_Partition_ID  => False,
-                       RCI_Partition_ID    => RPC.Partition_ID'First);
-            Known_RCIs.Register (LName, Info);
+         Info := new RCI_Info'
+           (Is_Local            => False,
+            Reconnection_Policy => Get_Reconnection_Policy (Name),
+            State               => Initial,
+            Is_All_Calls_Remote => True,
+            Known_Partition_ID  => False,
+            RCI_Partition_ID    => RPC.Partition_ID'First,
+            others              => <>);
+         PTCV.Create (Info.Lookup_Done);
+         Known_RCIs.Register (LName, Info);
+      end if;
 
-         elsif Info.State = Initial then
-            --  Entry is in Initial state, and another task is taking care
-            --  of the lookup.
+      <<Again>>
 
-            Entry_Pending := True;
+      --  If another task is taking care of the lookup, and ends up setting
+      --  the ref to Live, do not bother doing a lookup ourselves.
+
+      while Info.State = Pending loop
+         pragma Debug (C, O ("waiting on pending nameserver lookup"));
+         PTCV.Wait (Info.Lookup_Done, SL'Access);
+         pragma Debug (C, O ("returned, state now " & Info.State'Img));
+
+         if Info.State = Live then
+            Do_Lookup := False;
+         end if;
+      end loop;
+
+      --  No lookup if RCI is definitely dead
+
+      if Info.State = Dead then
+         Do_Lookup := False;
+      end if;
+
+      --  If RCI is Live, check reference validity
+
+      if Do_Lookup
+        and then Info.State = Live
+      then
+         if Is_Reference_Valid (Info.Base_Ref) then
+            Do_Lookup := False;
+         else
+            Info.Base_Ref.Release;
+            Info.State := Invalid;
          end if;
       end if;
+
+      pragma Debug (C, O ("State  = " & Info.State'Img));
+      pragma Debug (C, O ("Nil?   = " & Boolean'Image (Info.Base_Ref.Is_Nil)));
+      pragma Debug (C, O ("Lookup = " & Boolean'Image (Do_Lookup)));
 
       --  If RCI information is not available locally, we request it from the
       --  name server. Since some partitions might not be registered yet, we
       --  retry the query up to Max_Requests times.
 
-      PTM.Leave (Critical_Section);
+      if Do_Lookup then
+         declare
+            Is_Initial : constant Boolean := Info.State = Initial;
 
-      <<Lookup>>
-      if Info.State /= Dead then
-         --  If state is Initial and Entry_Pending is True, this means another
-         --  task is in the process of looking up this RCI from the name
-         --  server: just wait for Base_Ref to become non-null.
+            --  Initialize lookup witness object: set Info.State to Pending,
+            --  and leave critical section.
 
-         if (Is_Nil (Info.Base_Ref) and then not Entry_Pending)
-               or else not Is_Reference_Valid (Info.Base_Ref)
-         then
-            declare
-               Loc : constant String :=
-                       Get_DSA_Conf
-                         (Partition_Attr
-                            (Get_DSA_Conf
-                               (RCI_Attr (LName, Partition)), Location));
-            begin
-               --  If we have a location from configuration, use it
+            LW : Lookup_Witness (Info, SL'Access);
+            pragma Unreferenced (LW);
 
-               if Loc /= "" then
-                  pragma Debug (C, O ("Configured location: " & Loc));
-                  declare
-                     Typed_Base_Ref : PolyORB.References.Ref;
-                     --  Object reference with type id, returned by the RCI
-                     --  unit, needed for the RCI version check.
+            Loc : constant String :=
+              Get_DSA_Conf
+                (Partition_Attr
+                     (Get_DSA_Conf (RCI_Attr (LName, Partition)), Location));
 
-                  begin
-                     --  Note: the object key for an RCI root object is the
-                     --  RCI name in uppercase.
+         begin
+            --  If we have a location from configuration, use it
 
-                     String_To_Object
-                       (Make_Corbaloc (Loc,
-                          Ada.Characters.Handling.To_Upper (Name)),
-                        Info.Base_Ref);
+            if Loc /= "" then
+               pragma Debug (C, O ("Configured location: " & Loc));
+               declare
+                  Typed_Base_Ref : PolyORB.References.Ref;
+                  --  Object reference with type id, returned by the RCI
+                  --  unit, needed for the RCI version check.
 
-                     --  Now we can contact the RCI base object to obtain
-                     --  its actual reference with a proper type id, which
-                     --  we can use to check the version
+               begin
+                  --  Note: the object key for an RCI root object is the
+                  --  RCI name in uppercase.
 
-                     for Retry in 1 .. Max_Requests loop
-                        Typed_Base_Ref := Resolve_RCI_Entity
-                                           (Base_Ref => Info.Base_Ref,
-                                            Name     => "",
-                                            Kind     => "RCI");
-                        exit when not Typed_Base_Ref.Is_Nil;
+                  String_To_Object
+                    (Make_Corbaloc (Loc,
+                     Ada.Characters.Handling.To_Upper (Name)),
+                     LW.LU_Ref);
 
-                        if Retry < Max_Requests then
-                           PTT.Relative_Delay (Time_Between_Requests);
-                        end if;
-                     end loop;
+                  --  Now we can contact the RCI base object to obtain
+                  --  its actual reference with a proper type id, which
+                  --  we can use to check the version
 
-                     --  We want to keep the original Base_Ref (because it
-                     --  may have different profiles than the one returned
-                     --  by the RCI), but we propagate the type information
-                     --  for the benefit of the RCI version check.
+                  for Retry in 1 .. Max_Requests loop
+                     Typed_Base_Ref := Resolve_RCI_Entity
+                       (Base_Ref => LW.LU_Ref,
+                        Name     => "",
+                        Kind     => "RCI");
+                     exit when not Typed_Base_Ref.Is_Nil;
 
-                     Set_Type_Id (Info.Base_Ref, Type_Id_Of (Typed_Base_Ref));
-                  end;
+                     if Retry < Max_Requests then
+                        PTT.Relative_Delay (Time_Between_Requests);
+                     end if;
+                  end loop;
 
-               --  Else do a name server lookup
+                  --  We want to keep the original Base_Ref (because it
+                  --  may have different profiles than the one returned
+                  --  by the RCI), but we propagate the type information
+                  --  for the benefit of the RCI version check.
 
-               else
-                  Info.Base_Ref :=
-                    Nameserver_Lookup
-                      (Get_Name_Server, LName, "RCI",
-                       Initial => Info.State = Initial);
-               end if;
-               Info.State := Live;
-            end;
-         end if;
+                  Set_Type_Id (LW.LU_Ref, Type_Id_Of (Typed_Base_Ref));
+               end;
 
-         if Is_Nil (Info.Base_Ref) then
-            if Entry_Pending then
-               PTT.Relative_Delay (Time_Between_Requests);
-               goto Lookup;
+            --  Else do a name server lookup
+
+            else
+               LW.LU_Ref := Nameserver_Lookup
+                              (Get_Name_Server,
+                               LName, "RCI",
+                               Initial => Is_Initial);
             end if;
 
-            --  Case of a remote RCI for which we have an invalid reference:
-            --  handle reconnection.
+            --  Update state if lookup was succesful
 
-            case Info.Reconnection_Policy is
-               when Reject_On_Restart =>
-                  Info.State := Dead;
+            if not LW.LU_Ref.Is_Nil then
+               LW.Set_State := Live;
+            end if;
 
-               when Block_Until_Restart =>
-                  PTT.Relative_Delay (Time_Between_Requests);
-                  goto Lookup;
+         --  Upon exiting this block, we are re-entering the critical section,
+         --  and setting RCI state according to the information in LW.
 
-               when Fail_Until_Restart =>
-                  null;
-            end case;
-         end if;
+         end;
       end if;
 
-      --  Check that we have successfully conctacted the remote unit. Note:
-      --  for a local RCI, Info.Base_Ref is always a valid, non-nil reference.
+      if Info.Base_Ref.Is_Nil then
+         case Info.Reconnection_Policy is
+            when Reject_On_Restart =>
+               Info.State := Dead;
 
-      if PolyORB.References.Is_Nil (Info.Base_Ref) then
+            when Block_Until_Restart =>
+               PTM.Leave (SL'Access);
+               PTT.Relative_Delay (Time_Between_Requests);
+               PTM.Enter (SL'Access);
+               goto Again;
+
+            when Fail_Until_Restart =>
+               Info.State := Invalid;
+         end case;
+
          raise System.RPC.Communication_Error
            with "unable to locate RCI " & Name;
       end if;

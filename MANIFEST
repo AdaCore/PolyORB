@@ -1758,6 +1758,8 @@ src/polyorb-transport-datagram.adb
 src/polyorb-transport-datagram.ads
 src/polyorb-transport-handlers.adb
 src/polyorb-transport-handlers.ads
+src/polyorb-transport-sockets.adb
+src/polyorb-transport-sockets.ads
 src/polyorb-transport.adb
 src/polyorb-transport.ads
 src/polyorb-types.adb

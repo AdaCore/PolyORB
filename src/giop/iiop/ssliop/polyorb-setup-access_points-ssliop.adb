@@ -54,14 +54,10 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
    use PolyORB.Setup.Access_Points.IIOP;
    use PolyORB.Sockets;
    use PolyORB.SSL;
+   use PolyORB.Transport;
    use PolyORB.Transport.Connected.Sockets.SSL;
    use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.SSL_Access_Points;
-
-   --  The SSLIOP access point
-
-   SSLIOP_Access_Point : constant Transport.Transport_Access_Point_Access :=
-                           new SSL_Access_Point;
 
    Sli : aliased Slicer_Factory;
    Pro : aliased PolyORB.Protocols.GIOP.IIOP.IIOP_Protocol;
@@ -82,22 +78,6 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
         and then Get_Conf ("access_points", "iiop.ssliop", Default => False)
       then
          declare
-            Factory : constant Transport_Mechanism_Factory_Access :=
-                                 new SSLIOP_Transport_Mechanism_Factory;
-
-            Port_Hint : constant Port_Interval := To_Port_Interval
-                          (Get_Conf
-                           ("ssliop",
-                            "polyorb.protocols.ssliop.default_port",
-                            (Integer (Any_Port), Integer (Any_Port))));
-
-            Addr : constant Inet_Addr_Type
-              := Inet_Addr (String'(Get_Conf
-                                    ("iiop",
-                                     "polyorb.protocols.iiop.default_addr",
-                                     Image (No_Inet_Addr))));
-            --  SSLIOP share its default address with IIOP
-
             CA_File : constant String
                := Get_Conf
                ("ssliop",
@@ -106,7 +86,44 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
 
             Cont : SSL_Context_Type;
 
+            Factory : Transport_Mechanism_Factory_Access;
             Profile_Factory : PolyORB.Binding_Data.Profile_Factory_Access;
+
+            function Initialize_SSL_AP
+              (Addr      : Inet_Addr_Type;
+               Port_Hint : Port_Interval) return Transport_Access_Point_Access;
+            --  Initialize an SSL access point
+
+            -----------------------
+            -- Initialize_SSL_AP --
+            -----------------------
+
+            function Initialize_SSL_AP
+              (Addr      : Inet_Addr_Type;
+               Port_Hint : Port_Interval) return Transport_Access_Point_Access
+            is
+            begin
+               return SSL_AP : constant Transport_Access_Point_Access :=
+                 new SSL_Access_Point
+               do
+                  Initialize_Socket (SSL_AP, Addr, Port_Hint, Cont);
+               end return;
+            end Initialize_SSL_AP;
+
+            --  Note: SSLIOP share its default address with IIOP
+
+            Created_APs : constant APs :=
+              Initialize_Access_Points
+                (Get_Conf
+                     ("iiop",
+                      "polyorb.protocols.iiop.default_addr",
+                      Image (No_Inet_Addr)),
+                 To_Port_Interval
+                          (Get_Conf
+                           ("ssliop",
+                            "polyorb.protocols.ssliop.default_port",
+                       (Integer (Any_Port), Integer (Any_Port)))),
+                Initialize_SSL_AP'Access);
 
          begin
             Create_Context
@@ -140,45 +157,44 @@ package body PolyORB.Setup.Access_Points.SSLIOP is
                Load_Client_CA (Cont, CA_File);
             end if;
 
-            --  Initialize AP, with no associated profile factory (the SSL
+            --  Initialize APs, with no associated profile factory (the SSL
             --  AP is registered as an additional transport mechanism on the
             --  primary IIOP profile factory).
 
-            Initialize_Socket
-              (SSLIOP_Access_Point, Addr, Port_Hint, Cont);
+            for J in Created_APs'Range loop
+               --  Create TM factory
 
-            --  Create TM factory
+               Factory := new SSLIOP_Transport_Mechanism_Factory;
+               Create_Factory
+                 (SSLIOP_Transport_Mechanism_Factory (Factory.all),
+                  Created_APs (J));
 
-            Create_Factory
-              (SSLIOP_Transport_Mechanism_Factory (Factory.all),
-               SSLIOP_Access_Point);
+               --  Retrieve primary IIOP profile factory
 
-            --  Retrieve primary IIOP profile factory
+               Profile_Factory := Get_Profile_Factory;
 
-            Profile_Factory := Get_Profile_Factory;
+               --  Add newly created TM factory to profile factory
 
-            --  Add newly created TM factory to profile factory
+               Add_Transport_Mechanism_Factory
+                 (IIOP_Profile_Factory (Profile_Factory.all), Factory);
 
-            Add_Transport_Mechanism_Factory
-              (IIOP_Profile_Factory (Profile_Factory.all), Factory);
-
-            if Get_Conf
+               if Get_Conf
                  ("ssliop",
                   "polyorb.protocols.ssliop.disable_unprotected_invocations",
                   False)
-            then
-               Disable_Unprotected_Invocations
-                 (IIOP_Profile_Factory (Profile_Factory.all));
-            else
-               Profile_Factory := null;
-            end if;
+               then
+                  Disable_Unprotected_Invocations
+                    (IIOP_Profile_Factory (Profile_Factory.all));
+               else
+                  Profile_Factory := null;
+               end if;
 
-            Register_Access_Point
-              (ORB    => The_ORB,
-               TAP    => SSLIOP_Access_Point,
-               Chain  => SSLIOP_Factories'Access,
-               PF     => Profile_Factory);
-
+               Register_Access_Point
+                 (ORB    => The_ORB,
+                  TAP    => Created_APs (J),
+                  Chain  => SSLIOP_Factories'Access,
+                  PF     => Profile_Factory);
+            end loop;
          end;
       end if;
    end Initialize_Access_Points;

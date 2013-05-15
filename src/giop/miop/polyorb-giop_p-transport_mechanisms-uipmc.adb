@@ -147,7 +147,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
    is
    begin
       MF.Address :=
-        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+        new Socket_Name'
+          (Datagram_Socket_AP (TAP.all).Socket_AP_Publish_Name);
    end Create_Factory;
 
    ------------------------------

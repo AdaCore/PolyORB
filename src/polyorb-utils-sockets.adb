@@ -176,13 +176,24 @@ package body PolyORB.Utils.Sockets is
    -------------------
 
    procedure Create_Socket
-     (Socket : out Socket_Type;
-      Family : Family_Type := Family_Inet;
-      Mode   : Mode_Type   := Socket_Stream)
+     (Socket        : out Socket_Type;
+      Family        : Family_Type := Family_Inet;
+      Mode          : Mode_Type   := Socket_Stream;
+      Reuse_Address : Boolean     := False)
    is
    begin
       PolyORB.Sockets.Create_Socket (Socket, Family, Mode);
       Set_Close_On_Exec (Socket);
+
+      if Reuse_Address then
+
+         --  Allow reuse of local addresses
+
+         Set_Socket_Option
+           (Socket,
+            Level  => Socket_Level,
+            Option => (PolyORB.Sockets.Reuse_Address, True));
+      end if;
    end Create_Socket;
 
    -----------

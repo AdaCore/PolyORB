@@ -45,17 +45,16 @@ package body PolyORB.Utils.TLS_Access_Points is
    procedure Initialize_Socket
      (DAP       : Transport.Transport_Access_Point_Access;
       Address   : Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Type      := Any_Port)
+      Port_Hint : Port_Interval)
    is
-      Port : Port_Type := Port_Hint;
-      Addr : Sock_Addr_Type;
+      Addr   : Sock_Addr_Type;
       Socket : Socket_Type;
    begin
       Create_Socket (Socket);
 
       Addr :=
         Sock_Addr_Type'(Addr   => Address,
-                        Port   => Port,
+                        Port   => Port_Hint.Lo,
                         Family => Family_Inet);
 
       --  Allow reuse of local addresses
@@ -66,24 +65,23 @@ package body PolyORB.Utils.TLS_Access_Points is
          (Reuse_Address, True));
 
       loop
-         Addr.Port := Port;
-
          begin
             Create
               (TLS_Access_Point (DAP.all),
                Socket,
                Addr);
-
             exit;
 
          exception
             when Sockets.Socket_Error =>
-               Port := Port + 1;
+               --  If a specific port range was given, try next port in range
 
-               if Port = Port_Hint then
+               if Addr.Port /= Any_Port
+                 and then Addr.Port < Port_Hint.Hi
+               then
+                  Addr.Port := Addr.Port + 1;
+               else
                   raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
                end if;
          end;
       end loop;

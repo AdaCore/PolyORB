@@ -169,7 +169,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       TAP : access Transport.Transport_Access_Point'Class)
    is
    begin
-      MF.Address := new Socket_Name'(Address_Of (SSL_Access_Point (TAP.all)));
+      MF.Address :=
+        new Socket_Name'
+          (SSL_Access_Point (TAP.all).Socket_AP_Publish_Name);
 
       --  Detect supported and required security assocations by
       --  review of descriptions of available ciphers (conformant

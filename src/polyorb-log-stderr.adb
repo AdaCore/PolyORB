@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,6 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Command_Line;
+with Ada.Directories;
+with Ada.Strings.Unbounded;
+
 with Interfaces.C;
 with System;
 
@@ -44,9 +48,8 @@ package body PolyORB.Log.Stderr is
    Enable_Timestamps   : Boolean := False;
    --  If set true, all messages are prefixed with a timestamp
 
-   Pid_Info            : Utils.Strings.String_Ptr;
-   --  If Pid display is enabled, pointer to the PID string, else pointer to
-   --  an empty string.
+   Prefix              : Utils.Strings.String_Ptr;
+   --  Pointer to string prefixed to all messages
 
    Failed_Message      : constant String :=
      "polyorb.log.stderr: write failed" & ASCII.LF;
@@ -98,7 +101,7 @@ package body PolyORB.Log.Stderr is
          end if;
       end Timestamp;
 
-      SS : aliased constant String := Timestamp & Pid_Info.all & S & ASCII.LF;
+      SS : aliased constant String := Timestamp & Prefix.all & S & ASCII.LF;
       X  : Write_Status;
       pragma Unreferenced (X);
 
@@ -177,19 +180,39 @@ package body PolyORB.Log.Stderr is
       end if;
 
       Enable_Timestamps := Get_Conf ("log", "timestamp", Default => False);
-      if Get_Conf ("log", "pid", Default => False) then
-         declare
-            function getpid return Integer;
-            pragma Import (C, getpid, "getpid");
 
-            Pid : constant String := getpid'Img;
-         begin
-            Pid_Info :=
-              new String'("[" & Pid (Pid'First + 1 .. Pid'Last) & "] ");
-         end;
-      else
-         Pid_Info := new String'("");
-      end if;
+      --  Compute prefix string
+
+      declare
+         use Ada.Command_Line;
+         use Ada.Directories;
+         use Ada.Strings.Unbounded;
+
+         Buf : Unbounded_String;
+
+      begin
+         if Get_Conf ("log", "exe_name", Default => False) then
+            Buf := To_Unbounded_String (Simple_Name (Command_Name));
+         end if;
+
+         if Get_Conf ("log", "pid", Default => False) then
+            declare
+               function getpid return Integer;
+               pragma Import (C, getpid, "getpid");
+
+               Pid : constant String := getpid'Img;
+
+            begin
+               Append (Buf, "[" & Pid (Pid'First + 1 .. Pid'Last) & "]");
+            end;
+         end if;
+
+         if Length (Buf) > 0 then
+            Append (Buf, ": ");
+         end if;
+
+         Prefix := new String'(To_String (Buf));
+      end;
    end Initialize;
 
    use PolyORB.Initialization;

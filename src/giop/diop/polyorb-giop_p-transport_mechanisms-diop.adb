@@ -131,7 +131,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    is
    begin
       MF.Address :=
-        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+        new Socket_Name'(Address_Of (Datagram_Socket_AP (TAP.all)));
    end Create_Factory;
 
    ------------------------------

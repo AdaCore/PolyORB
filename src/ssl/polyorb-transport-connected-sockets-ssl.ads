@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -40,7 +40,7 @@ package PolyORB.Transport.Connected.Sockets.SSL is
 
    pragma Elaborate_Body;
 
-   type SSL_Access_Point is new Socket_Access_Point with private;
+   type SSL_Access_Point is new Connected_Socket_AP with private;
 
    procedure Create
      (SAP     : in out SSL_Access_Point;
@@ -90,7 +90,7 @@ package PolyORB.Transport.Connected.Sockets.SSL is
 
 private
 
-   type SSL_Access_Point is new Socket_Access_Point with record
+   type SSL_Access_Point is new Connected_Socket_AP with record
       Context : PolyORB.SSL.SSL_Context_Type;
    end record;
 

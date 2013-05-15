@@ -161,7 +161,8 @@ package body PolyORB.Binding_Data.SRP is
    begin
       return PF : SRP_Profile_Factory do
          PF.Address :=
-           new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+           new Socket_Name'
+             (Connected_Socket_AP (TAP.all).Socket_AP_Publish_Name);
       end return;
    end Create_Factory;
 

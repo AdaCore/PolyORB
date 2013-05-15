@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -40,6 +40,7 @@ with System.Storage_Elements;
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
+with PolyORB.Utils.Socket_Access_Points;
 
 package body PolyORB.Transport.Datagram.Sockets is
 
@@ -47,7 +48,7 @@ package body PolyORB.Transport.Datagram.Sockets is
 
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
-   use PolyORB.Utils.Sockets;
+   use PolyORB.Utils.Socket_Access_Points;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.datagram.sockets");
@@ -61,7 +62,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -----------------
 
    procedure Init_Socket
-     (SAP          : in out Socket_Access_Point;
+     (SAP          : in out Datagram_Socket_AP;
       Socket       : Socket_Type;
       Address      : in out Sock_Addr_Type;
       Bind_Address : Sock_Addr_Type := No_Sock_Addr;
@@ -96,7 +97,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    -------------------------
 
    overriding function Create_Event_Source
-     (TAP : access Socket_Access_Point) return Asynch_Ev_Source_Access
+     (TAP : access Datagram_Socket_AP) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
         Create_Event_Source (TAP.Socket);
@@ -110,7 +111,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    ----------------
 
    function Address_Of
-     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name
+     (SAP : Datagram_Socket_AP) return Utils.Sockets.Socket_Name
    is
    begin
       return Image (SAP.Addr.Addr) + SAP.Addr.Port;
@@ -264,7 +265,7 @@ package body PolyORB.Transport.Datagram.Sockets is
    ---------------------
 
    overriding function Create_Endpoint
-     (TAP : access Socket_Access_Point)
+     (TAP : access Datagram_Socket_AP)
      return Datagram_Transport_Endpoint_Access
    is
       TE : constant Datagram_Transport_Endpoint_Access :=
@@ -275,5 +276,40 @@ package body PolyORB.Transport.Datagram.Sockets is
       Socket_Endpoint (TE.all).Socket := TAP.Socket;
       return TE;
    end Create_Endpoint;
+
+   --------------------------------
+   -- Set_Socket_AP_Publish_Name --
+   --------------------------------
+
+   overriding procedure Set_Socket_AP_Publish_Name
+      (SAP  : in out Datagram_Socket_AP;
+       Name : Socket_Name)
+   is
+   begin
+      SAP.Publish := new Socket_Name'(Name);
+   end Set_Socket_AP_Publish_Name;
+
+   -----------------------
+   -- Socket_AP_Address --
+   -----------------------
+
+   overriding function Socket_AP_Address
+     (SAP : Datagram_Socket_AP) return Sock_Addr_Type
+   is
+   begin
+      return SAP.Addr;
+   end Socket_AP_Address;
+
+   ----------------------------
+   -- Socket_AP_Publish_Name --
+   ----------------------------
+
+   overriding function Socket_AP_Publish_Name
+     (SAP : access Datagram_Socket_AP) return Socket_Name
+   is
+   begin
+      Set_Default_Publish_Name (SAP.Publish, SAP.Addr);
+      return SAP.Publish.all;
+   end Socket_AP_Publish_Name;
 
 end PolyORB.Transport.Datagram.Sockets;

@@ -51,23 +51,22 @@ package body PolyORB.Utils.UDP_Access_Points is
    --  function C (Level : Log_Level := Debug) return Boolean
    --    renames L.Enabled;
 
-   procedure Initialize_Socket (Socket : in out Socket_Type);
-   pragma Inline (Initialize_Socket);
+   procedure Create_UDP_Socket (Socket : in out Socket_Type);
+   pragma Inline (Create_UDP_Socket);
    --  Shared part between Initialize_Unicast_Socket and
    --  Initialize_Multicast_Socket.
 
    -----------------------
-   -- Initialize_Socket --
+   -- Create_UDP_Socket --
    -----------------------
 
-   procedure Initialize_Socket (Socket : in out Socket_Type) is
+   procedure Create_UDP_Socket (Socket : in out Socket_Type) is
    begin
-      Utils.Sockets.Create_Socket (Socket, Family_Inet, Socket_Datagram);
-
-      --  Allow reuse of local addresses
-
-      Set_Socket_Option (Socket, Socket_Level, (Reuse_Address, True));
-   end Initialize_Socket;
+      Utils.Sockets.Create_Socket
+        (Socket,
+         Mode          => Socket_Datagram,
+         Reuse_Address => True);
+   end Create_UDP_Socket;
 
    ---------------------------------
    -- Initialize_Multicast_Socket --
@@ -89,9 +88,9 @@ package body PolyORB.Utils.UDP_Access_Points is
       --  Address to which the socket must be bound (see platform comments
       --  below).
    begin
-      SAP := new Socket_Access_Point;
+      SAP := new Datagram_Socket_AP;
 
-      Initialize_Socket (Socket);
+      Create_UDP_Socket (Socket);
 
       S_Addr :=
         Sock_Addr_Type'(Addr   => Address,
@@ -108,7 +107,7 @@ package body PolyORB.Utils.UDP_Access_Points is
       end if;
 
       Init_Socket
-        (Socket_Access_Point (SAP.all),
+        (Datagram_Socket_AP (SAP.all),
          Socket,
          Address      => S_Addr,
          Bind_Address => B_Addr,
@@ -139,17 +138,17 @@ package body PolyORB.Utils.UDP_Access_Points is
    procedure Initialize_Unicast_Socket
      (SAP       : out Transport.Transport_Access_Point_Access;
       Port_Hint : Port_Interval;
-      Address   : Inet_Addr_Type := Any_Inet_Addr)
+      Address   : Inet_Addr_Type)
    is
       use PolyORB.Transport.Datagram.Sockets;
       Socket : Socket_Type;
       S_Addr : Sock_Addr_Type;
    begin
-      SAP := new Socket_Access_Point;
+      SAP := new Datagram_Socket_AP;
 
       --  Create Socket
 
-      Initialize_Socket (Socket);
+      Create_UDP_Socket (Socket);
 
       S_Addr :=
         Sock_Addr_Type'(Addr   => Address,
@@ -159,7 +158,7 @@ package body PolyORB.Utils.UDP_Access_Points is
       loop
          begin
             Init_Socket
-              (Socket_Access_Point (SAP.all),
+              (Datagram_Socket_AP (SAP.all),
                Socket,
                S_Addr);
             exit;

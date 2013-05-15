@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -79,8 +79,9 @@ package PolyORB.Asynch_Ev is
 
    function Handler
      (AES : Asynch_Ev_Source'Class) return access AES_Event_Handler'Class;
-   --  Retrieve handler associated with events occurring on AES
    pragma Inline (Handler);
+   --  Retrieve handler associated with events occurring on AES, or null if
+   --  events are to be discarded.
 
    function AEM_Factory_Of
      (AES : Asynch_Ev_Source) return AEM_Factory is abstract;
@@ -152,6 +153,10 @@ package PolyORB.Asynch_Ev is
    type AES_Event_Handler is abstract new PolyORB.Jobs.Job with record
       AES : Asynch_Ev_Source_Access;
    end record;
+
+   function Stabilize (H : access AES_Event_Handler) return Boolean;
+   --  Called under ORB critical section prior to servicing an event on AES.
+   --  Return True if event can be processed, False if it must be discarded.
 
    procedure Handle_Event (H : access AES_Event_Handler) is abstract;
    --  Handle an event that has occurred on this asynchronous event
