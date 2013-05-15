@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data.DNS.MDNS;
 with PolyORB.Binding_Objects;
 with PolyORB.ORB;
