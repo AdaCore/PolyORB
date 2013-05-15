@@ -1009,6 +1009,10 @@ package body PolyORB.ORB is
                            Servants.Iface.Executed_Request'(Req => Req));
 
             Req.Completed := True;
+
+            --  At this point Req might have been destroyed, this would make
+            --  any further access to it erroneous???
+
          end if;
 
          --  Bind target reference to a servant if this is a local reference,
@@ -1093,21 +1097,16 @@ package body PolyORB.ORB is
             else
                pragma Debug (C, O ("Run_Request: task " & Image (Current_Task)
                                  & " processed request"));
-               begin
-                  Emit_No_Reply (Req.Requesting_Component, Result);
+               Emit_No_Reply (Req.Requesting_Component, Result);
 
-                  --  XXX issue: if we are on the server side, and the
-                  --  transport layer has detected a disconnection while we
-                  --  were processing the request, the Requestor (Session)
-                  --  object here could have become invalid. For now we hack
-                  --  around this issue in an ugly fashion by catching all
-                  --  exceptions.
-
-               exception
-                  when E : others =>
-                     O ("Got exception sending Executed_Request:" & ASCII.LF
-                        & Ada.Exceptions.Exception_Information (E), Error);
-               end;
+               --  Note: On the server side, the transport layer might detect
+               --  a disconnect while we are processing a request. However,
+               --  the request contains a reference to the session (as part
+               --  of its Dependent_Binding_Object), so here we know that
+               --  the Requesting_Component is still valid (has not been
+               --  destroyed yet). We used to have an exception handler here
+               --  because requestes formely lacked this reference to the
+               --  binding object.
             end if;
          end;
       end;
