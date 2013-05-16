@@ -76,6 +76,8 @@ Available options for the 'configure' script include:
   --with-openssl[=ARG]: build SSL support and SSL dependent features,
     including the IIOP/SSLIOP personality
 
+  --with-gnatcoll: build with GNATCOLL support
+
   --help: list all options available
 
 By default, only the CORBA and GIOP personalities are built, no CORBA

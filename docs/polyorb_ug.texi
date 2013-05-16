@@ -1278,6 +1278,7 @@ searched parameter.
 * Using environment variables::
 * Using the command line::
 * Using a source file::
+* Macros::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -1386,6 +1387,41 @@ if no package withs it.
 It should be noticed that this static array of parameters is read at
 elaboration time only, this API cannot be used to modify the PolyORB
 configuration at run-time.
+
+@c -------------------------------------------------------------------
+@node Macros
+@subsection Macros
+@c -------------------------------------------------------------------
+
+@noindent
+If PolyORB is compiled with GNATCOLL support, macros can be used
+in the configuration file, and will be expanded automatically.
+
+Macros can be defined by setting parameters in the @code{[macros]} section
+of the runtime configuration. The following macros are predefined:
+
+@table @code
+@item hostname
+The local host name
+@end table
+
+Macro references can appear anywhere in runtime parameter values and
+are of the form @code{${@it macro-name}} or @code{$@{{@it macro-name}@}}.
+
+For example, in order for a single setting to control all GIOP-based
+binding modules, one can specify:
+
+@smallexample
+[macros]
+giop_enable=true
+# ... or false
+
+[modules]
+binding_data.iiop=${giop_enable}
+binding_data.iiop.ssliop=${giop_enable}
+binding_data.diop=${giop_enable}
+binding_data.uipmc=${giop_enable}
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node Setting up protocol personalities
@@ -5785,16 +5821,16 @@ server.example.com
 # Bind on 0.0.0.0, publish "server.example.com"
 @end smallexample
 
-If PolyORB is compiled with GNATcoll support, macro substitution may
+If PolyORB is compiled with GNATCOLL support, macro substitution may
 be used in listening address specifications. For example, the following
 setting directs PolyORB to listen on port 1234 on all local addresses,
 and publish the local host name:
 
 @smallexample
 [iiop]
-polyorb.protocols.iiop.default_addr=[$hostname]:1234
+polyorb.protocols.iiop.default_addr=[${hostname}]:1234
 # <bind-addr> is unspecified, so defaults to 0.0.0.0
-# <pub-addr> is the local hostname, from built-in macro $hostname
+# <pub-addr> is the local hostname, from built-in macro ${hostname}
 # <port-hint> is specified explicitly as 1234
 @end smallexample
 

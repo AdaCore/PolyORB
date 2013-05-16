@@ -12,6 +12,11 @@ This date shows the implementation date of the feature. Any 2.10 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-210-M515-021 Macros in configuration file (2013-05-16)
+
+   A macro expansion system is now provided for PolyORB runtime configuration
+   parameters, when PolyORB is compiled with GNATCOLL.
+
 NF-210-M315-027 Executable name in traces (2013-03-15)
 
    The name of the executable can now optionally be included in trace messages
