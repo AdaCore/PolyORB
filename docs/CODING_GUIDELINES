@@ -52,9 +52,14 @@ Usage of Ada 2005 features is restricted as follows:
      - Object.Method notation
      - anonymous access components and objects
      - use of "overriding" and "not overriding" indicators
+     - abstract interfaces
 
   * All other Ada 2005 features are prohibited. In particular, the code must
     be compatible with application components using Ada 95 and Ada 2005 alike.
+    Any unit containing an Ada 2005 specific construct must have a pragma
+    Ada_2005.
+ 
+  * No Ada 2012 feature is permitted.
 
   * In addition to the restrictions above, there is a general requirement
     that PolyORB can be compiled with any GNAT version that is listed as
