@@ -126,11 +126,12 @@ private
    overriding function Socket_AP_Address
      (SAP : Connected_Socket_AP) return Sock_Addr_Type;
 
-   type Socket_Endpoint is new Connected_Transport_Endpoint
-     with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
-        Mutex  : Tasking.Mutexes.Mutex_Access;
-     end record;
+   type Socket_Endpoint is new Connected_Transport_Endpoint with record
+      Socket : Socket_Type := No_Socket;
+      Addr   : Sock_Addr_Type;
+
+      Mutex  : Tasking.Mutexes.Mutex_Access;
+      --  Mutex to protect Write calls, which we want to be atomic
+   end record;
 
 end PolyORB.Transport.Connected.Sockets;
