@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -108,7 +108,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
          return;
       end if;
 
-      Create_Socket (Sock);
+      Utils.Sockets.Create_Socket (Sock);
       Connect_Socket (Sock, Binding_Context, SSL_Sock, Mechanism.Address.all);
       Create (SSL_Endpoint (TE.all), SSL_Sock);
 

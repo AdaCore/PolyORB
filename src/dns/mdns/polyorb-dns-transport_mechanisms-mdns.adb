@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -86,9 +86,9 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
          return;
       end if;
 
-      Create_Socket (Socket => Sock,
-                     Family => Family_Inet,
-                     Mode   => Socket_Datagram);
+      Utils.Sockets.Create_Socket (Socket => Sock,
+                                   Family => Family_Inet,
+                                   Mode   => Socket_Datagram);
 
       Set_Socket_Option
         (Sock,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -38,11 +38,13 @@ with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.Utils.TCP_Access_Points is
 
    use PolyORB.Log;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.utils.tcp_access_points");
@@ -57,11 +59,11 @@ package body PolyORB.Utils.TCP_Access_Points is
 
    procedure Initialize_Socket
      (API       : in out Access_Point_Info;
-      Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
+      Address   : PolyORB.Sockets.Inet_Addr_Type := Any_Inet_Addr;
       Port_Hint : Port_Interval)
    is
    begin
-      Create_Socket (API.Socket);
+      Utils.Sockets.Create_Socket (API.Socket);
 
       API.Address :=
         Sock_Addr_Type'(Addr   => Address,
@@ -84,7 +86,7 @@ package body PolyORB.Utils.TCP_Access_Points is
                API.Address);
             exit;
          exception
-            when E : Sockets.Socket_Error =>
+            when E : PolyORB.Sockets.Socket_Error =>
 
                --  If a specific port range was given, try next port in range
 
