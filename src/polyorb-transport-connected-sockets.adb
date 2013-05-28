@@ -388,10 +388,23 @@ package body PolyORB.Transport.Connected.Sockets is
          return;
       end if;
 
-      Enter (TE.Mutex);
+      --  Unregister this TE. Note that this will enter the ORB critical
+      --  section, so we do it outside ot TE.Mutex, as a precaution to avoid
+      --  a dead lock due to inconsistent lock ordering between TE.Mutex and
+      --  the ORB critical section. In any case, holding TE.Mutex should not
+      --  be necessary at this point.
+
+      PolyORB.Transport.Connected.Close
+        (Connected_Transport_Endpoint (TE.all)'Access);
+
+      --  We can now safely close underlying socket. We do so under control
+      --  of the TE mutex, so that Write never uses an invalid (or possibly
+      --  reused) socket descriptor.
+
+      declare
+         SL : Scope_Lock (TE.Mutex);
+         pragma Unreferenced (SL);
       begin
-         PolyORB.Transport.Connected.Close
-           (Connected_Transport_Endpoint (TE.all)'Access);
          if TE.Socket /= No_Socket then
             pragma Debug (C, O ("Closing socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
@@ -404,7 +417,6 @@ package body PolyORB.Transport.Connected.Sockets is
                              & Ada.Exceptions.Exception_Information (E)));
             null;
       end;
-      Leave (TE.Mutex);
    end Close;
 
    -------------
