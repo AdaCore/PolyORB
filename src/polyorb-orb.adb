@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1272,6 +1272,10 @@ package body PolyORB.ORB is
             end if;
          end;
 
+      elsif Msg in Iface.Validate_Endpoint then
+         ORB.Tasking_Policy.Handle_Validate_TE
+           (Iface.Validate_Endpoint (Msg).TE);
+
       elsif Msg in Iface.Monitor_Access_Point then
          declare
             TAP : constant Transport_Access_Point_Access :=
@@ -1319,7 +1323,7 @@ package body PolyORB.ORB is
       use PBOL;
       use Smart_Pointers;
 
-      It : PBOL.Iterator;
+      It     : PBOL.Iterator;
       Result : BO_Ref_List;
    begin
       Enter_ORB_Critical_Section (ORB.ORB_Controller);

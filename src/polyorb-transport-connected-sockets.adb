@@ -353,7 +353,14 @@ package body PolyORB.Transport.Connected.Sockets is
 
       if Status = Completed and then Is_Set (R_Set, TE.Socket) then
          begin
+            --  Note: it is important that TE is not currently being monitored
+            --  by an ORB polling task, otherwise the fact that the above
+            --  Check_Selector has completed would not guarantee that the
+            --  Receive_Socket call below won't block -- the data might have
+            --  been stolen by the polling task.
+
             Receive_Socket (TE.Socket, Buf, Last, Peek_At_Incoming_Data);
+
          exception
             when Socket_Error =>
 
