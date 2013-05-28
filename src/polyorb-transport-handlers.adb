@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -47,30 +47,32 @@ package body PolyORB.Transport.Handlers is
    overriding procedure Handle_Event (H : access TE_AES_Event_Handler) is
       use PolyORB.Components;
       use PolyORB.ORB;
+      use PolyORB.Smart_Pointers;
 
-      Reply : Message'Class :=
-        Emit
-          (Component_Access (H.TE),
-           Filters.Iface.Data_Indication'(Data_Amount => 0));
-      --  The size of the data received is not known yet
+      Dependent_Binding_Object : constant Smart_Pointers.Ref :=
+                                   H.Dependent_Binding_Object;
+      pragma Unreferenced (Dependent_Binding_Object);
+      --  Reference the dependent binding object to ensure it does not
+      --  disappear under us while we are processing the event (present for
+      --  reference counting purposes only, not otherwise referenced).
 
    begin
-      if Reply in Filters.Iface.Filter_Error then
+      H.Dependent_Binding_Object.Release;
+      --  From this point on, H may handle another event
 
-         --  Notify the tasking policy that an endpoint is being destroyed.
+      declare
+         Reply : Message'Class :=
+           Emit
+             (Component_Access (H.TE),
+              Filters.Iface.Data_Indication'(Data_Amount => 0));
+         --  The size of the data received is not known yet
 
-         Handle_Close_Connection (H.ORB.Tasking_Policy, H.TE);
+      begin
+         if Reply in Filters.Iface.Filter_Error then
 
-         declare
-            use PolyORB.Smart_Pointers;
+            --  Notify the tasking policy that an endpoint is being destroyed
 
-            Dependent_Binding_Object : Ref;
-         begin
-            --  Ensure that the binding object remains referenced while we
-            --  are dismantling it.
-
-            Reuse_Entity (Dependent_Binding_Object, H.TE.Binding_Object);
-            pragma Assert (not Is_Nil (Dependent_Binding_Object));
+            Handle_Close_Connection (H.ORB.Tasking_Policy, H.TE);
 
             --  Close the endpoint. Note: for the case of a client side
             --  endpoint, this may clear the last reference to the BO, except
@@ -95,14 +97,25 @@ package body PolyORB.Transport.Handlers is
 
             Errors.Catch (Filters.Iface.Filter_Error (Reply).Error);
 
-            --  The complete binding object will be finalised when this block
-            --  is exited, provided it is not referenced anymore.
-         end;
-
-      else
-         null;
-      end if;
-
+            --  The complete binding object will be finalized after we exit
+            --  this subprogram, if it is not referenced anywhere else anymore.
+         end if;
+      end;
    end Handle_Event;
+
+   ---------------
+   -- Stabilize --
+   ---------------
+
+   overriding function Stabilize
+     (H : access TE_AES_Event_Handler) return Boolean
+   is
+   begin
+      pragma Assert (H.Dependent_Binding_Object.Is_Nil);
+      Smart_Pointers.Reuse_Entity
+        (H.Dependent_Binding_Object, H.TE.Binding_Object);
+
+      return not H.Dependent_Binding_Object.Is_Nil;
+   end Stabilize;
 
 end PolyORB.Transport.Handlers;

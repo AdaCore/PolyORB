@@ -306,11 +306,18 @@ package body PolyORB.ORB is
          --  Queue events, if any
 
          for J in Events'Range loop
-            Notify_Event
-              (ORB.ORB_Controller,
-               Event'(Kind      => Queue_Event_Job,
-                      Event_Job => Job_Access (Handler (Events (J).all)),
-                      By_Task   => Id (This_Task)));
+            declare
+               H : constant access Asynch_Ev.AES_Event_Handler'Class :=
+                     Handler (Events (J).all);
+            begin
+               if H.Stabilize then
+                  Notify_Event
+                    (ORB.ORB_Controller,
+                     Event'(Kind      => Queue_Event_Job,
+                            Event_Job => Job_Access'(H.all'Unchecked_Access),
+                            By_Task   => Id (This_Task)));
+               end if;
+            end;
          end loop;
 
          --  Notify ORB controller of completion

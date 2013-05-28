@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -70,6 +70,16 @@ package body PolyORB.Asynch_Ev is
    begin
       AES.Handler := H;
    end Set_Handler;
+
+   ---------------
+   -- Stabilize --
+   ---------------
+
+   function Stabilize (H : access AES_Event_Handler) return Boolean is
+      pragma Unreferenced (H);
+   begin
+      return True;
+   end Stabilize;
 
    -----------------------
    -- Unregister_Source --
