@@ -68,7 +68,7 @@ if test "$enableval" = "all"; then
   VALIDITY_FLAG="-gnatVa"
   enableval=yes
 fi
-if test "enableval" = "yes"; then
+if test "$enableval" = "yes"; then
   DEBUG_OPTIONS
 else
   NODEBUG_OPTIONS
