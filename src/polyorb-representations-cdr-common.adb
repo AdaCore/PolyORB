@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,8 +29,6 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-with GNAT.Byte_Swapping;
 
 with PolyORB.Fixed_Point;
 with PolyORB.Log;
@@ -192,49 +190,30 @@ package body PolyORB.Representations.CDR.Common is
 
    --  Transfer of elementary integer types
 
-   function Swapped (X : Types.Octet) return Types.Octet;
-   pragma Inline (Swapped);
-   --  Identity function!
    package CDR_Octet is
      new Align_Transfer_Elementary (T => PolyORB.Types.Octet);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Unsigned_Short);
    package CDR_Unsigned_Short is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Short);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Short);
    package CDR_Short is
      new Align_Transfer_Elementary (T => PolyORB.Types.Short);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Unsigned_Long);
    package CDR_Unsigned_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Long);
    package CDR_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Long);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Float);
    package CDR_Float is
      new Align_Transfer_Elementary (T => PolyORB.Types.Float);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Unsigned_Long_Long);
    package CDR_Unsigned_Long_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long_Long);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Long_Long);
    package CDR_Long_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Long_Long);
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Double);
    package CDR_Double is
      new Align_Transfer_Elementary (T => PolyORB.Types.Double);
 
@@ -884,10 +863,5 @@ package body PolyORB.Representations.CDR.Common is
       end Octets_To_Fixed;
 
    end Fixed_Point;
-
-   function Swapped (X : Types.Octet) return Types.Octet is
-   begin
-      return X;
-   end Swapped;
 
 end PolyORB.Representations.CDR.Common;

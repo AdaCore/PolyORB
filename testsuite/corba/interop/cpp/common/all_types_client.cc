@@ -79,6 +79,10 @@ static void test(all_types_ptr p)
 #ifdef FLOAT
     Pass = (p->echoFloat(2.7) == (float)2.7);
     output("testing Float", Pass);
+
+    // Special value: becomes an invalid representation when byte swapped
+    Pass = (p->echoFloat(34.4072222) == (float)34.4072222);
+    output("testing Float inval-if-swapped", Pass);
 #endif
 
     //double

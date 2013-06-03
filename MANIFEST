@@ -798,6 +798,7 @@ idls/cos/transaction/CosTSInteroperation.idl
 idls/cos/transaction/CosTSPortability.idl
 idls/cos/transaction/CosTransactions.idl
 known-problems-2.9.1
+known-problems-2.9.2
 polyorb-config.in
 projects-distrib/README
 projects-distrib/polyorb.gpr.in

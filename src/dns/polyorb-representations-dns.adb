@@ -31,26 +31,26 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+
+with PolyORB.DNS.Helper;
 with PolyORB.Initialization;
 with PolyORB.Log;
-with GNAT.Byte_Swapping;
-with PolyORB.Utils.Strings;
-with PolyORB.Utils.Buffers;
-with PolyORB.DNS.Helper;
 with PolyORB.Utils;
+with PolyORB.Utils.Buffers;
+with PolyORB.Utils.Strings;
 
 pragma Elaborate_All (PolyORB.Utils.Buffers);
 
 package body PolyORB.Representations.DNS is
 
    use Ada.Streams;
+
    use PolyORB.Any.TypeCode;
-   use PolyORB.Log;
-   use PolyORB.Errors;
-   use PolyORB.Utils.Buffers;
-   use GNAT.Byte_Swapping;
-   use PolyORB.Utils;
    use PolyORB.DNS.Helper;
+   use PolyORB.Errors;
+   use PolyORB.Log;
+   use PolyORB.Utils;
+   use PolyORB.Utils.Buffers;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.dns");
    procedure O (Message : String; Level : Log_Level := Debug)
@@ -506,20 +506,12 @@ package body PolyORB.Representations.DNS is
         (PolyORB.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Swapped (X : Types.Octet) return Types.Octet;
-   pragma Inline (Swapped);
    package DNS_Octet is
      new Align_Transfer_Elementary (T => PolyORB.Types.Octet);
    function Unmarshall
      (Buffer : access Buffer_Type) return PolyORB.Types.Octet
       renames DNS_Octet.Unmarshall;
-   function Swapped (X : Types.Octet) return Types.Octet is
-   begin
-      return X;
-   end Swapped;
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped4 (PolyORB.Types.Unsigned_Long);
    package DNS_Unsigned_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long,
                                     With_Alignment => False);
@@ -531,9 +523,6 @@ package body PolyORB.Representations.DNS is
      (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Long)
       renames DNS_Unsigned_Long.Marshall;
 
-   --  Unsigned_Long_Long
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped8 (PolyORB.Types.Unsigned_Long_Long);
    package DNS_Unsigned_Long_Long is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Long_Long);
    function Unmarshall
@@ -544,8 +533,6 @@ package body PolyORB.Representations.DNS is
      (Buffer : access Buffer_Type; Data : PolyORB.Types.Unsigned_Long_Long)
       renames DNS_Unsigned_Long_Long.Marshall;
 
-   function Swapped is
-     new GNAT.Byte_Swapping.Swapped2 (PolyORB.Types.Unsigned_Short);
    package DNS_Unsigned_Short is
      new Align_Transfer_Elementary (T => PolyORB.Types.Unsigned_Short,
                                     With_Alignment => False);
