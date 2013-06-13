@@ -61,6 +61,9 @@ define(NODEBUG_OPTIONS, [dnl
           [INSTALL_PROGRAM])[}'
   debug=false])
 
+# By default use no-debug options
+NODEBUG_OPTIONS
+
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug], [Turn on debugging options (yes/all/no)]),
 [
@@ -70,21 +73,22 @@ if test "$enableval" = "all"; then
 fi
 if test "$enableval" = "yes"; then
   DEBUG_OPTIONS
-else
-  NODEBUG_OPTIONS
 fi],
-[NODEBUG_OPTIONS])
+[])
 
 # LIBRARY_TYPE_OPTIONS set to use static or shared libraries consistently.
+
+# By default build static libs
+LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=static"
 
 AC_ARG_ENABLE(shared,
 AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
 [
-LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=relocatable"
+if test "$enableval" = "yes"; then
+  LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=relocatable"
+fi
 ],
-[
-LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=static"
-])
+[])
 AC_SUBST(LIBRARY_TYPE_OPTIONS)
 
 # WARNINGS_MODE can be set to:
