@@ -47,3 +47,8 @@ NF-210-K811-013 Make predefined packages compatible with UTF-8 (2012-12-21)
 
    IAC generates pragma Wide_Character_Encoding to allow usage of prodefined
    CORBA packages in code with different encoding.
+
+NF-210-F613-011 Shared libraries build (2013-01-17)
+
+   PolyORB can now be built as a set of shared libraries using configure
+   switches "--with-gprbuild --enable-shared".
