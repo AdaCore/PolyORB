@@ -559,10 +559,6 @@ package body PolyORB.ORB is
    begin
       pragma Debug (C, O ("Shutdown: enter"));
 
-      if ORB = null then
-         raise Program_Error with "ORB not initialized";
-      end if;
-
       --  Stop accepting incoming connections
 
       --  XXX TBD

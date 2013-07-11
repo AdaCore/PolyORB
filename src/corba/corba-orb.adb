@@ -552,6 +552,10 @@ package body CORBA.ORB is
 
    procedure Shutdown (Wait_For_Completion : Boolean) is
    begin
+      if The_ORB = null then
+         raise Program_Error with "ORB not initialized";
+      end if;
+
       Shutdown (The_ORB, Wait_For_Completion);
    end Shutdown;
 
