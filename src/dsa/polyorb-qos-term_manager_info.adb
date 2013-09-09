@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -79,8 +79,7 @@ package body PolyORB.QoS.Term_Manager_Info is
    -- Extract_TM_Info --
    ---------------------
 
-   procedure Extract_TM_Info (R : access Request)
-   is
+   procedure Extract_TM_Info (R : access Request) is
       use PolyORB.Annotations;
       use PolyORB.Binding_Objects;
       use PolyORB.QoS.Term_Manager_Info;
