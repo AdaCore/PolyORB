@@ -70,6 +70,9 @@ def main():
     env.add_search_path('FIXED_SUPPORT_DIR', fixed_support_dir)
     env.add_path(os.path.join(fixed_support_dir))
 
+    # Avoid extra debug traces
+    os.environ['POLYORB_LOG_DEFAULT'] = 'error'
+
     # Generate the discs list for test.opt parsing
     # Always add 'ALL'
     common_discs = Env().discriminants
