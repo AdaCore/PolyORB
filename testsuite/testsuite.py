@@ -69,6 +69,7 @@ def main():
     fixed_support_dir = os.path.join(os.getcwd(), 'fixed_support_dir')
     env.add_search_path('FIXED_SUPPORT_DIR', fixed_support_dir)
     env.add_path(os.path.join(fixed_support_dir))
+    env.add_path('.')  # many tests expect '.' in the PATH
 
     # Avoid extra debug traces
     os.environ['POLYORB_LOG_DEFAULT'] = 'error'
