@@ -688,6 +688,7 @@ examples/polyorb/polyorb-test_object_soa.ads
 examples/static/README
 examples/static/po_static_conf.ads
 features-2.10
+features-2.11
 features-2.2
 features-2.3
 features-2.4
