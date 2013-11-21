@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -233,7 +233,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
          --  member corresponding to the result of the function.
 
          if Present (T) and then
-           FEN.Kind (T) /= K_Void then
+           FEN.Kind (T) /= K_Void
+         then
 
             --  If the return type is a class-wide type, we remove the
             --  "'Class" attribute from the type name.
@@ -392,7 +393,8 @@ package body Backend.BE_CORBA_Ada.Aligned is
             end;
 
          elsif FEN.Kind (Type_Spec_Node) = K_String_Type or else
-           FEN.Kind (Type_Spec_Node) = K_Wide_String_Type then
+           FEN.Kind (Type_Spec_Node) = K_Wide_String_Type
+         then
             declare
                Str_Package_Inst : Node_Id;
                Pkg_Name         : Name_Id;

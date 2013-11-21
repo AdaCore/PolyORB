@@ -1206,7 +1206,8 @@ package body XE_Parse is
          --  of the predefined type Partition_Type_Node.
 
          if Partition_Node = Null_Variable or else
-           Get_Variable_Type (Partition_Node) /= Partition_Type_Node then
+           Get_Variable_Type (Partition_Node) /= Partition_Type_Node
+         then
             Write_Conflict_Error (Partition_Sloc, Partition_Name);
          end if;
 
@@ -2015,7 +2016,8 @@ package body XE_Parse is
             --  If Named, use Formal_Name to return format parameter node.
             when Named =>
                if Get_Node_Name
-                 (Node_Id (Parameter_Node)) = Formal_Name then
+                 (Node_Id (Parameter_Node)) = Formal_Name
+               then
                   return;
                end if;
 

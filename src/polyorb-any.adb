@@ -3048,7 +3048,8 @@ package body PolyORB.Any is
 
                for J in 0 .. Nb_Param - 1 loop
                   if not Equivalent (Member_Type (Left, J),
-                                     Member_Type (Right, J)) then
+                                     Member_Type (Right, J))
+                  then
                      return False;
                   end if;
                end loop;
@@ -3146,7 +3147,8 @@ package body PolyORB.Any is
 
             for J in 0 .. Nb_Param - 1 loop
                if Member_Visibility (Left, J) /=
-                 Member_Visibility (Right, J) then
+                 Member_Visibility (Right, J)
+               then
                   return False;
                end if;
             end loop;

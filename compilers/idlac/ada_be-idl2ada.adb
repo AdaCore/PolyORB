@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -458,7 +458,8 @@ package body Ada_Be.Idl2Ada is
                   --  Skel package
 
                   if Kind (Export_Node) = K_Operation
-                    and then Is_Directly_Supported (Export_Node) then
+                    and then Is_Directly_Supported (Export_Node)
+                  then
                      Skel.Gen_Node_Body
                        (S.Skel (Unit_Body), Export_Node,
                         Is_Delegate => False);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -79,14 +79,16 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
 
       for J in Other_Policies'Range loop
          if Other_Policies (J).all in ServantRetentionPolicy'Class
-           and then Other_Policies (J).all'Tag /= Retain_Policy'Tag then
+           and then Other_Policies (J).all'Tag /= Retain_Policy'Tag
+         then
             Throw (Error,
                    InvalidPolicy_E,
                    InvalidPolicy_Members'(Index => 0));
          end if;
 
          if Other_Policies (J).all in IdAssignmentPolicy'Class
-           and then Other_Policies (J).all'Tag /= System_Id_Policy'Tag then
+           and then Other_Policies (J).all'Tag /= System_Id_Policy'Tag
+         then
             Throw (Error,
                    InvalidPolicy_E,
                    InvalidPolicy_Members'(Index => 0));

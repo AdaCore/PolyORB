@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -191,8 +191,9 @@ package body PolyORB.MOMA_P.Provider.Routers is
       PolyORB.Any.NVList.Create (Result);
       pragma Debug (C, O ("Parameter profile for " & Method & " requested."));
 
-      if       Method = "Publish"
-      or else  Method = "Route" then
+      if Method = "Publish"
+        or else  Method = "Route"
+      then
          PolyORB.Any.NVList.Add_Item
             (Result,
              (Name      => Message_S,

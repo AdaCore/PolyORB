@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -60,7 +60,8 @@ package body RTPortableServer.POA.Helper is
    is
    begin
       if CORBA.Object.Entity_Of (The_Ref).all
-        not in PolyORB.RT_POA.RT_Obj_Adapter'Class then
+        not in PolyORB.RT_POA.RT_Obj_Adapter'Class
+      then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 

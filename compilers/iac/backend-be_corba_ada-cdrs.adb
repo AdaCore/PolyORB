@@ -597,7 +597,8 @@ package body Backend.BE_CORBA_Ada.CDRs is
                     Make_Defining_Identifier (PN (P_Data_Alignment))));
 
                if not FEU.Is_Empty (P)
-                 and then Contains_In_Parameters (E) then
+                 and then Contains_In_Parameters (E)
+               then
                   Append_To (Client_Statements, M);
                end if;
             end;

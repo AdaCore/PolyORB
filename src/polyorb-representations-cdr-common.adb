@@ -86,7 +86,8 @@ package body PolyORB.Representations.CDR.Common is
       Endianness : Endianness_Type;
    begin
       if PolyORB.Types.Boolean'Val
-        (PolyORB.Types.Octet (Octets (Octets'First))) then
+        (PolyORB.Types.Octet (Octets (Octets'First)))
+      then
          Endianness := Little_Endian;
       else
          Endianness := Big_Endian;

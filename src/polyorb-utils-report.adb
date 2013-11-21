@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -192,7 +192,8 @@ package body PolyORB.Utils.Report is
             It := It + 1;
             for K in Result'Range loop
                if Float (V (J)) <=
-                 Low + Float (K) * (High - Low) / Float (Result'Length) then
+                 Low + Float (K) * (High - Low) / Float (Result'Length)
+               then
                   Result (K).Value := Result (K).Value + 1;
                   Done := Done + 1;
                   exit;

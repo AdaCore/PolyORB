@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -122,7 +122,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
          Right_Iteration :
          while not Last (R_Iter) loop
             if Is_Colocated
-                 (Value (L_Iter).all.all, Value (R_Iter).all.all) then
+              (Value (L_Iter).all.all, Value (R_Iter).all.all)
+            then
                return True;
             end if;
             Next (R_Iter);

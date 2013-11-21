@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -133,7 +133,8 @@ package body MOMA.Sessions is
       Operation : PolyORB.Types.String := To_PolyORB_String ("Subscribe");
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
-        or else Get_Kind (Pool) /= MOMA.Types.Pool then
+        or else Get_Kind (Pool) /= MOMA.Types.Pool
+      then
          raise Program_Error;
       end if;
 

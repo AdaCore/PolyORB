@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -718,7 +718,8 @@ package body Backend.BE_IDL is
             I := First_Entity (Imports (E));
             while Present (I) loop
                if not Imported (I) or else
-                 Generate_Imported then
+                 Generate_Imported
+               then
                   Generate (I);
                   Generate_Statement_Delimiter (I);
                end if;
@@ -737,7 +738,8 @@ package body Backend.BE_IDL is
          C := First_Entity (L);
          while Present (C) loop
             if not Imported (C) or else
-              Generate_Imported then
+              Generate_Imported
+            then
                Write_Indentation;
                Generate (C);
                Generate_Statement_Delimiter (C);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,7 +75,8 @@ package body PortableServer.POA.GOA is
       Result : Ref;
    begin
       if CORBA.Object.Entity_Of (Self).all
-        not in PolyORB.POA.Obj_Adapter'Class then
+        not in PolyORB.POA.Obj_Adapter'Class
+      then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
@@ -98,7 +99,8 @@ package body PortableServer.POA.GOA is
 
    begin
       if Res = null
-        or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
+        or else Res.all not in PolyORB.POA.Obj_Adapter'Class
+      then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 

@@ -94,7 +94,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Type then
+        not in PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));

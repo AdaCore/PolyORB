@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -165,7 +165,8 @@ package body PolyORB.SOAP_P.Parameters is
    is
    begin
       if PolyORB.Any.TypeCode.Kind
-        (Get_Type (Argument (P, Name).Argument)) /= Tk then
+        (Get_Type (Argument (P, Name).Argument)) /= Tk
+      then
          raise SOAP_P.Types.Data_Error;
       end if;
    end Check_Typecode_Kind;

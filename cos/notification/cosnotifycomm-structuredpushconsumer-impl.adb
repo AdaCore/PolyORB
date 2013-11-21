@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -118,7 +118,8 @@ package body CosNotifyComm.StructuredPushConsumer.Impl is
       Broadcast (Self.X.CV);
 
       if not CosNotifyChannelAdmin.StructuredProxyPushSupplier.Is_Nil
-             (Peer) then
+        (Peer)
+      then
          CosNotifyChannelAdmin.StructuredProxyPushSupplier.
             disconnect_structured_push_supplier (Peer);
       end if;
@@ -163,7 +164,8 @@ package body CosNotifyComm.StructuredPushConsumer.Impl is
 
       Enter (Self.X.M);
       if not CosNotifyChannelAdmin.StructuredProxyPushSupplier.Is_Nil
-      (Self.X.Peer) then
+        (Self.X.Peer)
+      then
          Leave (Self.X.M);
          CosEventChannelAdmin.Helper.Raise_AlreadyConnected
            ((CORBA.IDL_Exception_Members with null record));
@@ -195,7 +197,8 @@ package body CosNotifyComm.StructuredPushConsumer.Impl is
 
       loop
          if CosNotifyChannelAdmin.StructuredProxyPushSupplier.Is_Nil
-         (Self.X.Peer) then
+           (Self.X.Peer)
+         then
             Leave (Self.X.M);
             CosEventComm.Helper.Raise_Disconnected
               ((CORBA.IDL_Exception_Members with null record));
@@ -232,7 +235,8 @@ package body CosNotifyComm.StructuredPushConsumer.Impl is
       Enter (Self.X.M);
 
       if CosNotifyChannelAdmin.StructuredProxyPushSupplier.Is_Nil
-      (Self.X.Peer) then
+        (Self.X.Peer)
+      then
          Leave (Self.X.M);
          CosEventComm.Helper.Raise_Disconnected
            ((CORBA.IDL_Exception_Members with null record));

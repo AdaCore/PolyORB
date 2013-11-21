@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -116,8 +116,7 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
       Self.X.Peer := Nil_Ref;
       Leave (Self_Mutex);
 
-      if not CosNotifyChannelAdmin.SequenceProxyPushConsumer.Is_Nil
-      (Peer) then
+      if not CosNotifyChannelAdmin.SequenceProxyPushConsumer.Is_Nil (Peer) then
          CosNotifyChannelAdmin.SequenceProxyPushConsumer.
          disconnect_sequence_push_consumer (Peer);
       end if;
@@ -160,7 +159,8 @@ package body CosNotifyComm.SequencePushSupplier.Impl is
 
       Enter (Self_Mutex);
       if not CosNotifyChannelAdmin.SequenceProxyPushConsumer.Is_Nil
-      (Self.X.Peer) then
+        (Self.X.Peer)
+      then
          Leave (Self_Mutex);
          CosEventChannelAdmin.Helper.Raise_AlreadyConnected
            ((CORBA.IDL_Exception_Members with null record));

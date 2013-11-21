@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -183,7 +183,8 @@ package body PolyORB.Protocols.SRP is
          To_Standard_String (S.SRP_Info.Method.all));
 
       if not PolyORB.Smart_Pointers.Is_Nil
-        (PolyORB.Smart_Pointers.Ref (Args)) then
+        (PolyORB.Smart_Pointers.Ref (Args))
+      then
          --  The signature of the method is known: unmarshall
          --  the arguments right now.
          Unmarshall (Args, S.SRP_Info);

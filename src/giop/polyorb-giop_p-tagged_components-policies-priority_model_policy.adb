@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -77,7 +77,8 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy is
 
    begin
       if Object_Adapter (PolyORB.Setup.The_ORB).all
-        not in PolyORB.RT_POA.RT_Obj_Adapter'Class then
+        not in PolyORB.RT_POA.RT_Obj_Adapter'Class
+      then
          return Policy_Value'(P_Type => Invalid_Policy_Type, P_Value => null);
       end if;
 

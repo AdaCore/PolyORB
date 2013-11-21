@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -159,7 +159,8 @@ package body Ada_Be.Idl2Ada.Value_Impl is
             --  for public state members, the operation body is
             --  fully generated.
             if Original_Node (Node) = No_Node
-              or else Kind (Original_Node (Node)) /= K_State_Member then
+              or else Kind (Original_Node (Node)) /= K_State_Member
+            then
                Ada_Be.Idl2Ada.Impl.Gen_Node_Body (CU, Node);
             else
                pragma Debug (O ("Generating .value_impl for state member"));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -96,7 +96,8 @@ package body CosNotifyComm.StructuredPullConsumer.Impl is
       Leave (Self_Mutex);
 
       if not CosNotifyChannelAdmin.StructuredProxyPullSupplier.Is_Nil
-      (Peer) then
+        (Peer)
+      then
          CosNotifyChannelAdmin.StructuredProxyPullSupplier.
          disconnect_structured_pull_supplier (Peer);
       end if;
@@ -139,7 +140,8 @@ package body CosNotifyComm.StructuredPullConsumer.Impl is
 
       Enter (Self_Mutex);
       if not CosNotifyChannelAdmin.StructuredProxyPullSupplier.Is_Nil
-      (Self.X.Peer) then
+        (Self.X.Peer)
+      then
          Leave (Self_Mutex);
          CosEventChannelAdmin.Helper.Raise_AlreadyConnected
            ((CORBA.IDL_Exception_Members with null record));

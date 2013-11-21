@@ -1622,7 +1622,8 @@ package body PortableServer.POA is
 
    begin
       if Res = null
-        or else Res.all not in PolyORB.POA.Obj_Adapter'Class then
+        or else Res.all not in PolyORB.POA.Obj_Adapter'Class
+      then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
