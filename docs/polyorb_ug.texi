@@ -1406,7 +1406,7 @@ The local host name
 @end table
 
 Macro references can appear anywhere in runtime parameter values and
-are of the form @code{${@it macro-name}} or @code{$@{{@it macro-name}@}}.
+are of the form @code{$@emph{macro-name}} or @code{$@{@emph{macro-name}@}}.
 
 For example, in order for a single setting to control all GIOP-based
 binding modules, one can specify:
