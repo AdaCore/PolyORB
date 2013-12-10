@@ -81,7 +81,8 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Type then
+        not in PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
