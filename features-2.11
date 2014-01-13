@@ -2,7 +2,7 @@
 PolyORB 2.11 NEW FEATURES LIST
 ==============================
 
-Copyright (C) 2013, AdaCore
+Copyright (C) 2014, AdaCore
 
 This file contains a complete list of new features in version 2.10 of PolyORB.
 See also file NEWS for various information about this release.
@@ -12,3 +12,9 @@ This date shows the implementation date of the feature. Any 2.10 wavefront
 subsequent to this date will contain the indicated feature, as will any
 subsequent releases.
 
+NF-211-N109-057 Use standard initial reference for name service (2014-01-13)
+
+  PolyORB.CORBA_P.Naming_Tools now first looks up the name server using the
+  standard "NameService" initial reference key. The legcay implementation
+  defined "NamingService" key is used as a fallback.
+  
