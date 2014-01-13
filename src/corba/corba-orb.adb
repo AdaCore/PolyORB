@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -710,7 +710,7 @@ package body CORBA.ORB is
         (Section => "corba", Key => "replication_manager", Default => "");
 
    begin
-      --  Register initial reference for NamingService
+      --  Register initial reference for naming service
 
       if Naming_IOR /= "" then
          --  Standard CORBA3 name
@@ -718,7 +718,7 @@ package body CORBA.ORB is
          Register_Initial_Reference
            (To_CORBA_String ("NameService"), To_CORBA_String (Naming_IOR));
 
-         --  Legacy compatibility synonym
+         --  Legacy implementation-defined synonym
 
          Register_Initial_Reference
            (To_CORBA_String ("NamingService"), To_CORBA_String (Naming_IOR));
