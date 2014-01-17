@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,8 +37,6 @@ with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
-with PolyORB.Utils.Strings;
-
 with CosNaming.BindingIterator.Impl;
 with CosNaming.NamingContext.Helper;
 with CosNaming.NamingContext.Skel;
@@ -63,16 +61,16 @@ package body CosNaming.NamingContext.Impl is
 
    Null_Name : constant Name := Name (Names.Null_Sequence);
 
-   --  Each naming context has its own internal id (Key). Bindings
-   --  from local naming contexts are stored in the same hash table
-   --  (BOHT). Each binding is encoded using its naming context
-   --  internal id, its name component name and its name component
-   --  type (Encode).
+   --  Each naming context has its own internal id (Key). Bindings from local
+   --  naming contexts are stored in the same hash table (BOHT). Each binding
+   --  is encoded using its naming context internal id, its name component name
+   --  and its name component type (Encode).
 
    subtype Hash_Header is Natural range 0 .. 30;
 
    function Hash  (F : PolyORB.Utils.Strings.String_Ptr) return Hash_Header;
    function Equal (F1, F2 : PolyORB.Utils.Strings.String_Ptr) return Boolean;
+   --  Hash function and equality on designated string
 
    package BOHT is new GNAT.HTable.Simple_HTable
      (Header_Num => Hash_Header,
@@ -82,12 +80,9 @@ package body CosNaming.NamingContext.Impl is
       Hash       => Hash,
       Equal      => Equal);
 
-   function Encode
-     (Ctx : Object_Ptr;
-      N   : NameComponent)
-     return String;
-   --  Encode this name component using the naming context internal
-   --  id, the name component name and name component type.
+   function Encode (Ctx : Object_Ptr; N : NameComponent) return String;
+   --  Encode this name component using the naming context internal id, the
+   --  name component name and name component type.
 
    procedure Append_BO_To_NC
      (NC  : Object_Ptr;
@@ -95,15 +90,13 @@ package body CosNaming.NamingContext.Impl is
       BN  : NameComponent;
       BT  : BindingType;
       Obj : CORBA.Object.Ref);
-   --  Append a bound object to a naming context (NC). This bound
-   --  object is composed of a binding (BN, BT) and an object Obj.
-   --  Set a new entry in the hash table using its Key.
+   --  Append a bound object to a naming context (NC). This bound object is
+   --  composed of a binding (BN, BT) and an object Obj. Set a new entry in
+   --  the hash table using a newly allocated copy of Key.
 
-   procedure Display_NC
-     (Text : String;
-      NC   : Object_Ptr);
-   --  Display the list of bound objects of naming context NC with a
-   --  output title Text.
+   procedure Display_NC (Text : String; NC : Object_Ptr);
+   --  Display the list of bound objects of naming context NC with a output
+   --  title Text.
 
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
@@ -111,38 +104,39 @@ package body CosNaming.NamingContext.Impl is
       Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent);
-   --  Resolve N from a given naming context Self: split a name N into
-   --  its naming context Ctx and the last name component NC. Len is
-   --  the length of N. If Len = 1, then Ctx must be ignored. To avoid
-   --  concurrent issues, we get a copy of the bound object lists
-   --  (thread safe).
+   --  Resolve N from a given naming context Self: split a name N into its
+   --  naming context Ctx and the last name component NC. Len is the length of
+   --  N. If Len = 1, then Ctx must be ignored. To avoid concurrent issues, we
+   --  get a copy of the bound object lists (thread safe).
 
    function Look_For_BO_In_NC
      (NC  : Object_Ptr;
-      Key : String)
-     return Bound_Object_Ptr;
-   --  Look for a bound object in a naming context NC using its Key.
+      Key : String) return Bound_Object_Ptr;
+   --  Look for a bound object in a naming context NC using its Key
 
    procedure Remove_BO_From_NC
      (NC : Object_Ptr;
       BO : in out Bound_Object_Ptr);
-   --  Remove a bound object from a naming context NC.
+   --  Remove a bound object from a naming context NC
 
    function To_Name (NC : NameComponent) return Name;
-   --  Basic function which returns a sequence of one name component.
+   --  Basic function which returns a sequence of one name component
+
+   function Allocate return Key_Type;
+   --  Return a new unique key
 
    procedure Free is
       new Ada.Unchecked_Deallocation (Bound_Object, Bound_Object_Ptr);
 
    Seed : Key_Type := (others => 'A');
+   --  Next key returned by Allocate
 
    --------------
    -- Allocate --
    --------------
 
-   function Allocate return Key_Type;
    function Allocate return Key_Type is
-      N : Natural  := Key_Size;
+      N : Natural := Key_Size;
       K : constant Key_Type := Seed;
 
    begin
@@ -177,14 +171,15 @@ package body CosNaming.NamingContext.Impl is
       BT  : BindingType;
       Obj : CORBA.Object.Ref)
    is
-      BO : constant Bound_Object_Ptr := new Bound_Object;
+      BO : constant Bound_Object_Ptr :=
+             new Bound_Object'(Key => new String'(Key), others => <>);
 
    begin
       Display_NC ("register """ & Key & """ in naming context", NC);
 
-      --  Append to the tail of the double linked list.
+      --  Append to the tail of the double linked list
 
-      BOHT.Set (new String'(Key), BO);
+      BOHT.Set (BO.Key, BO);
 
       BO.BN  := BN;
       BO.BT  := BT;
@@ -312,10 +307,8 @@ package body CosNaming.NamingContext.Impl is
 
    function Create return Object_Ptr is
       Obj : constant Object_Ptr := new Object;
-
    begin
       Initialize (Obj);
-
       return Obj;
    end Create;
 
@@ -473,8 +466,7 @@ package body CosNaming.NamingContext.Impl is
             Member : NotFound_Members;
 
          begin
-            --  Cannot cast the current name component into a
-            --  naming context.
+            --  Cannot cast the current name component into a naming context
 
             Member.why          := not_context;
             Member.rest_of_name := To_Sequence
@@ -522,7 +514,7 @@ package body CosNaming.NamingContext.Impl is
    begin
       PTM.Enter (Self.Mutex);
 
-      --  How many bound objects in this naming context.
+      --  Count bound objects in Self
 
       Head := Self.Head;
       while Head /= null loop
@@ -531,7 +523,7 @@ package body CosNaming.NamingContext.Impl is
       end loop;
       Head := Self.Head;
 
-      --  First, copy the first bound objects to fill BL.
+      --  First, copy the first bound objects to fill BL
 
       if Len < Size then
          Size := Len;
@@ -554,7 +546,7 @@ package body CosNaming.NamingContext.Impl is
       Iter.Index := 1;
       Iter.Table := new Bindings.Element_Array (1 .. Len);
 
-      --  Copy the remaining bound objects into the iterator.
+      --  Copy the remaining bound objects into the iterator
 
       for I in Iter.Table'Range loop
          Iter.Table (I) := (To_Name (Head.BN), Head.BT);
@@ -563,7 +555,7 @@ package body CosNaming.NamingContext.Impl is
 
       PTM.Leave (Self.Mutex);
 
-      --  Activate object Iterator.
+      --  Activate object Iterator
 
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Iter), BI);
@@ -744,12 +736,10 @@ package body CosNaming.NamingContext.Impl is
       BO.Prev := null;
       BO.Next := null;
 
-      declare
-         BON : constant String := Encode (NC, BO.BN);
-      begin
-         BOHT.Set (BON'Unrestricted_Access, null);
-      end;
+      BOHT.Remove (BO.Key);
+      Free (BO.Key);
       Free (BO);
+
       Display_NC ("remove object from naming context", NC);
    end Remove_BO_From_NC;
 
