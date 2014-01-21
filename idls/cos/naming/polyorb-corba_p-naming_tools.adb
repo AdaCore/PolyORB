@@ -216,15 +216,16 @@ package body PolyORB.CORBA_P.Naming_Tools is
    function Root_Context return Ref is
       CORBA_Ref : CORBA.Object.Ref;
    begin
-      --  First try standard initial reference
+      begin
+         --  First try standard initial reference
 
-      CORBA_Ref := Resolve_Initial_References (NameService_ObjectId);
+         CORBA_Ref := Resolve_Initial_References (NameService_ObjectId);
+      exception
+         when CORBA.InvalidName =>
+            --  Next fall back to legacy implementation-defined one
 
-      --  Next fall back to legacy implementation-defined one
-
-      if CORBA_Ref.Is_Nil then
-         CORBA_Ref := Resolve_Initial_References (NamingService_ObjectId);
-      end if;
+            CORBA_Ref := Resolve_Initial_References (NamingService_ObjectId);
+      end;
 
       return To_Ref (CORBA_Ref);
    end Root_Context;
