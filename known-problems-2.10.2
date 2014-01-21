@@ -1,0 +1,22 @@
+================================
+Known problems in PolyORB 2.10.2
+================================
+
+Copyright (C) 2014, AdaCore
+
+The following is a listing of known problems in release 2.9. Except where
+specifically noted, all these problems have been corrected in the final
+release of the 2.10 technology. This means they are corrected in release
+2.10 and in any wavefront issued subsequent to the date specified (in
+ISO format YYYY-MM-DD) in the status line. This can be used to determine
+if a given wavefront has the fix identified in the entry.
+
+KP-2102-N117-032 Memory leak in COS Naming server
+
+  Problem:    The po_cos_naming name server leaks memory each time a name
+              is bound.
+
+  Status:     This was fixed in 2.11 on 2014-01-17
+
+  Workaround: Periodically restart the name server if its memory footprint
+              grows too much.
