@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -97,8 +97,10 @@ begin
    if not Is_Regular_File (Configuration_File_Name) then
       --  Not found: try to add ".cfg"
 
-      if Name_Buffer (Name_Len - Cfg_Suffix'Length + 1 .. Name_Len)
-        /= Cfg_Suffix
+      if Name_Len < Cfg_Suffix'Length + 1
+           or else
+         Name_Buffer (Name_Len - Cfg_Suffix'Length + 1 .. Name_Len)
+           /= Cfg_Suffix
       then
          Get_Name_String (Configuration_File_Name);
          Add_Str_To_Name_Buffer (Cfg_Suffix);
