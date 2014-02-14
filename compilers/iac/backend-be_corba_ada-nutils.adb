@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -320,13 +320,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
       if Is_Nested_Package
         (Package_Specification (Package_Declaration (Current_Package)))
       then
-         --  The package is a nested within another package, uses its parent's
+         --  The package is a nested within another package; use its parent's
          --  name.
 
          I := Get_Parent_Unit_Name
-           (Defining_Identifier
-            (Package_Declaration
-             (Current_Package)));
+           (Defining_Identifier (Package_Declaration (Current_Package)));
 
          if Fully_Qualified_Name (I) = N then
             --  If true, this means a package "with"es itself, so exit

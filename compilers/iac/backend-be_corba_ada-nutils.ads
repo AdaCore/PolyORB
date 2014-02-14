@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -528,10 +528,10 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Pop_Entity;
    --  Remove the current top of the IDL_Entity stack
 
-   function  Current_Entity return Node_Id;
+   function Current_Entity return Node_Id;
    --  Return the top of the IDL_Entity stack
 
-   function  Current_Package return Node_Id;
+   function Current_Package return Node_Id;
    --  Return the top of the Ada Package stack
 
    function Copy_Node (N : Node_Id) return Node_Id;
@@ -972,7 +972,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    procedure Set_Forwarded (E : Node_Id);
    --  Mark the IDL node E as "Forwarded"
 
-   function  Is_Forwarded  (E : Node_Id) return Boolean;
+   function Is_Forwarded  (E : Node_Id) return Boolean;
    --  Return True iff the node E has been marked as "Forwarded"
 
    --  The Set_XXXX_(Spec|Body) subprograms modifies the current_package to
