@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -461,7 +461,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "PortableServer.Internals.Register_Skeleton");
       Put (CU, "  (");
       Put (CU, Ada_Full_Name (Node));
-      PL (CU, "." & Repository_Id_Name (Node) &",");
+      PL (CU, "." & Repository_Id_Name (Node) & ",");
       if not Is_Delegate then
          PL (CU, "   Servant_Is_A'Access,");
          PL (CU, "   Is_A'Access,");

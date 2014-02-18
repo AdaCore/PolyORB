@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -186,7 +186,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
    is
       Ref : CORBA.Object.Ref;
    begin
-      pragma Debug (O ("get the mutually agreed interface from "&
+      pragma Debug (O ("get the mutually agreed interface from " &
                        "typed pushconsumer"));
       pragma Debug (O ("push mutually agreed interface from " &
                        "typed proxy pushconsumer to typed supplieradmin"));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1319,7 +1319,7 @@ package body Idl_Fe.Parser is
                         --  new interface to be imported was already
                         --  defined in the previously imported ones
                         Idlac_Errors.Error
-                          ("The attribute or operation definitions "&
+                          ("The attribute or operation definitions " &
                            " in this interface clashes with the definitions " &
                            "of the previouly imported ones.",
                            Idlac_Errors.Error,
@@ -2306,7 +2306,7 @@ package body Idl_Fe.Parser is
                   when K_Interface
                     | K_Forward_Interface =>
                      Idlac_Errors.Error
-                       ("A value may not inherit from an interface. "&
+                       ("A value may not inherit from an interface. " &
                         "It can only support it.",
                         Idlac_Errors.Error,
                         Get_Token_Location);
@@ -2376,7 +2376,7 @@ package body Idl_Fe.Parser is
                      when K_Interface
                         | K_Forward_Interface =>
                         Idlac_Errors.Error
-                          ("A value may not inherit from an interface. "&
+                          ("A value may not inherit from an interface. " &
                            "It can only support it.",
                         Idlac_Errors.Error,
                            Get_Token_Location);
@@ -6412,7 +6412,7 @@ package body Idl_Fe.Parser is
       Next_Token;
       Parse_Positive_Int_Const (Result, Success);
       if not Success then
-         pragma Debug (O ("Parse_fixed_array_size : "&
+         pragma Debug (O ("Parse_fixed_array_size : " &
                           "Parse_positive_int_const returned false"));
          return;
       end if;
