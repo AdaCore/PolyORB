@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -113,7 +113,7 @@ package PolyORB.Tasking.Mutexes is
    --  aborted.
 
    --  The Scope_Lock's Enter and Leave operations call those of the underlying
-   --  mutex, and leep track of whether the critical section has been left or
+   --  mutex, and keep track of whether the critical section has been left or
    --  re-entered. This is done with abortion deferred, so that the flag
    --  tracking whether we are in the critical section remains consistent with
    --  the actual state of the mutex.
