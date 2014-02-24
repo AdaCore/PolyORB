@@ -39,5 +39,17 @@ KP-210-N117-032 Memory leak in COS Naming server
   Workaround: Periodically restart the name server if its memory footprint
               grows too much.
 
+KP-210-MB27-043 idl translation for range types with negative bounds
+
+  Problem:    IAC incorrectly gives a syntax error when a negative number is
+              used as the lower bound in a range pragma, as in:
+                 #pragma range S1 -1 .. 100
+
+  Status:     This was fixed in 2.11 on 2014-02-24
+
+  Workaround: Use the quoted Ada notation, and use an expanded name for the "-"
+              operator, as in:
+                 #pragma range S1 "CORBA.\"-\"(1) .. 100"
+
 Known problems fixed in 2.10.2 and above
 ----------------------------------------
