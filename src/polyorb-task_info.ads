@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -131,6 +131,12 @@ package PolyORB.Task_Info is
       TI      : in out Task_Info);
    --  The task referred by TI has terminated its job.
 
+   function Scope_Lock (TI : Task_Info) return access PTM.Mutex_Type'Class;
+   procedure Set_Scope_Lock
+     (TI : in out Task_Info;
+      SL : access PTM.Mutex_Type'Class);
+   --  Return the scope lock held on the ORB critical section
+
    function Selector
      (TI : Task_Info) return Asynch_Ev.Asynch_Ev_Monitor_Access;
    --  Return Selector the task referred by TI is blocked on
@@ -230,6 +236,9 @@ private
 
       Job : Jobs.Job_Access;
       --  Job to run, meaningful only when State is Running
+
+      Scope_Lock : access PTM.Mutex_Type'Class;
+      --  Scope lock held by the task on the ORB critical section
 
       Selector  : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  Monitor on which Task referred by Id is blocked;

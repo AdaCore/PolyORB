@@ -39,6 +39,15 @@ KP-210-N117-032 Memory leak in COS Naming server
   Workaround: Periodically restart the name server if its memory footprint
               grows too much.
 
+KP-210-MC03-013 Hang on remote call abortion
+
+  Problem:    In some cases, aborting a remote call asynchronously could
+              leave the ORB locked, causing all further ORB calls to hang.
+
+  Status:     This was fixed in 2.11 on 2014-02-28
+
+  Workaround: Avoid asynchronus abortion of remote calls.
+
 KP-210-MB27-043 idl translation for range types with negative bounds
 
   Problem:    IAC incorrectly gives a syntax error when a negative number is

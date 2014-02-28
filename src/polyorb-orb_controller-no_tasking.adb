@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,8 +50,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
      (O : access ORB_Controller_No_Tasking;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-      pragma Unreferenced (O);
-      pragma Unreferenced (M);
+      pragma Unreferenced (O, M);
 
    begin
       --  Under this implementation, there is at most one task in the
@@ -64,12 +63,12 @@ package body PolyORB.ORB_Controller.No_Tasking is
    --------------------
    -- Enable_Polling --
    --------------------
+
    overriding procedure Enable_Polling
      (O : access ORB_Controller_No_Tasking;
       M : PAE.Asynch_Ev_Monitor_Access)
    is
-      pragma Unreferenced (O);
-      pragma Unreferenced (M);
+      pragma Unreferenced (O, M);
 
    begin
       --  Under this implementation, there is at most one task in the
@@ -194,8 +193,10 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_No_Tasking;
-      TI : PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access;
+      SL : access PTM.Scope_Lock)
    is
+      pragma Unreferenced (SL);
    begin
       pragma Debug (C1, O1 ("Schedule_Task: enter"));
 

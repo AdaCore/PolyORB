@@ -106,6 +106,7 @@ package PolyORB.Tasking.Mutexes is
 
    type Scope_Lock (M : access Mutex_Type'Class) is
      new Mutex_Type with private;
+   function Is_Locked (SL : Scope_Lock) return Boolean;
    --  Scope lock: Initialize enters M, Finalize leaves M. Using a Scope_Lock
    --  ensures that a given critical section is held for the duration of
    --  a given scope, and that it is exited when the scope is left, whether
@@ -116,7 +117,8 @@ package PolyORB.Tasking.Mutexes is
    --  mutex, and keep track of whether the critical section has been left or
    --  re-entered. This is done with abortion deferred, so that the flag
    --  tracking whether we are in the critical section remains consistent with
-   --  the actual state of the mutex.
+   --  the actual state of the mutex. Is_Locked returns the current value of
+   --  the flag.
 
    --  The critical section can thus be exited temporarily during the lifespan
    --  of the Scope_Lock, in an abort-safe manner. (If the task is aborted

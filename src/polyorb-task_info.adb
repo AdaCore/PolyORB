@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -173,6 +173,27 @@ package body PolyORB.Task_Info is
 
       return TI.Timeout;
    end Timeout;
+
+   ----------------
+   -- Scope_Lock --
+   ----------------
+
+   function Scope_Lock (TI : Task_Info) return access PTM.Mutex_Type'Class is
+   begin
+      return TI.Scope_Lock;
+   end Scope_Lock;
+
+   --------------------
+   -- Set_Scope_Lock --
+   --------------------
+
+   procedure Set_Scope_Lock
+     (TI : in out Task_Info;
+      SL : access PTM.Mutex_Type'Class)
+   is
+   begin
+      TI.Scope_Lock := SL;
+   end Set_Scope_Lock;
 
    -----------------------
    -- Set_State_Blocked --
