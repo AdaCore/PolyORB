@@ -46,7 +46,7 @@ KP-210-MC03-013 Hang on remote call abortion
 
   Status:     This was fixed in 2.11 on 2014-02-28
 
-  Workaround: Avoid asynchronus abortion of remote calls.
+  Workaround: Avoid asynchronous abortion of remote calls.
 
 KP-210-MB27-043 idl translation for range types with negative bounds
 
