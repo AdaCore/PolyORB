@@ -1,1 +1,2 @@
 AIX XFAIL massive tasking
+linux-rhES6,32bits XFAIL massive tasking
