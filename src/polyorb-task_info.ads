@@ -131,10 +131,10 @@ package PolyORB.Task_Info is
       TI      : in out Task_Info);
    --  The task referred by TI has terminated its job.
 
-   function Scope_Lock (TI : Task_Info) return access PTM.Mutex_Type'Class;
+   function Scope_Lock (TI : Task_Info) return PTM.Mutex_Access;
    procedure Set_Scope_Lock
      (TI : in out Task_Info;
-      SL : access PTM.Mutex_Type'Class);
+      SL : PTM.Mutex_Access);
    --  Return the scope lock held on the ORB critical section
 
    function Selector
@@ -237,7 +237,7 @@ private
       Job : Jobs.Job_Access;
       --  Job to run, meaningful only when State is Running
 
-      Scope_Lock : access PTM.Mutex_Type'Class;
+      Scope_Lock : PTM.Mutex_Access;
       --  Scope lock held by the task on the ORB critical section
 
       Selector  : Asynch_Ev.Asynch_Ev_Monitor_Access;

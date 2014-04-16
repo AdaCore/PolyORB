@@ -398,7 +398,7 @@ package body PolyORB.ORB is
 
       --  Make scope lock accessable
 
-      PTI.Set_Scope_Lock (TW.This.all, TW.Scope_Lock'Access);
+      PTI.Set_Scope_Lock (TW.This.all, TW.Scope_Lock'Unchecked_Access);
 
       --  This pointer must be reset to null before exiting Run so as to not
       --  leave a dangling reference.

@@ -178,7 +178,7 @@ package body PolyORB.Task_Info is
    -- Scope_Lock --
    ----------------
 
-   function Scope_Lock (TI : Task_Info) return access PTM.Mutex_Type'Class is
+   function Scope_Lock (TI : Task_Info) return PTM.Mutex_Access is
    begin
       return TI.Scope_Lock;
    end Scope_Lock;
@@ -189,7 +189,7 @@ package body PolyORB.Task_Info is
 
    procedure Set_Scope_Lock
      (TI : in out Task_Info;
-      SL : access PTM.Mutex_Type'Class)
+      SL : PTM.Mutex_Access)
    is
    begin
       TI.Scope_Lock := SL;
