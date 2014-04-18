@@ -506,7 +506,7 @@ package body PolyORB.ORB is
             Schedule_Task
               (ORB.ORB_Controller,
                This_Task'Unchecked_Access,
-               Witness.Scope_Lock'Access);
+               Witness.Scope_Lock'Unchecked_Access);
 
             case State (This_Task) is
                when Running =>

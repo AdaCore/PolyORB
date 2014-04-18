@@ -50,8 +50,8 @@ package PolyORB.ORB_Controller.Workers is
 
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_Workers;
-      TI :        PTI.Task_Info_Access;
-      SL : access PTM.Scope_Lock);
+      TI : PTI.Task_Info_Access;
+      SL : PTM.Mutex_Access);
 
    overriding procedure Disable_Polling
      (O : access ORB_Controller_Workers;

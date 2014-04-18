@@ -54,8 +54,8 @@ package PolyORB.ORB_Controller.Leader_Followers is
 
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_Leader_Followers;
-      TI :        PTI.Task_Info_Access;
-      SL : access PTM.Scope_Lock);
+      TI : PTI.Task_Info_Access;
+      SL : PTM.Mutex_Access);
 
    overriding procedure Register_Task
      (O  : access ORB_Controller_Leader_Followers;

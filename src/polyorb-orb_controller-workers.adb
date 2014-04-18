@@ -273,7 +273,7 @@ package body PolyORB.ORB_Controller.Workers is
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_Workers;
       TI : PTI.Task_Info_Access;
-      SL : access PTM.Scope_Lock)
+      SL : PTM.Mutex_Access)
    is
       function Is_Schedulable (J : PJ.Job'Class) return Boolean;
       --  True if J is schedulable for this task (i.e. not an upcall job
@@ -355,7 +355,7 @@ package body PolyORB.ORB_Controller.Workers is
         (O.Summary,
          TI.all,
          Insert_Idle_Task (O.Idle_Tasks, TI),
-         PTM.Mutex_Access (SL));
+         SL);
 
       pragma Debug (C1, O1 ("Task is now idle"));
       pragma Debug (C2, O2 (Status (O.all)));

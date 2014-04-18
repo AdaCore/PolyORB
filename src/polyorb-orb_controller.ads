@@ -196,7 +196,7 @@ package PolyORB.ORB_Controller is
    procedure Schedule_Task
      (O  : access ORB_Controller;
       TI : PTI.Task_Info_Access;
-      SL : access PTM.Scope_Lock) is abstract;
+      SL : PTM.Mutex_Access) is abstract;
    --  TI is the current task. Set its state to indicate the next action to be
    --  executed. This operation has no effect and returns immediately if the
    --  current state of the task is Terminated. SL is the scope lock of the

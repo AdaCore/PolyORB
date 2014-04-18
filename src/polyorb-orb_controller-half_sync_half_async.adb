@@ -346,7 +346,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_Half_Sync_Half_Async;
       TI : PTI.Task_Info_Access;
-      SL : access PTM.Scope_Lock)
+      SL : PTM.Mutex_Access)
    is
       AEM_Index : Natural;
    begin
@@ -419,7 +419,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                  (O.Summary,
                   TI.all,
                   O.Monitoring_Tasks (AEM_Index).CV,
-                  PTM.Mutex_Access (SL));
+                  SL);
             end if;
 
          else
@@ -440,7 +440,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
                  (O.Summary,
                   TI.all,
                   Insert_Idle_Task (O.Idle_Tasks, TI),
-                  PTM.Mutex_Access (SL));
+                  SL);
 
                pragma Debug (C1, O1 ("Task is now idle"));
                pragma Debug (C2, O2 (Status (O.all)));

@@ -194,7 +194,7 @@ package body PolyORB.ORB_Controller.No_Tasking is
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_No_Tasking;
       TI : PTI.Task_Info_Access;
-      SL : access PTM.Scope_Lock)
+      SL : PTM.Mutex_Access)
    is
       pragma Unreferenced (SL);
    begin
