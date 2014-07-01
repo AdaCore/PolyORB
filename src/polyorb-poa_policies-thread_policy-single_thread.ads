@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,11 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+--  Implementation of the 'Single thread' POA Policy
 
 pragma Ada_2005;
-
---  Implementation of the 'Single thread' POA Policy.
 
 with PolyORB.Components;
 with PolyORB.Requests;
