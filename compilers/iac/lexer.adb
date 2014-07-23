@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1404,7 +1404,7 @@ package body Lexer is
                if Name_Buffer (1) = '<'
                  and then Name_Buffer (Name_Len) = '>'
                then
-                  Skip_Line;
+                  null;
 
                --  Check the suffix is ".idl"
 
@@ -1412,20 +1412,19 @@ package body Lexer is
                  or else Name_Buffer (Name_Len - 3 .. Name_Len) /= ".idl"
                then
                   Error_Loc (1) := Token_Location;
-                  DE ("incorrect suffix");
+                  Error_Name (1) := String_Literal_Value;
+                  DE ("incorrect suffix in %");
 
                else
-                  Skip_Line;
                   Set_New_Location
                     (Token_Location, String_Literal_Value, Int (Line));
                end if;
-            else
-               --  No file name
 
-               Skip_Line;
+            else
                Token_Location.Line := Int (Line);
             end if;
 
+            Skip_Line;
             return;
          end;
       end if;
