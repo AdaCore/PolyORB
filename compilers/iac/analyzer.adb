@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -671,7 +671,7 @@ package body Analyzer is
          Scoped_Name := Next_Entity (Scoped_Name);
       end loop;
 
-      --  Push a new scope and then inherit from the parent interfaces.
+      --  Push a new scope and then inherit from the parent interfaces
 
       Push_Scope (E);
       Scoped_Name := First_Entity (Interface_Spec (E));
@@ -721,12 +721,12 @@ package body Analyzer is
    -- Analyze_Module --
    --------------------
 
-   procedure Analyze_Module (E : Node_Id)
-   is
+   procedure Analyze_Module (E : Node_Id) is
       pragma Assert (Kind (E) = K_Specification or else Kind (E) = K_Module);
 
       C : Node_Id;
       L : List_Id;
+
    begin
       if Kind (E) = K_Module then
          Enter_Name_In_Scope (Identifier (E));
