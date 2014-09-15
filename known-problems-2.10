@@ -17,6 +17,15 @@ in this document.
 Known problems fixed in 2.11.1 and above
 ----------------------------------------
 
+KP-210-N909-046 Visibility of reopened module
+
+  Problem:    IAC would not correctly make identifiers visible when reopening
+              a module.
+
+  Status:     This was fixed in 2.11 on 2014-09-15
+
+  Workaround: Reorganize IDL to not require reopening modules.
+
 KP-210-N127-066 -ffreestanding required for recent g++ preprocessor
 
   Problem:    When IAC uses a GCC 4.8 C++ preprocessor to preprocess IDL

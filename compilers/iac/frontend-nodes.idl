@@ -175,6 +175,7 @@ module Frontend::Nodes {
   interface _Module : Scope_Definition {
     List_Id     Definitions;
     List_Id     Type_Prefixes;
+    boolean     Reopened;
   }; 
 
   interface _Import : Node_Id {

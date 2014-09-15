@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -129,9 +129,15 @@ package body Scopes is
       KE : constant Node_Kind := Kind (E);
       KS : constant Node_Kind := Kind (S);
 
-      --  Start of processing for Enter_Name_In_Scope
+   --  Start of processing for Enter_Name_In_Scope
 
    begin
+      if D_Scopes then
+         W_Str ("enter name ");
+         Write_Name (Name (N));
+         W_Eol;
+      end if;
+
       if Present (C) then
          KC := Kind (C);
          H  := Identifier (C);
@@ -160,9 +166,10 @@ package body Scopes is
            and then KE = K_Module
          then
             Set_Scoped_Identifiers (E, Scoped_Identifiers (C));
+            Set_Reopened (C, True);
 
          --  If the current entity is a scoped name, it has been
-         --  introduced in purpose and cannot be removed.
+         --  introduced on purpose and cannot be removed.
 
          elsif KC = K_Scoped_Name then
             Display_Conflict (N, C);
@@ -228,10 +235,10 @@ package body Scopes is
       if No (Scope_Entity (N)) then
          Set_Scope_Entity (N, S);
       end if;
-      Set_Potential_Scope     (N, S);
-      Set_Visible (N, True);
-      Set_Next_Entity         (N, Scoped_Identifiers (S));
-      Set_Scoped_Identifiers  (S, N);
+      Set_Potential_Scope    (N, S);
+      Set_Visible            (N, True);
+      Set_Next_Entity        (N, Scoped_Identifiers (S));
+      Set_Scoped_Identifiers (S, N);
    end Enter_Name_In_Scope;
 
    ----------------
@@ -459,6 +466,7 @@ package body Scopes is
          Insert_Into_Homonyms (I);
          Set_Visible (I, True);
          Set_Scope_Entity (I, S);
+         Set_Potential_Scope (I, S);
          I := Next_Entity (I);
       end loop;
    end Push_Scope;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -871,6 +871,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
+         if Reopened (E) then
+            return;
+         end if;
+
          if not Map_Particular_CORBA_Parts (E, PK_Helper_Internals_Spec) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
@@ -4083,6 +4087,10 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
+         if Reopened (E) then
+            return;
+         end if;
+
          if not Map_Particular_CORBA_Parts (E, PK_Helper_Internals_Body) then
             Push_Entity (Stub_Node (BE_Node (Identifier (E))));
             D := First_Entity (Definitions (E));
