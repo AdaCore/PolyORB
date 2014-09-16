@@ -49,7 +49,7 @@ package body Lexer is
 
    Buffer : Text_Buffer_Ptr;
    --  Always equal to Current_Source_File.Buffer. Contains the EOF-terminated
-   --  text of the (usually) preprocessed file.  Token_Location.Scan is used to
+   --  text of the (usually) preprocessed file. Token_Location.Scan is used to
    --  scan the text.
 
    function Is_Identifier_Character (C : Character) return Boolean;
@@ -414,7 +414,7 @@ package body Lexer is
 
       --  Increment line number and save current position
 
-      Token_Location.Scan := Token_Location.Scan + 1;
+      Token_Location.Scan  := Token_Location.Scan + 1;
       Token_Location.First := Token_Location.Scan;
       Token_Location.Last  := Token_Location.Scan;
       Token_Location.Line  := Token_Location.Line + 1;
@@ -1416,8 +1416,11 @@ package body Lexer is
                   DE ("incorrect suffix in %");
 
                else
+                  --  Note: Skip_Line call below will increment then line
+                  --  number, so compensate here by subtracting one.
+
                   Set_New_Location
-                    (Token_Location, String_Literal_Value, Int (Line));
+                    (Token_Location, String_Literal_Value, Int (Line - 1));
                end if;
 
             else
