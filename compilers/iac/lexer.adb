@@ -1424,7 +1424,10 @@ package body Lexer is
                end if;
 
             else
-               Token_Location.Line := Int (Line);
+
+               --  See above comment for subtraction of 1 from Line
+
+               Token_Location.Line := Int (Line - 1);
             end if;
 
             Skip_Line;
