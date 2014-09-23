@@ -224,13 +224,14 @@ package body Parser is
       Add_Str_To_Name_Buffer (".idl");
 
       --  Locating the file in the IAC_Search_Paths set
+
       declare
          File_Name_Str : constant String := Name_Buffer (1 .. Name_Len);
       begin
-         for Index in 1 .. IAC_Search_Count loop
+         for P of IAC_Search_Paths loop
             declare
                Full_Path : constant String
-                 := IAC_Search_Paths (Index).all
+                 := P.all
                  & GNAT.Directory_Operations.Dir_Separator
                  & File_Name_Str;
             begin
