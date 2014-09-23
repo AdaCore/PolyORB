@@ -441,7 +441,35 @@ package body Scopes is
    ----------------
 
    procedure Push_Scope (S : Node_Id) is
-      I : Node_Id;
+
+      SI : constant Node_Id := Scoped_Identifiers (S);
+
+      procedure Insert_Scoped_Identifiers (I : Node_Id);
+      --  Recursive procedure to insert scoped identifiers
+      --  from S. We can't just iterate on the list because
+      --  it is constructed by prepending elements, so the
+      --  latest definitions (which must be inserted later
+      --  in the homonym chain in order to override previous
+      --  ones) appear at the head of the list.
+
+      --------------------------------
+      --  Insert_Scoped_Identifiers --
+      --------------------------------
+
+      procedure Insert_Scoped_Identifiers (I : Node_Id) is
+         NI : constant Node_Id := Next_Entity (I);
+      begin
+         if Present (NI) then
+            Insert_Scoped_Identifiers (NI);
+         end if;
+
+         Insert_Into_Homonyms (I);
+         Set_Visible (I, True);
+         Set_Scope_Entity (I, S);
+         Set_Potential_Scope (I, S);
+      end Insert_Scoped_Identifiers;
+
+   --  Start of processing for Push_Scope
 
    begin
       Increment_Last;
@@ -461,14 +489,9 @@ package body Scopes is
          W_Eol;
       end if;
 
-      I := Scoped_Identifiers (S);
-      while Present (I) loop
-         Insert_Into_Homonyms (I);
-         Set_Visible (I, True);
-         Set_Scope_Entity (I, S);
-         Set_Potential_Scope (I, S);
-         I := Next_Entity (I);
-      end loop;
+      if Present (SI) then
+         Insert_Scoped_Identifiers (SI);
+      end if;
    end Push_Scope;
 
    --------------------------
