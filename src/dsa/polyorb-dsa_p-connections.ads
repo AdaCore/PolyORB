@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2011-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2011-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -58,14 +58,14 @@ package PolyORB.DSA_P.Connections is
       procedure On_Disconnect
         (X        : RACW;
          Callback : access procedure (X : RACW));
-      --  Call Callback (X) when connection to partition of X is closed
+      --  Call Callback (X) when connection to partition of X is closed (not
+      --  implemented???)
 
       procedure Unchecked_Forget (X : in out RACW);
       --  Mark X as now unused by the application, causing associated stub
       --  resources (if any) to be deallocated. Note that it is erroneous to
       --  call this subprogram if the partition still holds other RACWs
       --  designating the same object.
-      --  And what about the case where X designates a local object???
 
    private
       subtype Stub_Type is RACW'Stub_Type;
