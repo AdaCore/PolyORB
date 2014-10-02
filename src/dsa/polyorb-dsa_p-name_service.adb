@@ -75,7 +75,7 @@ package body PolyORB.DSA_P.Name_Service is
         O ("Initialize_Name_Server: enter, name service is "
            & Nameservice_Location & " (" & Nameservice_Kind & ")"));
 
-      Name_Ctx.Initialize (Nameserverice_Location);
+      Name_Ctx.Initialize (Nameservice_Location);
       Time_Between_Requests :=
         PolyORB.Parameters.Get_Conf
           (Section => "dsa",
