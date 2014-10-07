@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,6 +43,11 @@ package body PolyORB.Any.ExceptionList is
      renames L.Output;
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
+
+   overriding procedure Finalize (X : in out Object) is
+   begin
+      Exception_Lists.Deallocate (X.List);
+   end Finalize;
 
    ---------------
    -- Get_Count --

@@ -17,6 +17,16 @@ in this document.
 Known problems fixed in 2.11.1 and above
 ----------------------------------------
 
+KP-210-NA07-004 Memory leak in CORBA calling stubs
+
+  Problem:    A data structure allocated in CORBA calling stubs was not
+              correctly deallocated, causing a per call memory leak.
+
+  Status:     This was fixed in 2.11 on 2014-10-07
+
+  Workaround: Periodically restart any partition whose memory footprint
+              grows too much.
+
 KP-210-N909-046 Visibility of reopened module
 
   Problem:    IAC would not correctly make identifiers visible when reopening
