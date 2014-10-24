@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1147,7 +1147,8 @@ package body Ada_Be.Expansion is
       --  First expand all formals and return type.
 
       if Kind (Operation_Type (Node)) /= K_Void
-        and then Has_Out_Formals (Node) then
+        and then Has_Out_Formals (Node)
+      then
          declare
             Operation_Type_Node : Node_Id
               := Operation_Type (Node);
@@ -1512,7 +1513,8 @@ package body Ada_Be.Expansion is
       if not (False
         or else NK = K_Enum
         or else NK = K_Union
-        or else NK = K_Struct) then
+                or else NK = K_Struct)
+      then
          return;
       end if;
 
@@ -2041,7 +2043,8 @@ package body Ada_Be.Expansion is
          Get_Next_Node (It, N);
 
          if Mode (N) = Mode_Out
-           or else Mode (N) = Mode_Inout then
+           or else Mode (N) = Mode_Inout
+         then
             return True;
          end if;
       end loop;

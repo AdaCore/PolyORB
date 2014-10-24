@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,7 @@ pragma Ada_2005;
 --  Datagram Socket Access Point and End Point to receive data from network
 
 with PolyORB.Sockets;
+with PolyORB.Transport.Sockets;
 with PolyORB.Utils.Sockets;
 
 package PolyORB.Transport.Datagram.Sockets is
@@ -42,21 +43,25 @@ package PolyORB.Transport.Datagram.Sockets is
    pragma Elaborate_Body;
 
    use PolyORB.Sockets;
+   use PolyORB.Transport.Sockets;
+   use PolyORB.Utils.Sockets;
 
    ------------------
    -- Access Point --
    ------------------
 
-   type Socket_Access_Point is
-     new Datagram_Transport_Access_Point with private;
-   --  Datagram Socket Access Point to receive data
+   type Datagram_Socket_AP is
+     new Datagram_Transport_Access_Point
+     and Socket_Access_Point
+       with private;
+   --  Transport access point backed by datagram socket
 
    procedure Init_Socket
-     (SAP          : in out Socket_Access_Point;
+     (SAP          : in out Datagram_Socket_AP;
       Socket       : Socket_Type;
       Address      : in out Sock_Addr_Type;
       Bind_Address : Sock_Addr_Type := No_Sock_Addr;
-      Update_Addr  : Boolean := True);
+      Update_Addr  : Boolean        := True);
    --  Init datagram socket socket
    --  If Update_Addr is set, Address will be updated with the assigned socket
    --  address. If Bind_Address is not No_Sock_Addr, then that address is used
@@ -65,11 +70,11 @@ package PolyORB.Transport.Datagram.Sockets is
    --  still recording the proper group address in SAP.
 
    overriding function Create_Event_Source
-     (TAP : access Socket_Access_Point)
+     (TAP : access Datagram_Socket_AP)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    function Address_Of
-     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name;
+     (SAP : Datagram_Socket_AP) return Utils.Sockets.Socket_Name;
    --  Return a Socket_Name designating SAP
 
    ---------------
@@ -105,17 +110,29 @@ package PolyORB.Transport.Datagram.Sockets is
    overriding procedure Close (TE : access Socket_Endpoint);
 
    overriding function Create_Endpoint
-     (TAP : access Socket_Access_Point)
+     (TAP : access Datagram_Socket_AP)
      return Datagram_Transport_Endpoint_Access;
    --  Called on server side to initialize socket
 
 private
 
-   type Socket_Access_Point is new Datagram_Transport_Access_Point
+   type Datagram_Socket_AP is
+     new Datagram_Transport_Access_Point
+     and Socket_Access_Point
      with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
+      Socket  : Socket_Type := No_Socket;
+      Addr    : Sock_Addr_Type;
+      Publish : Socket_Name_Ptr;
      end record;
+
+   overriding procedure Set_Socket_AP_Publish_Name
+      (SAP  : in out Datagram_Socket_AP;
+       Name : Socket_Name);
+   overriding function Socket_AP_Publish_Name
+      (SAP : access Datagram_Socket_AP) return Socket_Name;
+
+   overriding function Socket_AP_Address
+     (SAP : Datagram_Socket_AP) return Sock_Addr_Type;
 
    type Socket_Endpoint is new Datagram_Transport_Endpoint
      with record

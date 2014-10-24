@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -54,7 +54,8 @@ package PolyORB.ORB_Controller.Leader_Followers is
 
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_Leader_Followers;
-      TI :        PTI.Task_Info_Access);
+      TI : PTI.Task_Info_Access;
+      SL : PTM.Mutex_Access);
 
    overriding procedure Register_Task
      (O  : access ORB_Controller_Leader_Followers;

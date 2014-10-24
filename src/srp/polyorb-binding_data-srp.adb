@@ -97,7 +97,7 @@ package body PolyORB.Binding_Data.SRP is
       S : Socket_Type;
       TE : constant Transport_Endpoint_Access := new Socket_Endpoint;
    begin
-      Create_Socket (S);
+      Utils.Sockets.Create_Socket (S);
       Utils.Sockets.Connect_Socket (S, Profile.Address.all);
       Create (Socket_Endpoint (TE.all), S);
 
@@ -161,7 +161,8 @@ package body PolyORB.Binding_Data.SRP is
    begin
       return PF : SRP_Profile_Factory do
          PF.Address :=
-           new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+           new Socket_Name'
+             (Connected_Socket_AP (TAP.all).Socket_AP_Publish_Name);
       end return;
    end Create_Factory;
 

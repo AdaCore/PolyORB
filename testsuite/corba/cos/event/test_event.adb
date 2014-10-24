@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -725,7 +725,7 @@ procedure Test_Event is
                   Ada.Text_IO.Put_Line ("syntax error");
 
                when E : others =>
-                  Ada.Text_IO.Put_Line ("raise "& Exception_Name (E));
+                  Ada.Text_IO.Put_Line ("raise " & Exception_Name (E));
                   Ada.Text_IO.Put_Line (Exception_Message (E));
                   Ada.Text_IO.Put_Line (Exception_Information (E));
             end;

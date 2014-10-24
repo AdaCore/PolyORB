@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1277,7 +1277,8 @@ package body Idl_Fe.Parser is
                   exit;
                end if;
                if Name /= No_Node and then
-                 Kind (Value (Name)) = K_Interface then
+                 Kind (Value (Name)) = K_Interface
+               then
                   --  verify it was not already inherited
                   pragma Debug (O ("Parse_Interface_Dcl_End : verify " &
                                    "duplicated inheritance"));
@@ -1318,7 +1319,7 @@ package body Idl_Fe.Parser is
                         --  new interface to be imported was already
                         --  defined in the previously imported ones
                         Idlac_Errors.Error
-                          ("The attribute or operation definitions "&
+                          ("The attribute or operation definitions " &
                            " in this interface clashes with the definitions " &
                            "of the previouly imported ones.",
                            Idlac_Errors.Error,
@@ -1408,7 +1409,8 @@ package body Idl_Fe.Parser is
       Parse_Scoped_Name (Result, Success);
       --  the scoped name should denote an interface
       if Success and then
-        Result /= No_Node then
+        Result /= No_Node
+      then
          if Kind (Value (Result)) /= K_Interface then
             if Kind (Value (Result)) = K_Forward_Interface then
                Idlac_Errors.Error
@@ -1684,10 +1686,12 @@ package body Idl_Fe.Parser is
          --  Here we try to avoid recursivity in structs and unions
          if (Kind (Get_Current_Scope) = K_Struct
              or else Kind (Get_Current_Scope) = K_Union)
-           and then Get_Current_Scope = A_Name then
+           and then Get_Current_Scope = A_Name
+         then
             --  recursivity is allowed through sequences or Pragma
             if View_Previous_Previous_Token /= T_Sequence and then
-              View_Previous_Previous_Token /= T_Pragma then
+              View_Previous_Previous_Token /= T_Pragma
+            then
                Idlac_Errors.Error
                  ("Recursive definitions not allowed",
                   Idlac_Errors.Error,
@@ -2016,7 +2020,8 @@ package body Idl_Fe.Parser is
 
       Next_Token;
       if Get_Token = T_Colon
-        or else Get_Token = T_Supports then
+        or else Get_Token = T_Supports
+      then
 
          --  An inheritance specification is present
 
@@ -2111,7 +2116,8 @@ package body Idl_Fe.Parser is
       if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          --  is it a forward
          if Definition.Parent_Scope = Get_Current_Scope and then
-           Kind (Definition.Node) = K_Forward_ValueType then
+           Kind (Definition.Node) = K_Forward_ValueType
+         then
             --  nothing to do : this new forward declaration is useless
             Idlac_Errors.Error
               ("This valuetype was already declared forward : " &
@@ -2131,7 +2137,8 @@ package body Idl_Fe.Parser is
       else
          --  no previous forward
          if not Add_Identifier (Result,
-                                Get_Token_String) then
+                                Get_Token_String)
+         then
             raise Idlac_Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
@@ -2159,7 +2166,8 @@ package body Idl_Fe.Parser is
       if not Is_Redefinable (Get_Token_String, Get_Lexer_Location) then
          --  is it a forward
          if Definition.Parent_Scope = Get_Current_Scope and then
-           Kind (Definition.Node) = K_Forward_ValueType then
+           Kind (Definition.Node) = K_Forward_ValueType
+         then
             --  nothing to do : this new forward declaration is useless
             Idlac_Errors.Error
               ("This valuetype was forward declared : " &
@@ -2209,7 +2217,8 @@ package body Idl_Fe.Parser is
                Set_Boxed_Type (Result, Node);
             end;
             if not Add_Identifier (Result,
-                                   Name.all) then
+                                   Name.all)
+            then
                raise Idlac_Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Result);
@@ -2258,7 +2267,8 @@ package body Idl_Fe.Parser is
          begin
             Parse_Value_Name (Name, Name_Success);
             if Name_Success and then
-              Name /= No_Node then
+              Name /= No_Node
+            then
                case Kind (Value (Name)) is
                   when K_ValueType =>
                      if Abst (Result) then
@@ -2271,7 +2281,8 @@ package body Idl_Fe.Parser is
                         end if;
                      else
                         if Abst (Value (Name)) and then
-                          Truncatable (Result) then
+                          Truncatable (Result)
+                        then
                            Idlac_Errors.Error
                              ("The truncatable modifier may not be used " &
                               "for an abstract value inheritance.",
@@ -2295,7 +2306,7 @@ package body Idl_Fe.Parser is
                   when K_Interface
                     | K_Forward_Interface =>
                      Idlac_Errors.Error
-                       ("A value may not inherit from an interface. "&
+                       ("A value may not inherit from an interface. " &
                         "It can only support it.",
                         Idlac_Errors.Error,
                         Get_Token_Location);
@@ -2327,7 +2338,8 @@ package body Idl_Fe.Parser is
             begin
                Parse_Value_Name (Name, Name_Success);
                if Name_Success and then
-                 Name /= No_Node then
+                 Name /= No_Node
+               then
                   case Kind (Value (Name)) is
                      when K_ValueType =>
                         pragma Debug (O ("Parse_Value_Inheritance_Spec : " &
@@ -2364,7 +2376,7 @@ package body Idl_Fe.Parser is
                      when K_Interface
                         | K_Forward_Interface =>
                         Idlac_Errors.Error
-                          ("A value may not inherit from an interface. "&
+                          ("A value may not inherit from an interface. " &
                            "It can only support it.",
                         Idlac_Errors.Error,
                            Get_Token_Location);
@@ -2455,7 +2467,8 @@ package body Idl_Fe.Parser is
                         case Kind (Value (Name)) is
                            when K_Interface =>
                               if Is_In_Pointed_List (Supports (Result),
-                                                     Name) then
+                                                     Name)
+                              then
                                  --  already inherited
                                  Idlac_Errors.Error
                                    ("A value may not directly support " &
@@ -2464,7 +2477,8 @@ package body Idl_Fe.Parser is
                                     Get_Token_Location);
                               else
                                  if not Abst (Result)
-                                   and then not Abst (Value (Name)) then
+                                   and then not Abst (Value (Name))
+                                 then
                                     if Non_Abstract_Interface then
                                        Idlac_Errors.Error
                                          ("A stateful value may support " &
@@ -2712,7 +2726,8 @@ package body Idl_Fe.Parser is
       else
          --  no previous definition
          if not Add_Identifier (Result,
-                                Get_Token_String) then
+                                Get_Token_String)
+         then
             raise Idlac_Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
@@ -3572,7 +3587,8 @@ package body Idl_Fe.Parser is
               Expr_Type.Kind = C_UShort or else
               Expr_Type.Kind = C_ULong or else
               Expr_Type.Kind = C_ULongLong or else
-              Expr_Type.Kind = C_General_Integer then
+              Expr_Type.Kind = C_General_Integer
+            then
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and then
                  Expr_Value (Right (Res)).Kind /= C_No_Kind
@@ -3695,10 +3711,12 @@ package body Idl_Fe.Parser is
               Expr_Type.Kind = C_LongDouble or else
               Expr_Type.Kind = C_General_Float or else
               Expr_Type.Kind = C_Fixed or else
-              Expr_Type.Kind = C_General_Fixed then
+              Expr_Type.Kind = C_General_Fixed
+            then
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and then
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
+                 Expr_Value (Right (Res)).Kind /= C_No_Kind
+               then
                   if Expr_Type.Kind = C_Octet or else
                     Expr_Type.Kind = C_Short or else
                     Expr_Type.Kind = C_Long or else
@@ -3706,7 +3724,8 @@ package body Idl_Fe.Parser is
                     Expr_Type.Kind = C_UShort or else
                     Expr_Type.Kind = C_ULong or else
                     Expr_Type.Kind = C_ULongLong or else
-                    Expr_Type.Kind = C_General_Integer then
+                    Expr_Type.Kind = C_General_Integer
+                  then
                      if Expr_Value (Right (Res)).Kind /= C_General_Integer
                        and then
                        Expr_Value (Left (Res)).Kind /= C_General_Integer
@@ -3729,7 +3748,8 @@ package body Idl_Fe.Parser is
                   elsif Expr_Type.Kind = C_Float or else
                     Expr_Type.Kind = C_Double or else
                     Expr_Type.Kind = C_LongDouble or else
-                    Expr_Type.Kind = C_General_Float then
+                    Expr_Type.Kind = C_General_Float
+                  then
                      if Expr_Value (Right (Res)).Kind /= C_General_Float
                        and then Expr_Value (Left (Res)).Kind /= C_General_Float
                      then
@@ -3778,13 +3798,15 @@ package body Idl_Fe.Parser is
 
                   Check_Value_Range (Res, False);
                   if Expr_Value (Res).Kind = C_Fixed and then
-                    Expr_Type.Kind = C_Fixed then
+                    Expr_Type.Kind = C_Fixed
+                  then
                      --  checks precision of the fixed value after
                      --  the possible simplifications in
                      --  check_value_range
                      if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
                        Expr_Type.Digits_Nb - Expr_Type.Scale or else
-                       Expr_Value (Res).Scale > Expr_Type.Scale then
+                       Expr_Value (Res).Scale > Expr_Type.Scale
+                     then
                         Idlac_Errors.Error
                           ("The specified type for this fixed point " &
                            "constant is not enough precise for its value. " &
@@ -3888,10 +3910,12 @@ package body Idl_Fe.Parser is
                 Expr_Type.Kind = C_General_Float or else
                 Expr_Type.Kind = C_Fixed or else
                 Expr_Type.Kind = C_General_Fixed) and then
-               Op /= Modulo) then
+                 Op /= Modulo)
+            then
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and then
-                 Expr_Value (Right (Res)).Kind /= C_No_Kind then
+                 Expr_Value (Right (Res)).Kind /= C_No_Kind
+               then
                   if Expr_Type.Kind = C_Octet or else
                     Expr_Type.Kind = C_Short or else
                     Expr_Type.Kind = C_Long or else
@@ -3899,7 +3923,8 @@ package body Idl_Fe.Parser is
                     Expr_Type.Kind = C_UShort or else
                     Expr_Type.Kind = C_ULong or else
                     Expr_Type.Kind = C_ULongLong or else
-                    Expr_Type.Kind = C_General_Integer then
+                    Expr_Type.Kind = C_General_Integer
+                  then
                      if Expr_Value (Right (Res)).Kind /= C_General_Integer
                        and then
                        Expr_Value (Left (Res)).Kind /= C_General_Integer
@@ -3946,7 +3971,8 @@ package body Idl_Fe.Parser is
                   elsif Expr_Type.Kind = C_Float or else
                     Expr_Type.Kind = C_Double or else
                     Expr_Type.Kind = C_LongDouble or else
-                    Expr_Type.Kind = C_General_Float then
+                    Expr_Type.Kind = C_General_Float
+                  then
                      if Expr_Value (Right (Res)).Kind /= C_General_Float
                        and then Expr_Value (Left (Res)).Kind /= C_General_Float
                      then
@@ -4013,13 +4039,15 @@ package body Idl_Fe.Parser is
                   end if;
                   Check_Value_Range (Res, False);
                   if Expr_Value (Res).Kind = C_Fixed and then
-                    Expr_Type.Kind = C_Fixed then
+                    Expr_Type.Kind = C_Fixed
+                  then
                      --  checks precision of the fixed value after
                      --  the possible simplifications in
                      --  check_value_range
                      if Expr_Value (Res).Digits_Nb - Expr_Value (Res).Scale >
                        Expr_Type.Digits_Nb - Expr_Type.Scale or else
-                       Expr_Value (Res).Scale > Expr_Type.Scale then
+                       Expr_Value (Res).Scale > Expr_Type.Scale
+                     then
                         Idlac_Errors.Error
                           ("The specified type for this fixed point " &
                            "constant is not enough precise for its value. " &
@@ -4132,9 +4160,11 @@ package body Idl_Fe.Parser is
                     Expr_Type.Kind = C_UShort or else
                     Expr_Type.Kind = C_ULong or else
                     Expr_Type.Kind = C_ULongLong or else
-                    Expr_Type.Kind = C_General_Integer then
+                    Expr_Type.Kind = C_General_Integer
+                  then
                      if Expr_Value (Operand (Result)).Kind
-                       /= C_General_Integer then
+                       /= C_General_Integer
+                     then
                         Set_Expr_Value (Result, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -4154,9 +4184,11 @@ package body Idl_Fe.Parser is
                   elsif Expr_Type.Kind = C_Float or else
                     Expr_Type.Kind = C_Double or else
                     Expr_Type.Kind = C_LongDouble or else
-                    Expr_Type.Kind = C_General_Float then
+                    Expr_Type.Kind = C_General_Float
+                  then
                      if Expr_Value (Operand (Result)).Kind
-                       /= C_General_Float then
+                       /= C_General_Float
+                     then
                         Set_Expr_Value (Result, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -4172,7 +4204,8 @@ package body Idl_Fe.Parser is
                      end if;
                   else
                      if Expr_Value (Operand (Result)).Kind
-                       /= C_General_Fixed then
+                       /= C_General_Fixed
+                     then
                         Set_Expr_Value (Result, Duplicate (Expr_Type));
                      else
                         Set_Expr_Value
@@ -4261,7 +4294,8 @@ package body Idl_Fe.Parser is
                                             (Kind (Expr_Type.Enum_Name))));
                            if not Is_In_List
                              (Enumerators (Expr_Type.Enum_Name),
-                              Value (Local_Res)) then
+                              Value (Local_Res))
+                           then
                               Idlac_Errors.Error
                                 ("The specified type for this constant " &
                                  "does not match with its value.",
@@ -5070,7 +5104,8 @@ package body Idl_Fe.Parser is
          Result := Make_Declarator (Get_Token_Location);
          --  no previous definition
          if Add_Identifier (Result,
-                            Get_Token_String) then
+                            Get_Token_String)
+         then
             Set_Default_Repository_Id (Result);
          end if;
          Set_Array_Bounds (Result, Nil_List);
@@ -6341,7 +6376,8 @@ package body Idl_Fe.Parser is
       --  if any previous definition, just ignore the identifier
       --  but keep parsing parsing (no syntax error)
       if Add_Identifier (Result,
-                         Get_Token_String) then
+                         Get_Token_String)
+      then
          Set_Default_Repository_Id (Result);
          Set_Array_Bounds (Result, Nil_List);
       end if;
@@ -6376,7 +6412,7 @@ package body Idl_Fe.Parser is
       Next_Token;
       Parse_Positive_Int_Const (Result, Success);
       if not Success then
-         pragma Debug (O ("Parse_fixed_array_size : "&
+         pragma Debug (O ("Parse_fixed_array_size : " &
                           "Parse_positive_int_const returned false"));
          return;
       end if;
@@ -6685,7 +6721,8 @@ package body Idl_Fe.Parser is
          else
             --  no previous definition
             if not Add_Identifier (Result,
-                                   Get_Token_String) then
+                                   Get_Token_String)
+            then
                   raise Idlac_Errors.Internal_Error;
             end if;
             Set_Default_Repository_Id (Result);
@@ -7202,7 +7239,8 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Expr_Value (Digits_Nb (Result)).Integer_Value < 0 or else
-        Expr_Value (Digits_Nb (Result)).Integer_Value > 31 then
+        Expr_Value (Digits_Nb (Result)).Integer_Value > 31
+      then
          Idlac_Errors.Error
            ("invalid number of digits in fixed point " &
             "type definition : it should be in range " &
@@ -7232,7 +7270,8 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if Expr_Value (Digits_Nb (Result)).Integer_Value <
-        Expr_Value (Scale (Result)).Integer_Value then
+        Expr_Value (Scale (Result)).Integer_Value
+      then
          Idlac_Errors.Error
            ("invalid scale in fixed point " &
             "type definition : it should be less " &
@@ -7899,10 +7938,12 @@ package body Idl_Fe.Parser is
    begin
       Result := Character'Pos (C);
       if Result >= Character'Pos ('0') and then
-        Result <= Character'Pos ('9') then
+        Result <= Character'Pos ('9')
+      then
          Result := Result - Character'Pos ('0');
       elsif Result >= Character'Pos (LC_A) and then
-        Result <= Character'Pos (LC_F) then
+        Result <= Character'Pos (LC_F)
+      then
          Result := Result + 10 - Character'Pos ('a');
       else
          Result := Result + 10 - Character'Pos ('A');
@@ -8441,7 +8482,8 @@ package body Idl_Fe.Parser is
          I := I + 1;
       end loop;
       if Get_Token = T_Lit_Simple_Floating_Point or else
-        Get_Token = T_Lit_Exponent_Floating_Point then
+        Get_Token = T_Lit_Exponent_Floating_Point
+      then
          I := I + 1;
          declare
             Offset : Idl_Float := 0.1;
@@ -8458,7 +8500,8 @@ package body Idl_Fe.Parser is
          end;
       end if;
       if Get_Token = T_Lit_Exponent_Floating_Point or else
-        Get_Token = T_Lit_Pure_Exponent_Floating_Point then
+        Get_Token = T_Lit_Pure_Exponent_Floating_Point
+      then
          declare
             Exponent : Integer := 0;
          begin
@@ -8561,7 +8604,8 @@ package body Idl_Fe.Parser is
          --  check type precision
          if (L1 /= 0 and then
              Idl_Integer (L1) > Expr_Type.Digits_Nb - Expr_Type.Scale) or else
-           (Idl_Integer (L2 - Last_Zeros_Nb) > Expr_Type.Scale) then
+           (Idl_Integer (L2 - Last_Zeros_Nb) > Expr_Type.Scale)
+         then
             Idlac_Errors.Error
               ("The specified type for this constant " &
                "is not enough precise for this value. " &
@@ -8704,30 +8748,35 @@ package body Idl_Fe.Parser is
       case N.Kind is
          when C_Octet =>
             if N.Integer_Value < Idl_Octet_Min
-              or else N.Integer_Value > Idl_Octet_Max then
+              or else N.Integer_Value > Idl_Octet_Max
+            then
                Integer_Precision_Exceeded;
             end if;
          when C_Short =>
             if Full then
                if N.Integer_Value < Idl_Short_Min
-                 or else N.Integer_Value > Idl_Short_Max then
+                 or else N.Integer_Value > Idl_Short_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             else
                if N.Integer_Value < Idl_Short_Min
-                 or else N.Integer_Value > Idl_UShort_Max then
+                 or else N.Integer_Value > Idl_UShort_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             end if;
          when C_Long =>
             if Full then
                if N.Integer_Value < Idl_Long_Min
-                 or else N.Integer_Value > Idl_Long_Max then
+                 or else N.Integer_Value > Idl_Long_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             else
                if N.Integer_Value < Idl_Long_Min
-                 or else N.Integer_Value > Idl_ULong_Max then
+                 or else N.Integer_Value > Idl_ULong_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             end if;
@@ -8736,7 +8785,8 @@ package body Idl_Fe.Parser is
                pragma Warnings (Off);
                --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
-                 or else N.Integer_Value > Idl_LongLong_Max then
+                 or else N.Integer_Value > Idl_LongLong_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
                pragma Warnings (On);
@@ -8744,7 +8794,8 @@ package body Idl_Fe.Parser is
                pragma Warnings (Off);
                --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
-                 or else N.Integer_Value > Idl_ULongLong_Max then
+                 or else N.Integer_Value > Idl_ULongLong_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
                pragma Warnings (On);
@@ -8752,55 +8803,64 @@ package body Idl_Fe.Parser is
          when C_UShort =>
             if Full then
                if N.Integer_Value < Idl_UShort_Min
-                 or else N.Integer_Value > Idl_UShort_Max then
+                 or else N.Integer_Value > Idl_UShort_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             else
                if N.Integer_Value < Idl_Short_Min
-                 or else N.Integer_Value > Idl_UShort_Max then
+                 or else N.Integer_Value > Idl_UShort_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             end if;
          when C_ULong =>
             if Full then
                if N.Integer_Value < Idl_ULong_Min
-                 or else N.Integer_Value > Idl_ULong_Max then
+                 or else N.Integer_Value > Idl_ULong_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             else
                if N.Integer_Value < Idl_Long_Min
-                 or else N.Integer_Value > Idl_ULong_Max then
+                 or else N.Integer_Value > Idl_ULong_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             end if;
          when C_ULongLong =>
             if Full then
                if N.Integer_Value < Idl_ULongLong_Min
-                 or else N.Integer_Value > Idl_ULongLong_Max then
+                 or else N.Integer_Value > Idl_ULongLong_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
             else
                pragma Warnings (Off);
                --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
-                 or else N.Integer_Value > Idl_ULongLong_Max then
+                 or else N.Integer_Value > Idl_ULongLong_Max
+               then
                   Integer_Precision_Exceeded;
                end if;
                pragma Warnings (On);
             end if;
          when C_Float =>
             if N.Float_Value < Idl_Float_Min
-              or else N.Float_Value > Idl_Float_Max then
+              or else N.Float_Value > Idl_Float_Max
+            then
                Float_Precision_Exceeded;
             end if;
          when C_Double =>
             if N.Float_Value < Idl_Double_Min
-              or else N.Float_Value > Idl_Double_Max then
+              or else N.Float_Value > Idl_Double_Max
+            then
                Float_Precision_Exceeded;
             end if;
          when C_LongDouble =>
             if N.Float_Value < Idl_Long_Double_Min
-              or else N.Float_Value > Idl_Long_Double_Max then
+              or else N.Float_Value > Idl_Long_Double_Max
+            then
                Float_Precision_Exceeded;
             end if;
          when C_Fixed
@@ -8915,7 +8975,8 @@ package body Idl_Fe.Parser is
             when C_Fixed =>
                if Value.Digits_Nb - Value.Scale >
                  Value_Type.Digits_Nb - Value_Type.Scale or else
-                 Value.Scale > Value_Type.Scale then
+                 Value.Scale > Value_Type.Scale
+               then
                   Idlac_Errors.Error
                     ("The specified type for this fixed point " &
                      "constant is not enough precise for its value. " &
@@ -8967,7 +9028,8 @@ package body Idl_Fe.Parser is
          if To_Lower (S (I)) not in LC_A .. LC_Z
            and then S (I) not in '0' .. '9'
            and then S (I) /= '.'
-           and then S (I) /= '_' then
+           and then S (I) /= '_'
+         then
             Idlac_Errors.Error ("invalid string for context " &
                                  "declaration : it may only content " &
                                  "alphabetic, digit, period, underscore " &
@@ -8981,7 +9043,8 @@ package body Idl_Fe.Parser is
         and then S (S'Last) not in '0' .. '9'
         and then S (S'Last) /= '.'
         and then S (S'Last) /= '_'
-        and then S (S'Last) /= '*' then
+        and then S (S'Last) /= '*'
+      then
          Idlac_Errors.Error ("invalid string for context " &
                               "declaration : the last character may only " &
                               "be an alphabetic, digit, period, " &

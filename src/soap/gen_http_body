@@ -18,7 +18,7 @@ fi
 GNATPRFH=$1
 SRCDIR=$2
 NAME=$3
-name=`echo ${NAME} | tr '[:upper:]' '[:lower:]'`
+name=`echo ${NAME} | LANG=C tr '[:upper:]' '[:lower:]'`
 SPEC=${SRCDIR}/polyorb-http_${name}s.ads
 BODY=polyorb-http_${name}s.adb
 UNIT=PolyORB.HTTP_${NAME}s

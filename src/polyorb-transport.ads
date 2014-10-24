@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -143,6 +143,11 @@ package PolyORB.Transport is
       is abstract;
    --  Write out the contents of Buffer onto TE
 
+   procedure Check_Validity (TE : access Transport_Endpoint);
+   --  Force a validity check on TE (which must not be closed). If TE has
+   --  become invalid, close it. TE must not be currently monitored by an
+   --  ORB polling task. Used for handling of Check_Validity filter message.
+
    procedure Close (TE : access Transport_Endpoint);
    --  Dissociate the transport endpoint from any communication resource
 
@@ -186,9 +191,5 @@ private
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;
       end record;
-
-   procedure Check_Validity (TE : access Transport_Endpoint);
-   --  Check whether TE (which must not be closed) is still valid, and if not,
-   --  close it. Used for handling of Check_Validity filter message.
 
 end PolyORB.Transport;

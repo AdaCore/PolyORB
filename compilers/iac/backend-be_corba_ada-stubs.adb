@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -610,6 +610,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
          S : Node_Id;
 
       begin
+         if Reopened (E) then
+            return;
+         end if;
+
          if not Map_Particular_CORBA_Parts (E, PK_Stub_Spec) then
             S := Map_IDL_Unit (E, Include_Source => True);
             Append_To (Packages (Current_Entity), S);
@@ -1247,6 +1251,10 @@ package body Backend.BE_CORBA_Ada.Stubs is
          S : Node_Id;
          D : Node_Id;
       begin
+         if Reopened (E) then
+            return;
+         end if;
+
          if not Map_Particular_CORBA_Parts (E, PK_Stub_Body) then
             S := Stub_Node (BE_Node (Identifier (E)));
             Push_Entity (S);

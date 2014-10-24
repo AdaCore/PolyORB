@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,38 +32,38 @@ package Ada_Be.Mappings.CORBA is
 
    type CORBA_Mapping_Type is new Mapping_Type with private;
 
-   function Library_Unit_Name
+   overriding function Library_Unit_Name
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
-   function Client_Stubs_Unit_Name
+   overriding function Client_Stubs_Unit_Name
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
-   function Server_Skel_Unit_Name
+   overriding function Server_Skel_Unit_Name
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
-   function Self_For_Operation
+   overriding function Self_For_Operation
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
-   procedure Map_Type_Name
+   overriding procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id;
       Unit : out ASU.Unbounded_String;
       Typ  : out ASU.Unbounded_String);
 
-   function Calling_Stubs_Type
+   overriding function Calling_Stubs_Type
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
-   function Generate_Scope_In_Child_Package
+   overriding function Generate_Scope_In_Child_Package
      (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return Boolean;

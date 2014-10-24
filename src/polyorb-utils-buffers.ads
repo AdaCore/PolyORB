@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -53,7 +53,6 @@ package PolyORB.Utils.Buffers is
 
    generic
       type T is private;
-      with function Swapped (Item : T) return T is <>;
 
       With_Alignment : Boolean := True;
       --  If With_Alignment is False, then don't align the buffer prior to

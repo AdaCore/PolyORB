@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2005;
+
 with PolyORB.Binding_Data.DNS.MDNS;
 with PolyORB.Binding_Objects;
 with PolyORB.ORB;
@@ -79,16 +81,17 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Type then
+        not in PolyORB.Binding_Data.DNS.MDNS.MDNS_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
          return;
       end if;
 
-      Create_Socket (Socket => Sock,
-                     Family => Family_Inet,
-                     Mode   => Socket_Datagram);
+      Utils.Sockets.Create_Socket (Socket => Sock,
+                                   Family => Family_Inet,
+                                   Mode   => Socket_Datagram);
 
       Set_Socket_Option
         (Sock,
@@ -132,7 +135,8 @@ package body PolyORB.DNS.Transport_Mechanisms.MDNS is
    is
    begin
       MF.Address :=
-        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+        new Socket_Name'
+          (Datagram_Socket_AP (TAP.all).Socket_AP_Publish_Name);
    end Create_Factory;
 
    --------------------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -305,7 +305,7 @@ procedure TypedTest_Event is
                       (Standard.String'("Hello to TestInterface"));
                RecMsg := TypedTest_Interface.Impl.EchoString
                          (TypedTest_Interface.Impl.Object_Ptr (O), SendMsg);
-               Ada.Text_IO.Put_Line ("Msg from Test Interface : "&
+               Ada.Text_IO.Put_Line ("Msg from Test Interface : " &
                                CORBA.To_Standard_String (RecMsg));
             end;
          when K_PushSupplier =>
@@ -344,7 +344,7 @@ procedure TypedTest_Event is
                       (Standard.String'("Hello to TestInterface"));
                RecMsg := TypedTest_Interface.Impl.EchoString
                          (TypedTest_Interface.Impl.Object_Ptr (O), SendMsg);
-               Ada.Text_IO.Put_Line ("Msg from Test Interface : "&
+               Ada.Text_IO.Put_Line ("Msg from Test Interface : " &
                                CORBA.To_Standard_String (RecMsg));
             end;
 
@@ -650,7 +650,7 @@ procedure TypedTest_Event is
                   Ada.Text_IO.Put_Line ("syntax error");
 
                when E : others =>
-                  Ada.Text_IO.Put_Line ("raise "& Exception_Name (E));
+                  Ada.Text_IO.Put_Line ("raise " & Exception_Name (E));
                   Ada.Text_IO.Put_Line (Exception_Message (E));
                   Ada.Text_IO.Put_Line (Exception_Information (E));
             end;

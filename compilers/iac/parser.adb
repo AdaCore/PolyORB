@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -65,7 +65,12 @@ package body Parser is
    function P_Attribute_Declaration return Node_Id;
    function P_Constant_Declaration return Node_Id;
    function P_Constant_Expression
-     (Optional : Boolean := False) return Node_Id;
+     (Optional : Boolean := False;
+      First_Of_Range : Boolean := False) return Node_Id;
+   --  First_Of_Range is True for the first expression in a range pragma. This
+   --  is needed to correctly parse negative numbers, because the preceding
+   --  token is T_Identifier (the type name). Otherwise, it thinks "-" is a
+   --  binary operator.
    function P_Constant_Type return Node_Id;
    function P_Declarator return Node_Id;
    function P_Declarator_List return List_Id;
@@ -219,13 +224,14 @@ package body Parser is
       Add_Str_To_Name_Buffer (".idl");
 
       --  Locating the file in the IAC_Search_Paths set
+
       declare
          File_Name_Str : constant String := Name_Buffer (1 .. Name_Len);
       begin
-         for Index in 1 .. IAC_Search_Count loop
+         for P of IAC_Search_Paths loop
             declare
                Full_Path : constant String
-                 := IAC_Search_Paths (Index).all
+                 := P.all
                  & GNAT.Directory_Operations.Dir_Separator
                  & File_Name_Str;
             begin
@@ -454,12 +460,13 @@ package body Parser is
    --                        | "(" <const_exp> ")"
 
    function P_Constant_Expression
-     (Optional : Boolean := False) return Node_Id is
+     (Optional : Boolean := False;
+      First_Of_Range : Boolean := False) return Node_Id is
       use Expressions;
 
       --  There are two kinds of expressions. A binary operator has two inner
       --  expressions (left and right). When the right expression is assigned
-      --  and not the left one, the operator is an unary operator and this
+      --  and not the left one, the operator is a unary operator and this
       --  expression is considered as an expression value. When both inner
       --  expressions are assigned, this is also an expression value. An
       --  operator is a binary operator when at least the right expression is
@@ -470,8 +477,7 @@ package body Parser is
       --  Return True when there are no more token to read to complete the
       --  current expression.
 
-      function P_Expression_Part
-        (Optional : Boolean := False) return Node_Id;
+      function P_Expression_Part return Node_Id;
       --  LP: Cannot parse comment???
       --  Return a node describing an expression. It is either a binary
       --  operator (an operator with no right expression assigned) or an
@@ -550,8 +556,7 @@ package body Parser is
       -- P_Expression_Part --
       -----------------------
 
-      function P_Expression_Part
-        (Optional : Boolean := False) return Node_Id
+      function P_Expression_Part return Node_Id
       is
          Expression     : Node_Id := No_Node;
          Right_Expr     : Node_Id;
@@ -649,13 +654,20 @@ package body Parser is
                Expression := New_Node (K_Expression, Token_Location);
                Set_Operator (Expression, Token);
 
-               --  Token is a real unary operator
+               --  Token is a real unary operator. Normally, if we see "X -",
+               --  the "-" is a binary operator. However if First_Of_Range is
+               --  True, it is a unary operator, because in that case X is the
+               --  subtype name, as in:
+               --
+               --     #pragma range X -1 .. 10
 
                if Token = T_Tilde
                  or else (Token in T_Minus .. T_Plus
-                            and then not Is_Literal     (Previous_Token)
-                            and then not Is_Scoped_Name (Previous_Token)
-                            and then Previous_Token /= T_Right_Paren)
+                            and then
+                            ((not Is_Literal (Previous_Token)
+                              and then not Is_Scoped_Name (Previous_Token)
+                              and then Previous_Token /= T_Right_Paren)
+                             or else First_Of_Range))
                then
                   case Next_Token is
                      when T_Identifier
@@ -718,7 +730,7 @@ package body Parser is
       --  Read enough expressions to push as first expression a binary operator
       --  with no right expression
 
-      Expr := P_Expression_Part (Optional);
+      Expr := P_Expression_Part;
       if No (Expr) then
          return No_Node;
       end if;
@@ -2207,7 +2219,7 @@ package body Parser is
             Scoped_Name := P_Scoped_Name;
             if No (Scoped_Name) then
                Error_Loc (1) := Token_Location;
-               DE ("incorrect #pragma version syntax");
+               DE ("incorrect #pragma range syntax");
             end if;
 
             Set_Target (Pragma_Node, Scoped_Name);
@@ -2242,7 +2254,11 @@ package body Parser is
                   Lowerbound_Expr : Node_Id := No_Node;
                   Upperbound_Expr : Node_Id := No_Node;
                begin
-                  Lowerbound_Expr := P_Constant_Expression (Optional => True);
+                  --  Pass First_Of_Range => True for the expression before
+                  --  "..", not for the one after. Both are Optional.
+
+                  Lowerbound_Expr := P_Constant_Expression
+                    (Optional => True, First_Of_Range => True);
                   Set_Lower_Bound_Expr (Pragma_Node, Lowerbound_Expr);
                   if Next_Token = T_Dot_Dot then
                      Scan_Token;  --  past ".."

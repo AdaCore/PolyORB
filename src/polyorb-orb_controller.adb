@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -372,6 +372,17 @@ package body PolyORB.ORB_Controller is
          Broadcast (O.Shutdown_CV);
       end if;
    end Note_Task_Unregistered;
+
+   --------------------------
+   -- ORB_Critical_Section --
+   --------------------------
+
+   function ORB_Critical_Section
+     (O : access ORB_Controller) return access PTM.Mutex_Type'Class
+   is
+   begin
+      return O.ORB_Lock;
+   end ORB_Critical_Section;
 
    -------------------------------------
    -- Register_ORB_Controller_Factory --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+pragma Ada_2005;
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
@@ -56,40 +58,40 @@ package PolyORB.Protocols.DNS is
    type DNS_Protocol is new Protocol with private;
    type DNS_Session  is new Session with private;
 
-   procedure Create
+   overriding procedure Create
      (Proto   : access DNS_Protocol;
       Session : out Filter_Access);
 
    --  INTERFACE TO UPPER LAYERS
 
-   procedure Invoke_Request
+   overriding procedure Invoke_Request
        (Sess   : access DNS_Session;
        R   : Requests.Request_Access;
        Pro : access Binding_Data.Profile_Type'Class);
 
-   procedure Abort_Request
+   overriding procedure Abort_Request
      (S : access DNS_Session;
       R : Requests.Request_Access);
 
-   procedure Send_Reply
+   overriding procedure Send_Reply
      (S : access DNS_Session;
       Request : Requests.Request_Access);
 
    --  INTERFACE TO LOWER LAYERS
 
-   procedure Handle_Connect_Indication (S : access DNS_Session);
+   overriding procedure Handle_Connect_Indication (S : access DNS_Session);
 
-   procedure Handle_Connect_Confirmation (S : access DNS_Session);
+   overriding procedure Handle_Connect_Confirmation (S : access DNS_Session);
 
-   procedure Handle_Data_Indication
+   overriding procedure Handle_Data_Indication
      (Sess        : access DNS_Session;
       Data_Amount : Ada.Streams.Stream_Element_Count;
       Error       : in out Errors.Error_Container);
 
-   procedure Handle_Disconnect
+   overriding procedure Handle_Disconnect
      (Sess : access DNS_Session; Error : Errors.Error_Container);
 
-   procedure Handle_Flush (S : access DNS_Session);
+   overriding procedure Handle_Flush (S : access DNS_Session);
 
    --  DNS protocol proper API
 
@@ -120,11 +122,6 @@ package PolyORB.Protocols.DNS is
      (Sess             : access DNS_Session;
       Request_Id       : Types.Unsigned_Long;
       RC     : Rcode);
-
-   procedure Set_Default_Servant
-     (The_Ref : PolyORB.References.Ref);
-   function Get_Default_Servant return PolyORB.References.Ref;
-   --  Set/Get the user specified default servant
 
 private
    Object_Reference : PolyORB.References.Ref;

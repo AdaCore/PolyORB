@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -56,6 +56,18 @@ package body PolyORB.DSA_P.Name_Service.COS_Naming is
                renames L.Enabled;
 
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   overriding procedure Initialize
+     (Name_Ctx : access COS_Name_Server;
+      Location : String)
+   is
+   begin
+      PolyORB.References.String_To_Object (Location, Name_Ctx.Base_Ref);
+   end Initialize;
 
    -------------------------
    -- Nameserver_Register --

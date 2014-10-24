@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -34,6 +34,6 @@ with GNAT.Sockets;
 
 with PolyORB.Sockets_Initialization;
 pragma Warnings (Off, PolyORB.Sockets_Initialization);
---  Not referenced.
+--  Not referenced
 
 package PolyORB.Sockets renames GNAT.Sockets;

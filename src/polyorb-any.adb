@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -3048,7 +3048,8 @@ package body PolyORB.Any is
 
                for J in 0 .. Nb_Param - 1 loop
                   if not Equivalent (Member_Type (Left, J),
-                                     Member_Type (Right, J)) then
+                                     Member_Type (Right, J))
+                  then
                      return False;
                   end if;
                end loop;
@@ -3146,7 +3147,8 @@ package body PolyORB.Any is
 
             for J in 0 .. Nb_Param - 1 loop
                if Member_Visibility (Left, J) /=
-                 Member_Visibility (Right, J) then
+                 Member_Visibility (Right, J)
+               then
                   return False;
                end if;
             end loop;
@@ -3231,6 +3233,12 @@ package body PolyORB.Any is
                         end;
 
                      when others =>
+                        --  ??? For integer discriminants with an adequately
+                        --  small range, a lookup-table-based mapper would
+                        --  afford improved performance. Right now however
+                        --  we still use the default linear scan mapper for
+                        --  all types with non-enumerated discriminants.
+
                         null;
                   end case;
                end;

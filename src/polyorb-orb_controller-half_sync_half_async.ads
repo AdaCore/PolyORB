@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -53,7 +53,8 @@ package PolyORB.ORB_Controller.Half_Sync_Half_Async is
 
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_Half_Sync_Half_Async;
-      TI :        PTI.Task_Info_Access);
+      TI : PTI.Task_Info_Access;
+      SL : PTM.Mutex_Access);
 
    overriding procedure Disable_Polling
      (O : access ORB_Controller_Half_Sync_Half_Async;

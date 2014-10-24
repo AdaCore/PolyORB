@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -219,6 +219,10 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
          D : Node_Id;
          N : Node_Id;
       begin
+         if Reopened (E) then
+            return;
+         end if;
+
          if not Map_Particular_CORBA_Parts (E, PK_IR_Info_Spec) then
             D := Stub_Node (BE_Node (Identifier (E)));
             Push_Entity (D);
@@ -1659,7 +1663,12 @@ package body Backend.BE_CORBA_Ada.IR_Infos is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
          N : Node_Id;
+
       begin
+         if Reopened (E) then
+            return;
+         end if;
+
          if not Map_Particular_CORBA_Parts (E, PK_IR_Info_Body) then
             D := Stub_Node (BE_Node (Identifier (E)));
             Push_Entity (D);

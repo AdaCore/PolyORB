@@ -42,7 +42,6 @@ with PolyORB.Initialization;
 with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Sockets;
-with PolyORB.Transport;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.TCP_Access_Points;
@@ -54,10 +53,6 @@ package body PolyORB.Setup.Access_Points.SOAP is
    use PolyORB.Sockets;
    use PolyORB.Utils.Socket_Access_Points;
    use PolyORB.Utils.TCP_Access_Points;
-
-   --  The SOAP access point
-
-   SOAP_Access_Point : Transport.Transport_Access_Point_Access;
 
    HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
    SOAP_Protocol : aliased Protocols.SOAP_Pr.SOAP_Protocol;
@@ -82,36 +77,31 @@ package body PolyORB.Setup.Access_Points.SOAP is
 
    procedure Initialize_Access_Points is
       use PolyORB.Parameters;
-
    begin
       if Get_Conf ("access_points", "soap", True) then
-
          declare
             use Binding_Data.SOAP;
 
-            Port_Hint : constant Port_Interval := To_Port_Interval
-                          (Get_Conf
-                           ("soap",
-                            "polyorb.protocols.soap.default_port",
-                            (Integer (Any_Port), Integer (Any_Port))));
-
-            Addr : constant Inet_Addr_Type
-              := Inet_Addr (String'(Get_Conf
-                                    ("soap",
-                                     "polyorb.protocols.soap.default_addr",
-                                     Image (No_Inet_Addr))));
-
+            Created_APs : constant APs :=
+              Initialize_Access_Points
+                (Get_Conf
+                     ("soap",
+                      "polyorb.protocols.soap.default_addr",
+                      ""),
+                 To_Port_Interval
+                   (Get_Conf
+                      ("soap",
+                       "polyorb.protocols.soap.default_port",
+                       (Integer (Any_Port), Integer (Any_Port)))));
          begin
-            Initialize_Socket (SOAP_Access_Point, Addr, Port_Hint);
-
-            Register_Access_Point
-              (ORB   => The_ORB,
-               TAP   => SOAP_Access_Point,
-               Chain => SOAP_Factories'Access,
-               PF    => new SOAP_Profile_Factory'
-                              (Create_Factory (SOAP_Access_Point)));
-            --  Register socket with ORB object, associating a protocol
-            --  to the transport service access point.
+            for J in Created_APs'Range loop
+               Register_Access_Point
+                 (ORB   => The_ORB,
+                  TAP   => Created_APs (J),
+                  Chain => SOAP_Factories'Access,
+                  PF    => new SOAP_Profile_Factory'
+                    (Create_Factory (Created_APs (J))));
+            end loop;
          end;
       end if;
    end Initialize_Access_Points;

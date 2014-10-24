@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -60,6 +60,7 @@ package body PolyORB.Binding_Data.GIOP is
       use Transport_Mechanism_Lists;
 
       Iter : Transport_Mechanism_Lists.Iterator := First (Profile.Mechanisms);
+      No_Mechanism_Selected : Boolean := True;
 
    begin
       --  Go through all transport mechanism and try to bind it until the
@@ -68,15 +69,18 @@ package body PolyORB.Binding_Data.GIOP is
       --  XXX This is a temporary implementation. It is not conformant
       --  with PortableInterceptors and RebindPolicy specifications.
 
-      Throw (Error, No_Resources_E,
-             System_Exception_Members'
-             (Minor => 0, Completed => Completed_Maybe));
-
       while not Last (Iter) loop
          if Is_Security_Selected = null
            or else Is_Security_Selected (QoS, Value (Iter).all)
          then
+            No_Mechanism_Selected := False;
+
+            --  Clear previous error (if any)
+
             Catch (Error);
+
+            --  Try with this mechanism
+
             Bind_Mechanism
               (Value (Iter).all.all, Profile, The_ORB, QoS, BO_Ref, Error);
 
@@ -85,6 +89,12 @@ package body PolyORB.Binding_Data.GIOP is
 
          Next (Iter);
       end loop;
+
+      if No_Mechanism_Selected then
+         Throw (Error, No_Resources_E,
+                System_Exception_Members'
+                  (Minor => 0, Completed => Completed_Maybe));
+      end if;
 
       if not Found (Error) then
          Locate_Object

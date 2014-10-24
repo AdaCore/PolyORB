@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,8 +29,6 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-pragma Ada_2005;
 
 pragma Ada_2005;
 
@@ -62,7 +60,7 @@ package body PolyORB.Servants is
       --  the RR.Req.Upcall_Abortable_Mutex to clean RR.Req.Upcall_Abortable
       --  (see Abortable_Execute_Servant).
 
-      RR.Aborted   := False;
+      RR.Aborted := False;
    end Run;
 
    -------------------------------

@@ -1,0 +1,37 @@
+==============================
+PolyORB 2.11 NEW FEATURES LIST
+==============================
+
+Copyright (C) 2014, AdaCore
+
+This file contains a complete list of new features in version 2.11 of PolyORB.
+
+An ISO date (YYYY-MM-DD) appears in parentheses after the description line.
+This date shows the implementation date of the feature. Any 2.10 wavefront
+subsequent to this date will contain the indicated feature, as will any
+subsequent releases.
+
+NF-211-NA13-008 Extend fast-path CDR marshalling to nested arrays (2014-10-13)
+
+  The fast-path CDR marsahlling circuitry, allowing efficient marshalling
+  of common aggregates such as arrays of bytes or integers, has been
+  extended to the case of nested arrays.
+
+NF-211-N923-009 Lifted limitations on IAC command line (2014-09-23)
+
+  IAC used to support only 64 preprocessor arguments, and 64 search path
+  elements at most. Both limitations have been removed.
+
+NF-211-N906-002 Changed preference order for Ada compiler (2014-09-06)
+
+  When looking for an Ada compiler, the PolyORB configure scripts now
+  favor "gcc" over "gnatgcc" or "adagcc". The default Ada compiler can
+  always be overridden at configure time using the "ADA" environment
+  variable.
+
+NF-211-N109-057 Use standard initial reference for name service (2014-01-13)
+
+  PolyORB.CORBA_P.Naming_Tools now first looks up the name server using the
+  standard "NameService" initial reference key. The legcay implementation
+  defined "NamingService" key is used as a fallback.
+  

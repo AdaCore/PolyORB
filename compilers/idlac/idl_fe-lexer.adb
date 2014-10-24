@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -835,7 +835,8 @@ package body Idl_Fe.Lexer is
                      Skip_Char;
                   when '0' =>
                      if Is_Octal_Digit_Character
-                       (View_Next_Next_Char) then
+                       (View_Next_Next_Char)
+                     then
                         Skip_Char;
                      else
                         Go_To_End_Of_String;
@@ -850,7 +851,8 @@ package body Idl_Fe.Lexer is
                      Skip_Char;
                   when LC_X =>
                      if Is_Hexa_Digit_Character
-                       (View_Next_Next_Char) then
+                       (View_Next_Next_Char)
+                     then
                         Skip_Char;
                      else
                         Go_To_End_Of_String;
@@ -862,7 +864,8 @@ package body Idl_Fe.Lexer is
                      end if;
                   when LC_U =>
                      if Is_Hexa_Digit_Character
-                       (View_Next_Next_Char) then
+                       (View_Next_Next_Char)
+                     then
                         Skip_Char;
                      else
                         Go_To_End_Of_String;
@@ -933,7 +936,8 @@ package body Idl_Fe.Lexer is
       Set_Mark;
       if not Is_Escaped
         and then Get_Current_Char = 'L'
-        and then View_Next_Char = ''' then
+        and then View_Next_Char = '''
+      then
          Skip_Char;
          Set_End_Mark;
          case Scan_Char (True) is
@@ -946,7 +950,8 @@ package body Idl_Fe.Lexer is
          end case;
       elsif not Is_Escaped
         and then Get_Current_Char = 'L'
-        and then View_Next_Char = Quotation then
+        and then View_Next_Char = Quotation
+      then
          Skip_Char;
          Set_End_Mark;
          case Scan_String (True) is
@@ -1004,7 +1009,8 @@ package body Idl_Fe.Lexer is
             Set_End_Mark;
             return T_Lit_Octal_Integer;
          elsif View_Next_Char = 'D' or else View_Next_Char = 'd'
-           or else View_Next_Char = 'E' or else View_Next_Char = 'e' then
+           or else View_Next_Char = 'E' or else View_Next_Char = 'e'
+         then
             null;
          else
             --  This is only a digit
@@ -1113,7 +1119,8 @@ package body Idl_Fe.Lexer is
               or else To_Lower (Get_Marked_Text) = "ifdef"
               or else To_Lower (Get_Marked_Text) = "ifndef"
               or else To_Lower (Get_Marked_Text) = "include"
-              or else To_Lower (Get_Marked_Text) = "error" then
+              or else To_Lower (Get_Marked_Text) = "error"
+            then
                Idlac_Errors.Error
                  ("cannot handle preprocessor directive in "
                   & "lexer, please run cpp first.",

@@ -6,7 +6,7 @@ MANIFEST
 Makefile.common.in
 Makefile.common.project.in
 Makefile.in
-NEWS
+HISTORY
 README
 README.DSA
 VERSION
@@ -688,6 +688,7 @@ examples/polyorb/polyorb-test_object_soa.ads
 examples/static/README
 examples/static/po_static_conf.ads
 features-2.10
+features-2.11
 features-2.2
 features-2.3
 features-2.4
@@ -797,6 +798,8 @@ idls/cos/trader/CosTradingRepos.idl
 idls/cos/transaction/CosTSInteroperation.idl
 idls/cos/transaction/CosTSPortability.idl
 idls/cos/transaction/CosTransactions.idl
+known-problems-2.10
+known-problems-2.9
 polyorb-config.in
 projects-distrib/README
 projects-distrib/polyorb.gpr.in
@@ -1181,6 +1184,8 @@ src/dsa/polyorb-dsa_p-name_service-mdns-servant.adb
 src/dsa/polyorb-dsa_p-name_service-mdns-servant.ads
 src/dsa/polyorb-dsa_p-name_service-mdns.adb
 src/dsa/polyorb-dsa_p-name_service-mdns.ads
+src/dsa/polyorb-dsa_p-name_service-none.adb
+src/dsa/polyorb-dsa_p-name_service-none.ads
 src/dsa/polyorb-dsa_p-name_service.adb
 src/dsa/polyorb-dsa_p-name_service.ads
 src/dsa/polyorb-dsa_p-partitions.adb
@@ -1755,6 +1760,8 @@ src/polyorb-transport-datagram.adb
 src/polyorb-transport-datagram.ads
 src/polyorb-transport-handlers.adb
 src/polyorb-transport-handlers.ads
+src/polyorb-transport-sockets.adb
+src/polyorb-transport-sockets.ads
 src/polyorb-transport.adb
 src/polyorb-transport.ads
 src/polyorb-types.adb

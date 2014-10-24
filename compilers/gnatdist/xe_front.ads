@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -51,7 +51,7 @@ package XE_Front is
    Default_Last_Boot_Location  : Location_Id             := No_Location_Id;
    Default_Data_Location       : Location_Id             := No_Location_Id;
    Default_Starter             : Import_Method_Type      := Ada_Import;
-   Default_Name_Server         : Name_Server_Type        := No_Name_Server;
+   Default_Name_Server         : Name_Server_Type        := Standalone_NS;
    Default_Version_Check       : Boolean                 := True;
    Default_Rsh_Command         : Name_Id                 := No_Name;
    Default_Rsh_Options         : Name_Id                 := No_Name;

@@ -105,7 +105,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
               new Socket_Endpoint;
 
          begin
-            Create_Socket (Sock);
+            Utils.Sockets.Create_Socket (Sock);
             Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
             Create (Socket_Endpoint (TE.all), Sock);
 
@@ -174,7 +174,8 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
    begin
       Append
         (MF.Addresses,
-         new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all))));
+         new Socket_Name'
+           (Connected_Socket_AP (TAP.all).Socket_AP_Publish_Name));
    end Create_Factory;
 
    ------------------------------

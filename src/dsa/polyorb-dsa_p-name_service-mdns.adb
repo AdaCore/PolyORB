@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2010-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,6 +44,7 @@ with PolyORB.DSA_P.Name_Service.mDNS.Client;
 with PolyORB.DSA_P.Name_Service.mDNS.Servant;
 with PolyORB.Errors;
 with PolyORB.Log;
+with PolyORB.Initial_References;
 with PolyORB.Minimal_Servant;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
@@ -81,6 +82,18 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
 
    Root_DNS : aliased PolyORB.DSA_P.Name_Service.mDNS.Servant.Object_Ptr;
    Root_DNS_Ref : PolyORB.References.Ref;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   overriding procedure Initialize
+     (Name_Ctx : access MDNS_Name_Server;
+      Location : String)
+   is
+   begin
+      Initiate_MDNS_Context (Location, Name_Ctx.all);
+   end Initialize;
 
    ------------------------------
    -- Initialize_MDNS_Policies --
@@ -211,7 +224,7 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
 
    procedure Initiate_MDNS_Context
      (MDNS_Reference : String;
-      Context        : out PolyORB.DSA_P.Name_Service.Name_Server_Access)
+      Context        : out MDNS_Name_Server)
    is
       use PolyORB.Errors;
       use PolyORB.POA;
@@ -230,8 +243,6 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       Stringified_Ref : PolyORB.Types.String;
 
    begin
-      pragma Assert (Context /= null);
-
       Initialize_MDNS_Policies (Policies);
       Root_DNS := new PolyORB.DSA_P.Name_Service.mDNS.Servant.Object;
       Create_POA
@@ -260,6 +271,13 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
            (Profiles => (1 => LP), Type_Id => "", R => Root_DNS_Ref);
       end;
 
+      --  Register it as the default servant for mDNS
+
+      PolyORB.Initial_References.Register_Initial_Reference
+        ("mDNSResponder", Root_DNS_Ref);
+
+      --  Build reference to the mDNS group
+
       Stringified_Ref := Types.To_PolyORB_String (MDNS_Reference &
                                   PolyORB.Objects.Oid_To_Hex_String (Oid.all));
 
@@ -280,14 +298,5 @@ package body PolyORB.DSA_P.Name_Service.mDNS is
       end if;
       pragma Debug (C, O ("Leaving"));
    end Initiate_MDNS_Context;
-
-   ----------------------
-   -- Get_MDNS_Servant --
-   ----------------------
-
-   function Get_MDNS_Servant return PolyORB.References.Ref is
-   begin
-      return Root_DNS_Ref;
-   end Get_MDNS_Servant;
 
 end PolyORB.DSA_P.Name_Service.mDNS;

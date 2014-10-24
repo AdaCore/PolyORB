@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,6 +37,8 @@ with PolyORB.Utils;
 
 package body PolyORB.CORBA_P.Naming_Tools is
 
+   use CORBA.ORB;
+
    use CosNaming;
    use CosNaming.NamingContext;
    use CosNaming.NamingContext.Helper;
@@ -49,6 +51,9 @@ package body PolyORB.CORBA_P.Naming_Tools is
    function Retrieve_Context (Name : CosNaming.Name) return Ref;
    --  Return a CosNaming.NamingContext.Ref that designates the NamingContext
    --  registered as Name.
+
+   function Root_Context return Ref;
+   --  Retrieve root naming context from ORB initial references
 
    --------------
    -- Finalize --
@@ -67,11 +72,8 @@ package body PolyORB.CORBA_P.Naming_Tools is
    ------------
 
    function Locate (Name : CosNaming.Name) return CORBA.Object.Ref is
-      RNS  : constant NamingContext.Ref :=
-                To_Ref (CORBA.ORB.Resolve_Initial_References
-                        (CORBA.ORB.To_CORBA_String ("NamingService")));
    begin
-      return resolve (RNS, Name);
+      return resolve (Root_Context, Name);
    end Locate;
 
    ------------
@@ -99,8 +101,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
          declare
             Obj : CORBA.Object.Ref;
          begin
-            CORBA.ORB.String_To_Object
-              (CORBA.To_CORBA_String (IOR_Or_Name), Obj);
+            String_To_Object (CORBA.To_CORBA_String (IOR_Or_Name), Obj);
             return Obj;
          end;
       end if;
@@ -122,8 +123,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
          declare
             Obj : CORBA.Object.Ref;
          begin
-            CORBA.ORB.String_To_Object
-              (CORBA.To_CORBA_String (IOR_Or_Name), Obj);
+            String_To_Object (CORBA.To_CORBA_String (IOR_Or_Name), Obj);
             return Obj;
          end;
       end if;
@@ -136,12 +136,9 @@ package body PolyORB.CORBA_P.Naming_Tools is
    ----------------------
 
    function Retrieve_Context (Name : CosNaming.Name) return Ref is
-      Cur : NamingContext.Ref :=
-              To_Ref (CORBA.ORB.Resolve_Initial_References
-                      (CORBA.ORB.To_CORBA_String ("NamingService")));
+      Cur : NamingContext.Ref := Root_Context;
       Ref : NamingContext.Ref;
-      N : CosNaming.Name;
-
+      N   : CosNaming.Name;
       NCA : constant NameComponent_Array := CosNaming.To_Element_Array (Name);
 
    begin
@@ -175,9 +172,7 @@ package body PolyORB.CORBA_P.Naming_Tools is
                   CosNaming.To_Sequence ((1 => NCA (NCA'Last)));
    begin
       if NCA'Length = 1 then
-         Context := To_Ref
-           (CORBA.ORB.Resolve_Initial_References
-            (CORBA.ORB.To_CORBA_String ("NamingService")));
+         Context := Root_Context;
       else
          Context := Retrieve_Context
            (CosNaming.To_Sequence (NCA (NCA'First .. NCA'Last - 1)));
@@ -208,6 +203,32 @@ package body PolyORB.CORBA_P.Naming_Tools is
       Register (Name, Ref, Rebind, Sep);
       Guard.Name := CORBA.To_CORBA_String (Name);
    end Register;
+
+   ------------------
+   -- Root_Context --
+   ------------------
+
+   NameService_ObjectId   : constant ObjectId :=
+                              To_CORBA_String ("NameService");
+   NamingService_ObjectId : constant ObjectId :=
+                              To_CORBA_String ("NamingService");
+
+   function Root_Context return Ref is
+      CORBA_Ref : CORBA.Object.Ref;
+   begin
+      begin
+         --  First try standard initial reference
+
+         CORBA_Ref := Resolve_Initial_References (NameService_ObjectId);
+      exception
+         when CORBA.InvalidName =>
+            --  Next fall back to legacy implementation-defined one
+
+            CORBA_Ref := Resolve_Initial_References (NamingService_ObjectId);
+      end;
+
+      return To_Ref (CORBA_Ref);
+   end Root_Context;
 
    ----------------
    -- Parse_Name --
@@ -285,16 +306,13 @@ package body PolyORB.CORBA_P.Naming_Tools is
    ----------------
 
    procedure Unregister (Name : String) is
-      RNS : constant NamingContext.Ref :=
-              To_Ref (CORBA.ORB.Resolve_Initial_References
-                      (CORBA.ORB.To_CORBA_String ("NamingService")));
       N   : CosNaming.Name;
       NC  : NameComponent;
    begin
       NC.kind := To_CORBA_String ("");
       NC.id   := To_CORBA_String (Name);
       Append (N, NC);
-      unbind (RNS, N);
+      unbind (Root_Context, N);
    end Unregister;
 
 end PolyORB.CORBA_P.Naming_Tools;

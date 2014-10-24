@@ -38,11 +38,14 @@ else
   case "$CXXCPP" in
     *g++*)
       if test "${CXXCPPFLAGS}" = ""; then
-        IDLCPPFLAGS="-x c++ -ansi"
+        IDLCPPFLAGS="-x c++ -ansi -ffreestanding"
         # Options to use GNU C++ preprocessor as IDL preprocessor
-        # -x c++       force C++ preprocessor mode (even though it cannot be
-        #              inferred from filename extension .idl)
-        # -ansi        disable GCC-specific behaviour
+        # -x c++         force C++ preprocessor mode (even though it cannot be
+        #                inferred from filename extension .idl)
+        # -ansi          disable GCC-specific behaviour
+        # -ffreestanding disable stdc-predef.h preinclude
+      else
+        IDLCPPFLAGS="${CXXCPPFLAGS}"
       fi
       ;;
   esac

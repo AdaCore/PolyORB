@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,8 +29,6 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-pragma Ada_2005;
 
 --  The ORB core module: main loop and scheduler.
 --  Role: * to coordinate operation of the various subsystems.
@@ -141,6 +139,14 @@ package PolyORB.ORB is
    --  Create the necessary processing resources for the execution of request
    --  execution job RJ, which must be an upcall, and start this execution.
    --  RJ is freed automatically after completion.
+
+   procedure Handle_Validate_TE
+     (P  : access Tasking_Policy_Type;
+      TE : Transport.Transport_Endpoint_Access) is null;
+   --  Verify validity of TE.
+   --  Nothing to do unless there is no tasking, in which case TE might have
+   --  become invalid without the ORB detecting it, so we need to force
+   --  detection in this case.
 
    procedure Idle
      (P         : access Tasking_Policy_Type;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -213,12 +213,13 @@ package XE is
    -- Name server type --
    ----------------------
 
-   type Name_Server_Type is new Int range 950 .. 953;
+   type Name_Server_Type is new Int range 950 .. 954;
 
    No_Name_Server  : constant Name_Server_Type := 950;
-   Embedded        : constant Name_Server_Type := 951;
-   Standalone      : constant Name_Server_Type := 952;
-   Multicast       : constant Name_Server_Type := 953;
+   None_NS         : constant Name_Server_Type := 951;
+   Embedded_NS     : constant Name_Server_Type := 952;
+   Standalone_NS   : constant Name_Server_Type := 953;
+   Multicast_NS    : constant Name_Server_Type := 954;
    Name_Server_Img : array (Name_Server_Type) of Name_Id;
 
    ------------------

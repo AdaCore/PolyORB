@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -2568,7 +2568,7 @@ package body Ada_Be.Idl2Ada.Helper is
                             "                                      "
                             & "CORBA.Unsigned_Long ("
                             & Integer'Image (J)
-                            &"));");
+                            & "));");
                         Add_With (CU, Helper_Name);
                         PL (CU, "Result_"
                             & Ada_Name (Decl_Node)

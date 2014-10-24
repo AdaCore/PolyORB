@@ -260,6 +260,14 @@ begin
       Output ("test unsigned long long",
         echoULLong (Myall_types, 9_192_631_770) = 9_192_631_770);
       Output ("test float", echoFloat (Myall_types, 2.7) = 2.7);
+
+      --  Float value 34.4072222 becomes an invalid value when byte swapped:
+      --  test that we can transport it even if the remote host has opposite
+      --  endianness.
+
+      Output ("test float inval-if-swapped",
+        echoFloat (Myall_types, 34.4072222) = 34.4072222);
+
       Output ("test double", echoDouble (Myall_types, 1.5) = 1.5);
 
       begin

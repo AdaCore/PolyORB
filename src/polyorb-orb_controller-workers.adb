@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -272,7 +272,8 @@ package body PolyORB.ORB_Controller.Workers is
 
    overriding procedure Schedule_Task
      (O  : access ORB_Controller_Workers;
-      TI : PTI.Task_Info_Access)
+      TI : PTI.Task_Info_Access;
+      SL : PTM.Mutex_Access)
    is
       function Is_Schedulable (J : PJ.Job'Class) return Boolean;
       --  True if J is schedulable for this task (i.e. not an upcall job
@@ -354,7 +355,7 @@ package body PolyORB.ORB_Controller.Workers is
         (O.Summary,
          TI.all,
          Insert_Idle_Task (O.Idle_Tasks, TI),
-         O.ORB_Lock);
+         SL);
 
       pragma Debug (C1, O1 ("Task is now idle"));
       pragma Debug (C2, O2 (Status (O.all)));

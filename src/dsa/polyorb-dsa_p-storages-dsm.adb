@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -296,7 +296,8 @@ package body PolyORB.DSA_P.Storages.DSM is
                Target : constant DSM_Manager_RACW := Self.Copies.Table (C);
             begin
                if Target /= DSM_Manager_RACW (Self)
-                 and then Target /= Rqst_Node then
+                 and then Target /= Rqst_Node
+               then
                   Invalidate_Request
                     (Self      => Target,
                      Rqst_Node => DSM_Manager_RACW (Self),

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -138,7 +138,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    is
       Ref : CORBA.Object.Ref;
    begin
-      pragma Debug (O ("Push Mutually Agreed Interface from "&
+      pragma Debug (O ("Push Mutually Agreed Interface from " &
                        "TypedEventChannel to TypedConsumerAdmin"));
       Ref := TypedConsumerAdmin.Impl.Post (Self.X.Consumer, uses_interface);
       return Ref;
@@ -155,7 +155,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    is
       Ref : CORBA.Object.Ref;
    begin
-      pragma Debug (O ("Pull Mutually Agreed Interface from "&
+      pragma Debug (O ("Pull Mutually Agreed Interface from " &
                        "TypedEventChannel to TypedSupplierAdmin"));
       Ref := TypedSupplierAdmin.Impl.Pull (Self.X.Supplier, uses_interface);
       return Ref;
@@ -168,7 +168,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    procedure Register (RepositoryID : CosTypedEventChannelAdmin.Key;
                       Create_Ptr : Interface_Ptr) is
    begin
-      pragma Debug (O ("register a mutually agreed interface in "&
+      pragma Debug (O ("register a mutually agreed interface in " &
                        "typed eventchannel interfacetable"));
       InterfaceTable.Register (To_String (RepositoryID), Create_Ptr);
    end Register;
@@ -183,7 +183,7 @@ package body CosTypedEventChannelAdmin.TypedEventChannel.Impl is
    is
       Create_Ptr : Interface_Ptr;
    begin
-      pragma Debug (O ("attempt to retreive a mutually agreed interface "&
+      pragma Debug (O ("attempt to retreive a mutually agreed interface " &
                        "from typed eventchannel interfacetable"));
       Create_Ptr := InterfaceTable.Lookup (To_String (RepositoryID), null);
       return Create_Ptr;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -297,7 +297,13 @@ package body PolyORB.Representations.CDR is
       Aggregate_Size      : out Stream_Element_Count;
       Aggregate_Alignment : out Alignment_Type)
    is
-      TCK : constant TCKind := TypeCode.Kind (TC);
+      TCK : TCKind;
+
+      Outermost : Boolean := True;
+      El_TC     : TypeCode.Object_Ptr;
+      El_Size   : Types.Unsigned_Long;
+      El_Count  : Types.Unsigned_Long := 1;
+
    begin
       Aggregate_Data := System.Null_Address;
 
@@ -309,51 +315,54 @@ package body PolyORB.Representations.CDR is
          pragma Warnings (On);
       end if;
 
-      if TCK = Tk_Array or else TCK = Tk_Sequence then
-         declare
-            El_TC    : constant TypeCode.Object_Ptr :=
-              Unwind_Typedefs (TypeCode.Content_Type (TC));
+      --  Unwind one sequence type code, or multiple nested array typecodes
 
-            El_Size  : constant Types.Unsigned_Long :=
-              Fast_Path_Element_Size (TypeCode.Kind (El_TC));
+      El_TC := Unwind_Typedefs (TC);
+      loop
+         TCK := TypeCode.Kind (El_TC);
+         exit when not (TCK = Tk_Array
+                          or else
+                        (Outermost and then TCK = Tk_Sequence));
 
-            El_Count : Types.Unsigned_Long;
-         begin
-            if El_Size = 0 then
-               --  Case of element type that does not allow fast path
+         if TCK = Tk_Sequence then
+            --  Aggregate elements count for a sequence has one additional
+            --  element corresponding to the sequence length, which is not
+            --  part of the fast path data.
 
-               return;
+            El_Count := El_Count * Get_Aggregate_Count (ACC.all) - 1;
+         else
+            El_Count := El_Count * TypeCode.Length (El_TC);
+         end if;
 
-            elsif El_Size > 1 and then Endianness (Buffer) /= Host_Order then
-               --  Case of multi-byte elements, where the expected buffer
-               --  endianness is not the host endianness: need to perform
-               --  per-element byte swapping.
+         El_TC := TypeCode.Content_Type (El_TC);
+         Outermost := False;
+      end loop;
 
-               return;
-            end if;
+      --  Here El_TC is the inner (non-array/sequence) component type
 
-            if TCK = Tk_Array then
-               El_Count := TypeCode.Length (TC);
-            else
-               --  Aggregate elements count for a sequence has one additional
-               --  element corresponding to the sequence length, which is not
-               --  part of the fast path data.
+      El_Size := Fast_Path_Element_Size (TypeCode.Kind (El_TC));
 
-               El_Count := Get_Aggregate_Count (ACC.all) - 1;
-            end if;
+      --  Case of element type that does not allow fast path
 
-            Aggregate_Data      := Unchecked_Get_V (ACC);
-            Aggregate_Alignment :=
-              Alignment_Of (Short_Short_Integer (El_Size));
-            Aggregate_Size      := Stream_Element_Count (El_Count * El_Size);
+      if El_Size = 0 then
+         return;
 
-            pragma Debug (C, O ("Fast_Path_Get_Info:"
-              & Aggregate_Size'Img & " bytes ("
-              & El_Count'Img & " elements) at "
-              & System.Address_Image (Aggregate_Data)
-              & ", align on " & Aggregate_Alignment'Img));
-         end;
+      --  Case of multi-byte elements, where the expected buffer endianness
+      --  is not the host endianness: need to byte swap each element.
+
+      elsif El_Size > 1 and then Endianness (Buffer) /= Host_Order then
+         return;
       end if;
+
+      Aggregate_Data      := Unchecked_Get_V (ACC);
+      Aggregate_Alignment := Alignment_Of (Short_Short_Integer (El_Size));
+      Aggregate_Size      := Stream_Element_Count (El_Count * El_Size);
+
+      pragma Debug (C, O ("Fast_Path_Get_Info:"
+        & Aggregate_Size'Img & " bytes ("
+        & El_Count'Img & " elements) at "
+        & System.Address_Image (Aggregate_Data)
+        & ", align on " & Aggregate_Alignment'Img));
    end Fast_Path_Get_Info;
 
    -------------

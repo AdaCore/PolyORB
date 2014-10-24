@@ -100,42 +100,31 @@ package body PolyORB.Setup.Access_Points.IIOP is
               Get_Conf
                 ("iiop",
                  "polyorb.protocols.iiop.default_addr",
-                 Image (No_Inet_Addr));
-            Primary_Addr_Sep : constant Natural :=
-              Find (Primary_Addr_Str,
-                    Start => Primary_Addr_Str'First,
-                    What  => ':');
+                 "");
 
             --  default_port is <port-interval>
             --  If present, it pro any <port-interval> from default_addr
 
-            Port_Hint : Port_Interval := To_Port_Interval
+            Port_Hint : constant Port_Interval := To_Port_Interval
                           (Get_Conf
                            ("iiop",
                             "polyorb.protocols.iiop.default_port",
                             (Integer (Any_Port), Integer (Any_Port))));
 
-            Primary_Addr : constant Inet_Addr_Type :=
-              Inet_Addr (Primary_Addr_Str
-                           (Primary_Addr_Str'First ..
-                            Primary_Addr_Sep - 1));
+            Created_APs : constant APs :=
+              Initialize_Access_Points (Primary_Addr_Str, Port_Hint);
 
-            Alternate_Listen_Addresses : constant String
-              := Get_Conf ("iiop",
-                           "polyorb.protocols.iiop.alternate_listen_addresses",
-                           "");
+            Primary_Mech_Factory : Transport_Mechanism_Factory_Access;
+            --  Mechanism factory of the primary access point
+
+            Alternate_Listen_Addresses : constant String :=
+              Get_Conf ("iiop",
+                        "polyorb.protocols.iiop.alternate_listen_addresses",
+                        "");
 
          begin
-            if Port_Hint = (Any_Port, Any_Port)
-                 and then Primary_Addr_Sep < Primary_Addr_Str'Last
-            then
-               Port_Hint :=
-                 To_Port_Interval
-                   (To_Interval (Primary_Addr_Str (Primary_Addr_Sep + 1
-                                                .. Primary_Addr_Str'Last)));
-            end if;
+            Primary_IIOP_AP := Created_APs (Created_APs'First);
 
-            Initialize_Socket (Primary_IIOP_AP, Primary_Addr, Port_Hint);
             Primary_IIOP_Profile_Factory :=
               new IIOP_Profile_Factory'(Create_Factory (Primary_IIOP_AP));
 
@@ -153,15 +142,28 @@ package body PolyORB.Setup.Access_Points.IIOP is
                Chain => IIOP_Factories'Access,
                PF    => Primary_IIOP_Profile_Factory);
 
+            Primary_Mech_Factory := Get_Primary_Transport_Mechanism_Factory
+                    (IIOP_Profile_Factory (Primary_IIOP_Profile_Factory.all));
+
+            for  J in Created_APs'First + 1 .. Created_APs'Last loop
+               --  Add further AP names to the mechanism factory of the primary
+               --  profile factory.
+
+               Create_Factory
+                 (IIOP_Transport_Mechanism_Factory (Primary_Mech_Factory.all),
+                  Created_APs (J));
+
+               Register_Access_Point
+                 (ORB   => The_ORB,
+                  TAP   => Created_APs (J),
+                  Chain => IIOP_Factories'Access,
+                  PF    => null);
+            end loop;
+
             if Alternate_Listen_Addresses /= "" then
                declare
-                  Factory : constant Transport_Mechanism_Factory_Access
-                    := Get_Primary_Transport_Mechanism_Factory
-                    (IIOP_Profile_Factory
-                     (Primary_IIOP_Profile_Factory.all));
                   First   : Positive := Alternate_Listen_Addresses'First;
                   Last    : Natural  := 0;
-                  Delim   : Natural  := 0;
 
                begin
                   while First <= Alternate_Listen_Addresses'Last loop
@@ -186,58 +188,29 @@ package body PolyORB.Setup.Access_Points.IIOP is
                         end if;
                      end loop;
 
-                     --  Find host/port delimiter
-
-                     Delim := Last + 1;
-
-                     for J in First .. Last loop
-                        if Alternate_Listen_Addresses (J) = ':' then
-                           Delim := J;
-                           exit;
-                        end if;
-                     end loop;
-
-                     --  Create transport mechanism factory, create transport
-                     --  access point and register it.
-
                      declare
-                        Alternate_IIOP_Access_Point :
-                          Transport.Transport_Access_Point_Access;
-
-                        Alternate_Addr : constant Inet_Addr_Type :=
-                          Inet_Addr
-                            (Alternate_Listen_Addresses (First .. Delim - 1));
-
-                        Alternate_Port : Port_Interval := (Any_Port, Any_Port);
+                        Alternate_Created_APs : constant APs :=
+                          Initialize_Access_Points
+                            (Alternate_Listen_Addresses (First .. Last),
+                             Port_Hint);
 
                      begin
-                        if Delim < Last then
-                           Alternate_Port.Lo :=
-                             Port_Type'Value
-                               (Alternate_Listen_Addresses
-                                  (Delim + 1 .. Last));
-                           Alternate_Port.Hi := Alternate_Port.Lo;
-                        end if;
-
-                        if Alternate_Addr /= No_Inet_Addr then
-                           Initialize_Socket
-                             (Alternate_IIOP_Access_Point,
-                              Alternate_Addr,
-                              Alternate_Port);
+                        for J in Alternate_Created_APs'Range loop
 
                            --  Add alternate AP name to the mechanism factory
                            --  of the primary profile factory.
 
                            Create_Factory
-                             (IIOP_Transport_Mechanism_Factory (Factory.all),
-                              Alternate_IIOP_Access_Point);
+                             (IIOP_Transport_Mechanism_Factory
+                                (Primary_Mech_Factory.all),
+                              Alternate_Created_APs (J));
 
                            Register_Access_Point
                              (ORB   => The_ORB,
-                              TAP   => Alternate_IIOP_Access_Point,
+                              TAP   => Alternate_Created_APs (J),
                               Chain => IIOP_Factories'Access,
                               PF    => null);
-                        end if;
+                        end loop;
                      end;
 
                      First := Last + 1;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -216,7 +216,8 @@ package body XE_Scan is
                      if Buffer (Scan_Ptr) = LF or else
                         Buffer (Scan_Ptr) = FF or else
                         Buffer (Scan_Ptr) = CR or else
-                        Buffer (Scan_Ptr) = VT then
+                       Buffer (Scan_Ptr) = VT
+                     then
                         New_Line;
                         exit;
 

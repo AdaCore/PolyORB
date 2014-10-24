@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -136,14 +136,11 @@ package body PolyORB.References.Corbaloc is
    is
       use PolyORB.Types;
 
-      T    : Profile_Tag;
+      T    : constant Profile_Tag := Get_Profile_Tag (P.all);
       Iter : Iterator := First (Callbacks);
    begin
-      pragma Assert (P /= null);
       pragma Debug (C, O ("Profile to string with tag:"
-                       & Profile_Tag'Image (Get_Profile_Tag (P.all))));
-
-      T := Get_Profile_Tag (P.all);
+                       & Profile_Tag'Image (T)));
 
       while not Last (Iter) loop
          declare
@@ -288,7 +285,8 @@ package body PolyORB.References.Corbaloc is
      (Tag                    : PolyORB.Binding_Data.Profile_Tag;
       Proto_Ident            : String;
       Profile_To_String_Body : Profile_To_String_Body_Type;
-      String_To_Profile_Body : String_To_Profile_Body_Type) is
+      String_To_Profile_Body : String_To_Profile_Body_Type)
+   is
    begin
       Append (Callbacks,
               Profile_Record'(Tag,

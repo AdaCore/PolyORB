@@ -102,6 +102,7 @@ package System.Partition_Interface is
    --  Get the Partition_ID of the partition where unit Name resides
 
    function Get_Local_Partition_Name return String;
+   pragma Inline (Get_Local_Partition_Name);
    --  Return the name of the current partition
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
@@ -222,9 +223,9 @@ package System.Partition_Interface is
    type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
 
    procedure Register_Obj_Receiving_Stub
-     (Name          : String;
-      Handler       : Request_Handler_Access;
-      Receiver      : Servant_Access);
+     (Name     : String;
+      Handler  : Request_Handler_Access;
+      Receiver : Servant_Access);
    --  Register Receiver as the RPC servant for distributed objects of type
    --  Name, at elaboration time.
 
@@ -629,8 +630,8 @@ package System.Partition_Interface is
       Invoke_Flags : PolyORB.Requests.Flags := 0);
 
    procedure Request_Arguments
-     (R     : PolyORB.Requests.Request_Access;
-      Args  : in out PolyORB.Any.NVList.Ref);
+     (R    : PolyORB.Requests.Request_Access;
+      Args : in out PolyORB.Any.NVList.Ref);
 
    procedure Request_Set_Out (R : PolyORB.Requests.Request_Access);
 
@@ -730,6 +731,8 @@ private
       --  For the definition of these values, cf. the specification of
       --  Register_Pkg_Receiving_Stubs.
 
+      Base_Ref            : PolyORB.References.Ref;
+      --  For RCIs only: base object reference
    end record;
 
 end System.Partition_Interface;

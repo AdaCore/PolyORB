@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -150,7 +150,8 @@ package body PolyORB.GIOP_P.Exceptions is
 
    begin
       if Name (Name'First .. Name'First + CER_Length - 1) /=
-        CORBA_Exc_Root then
+        CORBA_Exc_Root
+      then
          raise Program_Error;
       end if;
 
@@ -318,7 +319,8 @@ package body PolyORB.GIOP_P.Exceptions is
       TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
 
       if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
-        = PolyORB_Exc_Root then
+        = PolyORB_Exc_Root
+      then
          Shift := PolyORB_Exc_Root'Length + 1;
       end if;
 

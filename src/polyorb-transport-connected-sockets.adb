@@ -42,6 +42,7 @@ with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Parameters;
+with PolyORB.Utils.Socket_Access_Points;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Transport.Connected.Sockets is
@@ -52,6 +53,7 @@ package body PolyORB.Transport.Connected.Sockets is
    use PolyORB.Log;
    use PolyORB.Parameters;
    use PolyORB.Tasking.Mutexes;
+   use PolyORB.Utils.Socket_Access_Points;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.transport.connected.sockets");
@@ -74,7 +76,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -----------------------
 
    overriding procedure Accept_Connection
-     (TAP : Socket_Access_Point;
+     (TAP : Connected_Socket_AP;
       TE  : out Transport_Endpoint_Access)
    is
       New_Socket  : Socket_Type;
@@ -85,63 +87,20 @@ package body PolyORB.Transport.Connected.Sockets is
         (Server  => TAP.Socket,
          Socket  => New_Socket,
          Address => New_Address);
+      Set_Close_On_Exec (New_Socket);
       pragma Debug (C, O ("Accept_Connection: from " & Image (New_Address)));
       Create (Socket_Endpoint (TE.all), New_Socket);
    end Accept_Connection;
-
-   ----------------
-   -- Address_Of --
-   ----------------
-
-   function Address_Of
-     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name
-   is
-   begin
-      return SAP.Publish.all;
-   end Address_Of;
 
    ------------
    -- Create --
    ------------
 
    procedure Create
-     (SAP     : in out Socket_Access_Point;
+     (SAP     : in out Connected_Socket_AP;
       Socket  : Socket_Type;
-      Address : Sock_Addr_Type;
-      Publish : String := "")
+      Address : Sock_Addr_Type)
    is
-      function Publish_Name return String;
-      --  Return Publish if set, else image of primary (non-loopback) IP
-      --  address for SAP.
-
-      ------------------
-      -- Publish_Name --
-      ------------------
-
-      function Publish_Name return String is
-      begin
-         if Publish /= "" then
-            return Publish;
-         else
-            declare
-               Addr : constant Sock_Addr_Type := Get_Socket_Name (Socket);
-            begin
-               --  If bound to a specific IP address, return it
-
-               if Addr.Addr /= Any_Inet_Addr then
-                  return Image (Addr.Addr);
-
-               --  Else return our best guess for our own address
-
-               else
-                  return Image (Local_Inet_Address);
-               end if;
-            end;
-         end if;
-      end Publish_Name;
-
-   --  Start of processing for Create
-
    begin
       pragma Debug (C, O ("Create: listening on " & Image (Address)));
       Bind_Socket (Socket, Address);
@@ -149,8 +108,6 @@ package body PolyORB.Transport.Connected.Sockets is
 
       SAP.Socket := Socket;
       SAP.Addr   := Get_Socket_Name (Socket);
-
-      SAP.Publish := new Socket_Name'(Publish_Name + SAP.Addr.Port);
    end Create;
 
    -------------------------
@@ -158,7 +115,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -------------------------
 
    overriding function Create_Event_Source
-     (TAP : access Socket_Access_Point) return Asynch_Ev_Source_Access
+     (TAP : access Connected_Socket_AP) return Asynch_Ev_Source_Access
    is
       Ev_Src : constant Asynch_Ev_Source_Access :=
         Create_Event_Source (TAP.Socket);
@@ -206,7 +163,7 @@ package body PolyORB.Transport.Connected.Sockets is
    -- Destroy --
    -------------
 
-   overriding procedure Destroy (TAP : in out Socket_Access_Point) is
+   overriding procedure Destroy (TAP : in out Connected_Socket_AP) is
    begin
       Free (TAP.Publish);
    end Destroy;
@@ -378,7 +335,14 @@ package body PolyORB.Transport.Connected.Sockets is
 
       if Status = Completed and then Is_Set (R_Set, TE.Socket) then
          begin
+            --  Note: it is important that TE is not currently being monitored
+            --  by an ORB polling task, otherwise the fact that the above
+            --  Check_Selector has completed would not guarantee that the
+            --  Receive_Socket call below won't block -- the data might have
+            --  been stolen by the polling task.
+
             Receive_Socket (TE.Socket, Buf, Last, Peek_At_Incoming_Data);
+
          exception
             when Socket_Error =>
 
@@ -406,10 +370,23 @@ package body PolyORB.Transport.Connected.Sockets is
          return;
       end if;
 
-      Enter (TE.Mutex);
+      --  Unregister this TE. Note that this will enter the ORB critical
+      --  section, so we do it outside ot TE.Mutex, as a precaution to avoid
+      --  a dead lock due to inconsistent lock ordering between TE.Mutex and
+      --  the ORB critical section. In any case, holding TE.Mutex should not
+      --  be necessary at this point.
+
+      PolyORB.Transport.Connected.Close
+        (Connected_Transport_Endpoint (TE.all)'Access);
+
+      --  We can now safely close underlying socket. We do so under control
+      --  of the TE mutex, so that Write never uses an invalid (or possibly
+      --  reused) socket descriptor.
+
+      declare
+         SL : Scope_Lock (TE.Mutex);
+         pragma Unreferenced (SL);
       begin
-         PolyORB.Transport.Connected.Close
-           (Connected_Transport_Endpoint (TE.all)'Access);
          if TE.Socket /= No_Socket then
             pragma Debug (C, O ("Closing socket"
                              & PolyORB.Sockets.Image (TE.Socket)));
@@ -422,7 +399,6 @@ package body PolyORB.Transport.Connected.Sockets is
                              & Ada.Exceptions.Exception_Information (E)));
             null;
       end;
-      Leave (TE.Mutex);
    end Close;
 
    -------------
@@ -443,6 +419,41 @@ package body PolyORB.Transport.Connected.Sockets is
    begin
       Create_Selector (Dummy_Selector);
    end Initialize;
+
+   --------------------------------
+   -- Set_Socket_AP_Publish_Name --
+   --------------------------------
+
+   overriding procedure Set_Socket_AP_Publish_Name
+      (SAP  : in out Connected_Socket_AP;
+       Name : Socket_Name)
+   is
+   begin
+      SAP.Publish := new Socket_Name'(Name);
+   end Set_Socket_AP_Publish_Name;
+
+   -----------------------
+   -- Socket_AP_Address --
+   -----------------------
+
+   overriding function Socket_AP_Address
+     (SAP : Connected_Socket_AP) return Sock_Addr_Type
+   is
+   begin
+      return SAP.Addr;
+   end Socket_AP_Address;
+
+   ----------------------------
+   -- Socket_AP_Publish_Name --
+   ----------------------------
+
+   overriding function Socket_AP_Publish_Name
+     (SAP : access Connected_Socket_AP) return Socket_Name
+   is
+   begin
+      Set_Default_Publish_Name (SAP.Publish, SAP.Addr);
+      return SAP.Publish.all;
+   end Socket_AP_Publish_Name;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

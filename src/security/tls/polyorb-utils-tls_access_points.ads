@@ -35,17 +35,16 @@
 
 with PolyORB.Sockets;
 with PolyORB.Transport;
+with PolyORB.Utils.Socket_Access_Points;
 
 package PolyORB.Utils.TLS_Access_Points is
 
-   ----------------------------------
-   -- Access_Point_Info descriptor --
-   ----------------------------------
+   use PolyORB.Utils.Socket_Access_Points;
 
    procedure Initialize_Socket
      (DAP       : Transport.Transport_Access_Point_Access;
       Address   : Sockets.Inet_Addr_Type := Sockets.Any_Inet_Addr;
-      Port_Hint : Sockets.Port_Type      := Sockets.Any_Port);
+      Port_Hint : Port_Interval);
    --  Initialize DAP.Socket and bind it to a free port, using one of
    --  the address corresponding to hostname, or use Address and
    --  Port_Hint if possible.

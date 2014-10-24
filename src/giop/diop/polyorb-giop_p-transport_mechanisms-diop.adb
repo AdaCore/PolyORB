@@ -86,16 +86,17 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
       TE          : Transport.Transport_Endpoint_Access;
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.GIOP.DIOP.DIOP_Profile_Type then
+        not in PolyORB.Binding_Data.GIOP.DIOP.DIOP_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
          return;
       end if;
 
-      Create_Socket (Socket => Sock,
-                     Family => Family_Inet,
-                     Mode   => Socket_Datagram);
+      Utils.Sockets.Create_Socket (Socket => Sock,
+                                   Family => Family_Inet,
+                                   Mode   => Socket_Datagram);
 
       TE := new Socket_Endpoint;
       Create
@@ -131,7 +132,7 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.DIOP is
    is
    begin
       MF.Address :=
-        new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+        new Socket_Name'(Address_Of (Datagram_Socket_AP (TAP.all)));
    end Create_Factory;
 
    ------------------------------

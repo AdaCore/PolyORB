@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -62,6 +62,7 @@ package PolyORB.Log is
       --  Indication that an abnormal condition has been identified, and that
       --  immediate attention is required to resume normal operation.
       );
+   pragma Ordered (Log_Level);
 
    --  Generic package providing logging support for one facility.
    --  Note: the user is responsible for ensuring that the lifetime of any

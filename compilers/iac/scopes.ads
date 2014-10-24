@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -82,7 +82,7 @@ package Scopes is
    --  Detect naming conflict with N. In case of success, add N to the
    --  current scope.
 
-   IDL_Spec           : Node_Id;
-   IDL_Spec_Name      : Name_Id;
+   IDL_Spec      : Node_Id;
+   IDL_Spec_Name : Name_Id;
 
 end Scopes;

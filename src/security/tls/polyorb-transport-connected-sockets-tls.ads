@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,7 +43,7 @@ package PolyORB.Transport.Connected.Sockets.TLS is
 
    pragma Elaborate_Body;
 
-   type TLS_Access_Point is new Socket_Access_Point with private;
+   type TLS_Access_Point is new Connected_Socket_AP with private;
 
    overriding function Create_Event_Source
      (TAP : access TLS_Access_Point)
@@ -67,7 +67,7 @@ package PolyORB.Transport.Connected.Sockets.TLS is
 
    procedure Create
      (TE : in out TLS_Endpoint;
-      S  :        PolyORB.TLS.TLS_Socket_Type);
+      S  : PolyORB.TLS.TLS_Socket_Type);
 
    procedure Create
      (TE          : in out TLS_Endpoint;
@@ -103,7 +103,7 @@ package PolyORB.Transport.Connected.Sockets.TLS is
 
 private
 
-   type TLS_Access_Point is new Socket_Access_Point with record
+   type TLS_Access_Point is new Connected_Socket_AP with record
       Transport   :
        PolyORB.Security.Transport_Mechanisms.Target_Transport_Mechanism_Access;
       Credentials : PolyORB.Security.Credentials.Credentials_Ref;

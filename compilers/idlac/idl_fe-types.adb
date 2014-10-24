@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1341,7 +1341,8 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O2 ("Redefine_Identifier : begin"));
       if A_Definition.Node = No_Node
-        or else Definition (Node) /= null then
+        or else Definition (Node) /= null
+      then
          raise Idlac_Errors.Internal_Error;
       end if;
 

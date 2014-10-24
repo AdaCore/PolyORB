@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -244,8 +244,8 @@ package body PO_CreateRef_Parse_Cmd is
                         raise Program_Error;
                   end case;
 
-               elsif Full_Switch = "ce" then
-                  null;
+               --  elsif Full_Switch = "ce" then
+               --     null;
                end if;
 
             when 'g' =>

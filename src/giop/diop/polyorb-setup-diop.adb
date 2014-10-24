@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -65,8 +65,8 @@ begin
       (Name      => +"setup.diop",
        Conflicts => Empty,
        Depends   => +"protocols.giop.giop_1_2"
-       &"protocols.giop.giop_1_1"
-       &"protocols.giop.giop_1_0",
+       & "protocols.giop.giop_1_1"
+       & "protocols.giop.giop_1_0",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -690,7 +690,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
          pragma Assert (Get_Thread_Index (RT.Id) /= Main_Task_Index);
          pragma Debug (C, O ("launch task "
                           & Image (RT.Id)
-                          &" waiting on "
+                          & " waiting on "
                           & Integer'Image (Integer (RT.Sync_Id))));
          --  Sync_Pool (RT.Id.Sync_Id).Signal;
          Resume (RT.Sync_Id);
@@ -734,7 +734,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
          pragma Assert (Get_Thread_Index (RT.Id) /= Main_Task_Index);
          pragma Debug (C, O ("launch task "
                           & Image (RT.Id)
-                          &" waiting on "
+                          & " waiting on "
                           & Integer'Image (Integer (RT.Sync_Id))));
          --  Sync_Pool (RT.Id.Sync_Id).Signal;
          Resume (RT.Sync_Id);

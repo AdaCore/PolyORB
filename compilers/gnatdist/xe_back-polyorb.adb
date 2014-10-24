@@ -30,6 +30,7 @@ with Ada.Characters.Handling;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
+with GNAT.Table;
 
 with XE;          use XE;
 with XE_Front;    use XE_Front;
@@ -77,7 +78,9 @@ package body XE_Back.PolyORB is
       RU_PolyORB_DSA_P,
       RU_PolyORB_DSA_P_Name_Server,
       RU_PolyORB_DSA_P_Name_Service,
-      RU_PolyORB_DSA_P_Name_Service_mDNS,
+      RU_PolyORB_DSA_P_Name_Service_COS_Naming,
+      RU_PolyORB_DSA_P_Name_Service_MDNS,
+      RU_PolyORB_DSA_P_Name_Service_None,
       RU_PolyORB_DSA_P_Remote_Launch,
       RU_PolyORB_DSA_P_Storages,
       RU_PolyORB_DSA_P_Storages_Config,
@@ -86,7 +89,7 @@ package body XE_Back.PolyORB is
       RU_PolyORB_Setup,
       RU_PolyORB_Setup_Access_Points,
       RU_PolyORB_Setup_Access_Points_IIOP,
-      RU_PolyORB_Setup_Access_Points_MDNS,
+      RU_PolyORB_Setup_Access_Points_mDNS,
       RU_PolyORB_Setup_Base,
       RU_PolyORB_Setup_IIOP,
       RU_PolyORB_Setup_OA,
@@ -109,28 +112,35 @@ package body XE_Back.PolyORB is
    RU : array (RU_Id) of Unit_Name_Type;
 
    type RE_Id is
-     (RE_Check,
+     (No_RE_Id,
+      RE_Check,
       RE_Launch_Partition,
       RE_Run,
       RE_Run_In_Task,
       RE_Shutdown_World,
       RE_The_ORB,
-      RE_Set_Default_Servant,
-      RE_Get_MDNS_Servant,
-      RE_Activate_RPC_Receivers);
+      RE_Activate_RPC_Receivers,
+      RE_Name_Ctx,
+      RE_COS_Name_Server,
+      RE_MDNS_Name_Server,
+      RE_None_Name_Server);
 
-   RE : array (RE_Id) of Unit_Name_Type;
+   subtype Valid_RE_Id is RE_Id range RE_Id'Succ (No_RE_Id) .. RE_Id'Last;
 
-   RE_Unit_Table : constant array (RE_Id) of RU_Id :=
+   RE : array (Valid_RE_Id) of Unit_Name_Type;
+
+   RE_Unit_Table : constant array (Valid_RE_Id) of RU_Id :=
      (RE_Check                  => RU_System_Partition_Interface,
       RE_Launch_Partition       => RU_PolyORB_DSA_P_Remote_Launch,
       RE_Run                    => RU_PolyORB_ORB,
       RE_Run_In_Task            => RU_PolyORB_Tasking_Threads,
       RE_Shutdown_World         => RU_PolyORB_Initialization,
       RE_The_ORB                => RU_PolyORB_Setup,
-      RE_Set_Default_Servant    => RU_PolyORB_Protocols_DNS,
-      RE_Get_MDNS_Servant       => RU_PolyORB_DSA_P_Name_Service_mDNS,
-      RE_Activate_RPC_Receivers => RU_System_Partition_Interface);
+      RE_Activate_RPC_Receivers => RU_System_Partition_Interface,
+      RE_Name_Ctx               => RU_PolyORB_DSA_P_Name_Service,
+      RE_COS_Name_Server        => RU_PolyORB_DSA_P_Name_Service_COS_Naming,
+      RE_MDNS_Name_Server       => RU_PolyORB_DSA_P_Name_Service_MDNS,
+      RE_None_Name_Server       => RU_PolyORB_DSA_P_Name_Service_None);
 
    ---------------------
    -- Parameter types --
@@ -174,9 +184,9 @@ package body XE_Back.PolyORB is
       PE_Max_Threads           => PS_Tasking,
       PE_Min_Spare_Threads     => PS_Tasking);
 
-   -----------------------------
-   -- Parameter table entries --
-   -----------------------------
+   ------------------------------------
+   -- Configuration parameters table --
+   ------------------------------------
 
    type Parameter_Entry is record
       Section : Name_Id;
@@ -184,8 +194,12 @@ package body XE_Back.PolyORB is
       Value   : Name_Id;
    end record;
 
-   Table : array (0 .. 31) of Parameter_Entry;
-   Last  : Integer := -1;
+   package Conf is new GNAT.Table (
+     Table_Component_Type => Parameter_Entry,
+     Table_Index_Type     => Natural,
+     Table_Low_Bound      => 0,
+     Table_Initial        => 16,
+     Table_Increment      => 16);
 
    ---------------------------
    -- Generation Procedures --
@@ -230,6 +244,9 @@ package body XE_Back.PolyORB is
    procedure Set_Conf (Var : PE_Id; Val : Name_Id; Quote : Boolean := True);
    procedure Set_Conf (Var : PE_Id; Val : Boolean; Quote : Boolean := True);
    --  Add a new entry in the configuration table
+
+   function Name_Service_Type (NS_Type : Name_Server_Type) return RE_Id;
+   --  Return the name of the client type for the desired name service
 
    procedure Set_Conf
      (Section : Name_Id;
@@ -313,7 +330,7 @@ package body XE_Back.PolyORB is
             Write_With_Clause (RU (RU_PolyORB_DSA_P_Remote_Launch));
          end if;
 
-         if Default_Name_Server = Embedded then
+         if Default_Name_Server = Embedded_NS then
             Write_With_Clause (RU (RU_PolyORB_DSA_P_Name_Server));
          end if;
       end if;
@@ -325,10 +342,6 @@ package body XE_Back.PolyORB is
          Write_With_Clause (RU (RU_PolyORB_ORB_No_Tasking));
          Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
 
-         if Default_Name_Server = Multicast then
-            Write_With_Clause (RU (RU_PolyORB_Binding_Data_DNS_MDNS));
-         end if;
-
       else
          Write_With_Clause (RU (RU_PolyORB_Setup_Tasking_Full_Tasking));
 
@@ -337,17 +350,11 @@ package body XE_Back.PolyORB is
               (RU (RU_PolyORB_ORB) and
                  ORB_Tasking_Policy_Img (Thread_Pool));
             Write_With_Clause (RU (RU_PolyORB_Binding_Data_GIOP_IIOP));
-            if Default_Name_Server = Multicast then
-               Write_With_Clause (RU (RU_PolyORB_Binding_Data_DNS_MDNS));
-            end if;
          else
             Write_With_Clause
               (RU (RU_PolyORB_ORB) and ORB_Tasking_Policy_Img
                (Current.ORB_Tasking_Policy));
             Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_IIOP));
-            if Default_Name_Server = Multicast then
-               Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_MDNS));
-            end if;
          end if;
       end if;
 
@@ -360,6 +367,11 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_PolyORB_Utils_Strings_Lists), True);
       Write_With_Clause (RU (RU_PolyORB_Utils_Strings_Lists), True);
       Write_With_Clause (RU (RU_PolyORB_Tasking_Threads), True);
+
+      if Default_Name_Server /= No_Name_Server then
+         Write_With_Clause
+           (RU (RE_Unit_Table (Name_Service_Type (Default_Name_Server))));
+      end if;
 
       Write_Str  ("package body ");
       Write_Name (RU (RU_PolyORB_Partition_Elaboration));
@@ -584,21 +596,52 @@ package body XE_Back.PolyORB is
       Current : Partition_Type renames Partitions.Table (P);
 
       Section : constant Name_Id := PS (PS_DSA);
-      T       : constant Name_Id := Id ("true");
 
-      type Attribute_Type is (Local, Reconnection);
+      type DSA_Attribute is (Partition, Reconnection, Location);
+      subtype RCI_Attribute is DSA_Attribute range Partition .. Reconnection;
+      subtype Partition_Attribute is DSA_Attribute range Location .. Location;
 
       function Attribute_Name
         (U : Conf_Unit_Id;
-         A : Attribute_Type) return Name_Id;
+         A : RCI_Attribute) return Name_Id;
       --  Return U'A
 
       function Attribute_Name
+        (P : Partition_Id;
+         A : Partition_Attribute) return Name_Id;
+      --  Return P'A
+
+      function Attribute_Name
+        (N : Name_Id;
+         A : DSA_Attribute) return Name_Id;
+      --  Return N'A
+
+      --------------------
+      -- Attribute_Name --
+      --------------------
+
+      function Attribute_Name
         (U : Conf_Unit_Id;
-         A : Attribute_Type) return Name_Id
+         A : RCI_Attribute) return Name_Id
       is
       begin
-         Get_Name_String (Conf_Units.Table (U).Name);
+         return Attribute_Name (Conf_Units.Table (U).Name, A);
+      end Attribute_Name;
+
+      function Attribute_Name
+        (P : Partition_Id;
+         A : Partition_Attribute) return Name_Id
+      is
+      begin
+         return Attribute_Name (Partitions.Table (P).Name, A);
+      end Attribute_Name;
+
+      function Attribute_Name
+        (N : Name_Id;
+         A : DSA_Attribute) return Name_Id
+      is
+      begin
+         Get_Name_String (N);
          Add_Char_To_Name_Buffer (''');
          Add_Str_To_Name_Buffer (Ada.Characters.Handling.To_Lower (A'Img));
          return Name_Find;
@@ -642,7 +685,9 @@ package body XE_Back.PolyORB is
 
       --  Set name server kind
 
-      Set_Conf (PE_Name_Server_Kind, Name_Server_Img (Default_Name_Server));
+      if Default_Name_Server /= No_Name_Server then
+         Set_Conf (PE_Name_Server_Kind, Name_Server_Img (Default_Name_Server));
+      end if;
 
       --  Set task pool parameters
 
@@ -668,24 +713,11 @@ package body XE_Back.PolyORB is
       Set_Conf (PE_Rsh_Command, Get_Rsh_Command);
       Set_Conf (PE_Rsh_Options, Get_Rsh_Options);
 
-      --  For each RCI assigned on this partition add a parameter
-      --  <RCI NAME>'local set to True.
+      --  Set configuration parameters describing remote partitions:
+      --    location of remote partitions
+      --    partition and reconnection policy of each RCI
 
-      declare
-         U       : Conf_Unit_Id;
-         Key     : Name_Id;
-      begin
-         U := Current.First_Unit;
-         while U /= No_Conf_Unit_Id loop
-            if Units.Table (Conf_Units.Table (U).My_Unit).RCI then
-               Key := Attribute_Name (U, Local);
-               Set_Conf (Section, Key, T, Quote => True);
-            end if;
-            U := Conf_Units.Table (U).Next_Unit;
-         end loop;
-      end;
-
-      --  Set reconnection policies for all RCIs (note: we also set this for
+      --  Note that we also set the partition and reconnection policy for
       --  local RCIs so that we can abort partition elaboration when a stale
       --  reference is present in the name server and the partition's policy
       --  is Reject_On_Restart. Further note, actually we set the reconnection
@@ -698,18 +730,55 @@ package body XE_Back.PolyORB is
             Remote  : Partition_Type renames Partitions.Table (Rem_P);
             U       : Conf_Unit_Id;
             Key     : Name_Id;
+            Loc     : Location_Id := No_Location_Id;
          begin
-            if Remote.Reconnection /= No_Reconnection then
-               U := Remote.First_Unit;
-               while U /= No_Conf_Unit_Id loop
+            --  Set partition location
+
+            --  Partition location set explicitly
+
+            if Remote.First_Network_Loc /= No_Location_Id then
+               Loc := Remote.First_Network_Loc;
+
+            --  Partition is main, and name server is embedded: partition
+            --  location is boot location.
+
+            elsif Rem_P = Main_Partition
+                    and then Default_Name_Server = Embedded_NS
+            then
+               Loc := Default_First_Boot_Location;
+            end if;
+
+            if Loc /= No_Location_Id then
+               Set_Conf (Section,
+                         Attribute_Name (Rem_P, Location),
+                         Location_List_Image (Loc),
+                         Quote => False);
+            end if;
+
+            U := Remote.First_Unit;
+            while U /= No_Conf_Unit_Id loop
+
+               --  Set RCI partition assignment
+
+               Key := Attribute_Name (U, Partition);
+               Set_Conf
+                 (Section, Key,
+                  Remote.Name,
+                  Quote => True);
+
+               --  Set RCI reconnection policy, if non-default
+               --  Should be made an attribute of the partition???
+
+               if Remote.Reconnection /= No_Reconnection then
                   Key := Attribute_Name (U, Reconnection);
                   Set_Conf
                     (Section, Key,
                      Reconnection_Img (Remote.Reconnection),
                      Quote => True);
-                  U := Conf_Units.Table (U).Next_Unit;
-               end loop;
-            end if;
+               end if;
+
+               U := Conf_Units.Table (U).Next_Unit;
+            end loop;
          end;
       end loop;
 
@@ -729,27 +798,44 @@ package body XE_Back.PolyORB is
       Write_Line ("begin");
 
       Increment_Indentation;
-      for P in Table'First .. Last loop
+      for P in Conf.First .. Conf.Last loop
          Write_Indentation;
          Write_Line ("Set_Conf");
          Increment_Indentation;
 
          Write_Indentation (-1);
          Write_Str ("(Section => """);
-         Write_Name (Table (P).Section);
+         Write_Name (Conf.Table (P).Section);
          Write_Line (""",");
 
          Write_Indentation;
          Write_Str ("Key     => """);
-         Write_Name (Table (P).Key);
+         Write_Name (Conf.Table (P).Key);
          Write_Line (""",");
 
          Write_Indentation;
          Write_Str ("Value   => ");
-         Write_Name (Table (P).Value);
+         Write_Name (Conf.Table (P).Value);
          Write_Line (");");
          Decrement_Indentation;
       end loop;
+
+      --  Configure name server
+
+      declare
+         NS_Type : constant RE_Id := Name_Service_Type (Default_Name_Server);
+      begin
+         if NS_Type /= No_RE_Id then
+            Write_Indentation;
+            Write_Name (RU (RE_Unit_Table (RE_Name_Ctx)) and
+                          RE (RE_Name_Ctx));
+            Write_Line (" :=");
+            Write_Indentation;
+            Write_Str ("  new ");
+            Write_Name (RU (RE_Unit_Table (NS_Type)) and RE (NS_Type));
+            Write_Line (";");
+         end if;
+      end;
 
       Decrement_Indentation;
       Write_Indentation;
@@ -927,11 +1013,8 @@ package body XE_Back.PolyORB is
       Write_With_Clause (RU (RU_System_Partition_Interface), E => True);
       Write_With_Clause (RU (RU_System_DSA_Services),        E => True);
 
-      if Default_Name_Server = Multicast then
-         Write_With_Clause
-           (RU (RU_PolyORB_DSA_P_Name_Service_mDNS), E => True);
-         Write_With_Clause
-           (RU (RU_PolyORB_Protocols_DNS),           E => True);
+      if Default_Name_Server = Multicast_NS then
+         Write_With_Clause (RU (RU_PolyORB_Setup_Access_Points_mDNS));
       end if;
 
       --  Assign RCI or SP skels on the partition
@@ -951,15 +1034,6 @@ package body XE_Back.PolyORB is
       Write_Declaration (Is_Body => True);
       Write_Line ("begin");
       Increment_Indentation;
-
-      --  If Name_Server is Multicast, set the default mDNS servant
-
-      if Default_Name_Server = Multicast then
-         Write_Call (RU (RE_Unit_Table (RE_Set_Default_Servant)) and
-                     RE (RE_Set_Default_Servant),
-                     RU (RE_Unit_Table (RE_Get_MDNS_Servant)) and
-                     RE (RE_Get_MDNS_Servant));
-      end if;
 
       --  Activate RPC receivers. From this point on, remote calls can be
       --  serviced by this partition.
@@ -1190,7 +1264,7 @@ package body XE_Back.PolyORB is
          end if;
       end loop;
 
-      for E in RE_Id loop
+      for E in Valid_RE_Id loop
          RE (E) := Strip (RE_Id'Image (E));
       end loop;
 
@@ -1206,13 +1280,31 @@ package body XE_Back.PolyORB is
       Generate_Application_Project_Files;
    end Initialize;
 
+   -----------------------
+   -- Name_Service_Type --
+   -----------------------
+
+   function Name_Service_Type (NS_Type : Name_Server_Type) return RE_Id is
+   begin
+      case NS_Type is
+         when Embedded_NS | Standalone_NS =>
+            return RE_COS_Name_Server;
+         when Multicast_NS =>
+            return RE_MDNS_Name_Server;
+         when None_NS =>
+            return RE_None_Name_Server;
+         when others =>
+            return No_RE_Id;
+      end case;
+   end Name_Service_Type;
+
    ----------------
    -- Reset_Conf --
    ----------------
 
    procedure Reset_Conf is
    begin
-      Last := -1;
+      Conf.Init;
    end Reset_Conf;
 
    -----------------------
@@ -1364,8 +1456,7 @@ package body XE_Back.PolyORB is
          Value := Val;
       end if;
 
-      Last := Last + 1;
-      Table (Last) := (Section => Section, Key => Key, Value => Value);
+      Conf.Append ((Section => Section, Key => Key, Value => Value));
    end Set_Conf;
 
    ------------------------

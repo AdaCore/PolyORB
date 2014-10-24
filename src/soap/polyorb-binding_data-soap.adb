@@ -143,7 +143,7 @@ package body PolyORB.Binding_Data.SOAP is
         new Socket_Endpoint;
 
    begin
-      Create_Socket (Sock);
+      Utils.Sockets.Create_Socket (Sock);
       Utils.Sockets.Connect_Socket (Sock, Profile.Address.all);
       Create (Socket_Endpoint (TE.all), Sock);
 
@@ -232,7 +232,8 @@ package body PolyORB.Binding_Data.SOAP is
    begin
       return PF : SOAP_Profile_Factory do
          PF.Address :=
-           new Socket_Name'(Address_Of (Socket_Access_Point (TAP.all)));
+           new Socket_Name'
+             (Connected_Socket_AP (TAP.all).Socket_AP_Publish_Name);
       end return;
    end Create_Factory;
 

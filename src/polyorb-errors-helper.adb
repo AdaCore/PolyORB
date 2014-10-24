@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -529,7 +529,8 @@ package body PolyORB.Errors.Helper is
       TypeCode.Add_Parameter (TC, To_Any (Name));
 
       if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
-        = PolyORB_Exc_Root then
+        = PolyORB_Exc_Root
+      then
          Shift := PolyORB_Exc_Root'Length + 1;
       end if;
 

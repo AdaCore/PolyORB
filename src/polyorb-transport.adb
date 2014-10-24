@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -83,9 +83,15 @@ package body PolyORB.Transport is
       if Msg in Filters.Iface.Check_Validity then
          if not TE.Closed then
             --  If TE is not closed yet, check that it is still valid, which
-            --  may cause it to close.
+            --  may cause it to close. Note: under ORB policies with tasking,
+            --  this is a no-op as we constantly monitor TEs for I/O. When
+            --  there is no tasking on the other hand, a TE might become
+            --  invalid undetected, as the partition may be busy executing
+            --  application code, so a new check is forced in this case.
 
-            Check_Validity (Transport_Endpoint'Class (TE.all)'Access);
+            Emit_No_Reply
+              (TE.Server, ORB.Iface.Validate_Endpoint'
+                            (TE => Transport_Endpoint_Access (TE)));
          end if;
 
          if TE.Closed then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,6 +25,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Containers.Vectors;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 
@@ -316,12 +318,11 @@ pragma Elaborate_Body (Lexer);
 
    --  Preprocessor and processor related entities
 
-   CPP_Arg_Values : Argument_List (1 .. 64);
-   CPP_Arg_Count  : Natural := 0;
-   --  Preprocessor arguments (including -I...)
+   package String_Vectors is new Ada.Containers.Vectors
+     (Index_Type   => Positive,
+      Element_Type => String_Access);
 
-   IAC_Search_Paths : Argument_List (1 .. 64);
-   IAC_Search_Count : Natural := 0;
+   IAC_Search_Paths : String_Vectors.Vector;
    --  IAC search path (for imports and for preprocessor)
 
    Keep_TMP_Files  : Boolean := False;

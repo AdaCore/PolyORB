@@ -101,14 +101,15 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
 
    begin
       if Profile.all
-        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type then
+        not in PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Type
+      then
          Throw (Error, Comm_Failure_E,
                 System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
          return;
       end if;
 
-      Create_Socket (Sock);
+      Utils.Sockets.Create_Socket (Sock);
       Connect_Socket (Sock, Binding_Context, SSL_Sock, Mechanism.Address.all);
       Create (SSL_Endpoint (TE.all), SSL_Sock);
 
@@ -169,7 +170,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.SSLIOP is
       TAP : access Transport.Transport_Access_Point'Class)
    is
    begin
-      MF.Address := new Socket_Name'(Address_Of (SSL_Access_Point (TAP.all)));
+      MF.Address :=
+        new Socket_Name'
+          (SSL_Access_Point (TAP.all).Socket_AP_Publish_Name);
 
       --  Detect supported and required security assocations by
       --  review of descriptions of available ciphers (conformant

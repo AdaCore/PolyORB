@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,16 +44,22 @@ package body Lexer is
 
    use ASCII;
 
+   CPP_Arg_Values : String_Vectors.Vector;
+   --  Preprocessor arguments (including -I...)
+
    Current_Source_File : Source_File_Ptr;
    --  Current source file being scanned
 
    Buffer : Text_Buffer_Ptr;
    --  Always equal to Current_Source_File.Buffer. Contains the EOF-terminated
-   --  text of the (usually) preprocessed file.  Token_Location.Scan is used to
+   --  text of the (usually) preprocessed file. Token_Location.Scan is used to
    --  scan the text.
 
    function Is_Identifier_Character (C : Character) return Boolean;
    --  Alphabetic character or digit or underscore character
+
+   function To_String_List (V : String_Vectors.Vector) return String_List;
+   --  Return an array of V's elements
 
    -------------------
    -- Handled Files --
@@ -256,8 +262,7 @@ package body Lexer is
 
    procedure Add_CPP_Flag (S : String) is
    begin
-      CPP_Arg_Count := CPP_Arg_Count + 1;
-      CPP_Arg_Values (CPP_Arg_Count) := new String'(S);
+      CPP_Arg_Values.Append (new String'(S));
    end Add_CPP_Flag;
 
    -------------------------
@@ -266,8 +271,7 @@ package body Lexer is
 
    procedure Add_IAC_Search_Path (S : String) is
    begin
-      IAC_Search_Count := IAC_Search_Count + 1;
-      IAC_Search_Paths (IAC_Search_Count) := new String'(S);
+      IAC_Search_Paths.Append (new String'(S));
    end Add_IAC_Search_Path;
 
    -----------------------------------
@@ -414,7 +418,7 @@ package body Lexer is
 
       --  Increment line number and save current position
 
-      Token_Location.Scan := Token_Location.Scan + 1;
+      Token_Location.Scan  := Token_Location.Scan + 1;
       Token_Location.First := Token_Location.Scan;
       Token_Location.Last  := Token_Location.Scan;
       Token_Location.Line  := Token_Location.Line + 1;
@@ -490,7 +494,7 @@ package body Lexer is
 
       --  Reinitialize the CPP arguments
 
-      CPP_Arg_Count := 0;
+      CPP_Arg_Values.Clear;
 
       --  Append the preprocessor flags
 
@@ -508,9 +512,9 @@ package body Lexer is
 
       --  Add the paths in the IAC search path to the preprocessor search path
 
-      for Index in 1 .. IAC_Search_Count loop
+      for P of IAC_Search_Paths loop
          Add_CPP_Flag ("-I");
-         Add_CPP_Flag (IAC_Search_Paths (Index).all);
+         Add_CPP_Flag (P.all);
       end loop;
 
       --  The temporary file containing the preprocessing result
@@ -548,7 +552,7 @@ package body Lexer is
          return Result;
       end if;
 
-      Spawn (Preprocessor.all, CPP_Arg_Values (1 .. CPP_Arg_Count), Success);
+      Spawn (Preprocessor.all, To_String_List (CPP_Arg_Values), Success);
 
       if not Success then
          Error_Name (1) := Source_Name;
@@ -1404,7 +1408,7 @@ package body Lexer is
                if Name_Buffer (1) = '<'
                  and then Name_Buffer (Name_Len) = '>'
                then
-                  Skip_Line;
+                  null;
 
                --  Check the suffix is ".idl"
 
@@ -1412,20 +1416,25 @@ package body Lexer is
                  or else Name_Buffer (Name_Len - 3 .. Name_Len) /= ".idl"
                then
                   Error_Loc (1) := Token_Location;
-                  DE ("incorrect suffix");
+                  Error_Name (1) := String_Literal_Value;
+                  DE ("incorrect suffix in %");
 
                else
-                  Skip_Line;
-                  Set_New_Location
-                    (Token_Location, String_Literal_Value, Int (Line));
-               end if;
-            else
-               --  No file name
+                  --  Note: Skip_Line call below will increment then line
+                  --  number, so compensate here by subtracting one.
 
-               Skip_Line;
-               Token_Location.Line := Int (Line);
+                  Set_New_Location
+                    (Token_Location, String_Literal_Value, Int (Line - 1));
+               end if;
+
+            else
+
+               --  See above comment for subtraction of 1 from Line
+
+               Token_Location.Line := Int (Line - 1);
             end if;
 
+            Skip_Line;
             return;
          end;
       end if;
@@ -1825,6 +1834,19 @@ package body Lexer is
          end case;
       end loop;
    end Skip_Spaces;
+
+   --------------------
+   -- To_String_List --
+   --------------------
+
+   function To_String_List (V : String_Vectors.Vector) return String_List is
+   begin
+      return L : String_List (1 .. Integer (V.Length)) do
+         for J in L'Range loop
+            L (J) := V.Element (J);
+         end loop;
+      end return;
+   end To_String_List;
 
    --------------
    -- To_Token --

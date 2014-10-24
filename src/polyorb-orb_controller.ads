@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -165,6 +165,11 @@ package PolyORB.ORB_Controller is
    pragma Inline (Leave_ORB_Critical_Section);
    --  Leave ORB critical section
 
+   function ORB_Critical_Section
+     (O : access ORB_Controller) return access PTM.Mutex_Type'Class;
+   --  Returns the mutex for the ORB critical section, to be used to build
+   --  scope locks.
+
    --  The following subprograms must be called from within the ORB critical
    --  section.
 
@@ -190,10 +195,13 @@ package PolyORB.ORB_Controller is
 
    procedure Schedule_Task
      (O  : access ORB_Controller;
-      TI : PTI.Task_Info_Access) is abstract;
+      TI : PTI.Task_Info_Access;
+      SL : PTM.Mutex_Access) is abstract;
    --  TI is the current task. Set its state to indicate the next action to be
    --  executed. This operation has no effect and returns immediately if the
-   --  current state of the task is Terminated.
+   --  current state of the task is Terminated. SL is the scope lock of the
+   --  ORB main loop, and is recorded in the ORB controlled so that the Idle
+   --  operation can temporarily leave the ORB critical section.
 
    procedure Disable_Polling
      (O : access ORB_Controller;
@@ -205,6 +213,8 @@ package PolyORB.ORB_Controller is
    --  completion of any ongoing polling operation: several tasks might be
    --  blocked concurrently in this procedure. The critical section is
    --  re-entered after the ongoing polling operation has been completed.
+   --
+   --  Note: this procedure must be called with abortion deferred.
 
    procedure Enable_Polling
      (O : access ORB_Controller;

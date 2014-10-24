@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,10 @@
 
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Unchecked_Conversion;
+
+with GNAT.OS_Lib;
+with GNAT.Regexp;
 
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
@@ -43,7 +47,6 @@ package body PolyORB.Utils.Sockets is
    use Ada.Strings.Fixed;
    use PolyORB.Buffers;
    use PolyORB.Log;
-   use PolyORB.Sockets;
    use PolyORB.Representations.CDR.Common;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.utils.sockets");
@@ -168,6 +171,31 @@ package body PolyORB.Utils.Sockets is
          raise;
    end Connect_Socket;
 
+   -------------------
+   -- Create_Socket --
+   -------------------
+
+   procedure Create_Socket
+     (Socket        : out Socket_Type;
+      Family        : Family_Type := Family_Inet;
+      Mode          : Mode_Type   := Socket_Stream;
+      Reuse_Address : Boolean     := False)
+   is
+   begin
+      PolyORB.Sockets.Create_Socket (Socket, Family, Mode);
+      Set_Close_On_Exec (Socket);
+
+      if Reuse_Address then
+
+         --  Allow reuse of local addresses
+
+         Set_Socket_Option
+           (Socket,
+            Level  => Socket_Level,
+            Option => (PolyORB.Sockets.Reuse_Address, True));
+      end if;
+   end Create_Socket;
+
    -----------
    -- Image --
    -----------
@@ -181,15 +209,12 @@ package body PolyORB.Utils.Sockets is
    -- Is_IP_Address --
    -------------------
 
+   Dotted_Quad : constant GNAT.Regexp.Regexp :=
+     GNAT.Regexp.Compile ("[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+");
+
    function Is_IP_Address (Name : String) return Boolean is
    begin
-      for J in Name'Range loop
-         if Name (J) /= '.' and then Name (J) not in '0' .. '9' then
-            return False;
-         end if;
-      end loop;
-
-      return True;
+      return GNAT.Regexp.Match (Name, Dotted_Quad);
    end Is_IP_Address;
 
    ------------------------
@@ -231,17 +256,28 @@ package body PolyORB.Utils.Sockets is
    end Marshall_Socket;
 
    -----------------------
-   -- Unmarshall_Socket --
+   -- Set_Close_On_Exec --
    -----------------------
 
-   function Unmarshall_Socket
-     (Buffer : access Buffer_Type) return Socket_Name
-   is
-      Host_Name : constant String := Unmarshall_Latin_1_String (Buffer);
-      Port      : constant Types.Unsigned_Short := Unmarshall (Buffer);
+   procedure Set_Close_On_Exec (Socket : PolyORB.Sockets.Socket_Type) is
+      --  WAG:7.1
+      --  Use Set_Close_On_Exec from GNAT.OS_Lib (a GNAT.Sockets version
+      --  will appear in 7.2).
+
+      use GNAT.OS_Lib;
+
+      function To_File_Descriptor is new Ada.Unchecked_Conversion
+        (PolyORB.Sockets.Socket_Type, File_Descriptor);
+
+      Dummy : Boolean;
+      pragma Unreferenced (Dummy);
+
    begin
-      return Host_Name + Port_Type (Port);
-   end Unmarshall_Socket;
+      Set_Close_On_Exec
+        (To_File_Descriptor (Socket),
+         Close_On_Exec => True,
+         Status        => Dummy);
+   end Set_Close_On_Exec;
 
    ----------------
    -- To_Address --
@@ -259,5 +295,18 @@ package body PolyORB.Utils.Sockets is
          Result.Port := SN.Port;
       end return;
    end To_Address;
+
+   -----------------------
+   -- Unmarshall_Socket --
+   -----------------------
+
+   function Unmarshall_Socket
+     (Buffer : access Buffer_Type) return Socket_Name
+   is
+      Host_Name : constant String := Unmarshall_Latin_1_String (Buffer);
+      Port      : constant Types.Unsigned_Short := Unmarshall (Buffer);
+   begin
+      return Host_Name + Port_Type (Port);
+   end Unmarshall_Socket;
 
 end PolyORB.Utils.Sockets;

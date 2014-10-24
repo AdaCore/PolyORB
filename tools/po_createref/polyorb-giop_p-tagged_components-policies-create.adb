@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -61,7 +61,8 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Create is
          if Param.Policies.all (J).Priority_Model.all = "CLIENT" then
             Model := 0;
          elsif Param.Policies.all (J).Priority_Model.all =
-           "SERVER_DECLARED" then
+           "SERVER_DECLARED"
+         then
             Model := 1;
          else
             Error := True;

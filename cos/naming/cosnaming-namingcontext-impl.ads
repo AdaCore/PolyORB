@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,7 +32,9 @@
 
 with CORBA;
 with PortableServer;
-with PolyORB.Tasking.Mutexes;
+
+private with PolyORB.Tasking.Mutexes;
+private with PolyORB.Utils.Strings;
 
 package CosNaming.NamingContext.Impl is
 
@@ -90,6 +92,8 @@ package CosNaming.NamingContext.Impl is
    procedure Initialize (Self : Object_Ptr);
 
 private
+   use PolyORB.Utils.Strings;
+
    package PTM renames PolyORB.Tasking.Mutexes;
 
    Key_Size : constant := 4;
@@ -99,6 +103,7 @@ private
    type Bound_Object_Ptr is access Bound_Object;
 
    type Bound_Object is record
+      Key  : String_Ptr;
       BN   : NameComponent;
       BT   : BindingType;
       Obj  : CORBA.Object.Ref;

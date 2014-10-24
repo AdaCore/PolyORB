@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -196,8 +196,9 @@ package body PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans is
       while not TAP_Lists.Last (Iter) loop
          Append
            (TC_TLS_Sec_Trans (Result.all).Addresses,
-            new Socket_Name'(Address_Of
-              (TLS_Access_Point (TAP_Lists.Value (Iter).all.all))));
+            new Socket_Name'
+              (TLS_Access_Point (TAP_Lists.Value (Iter).all.all).
+                 Socket_AP_Publish_Name));
          TAP_Lists.Next (Iter);
       end loop;
 

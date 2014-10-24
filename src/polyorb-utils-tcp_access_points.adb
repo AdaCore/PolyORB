@@ -36,27 +36,22 @@ pragma Ada_2005;
 
 with Ada.Exceptions;
 
-with GNAT.Regpat;
-
 with PolyORB.Log;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 
 package body PolyORB.Utils.TCP_Access_Points is
 
-   use GNAT.Regpat;
    use PolyORB.Log;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.utils.tcp_access_points");
    procedure O (Message : String; Level : Log_Level := Debug)
      renames L.Output;
-   --  function C (Level : Log_Level := Debug) return Boolean
-   --    renames L.Enabled;
-
-   Listen_Matcher : constant Pattern_Matcher :=
-                      Compile ("^([^:\]]*)(\[[^\]]*\])?(:[0-9-]*)?");
-   subtype Listen_Match is Match_Array (0 .. Paren_Count (Listen_Matcher));
+   function C (Level : Log_Level := Debug) return Boolean
+     renames L.Enabled;
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -64,79 +59,28 @@ package body PolyORB.Utils.TCP_Access_Points is
 
    function Initialize_Access_Points
      (Listen_Spec   : String;
-      Default_Ports : Port_Interval := (Any_Port, Any_Port)) return AP_Infos
+      Default_Ports : Port_Interval := (Any_Port, Any_Port)) return APs
    is
-      M : Listen_Match;
-   begin
-      Match (Listen_Matcher, Listen_Spec, M);
+      function Initialize_TCP_AP
+        (Addr      : Inet_Addr_Type;
+         Port_Hint : Port_Interval) return Transport_Access_Point_Access;
+      --  Initialize a connected socket access point
 
-      declare
-         Bind_Spec : constant String :=
-                       Listen_Spec (M (1).First .. M (1).Last);
-         --  Specification of address to bind to:
-         --  * IP address (dotted quad)
-         --  * host name (bind to all associated addresses)
-         --  * empty, bind to Any_Inet_Addr
-
-         function Pub_Spec return String;
-         --  Name to be published in profiles:
-         --  * defaults to Bind_Spec
-         --  * if empty, publish primary non-loopback IP address
-
-         --------------
-         -- Pub_Spec --
-         --------------
-
-         function Pub_Spec return String is
-         begin
-            if M (2).Last > M (2).First then
-               return Listen_Spec (M (2).First + 1 .. M (2).Last - 1);
-            else
-               return Bind_Spec;
-            end if;
-         end Pub_Spec;
-
-         Port_Hint : Port_Interval;
-
-      --  Start of processing for Initialize_Access_Points
-
+      function Initialize_TCP_AP
+        (Addr      : Inet_Addr_Type;
+         Port_Hint : Port_Interval) return Transport_Access_Point_Access
+      is
       begin
-         --  If the Listen_Spec specifies a port [interval], use it, else
-         --  use Default_Ports.
+         return TAP : Transport_Access_Point_Access do
+            Initialize_Socket (TAP, Addr, Port_Hint);
+         end return;
+      end Initialize_TCP_AP;
 
-         if M (3).Last > M (3).First then
-            Port_Hint := To_Port_Interval
-              (To_Interval (Listen_Spec (M (3).First + 1 .. M (3).Last)));
-         else
-            Port_Hint := Default_Ports;
-         end if;
+   --  Start of processing for Initialize_Access_Points
 
-         --  If a Bind_Spec is present, resolve and bind to all returned
-         --  addresses.
-
-         if Bind_Spec /= "" then
-            declare
-               H : constant Host_Entry_Type := Get_Host_By_Name (Bind_Spec);
-            begin
-               return APIs : AP_Infos (1 .. H.Addresses_Length) do
-                  for J in 1 .. H.Addresses_Length loop
-                     Initialize_Socket
-                       (APIs (J),
-                        Addresses (H, J), Port_Hint,
-                        Pub_Spec);
-                  end loop;
-               end return;
-            end;
-
-         --  Here if no Bind_Spec: bind to Any_Inet_Addr
-
-         else
-            return APIs : AP_Infos (1 .. 1) do
-               Initialize_Socket
-                 (APIs (1), Any_Inet_Addr, Port_Hint, Pub_Spec);
-            end return;
-         end if;
-      end;
+   begin
+      return Initialize_Access_Points
+        (Listen_Spec, Default_Ports, Initialize_TCP_AP'Access);
    end Initialize_Access_Points;
 
    -----------------------
@@ -145,14 +89,16 @@ package body PolyORB.Utils.TCP_Access_Points is
 
    procedure Initialize_Socket
      (SAP       : out Transport_Access_Point_Access;
-      Address   : Sockets.Inet_Addr_Type := Any_Inet_Addr;
-      Port_Hint : Port_Interval;
-      Publish   : String := "")
+      Address   : PolyORB.Sockets.Inet_Addr_Type := Any_Inet_Addr;
+      Port_Hint : Port_Interval)
    is
       Socket  : Socket_Type;
       S_Addr  : Sock_Addr_Type;
    begin
-      Create_Socket (Socket);
+      Utils.Sockets.Create_Socket
+        (Socket,
+         Mode          => Socket_Stream,
+         Reuse_Address => True);
 
       S_Addr :=
         Sock_Addr_Type'(Addr   => Address,
@@ -163,18 +109,17 @@ package body PolyORB.Utils.TCP_Access_Points is
 
       Set_Socket_Option (Socket, Socket_Level, (Reuse_Address, True));
 
-      SAP := new Socket_Access_Point;
+      SAP := new Connected_Socket_AP;
 
       loop
          begin
             Create
-              (Socket_Access_Point (SAP.all),
+              (Connected_Socket_AP (SAP.all),
                Socket,
-               S_Addr,
-               Publish);
+               S_Addr);
             exit;
          exception
-            when E : Sockets.Socket_Error =>
+            when E : PolyORB.Sockets.Socket_Error =>
 
                --  If a specific port range was given, try next port in range
 
@@ -190,6 +135,9 @@ package body PolyORB.Utils.TCP_Access_Points is
 
          end;
       end loop;
+
+      pragma Debug (C, O ("Created TCP AP: "
+         & Image (Socket_AP_Address (Connected_Socket_AP (SAP.all)))));
    end Initialize_Socket;
 
 end PolyORB.Utils.TCP_Access_Points;

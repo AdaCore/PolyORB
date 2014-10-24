@@ -1,0 +1,83 @@
+==============================
+Known problems in PolyORB 2.10
+==============================
+
+Copyright (C) 2014, AdaCore
+
+The following is a listing of known problems in releases 2.10.1 and 2.10.2.
+Each entry contains a status line stating when the problem was fixed, and on
+which release(s). In addition, any wavefront issued subsequent to the date
+specified (in ISO format YYYY-MM-DD) also contains the fix. This can be used
+to determine if a given release or wavefront has the fix identified in the
+entry.
+
+Note that older releases might or might not be affected by the problems listed
+in this document.
+
+Known problems fixed in 2.11.1 and above
+----------------------------------------
+
+KP-210-NA07-004 Memory leak in CORBA calling stubs
+
+  Problem:    A data structure allocated in CORBA calling stubs was not
+              correctly deallocated, causing a per call memory leak.
+
+  Status:     This was fixed in 2.11 on 2014-10-07
+
+  Workaround: Periodically restart any partition whose memory footprint
+              grows too much.
+
+KP-210-N909-046 Visibility of reopened module
+
+  Problem:    IAC would not correctly make identifiers visible when reopening
+              a module.
+
+  Status:     This was fixed in 2.11 on 2014-09-15
+
+  Workaround: Reorganize IDL to not require reopening modules.
+
+KP-210-N127-066 -ffreestanding required for recent g++ preprocessor
+
+  Problem:    When IAC uses a GCC 4.8 C++ preprocessor to preprocess IDL
+              files, -ffreestanding needs to be passed on the preprocessor
+              command line to prevent the automatic preinclusion of C
+              header file stdc-predef.h.
+
+  Status:     This was fixed in 2.11 on 2014-01-28
+
+  Workaround: Set environment variable CXXCPP to "g++ -E -ffreestanding" when
+              configuring PolyORB using an affected g++ compiler.
+
+KP-210-N117-032 Memory leak in COS Naming server
+
+  Problem:    The po_cos_naming name server leaks memory each time a name
+              is bound.
+
+  Status:     This was fixed in 2.11 on 2014-01-17
+
+  Workaround: Periodically restart the name server if its memory footprint
+              grows too much.
+
+KP-210-MC03-013 Hang on remote call abortion
+
+  Problem:    In some cases, aborting a remote call asynchronously could
+              leave the ORB locked, causing all further ORB calls to hang.
+
+  Status:     This was fixed in 2.11 on 2014-02-28
+
+  Workaround: Avoid asynchronous abortion of remote calls.
+
+KP-210-MB27-043 idl translation for range types with negative bounds
+
+  Problem:    IAC incorrectly gives a syntax error when a negative number is
+              used as the lower bound in a range pragma, as in:
+                 #pragma range S1 -1 .. 100
+
+  Status:     This was fixed in 2.11 on 2014-02-24
+
+  Workaround: Use the quoted Ada notation, and use an expanded name for the "-"
+              operator, as in:
+                 #pragma range S1 "CORBA.\"-\"(1) .. 100"
+
+Known problems fixed in 2.10.2 and above
+----------------------------------------

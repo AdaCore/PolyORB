@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -166,7 +166,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
 
       Event : CORBA.Any;
    begin
-      pragma Debug (O ("attempt to pull new data from "&
+      pragma Debug (O ("attempt to pull new data from " &
                        "typedproxypull supplier"));
       pragma Debug (O ("no need to use generic pull in typed pullsupplier"));
 

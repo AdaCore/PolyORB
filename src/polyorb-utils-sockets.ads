@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -39,13 +39,15 @@ with PolyORB.Sockets;
 
 package PolyORB.Utils.Sockets is
 
+   use PolyORB.Sockets;
+
    type Socket_Name (Name_Len : Natural) is record
       Host_Name : String (1 .. Name_Len);
-      Port      : PolyORB.Sockets.Port_Type;
+      Port      : Port_Type;
    end record;
 
    function To_Address
-     (SN : Socket_Name) return PolyORB.Sockets.Sock_Addr_Type;
+     (SN : Socket_Name) return Sock_Addr_Type;
    --  Convert socket name to socket address
 
    type Socket_Name_Ptr is access all Socket_Name;
@@ -54,7 +56,7 @@ package PolyORB.Utils.Sockets is
 
    function "+"
      (Host_Name : String;
-      Port      : PolyORB.Sockets.Port_Type) return Socket_Name;
+      Port      : Port_Type) return Socket_Name;
    --  Return a Socket_Name with the given contents
 
    function Image (SN : Socket_Name) return String;
@@ -70,16 +72,28 @@ package PolyORB.Utils.Sockets is
    --  Unmarshall socket address and port from a buffer
 
    procedure Connect_Socket
-     (Sock        : in out PolyORB.Sockets.Socket_Type;
+     (Sock        : in out Socket_Type;
       Remote_Name : Socket_Name);
-   --  Front-end to PolyORB.Sockets.Connect_Socket. In case of failure, Sock is
+   --  Wrapper for PolyORB.Sockets.Connect_Socket. In case of failure, Sock is
    --  closed, and a log trace is produced.
 
    function Is_IP_Address (Name : String) return Boolean;
    --  True iff S is an IP address in dotted quad notation
 
-   function Local_Inet_Address return PolyORB.Sockets.Inet_Addr_Type;
+   function Local_Inet_Address return Inet_Addr_Type;
    --  Return an IP address associated with the local host name, preferring
    --  non-loopback addresses over loopback ones.
+
+   procedure Create_Socket
+     (Socket        : out Socket_Type;
+      Family        : Family_Type := Family_Inet;
+      Mode          : Mode_Type   := Socket_Stream;
+      Reuse_Address : Boolean     := False);
+   --  Wrapper for PolyORB.Sockets.Create_Socket that also marks the
+   --  newly-created socket as close-on-exec. If Reuse_Address is true,
+   --  the option is set on the socket.
+
+   procedure Set_Close_On_Exec (Socket : Socket_Type);
+   --  Mark S as not to be inherited by child processes
 
 end PolyORB.Utils.Sockets;

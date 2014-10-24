@@ -72,7 +72,7 @@ GPRBUILD_FOR_TARGET	:= @GPRBUILD_FOR_TARGET@
 CFLAGS                  = @CFLAGS@
 ADAFLAGS                = @ADAFLAGS@
 CPPFLAGS                = @CPPFLAGS@
-PARALLEL_GNATMAKE_FLAGS = -j4
+PARALLEL_GNATMAKE_FLAGS = -j0
 EXTRA_GNATMAKE_FLAGS    = @EXTRA_GNATMAKE_FLAGS@
 # EXTRA_GNATMAKE_FLAGS are user-provided, empty by default (typically
 # used to specify a non-default --RTS switch).
@@ -86,7 +86,7 @@ BASE_GNATMAKE_FLAGS	  :=--create-missing-dirs ${ADAFLAGS} ${PARALLEL_GNATMAKE_FL
 # Note: if EXTRA_GNATMAKE_FLAGS contains a -%args argument, we add -margs at
 # the end because further builder flags may need to be passed.
 
-COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCHES@ -gnatwa@WARNINGS_MODE@ -gnat05 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
+COMP_TOOLS_GNATMAKE_FLAGS := @STYLE_SWITCHES@ -gnatwa@WARNINGS_MODE@ -gnat12 -gnatec=${top_builddir}/compilers/config.adc ${BASE_GNATMAKE_FLAGS}
 # Gnatmake flags for compilation tools mains, built without project files
 
 # Extra flags for target
@@ -609,8 +609,7 @@ ${PROJECT_FILES}: %.gpr: \
     build-gen_codeset \
     src/giop/polyorb-giop_p-code_sets-data.ads-stamp \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
-	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GPRBUILD_FOR_TARGET} -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
+	${GPRBUILD_FOR_TARGET} -aP"${top_builddir}/projects" -aP"${top_srcdir}/projects" -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 ##########################
 # examples and testsuite #
@@ -664,8 +663,7 @@ test_targets := ${sort ${test_targets}}
 
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
-	ADA_PROJECT_PATH="${top_builddir}/projects${PATH_SEP}${top_srcdir}/projects${PATH_SEP}$$ADA_PROJECT_PATH" \
-	  ${GPRBUILD_FOR_TARGET} "-XTest_Dir=$*" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
+	${GPRBUILD_FOR_TARGET} "-XTest_Dir=$*" -aP"${top_builddir}/projects" -aP"${top_srcdir}/projects" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb

@@ -37,6 +37,7 @@ pragma Ada_2005;
 
 with PolyORB.Sockets;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Transport.Sockets;
 with PolyORB.Utils.Sockets;
 
 package PolyORB.Transport.Connected.Sockets is
@@ -44,38 +45,34 @@ package PolyORB.Transport.Connected.Sockets is
    pragma Elaborate_Body;
 
    use PolyORB.Sockets;
+   use PolyORB.Transport.Sockets;
    use PolyORB.Utils.Sockets;
 
-   type Socket_Access_Point
-      is new Connected_Transport_Access_Point with private;
-   --  A listening transport service access point as
-   --  a listening stream-oriented socket.
+   type Connected_Socket_AP is
+     new Connected_Transport_Access_Point
+     and Socket_Access_Point
+       with private;
+   --  Transport access point backed by a listening stream socket
 
    procedure Create
-     (SAP     : in out Socket_Access_Point;
+     (SAP     : in out Connected_Socket_AP;
       Socket  : Socket_Type;
-      Address : Sock_Addr_Type;
-      Publish : String := "");
+      Address : Sock_Addr_Type);
    --  Initialise SAP: bind Socket to Address, listen on it, and set up the
-   --  corresponding Socket_Access_Point.
+   --  corresponding Connected_Socket_AP.
    --  On entry, Address.Port may be Any_Port, in which case the system will
    --  assign an available port number itself. On return, Address is always
-   --  set to the actual address used. If Publish is provided, it overrides
-   --  the name returned by Address_Of.
+   --  set to the actual address used.
 
    overriding function Create_Event_Source
-     (TAP : access Socket_Access_Point)
+     (TAP : access Connected_Socket_AP)
       return Asynch_Ev.Asynch_Ev_Source_Access;
 
    overriding procedure Accept_Connection
-     (TAP : Socket_Access_Point;
+     (TAP : Connected_Socket_AP;
       TE  : out Transport_Endpoint_Access);
 
-   overriding procedure Destroy (TAP : in out Socket_Access_Point);
-
-   function Address_Of
-     (SAP : Socket_Access_Point) return Utils.Sockets.Socket_Name;
-   --  Return a socket name denoting SAP
+   overriding procedure Destroy (TAP : in out Connected_Socket_AP);
 
    type Socket_Endpoint is new Transport_Endpoint with private;
    --  An opened transport endpoint as a connected stream-oriented socket
@@ -107,22 +104,34 @@ package PolyORB.Transport.Connected.Sockets is
    overriding procedure Close (TE : access Socket_Endpoint);
    overriding procedure Destroy (TE : in out Socket_Endpoint);
 
-   procedure Check_Validity (TE : access Socket_Endpoint);
+   overriding procedure Check_Validity (TE : access Socket_Endpoint);
 
 private
 
-   type Socket_Access_Point is new Connected_Transport_Access_Point
+   type Connected_Socket_AP is
+     new Connected_Transport_Access_Point
+     and Socket_Access_Point
      with record
         Socket  : Socket_Type := No_Socket;
         Addr    : Sock_Addr_Type;
         Publish : Socket_Name_Ptr;
      end record;
 
-   type Socket_Endpoint is new Connected_Transport_Endpoint
-     with record
-        Socket : Socket_Type := No_Socket;
-        Addr   : Sock_Addr_Type;
-        Mutex  : Tasking.Mutexes.Mutex_Access;
-     end record;
+   overriding procedure Set_Socket_AP_Publish_Name
+      (SAP  : in out Connected_Socket_AP;
+       Name : Socket_Name);
+   overriding function Socket_AP_Publish_Name
+      (SAP : access Connected_Socket_AP) return Socket_Name;
+
+   overriding function Socket_AP_Address
+     (SAP : Connected_Socket_AP) return Sock_Addr_Type;
+
+   type Socket_Endpoint is new Connected_Transport_Endpoint with record
+      Socket : Socket_Type := No_Socket;
+      Addr   : Sock_Addr_Type;
+
+      Mutex  : Tasking.Mutexes.Mutex_Access;
+      --  Mutex to protect Write calls, which we want to be atomic
+   end record;
 
 end PolyORB.Transport.Connected.Sockets;

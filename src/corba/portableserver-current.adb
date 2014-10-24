@@ -134,7 +134,8 @@ package body PortableServer.Current is
       Result : Local_Ref;
    begin
       if CORBA.Object.Entity_Of (Self).all
-        not in Current_Object'Class then
+        not in Current_Object'Class
+      then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 

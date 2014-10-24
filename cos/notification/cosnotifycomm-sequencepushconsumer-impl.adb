@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -90,7 +90,7 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Notifications : CosNotification.EventBatch)
    is
    begin
-      pragma Debug (O ("push sequence of structured events "&
+      pragma Debug (O ("push sequence of structured events " &
                        "to sequencepushconsumer"));
 
       Enter (Self.X.M);
@@ -118,8 +118,7 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Leave (Self.X.M);
       Broadcast (Self.X.CV);
 
-      if not CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
-             (Peer) then
+      if not CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil (Peer) then
          CosNotifyChannelAdmin.SequenceProxyPushSupplier.
             disconnect_sequence_push_supplier (Peer);
       end if;
@@ -164,7 +163,8 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
 
       Enter (Self.X.M);
       if not CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
-      (Self.X.Peer) then
+        (Self.X.Peer)
+      then
          Leave (Self.X.M);
          CosEventChannelAdmin.Helper.Raise_AlreadyConnected
            ((CORBA.IDL_Exception_Members with null record));
@@ -197,7 +197,8 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
 
       loop
          if CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
-         (Self.X.Peer) then
+           (Self.X.Peer)
+         then
             Leave (Self.X.M);
             CosEventComm.Helper.Raise_Disconnected
               ((CORBA.IDL_Exception_Members with null record));
@@ -236,7 +237,8 @@ package body CosNotifyComm.SequencePushConsumer.Impl is
       Enter (Self.X.M);
 
       if CosNotifyChannelAdmin.SequenceProxyPushSupplier.Is_Nil
-      (Self.X.Peer) then
+        (Self.X.Peer)
+      then
          Leave (Self.X.M);
          CosEventComm.Helper.Raise_Disconnected
            ((CORBA.IDL_Exception_Members with null record));

@@ -69,6 +69,10 @@ def main():
     fixed_support_dir = os.path.join(os.getcwd(), 'fixed_support_dir')
     env.add_search_path('FIXED_SUPPORT_DIR', fixed_support_dir)
     env.add_path(os.path.join(fixed_support_dir))
+    env.add_path('.')  # many tests expect '.' in the PATH
+
+    # Avoid extra debug traces
+    os.environ['POLYORB_LOG_DEFAULT'] = 'error'
 
     # Generate the discs list for test.opt parsing
     # Always add 'ALL'
@@ -126,8 +130,9 @@ def main():
     else:
         test_glob = None
     test_list = filter_list('./tests/*/*/*/test.py', test_glob)
-    if os.path.isdir ('regtests'):
-       test_list.extend(filter_list('./regtests/*/test.*', test_glob))
+    if os.path.isdir('regtests'):
+        test_list.extend(
+            filter_list('./regtests/*/test.*', test_glob))
 
     collect_result = generate_collect_result(
         m.options.output_dir, results_file, m.options.diffs)
@@ -140,8 +145,8 @@ def main():
     env.store(os.environ['TEST_CONFIG'])
 
     if len(test_list) == 0:
-	logger.error ("No matching test found")
-	return
+        logger.error ("No matching test found")
+        return
 
     MainLoop(test_list, run_testcase, collect_result, m.options.mainloop_jobs)
 

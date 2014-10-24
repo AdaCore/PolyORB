@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -623,7 +623,8 @@ package body Backend.BE_CORBA_Ada.Common is
       Rewinded_Type := FEU.Get_Original_Type_Specifier (N);
 
       if Present (Declarator) and then
-        FEN.Kind (Declarator) = K_Complex_Declarator then
+        FEN.Kind (Declarator) = K_Complex_Declarator
+      then
          declare
             Designator : Node_Id;
             Decl_Name  : Name_Id;

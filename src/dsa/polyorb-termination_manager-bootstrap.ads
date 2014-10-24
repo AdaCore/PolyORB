@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -54,7 +54,7 @@ package PolyORB.Termination_Manager.Bootstrap is
    --  manager.
 
    RACW_Type_Name : constant String :=
-                      "polyorb.termination_manager.term_manager";
+                      "POLYORB.TERMINATION_MANAGER.TERM_MANAGER";
    --  The type name of the termination manager RACW
 
    The_TM : Term_Manager_Ptr;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -128,7 +128,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
       MyConsumer   : TypedProxyPushConsumer.Impl.Object_Ptr;
       MyCreate_Ptr : TypedEventChannel.Impl.Interface_Ptr;
    begin
-      pragma Debug (O ("obtain typed proxypushconsumer from "&
+      pragma Debug (O ("obtain typed proxypushconsumer from " &
                        "typed supplieradmin"));
 
       Ensure_Initialization;
@@ -195,7 +195,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
       Its_Ref  : ProxyPullConsumer.Ref;
    begin
       pragma Debug (O ("obtain proxy pull consumer from typed supplieradmin"));
-      pragma Debug (O ("No need to get generic proxy pullconsumer "&
+      pragma Debug (O ("No need to get generic proxy pullconsumer " &
                        "from typed supplieradmin"));
       Ensure_Initialization;
 
@@ -217,7 +217,7 @@ package body CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl is
       Its_Ref  : ProxyPushConsumer.Ref;
    begin
       pragma Debug (O ("obtain proxy push consumer from typed supplieradmin"));
-      pragma Debug (O ("No need to get generic proxy pushconsumer "&
+      pragma Debug (O ("No need to get generic proxy pushconsumer " &
                        "from typed supplieradmin"));
       Ensure_Initialization;
 

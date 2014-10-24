@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -85,6 +85,7 @@ package body PolyORB.DSA_P.Partitions is
    function Elaborate return Boolean is
       use System.Partition_Interface;
    begin
+      pragma Debug (C, O ("Elaborate: enter"));
       Create (Partitions_Mutex);
 
       --  We set the partition Id of the main partition here to avoid a
@@ -94,6 +95,8 @@ package body PolyORB.DSA_P.Partitions is
         (System.RPC.Partition_ID
          (Allocate_Partition_ID (Get_Local_Partition_Name
                                  & " (main partition)")));
+
+      pragma Debug (C, O ("Elaborate: leave"));
       return True;
    end Elaborate;
 

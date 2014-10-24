@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,8 @@
 
 with System;
 
+with GNAT.Byte_Swapping;
+
 with PolyORB.Opaque; use PolyORB.Opaque;
 
 package body PolyORB.Utils.Buffers is
@@ -45,6 +47,31 @@ package body PolyORB.Utils.Buffers is
       subtype SEA is Stream_Element_Array (1 .. T'Size / 8);
       Alignment_Of_T : constant Alignment_Type := Alignment_Of (T'Size / 8);
 
+      procedure Swap (Addr : System.Address);
+      pragma Inline (Swap);
+      --  Byte-swap item at given address
+
+      ----------
+      -- Swap --
+      ----------
+
+      --  Body appears out of alphabetical order to allow inlining in
+      --  Marshall and Unmarshall below.
+
+      procedure Swap (Addr : System.Address) is
+         use GNAT.Byte_Swapping;
+      begin
+         --  Note: following CASE statement is actually compile-time known
+
+         case T'Size is
+            when 8      => null;
+            when 16     => Swap2 (Addr);
+            when 32     => Swap4 (Addr);
+            when 64     => Swap8 (Addr);
+            when others => raise Program_Error;
+         end case;
+      end Swap;
+
       --------------
       -- Marshall --
       --------------
@@ -53,9 +80,7 @@ package body PolyORB.Utils.Buffers is
         (Buffer : access Buffer_Type;
          Item   : T)
       is
-         Item_Address : System.Address := Item'Address;
          Data_Address : Opaque_Pointer;
-         Item_Swapped : aliased T;
       begin
          if Alignment_Of_T /= Align_1 and then With_Alignment then
             Pad_Align (Buffer, Alignment_Of_T);
@@ -63,30 +88,27 @@ package body PolyORB.Utils.Buffers is
 
          Allocate_And_Insert_Cooked_Data (Buffer, T'Size / 8, Data_Address);
 
-         --  Note: we can't just have a T object at Data_Address and assign
-         --  it with Item / Swapped (Item) because Data_Address may not be
-         --  suitably aligned. So instead overlay a constrained stream element
-         --  array, and assign that.
+         --  Note: we can't just have a T object at Data_Address and assign it
+         --  with Item because Data_Address may not be suitably aligned. So
+         --  instead overlay a constrained stream element array (which has an
+         --  alignment of 1), and assign it.
 
          declare
             Z_Addr : constant System.Address := Data_Address;
             Z : SEA;
             for Z'Address use Z_Addr;
             pragma Import (Ada, Z);
-         begin
-            if Item'Size > 8 and then Endianness (Buffer) /= Host_Order then
-               Item_Swapped := Swapped (Item);
-               Item_Address := Item_Swapped'Address;
-            end if;
 
-            declare
-               Item_Storage : SEA;
-               pragma Import (Ada, Item_Storage);
-               for Item_Storage'Address use Item_Address;
-            begin
-               Z := Item_Storage;
-            end;
+            Item_Storage : SEA;
+            pragma Import (Ada, Item_Storage);
+            for Item_Storage'Address use Item'Address;
+         begin
+            Z := Item_Storage;
          end;
+
+         if Item'Size > 8 and then Endianness (Buffer) /= Host_Order then
+            Swap (Data_Address);
+         end if;
       end Marshall;
 
       ----------------
@@ -117,11 +139,15 @@ package body PolyORB.Utils.Buffers is
          begin
             Item_Storage := Z;
 
-            if Item'Size > 8 and then Endianness (Buffer) = Host_Order then
-               return Item;
-            else
-               return Swapped (Item);
+            --  At this point, Item_Storage might be an invalid representation
+            --  for type T (if swapped), so do the swapping on Item_Storage
+            --  before any attempt to treat Item as a valid value.
+
+            if Item'Size > 8 and then Endianness (Buffer) /= Host_Order then
+               Swap (Item_Storage'Address);
             end if;
+
+            return Item;
          end;
       end Unmarshall;
    end Align_Transfer_Elementary;
