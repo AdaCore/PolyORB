@@ -64,17 +64,20 @@ define(NODEBUG_OPTIONS, [dnl
 # By default use no-debug options
 NODEBUG_OPTIONS
 
+AC_MSG_CHECKING([debugging mode])
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug], [Turn on debugging options (yes/all/no)]),
 [
+AC_MSG_RESULT($enableval)
 if test "$enableval" = "all"; then
   VALIDITY_FLAG="-gnatVa"
   enableval=yes
 fi
 if test "$enableval" = "yes"; then
   DEBUG_OPTIONS
-fi],
-[])
+fi
+],
+[AC_MSG_RESULT(no)])
 
 # LIBRARY_TYPE_OPTIONS set to use static or shared libraries consistently.
 
