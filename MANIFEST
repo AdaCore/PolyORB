@@ -1,12 +1,12 @@
 COPYING.RUNTIME
 COPYING3
 FEATURES
+HISTORY
 INSTALL
 MANIFEST
 Makefile.common.in
 Makefile.common.project.in
 Makefile.in
-HISTORY
 README
 README.DSA
 VERSION
@@ -451,6 +451,10 @@ docs/OMG_TAGS
 docs/PROBLEM-REPORT-FORM
 docs/ada.kw
 docs/cfg.kw
+docs/corba-arch.fig.pdf
+docs/corba-arch.fig.png
+docs/full-ex.fig.pdf
+docs/full-ex.fig.png
 docs/gfdl.texi
 docs/iac.1
 docs/idl.kw
@@ -466,6 +470,8 @@ docs/polyorb_ug.texi
 docs/polyorb_ug_ref.tex
 docs/polyorb_version.texi.in
 docs/svn.texi
+docs/xe-arch.fig.pdf
+docs/xe-arch.fig.png
 examples/README
 examples/corba/README
 examples/corba/all_functions/Makefile.local
