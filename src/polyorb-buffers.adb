@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -885,20 +885,15 @@ package body PolyORB.Buffers is
             Size := 0;
 
          else
-            --  Note: bypass contiguous size computation if requested size is
-            --  1, as this is a frequent case.
-
-            if Size > 1 then
-               declare
-                  Contiguous_Size : constant Stream_Element_Count :=
-                    Stream_Element_Count (Vecs (Last_Index).Iov_Len
-                                            - Offset_Remainder);
-               begin
-                  if Size > Contiguous_Size then
-                     Size := Contiguous_Size;
-                  end if;
-               end;
-            end if;
+            declare
+               Contiguous_Size : constant Stream_Element_Count :=
+                 Stream_Element_Count (Vecs (Last_Index).Iov_Len
+                                         - Offset_Remainder);
+            begin
+               if Size > Contiguous_Size then
+                  Size := Contiguous_Size;
+               end if;
+            end;
 
             Data := Vecs (Last_Index).Iov_Base + Offset_Remainder;
          end if;
