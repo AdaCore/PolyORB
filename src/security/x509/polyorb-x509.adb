@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -34,7 +34,6 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 
 with Interfaces.C.Strings;
-with Interfaces.C.Pointers;
 
 with System.Storage_Elements;
 
@@ -55,14 +54,6 @@ package body PolyORB.X509 is
 --   pragma Convention (C, X509_Lookup_Method_Record);
 --
 --   type X509_Lookup_Method is access all X509_Lookup_Method_Record;
-
-   package Stream_Element_Pointers is
-     new Interfaces.C.Pointers
-     (Ada.Streams.Stream_Element_Offset,
-      Ada.Streams.Stream_Element,
-      Ada.Streams.Stream_Element_Array,
-      0);
-   use Stream_Element_Pointers;
 
    ------------------
    -- Crypto locks --
@@ -133,7 +124,7 @@ package body PolyORB.X509 is
 
       procedure i2d_X509_NAME
         (Item   :     Name;
-         Buffer : out Stream_Element_Pointers.Pointer;
+         Buffer : out System.Address;
          Length : out C.int);
 
       function X509_NAME_oneline (The_Name : Name) return String;
@@ -157,7 +148,7 @@ package body PolyORB.X509 is
 
       procedure i2d_X509_CHAIN
         (Item   :     Certificate_Chain;
-         Buffer : out Stream_Element_Pointers.Pointer;
+         Buffer : out System.Address;
          Length : out C.int);
 
       --------------------------------
@@ -171,7 +162,7 @@ package body PolyORB.X509 is
       -- Memory management --
       -----------------------
 
-      procedure OPENSSL_free (Item : Stream_Element_Pointers.Pointer);
+      procedure OPENSSL_free (Item : System.Address);
 
       ------------------------
       -- PolyORB extensions --
@@ -473,23 +464,31 @@ package body PolyORB.X509 is
    function Encode
      (Item : Certificate_Chain) return Ada.Streams.Stream_Element_Array
    is
-      Buffer : Stream_Element_Pointers.Pointer;
-      Length : C.int;
+      use Ada.Streams;
+      use type System.Address;
+
+      Buf_Addr : System.Address;
+      Length   : C.int;
 
    begin
-      Thin.i2d_X509_CHAIN (Item, Buffer, Length);
+      Thin.i2d_X509_CHAIN (Item, Buf_Addr, Length);
 
-      if Length < 0 or else Buffer = null then
+      if Length < 0 or else Buf_Addr = System.Null_Address then
          Raise_X509_Error;
       end if;
 
       declare
-         Result : constant Ada.Streams.Stream_Element_Array :=
-           Value (Buffer, C.ptrdiff_t (Length));
-      begin
-         Thin.OPENSSL_free (Buffer);
+         subtype SEA is Stream_Element_Array
+                          (1 .. Stream_Element_Offset (Length));
 
-         return Result;
+         Buffer : SEA;
+         for Buffer'Address use Buf_Addr;
+         pragma Import (Ada, Buffer);
+
+      begin
+         return Result : constant Stream_Element_Array := Buffer do
+            Thin.OPENSSL_free (Buf_Addr);
+         end return;
       end;
    end Encode;
 
@@ -498,23 +497,31 @@ package body PolyORB.X509 is
    ------------
 
    function Encode (The_Name : Name) return Ada.Streams.Stream_Element_Array is
-      Buffer : Stream_Element_Pointers.Pointer;
-      Length : C.int;
+      Buf_Addr : System.Address;
+      Length   : C.int;
+
+      use Ada.Streams;
+      use type System.Address;
 
    begin
-      Thin.i2d_X509_NAME (The_Name, Buffer, Length);
+      Thin.i2d_X509_NAME (The_Name, Buf_Addr, Length);
 
-      if Length < 0 or else Buffer = null then
+      if Length < 0 or else Buf_Addr = System.Null_Address then
          Raise_X509_Error;
       end if;
 
       declare
-         Result : constant Ada.Streams.Stream_Element_Array :=
-           Value (Buffer, C.ptrdiff_t (Length));
+         subtype SEA is Stream_Element_Array
+                          (1 .. Stream_Element_Offset (Length));
+
+         Buffer : SEA;
+         for Buffer'Address use Buf_Addr;
+         pragma Import (Ada, Buffer);
 
       begin
-         Thin.OPENSSL_free (Buffer);
-         return Result;
+         return Result : constant Stream_Element_Array := Buffer do
+            Thin.OPENSSL_free (Buf_Addr);
+         end return;
       end;
    end Encode;
 

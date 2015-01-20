@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,19 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Interfaces.C.Pointers;
+with Interfaces.C;
+
+with System;
+
 with PolyORB.Platform.SSL_Linker_Options;
 pragma Warnings (Off, PolyORB.Platform.SSL_Linker_Options);
 --  No entity referenced
 
 package body PolyORB.ASN1 is
-
-   package Stream_Element_Pointers is
-     new Interfaces.C.Pointers
-     (Ada.Streams.Stream_Element_Offset,
-      Ada.Streams.Stream_Element,
-      Ada.Streams.Stream_Element_Array,
-      0);
 
    OID : constant String := "oid:";
 
@@ -95,39 +91,40 @@ package body PolyORB.ASN1 is
    function Encode
      (Item : Object_Identifier) return Ada.Streams.Stream_Element_Array
    is
+      use Ada.Streams;
       use type Interfaces.C.int;
-      use type Stream_Element_Pointers.Pointer;
+      use type System.Address;
 
       procedure i2d_ASN1_OBJECT
         (Item   :     Object_Identifier;
-         Buffer : out Stream_Element_Pointers.Pointer;
+         Buffer : out System.Address;
          Length : out Interfaces.C.int);
       pragma Import (C, i2d_ASN1_OBJECT, "__PolyORB_i2d_ASN1_OBJECT");
 
-      procedure OPENSSL_free (Item : Stream_Element_Pointers.Pointer);
+      procedure OPENSSL_free (Item : System.Address);
       pragma Import (C, OPENSSL_free, "__PolyORB_OPENSSL_free");
 
-      Buffer : Stream_Element_Pointers.Pointer := null;
-      Length : Interfaces.C.int;
+      Buf_Addr : System.Address;
+      Length   : Interfaces.C.int;
 
    begin
-      i2d_ASN1_OBJECT (Item, Buffer, Length);
+      i2d_ASN1_OBJECT (Item, Buf_Addr, Length);
 
-      if Length < 0
-        or else Buffer = null
-      then
+      if Length < 0 or else Buf_Addr = System.Null_Address then
          raise ASN1_Error;
       end if;
 
       declare
-         Result : constant Ada.Streams.Stream_Element_Array
-           := Stream_Element_Pointers.Value
-           (Buffer, Interfaces.C.ptrdiff_t (Length));
+         subtype SEA is Stream_Element_Array
+                          (1 .. Stream_Element_Offset (Length));
+         Buffer : SEA;
+         for Buffer'Address use Buf_Addr;
+         pragma Import (Ada, Buffer);
 
       begin
-         OPENSSL_free (Buffer);
-
-         return Result;
+         return Result : constant SEA := Buffer do
+            OPENSSL_free (Buf_Addr);
+         end return;
       end;
    end Encode;
 
