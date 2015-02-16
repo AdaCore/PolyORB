@@ -806,6 +806,7 @@ idls/cos/transaction/CosTSInteroperation.idl
 idls/cos/transaction/CosTSPortability.idl
 idls/cos/transaction/CosTransactions.idl
 known-problems-2.10
+known-problems-2.11
 known-problems-2.9
 polyorb-config.in
 projects-distrib/README

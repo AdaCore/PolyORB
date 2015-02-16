@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -61,6 +61,8 @@ package PolyORB.Any.ExceptionList is
    function Search_Exception_Id
      (Self : Ref;
       Name : Types.String) return Types.Unsigned_Long;
+   --  Return the (1-based) index of the named exception in Self, or 0 if
+   --  not found.
 
 private
 
