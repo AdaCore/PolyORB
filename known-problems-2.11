@@ -1,0 +1,29 @@
+==============================
+Known problems in PolyORB 2.11
+==============================
+
+Copyright (C) 2015, AdaCore
+
+The following is a listing of known problems in release 2.11.1.
+Each entry contains a status line stating when the problem was fixed, and on
+which release(s). In addition, any wavefront issued subsequent to the date
+specified (in ISO format YYYY-MM-DD) also contains the fix. This can be used
+to determine if a given release or wavefront has the fix identified in the
+entry.
+
+Note that older releases might or might not be affected by the problems listed
+in this document.
+
+Known problems fixed in 2.11.1 and above
+----------------------------------------
+
+KP-211-O213-032 Crash on unknown user exception
+
+  Problem:    When a client and server are built with incompatible IDL
+              specifications, and the server raises an exception not
+              specified in the client IDL, the client crashes.
+
+  Status:     This was fixed in 2.12 on 2015-02-16
+
+  Workaround: Make sure consistent IDL specifications are used between
+              client and server code.
