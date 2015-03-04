@@ -79,20 +79,20 @@ fi
 ],
 [AC_MSG_RESULT(no)])
 
-# LIBRARY_TYPE_OPTIONS set to use static or shared libraries consistently.
+# LIBRARY_TYPE set to use static or shared libraries consistently.
 
 # By default build static libs
-LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=static"
+LIBRARY_TYPE=static
 
 AC_ARG_ENABLE(shared,
 AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
 [
 if test "$enableval" = "yes"; then
-  LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=relocatable"
+  LIBRARY_TYPE="relocatable"
 fi
 ],
 [])
-AC_SUBST(LIBRARY_TYPE_OPTIONS)
+AC_SUBST(LIBRARY_TYPE)
 
 # WARNINGS_MODE can be set to:
 #  e (treat warnings as errors)
