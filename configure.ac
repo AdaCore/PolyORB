@@ -956,6 +956,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects/polyorb_config.gpr
 	projects/polyorb_src_setup.gpr
 	projects-distrib/polyorb.gpr
+	projects-distrib/polyorb/polyorb_config.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
 	src/src.exclude

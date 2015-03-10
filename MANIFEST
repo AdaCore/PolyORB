@@ -812,6 +812,7 @@ polyorb-config.in
 projects-distrib/README
 projects-distrib/polyorb.gpr.in
 projects-distrib/polyorb/polyorb_common.gpr
+projects-distrib/polyorb/polyorb_config.gpr.in
 projects-distrib/polyorb/polyorb_cos_event.gpr
 projects-distrib/polyorb/polyorb_cos_ir.gpr
 projects-distrib/polyorb/polyorb_cos_naming.gpr

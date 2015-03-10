@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                       P O L Y O R B _ C O M M O N                        --
+--                       P O L Y O R B _ C O N F I G                        --
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2007-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_config";
+--  Defaults set by configure
 
-abstract project PolyORB_Common is
+--  @configure_input@
 
-   --  This project is imported by all the polyorb project files.
+project PolyORB_Config is
 
    for Source_Files use ();
+   Default_Library_Type := "@LIBRARY_TYPE@";
 
-   type Library_Type_Type is ("relocatable", "static");
-   Library_Type : Library_Type_Type :=
-     external ("LIBRARY_TYPE", PolyORB_Config.Default_Library_Type);
-
-   Library_Dir := "../..";
-
-   case Library_Type is
-      when "relocatable" =>
-         Library_Dir := "../..";
-
-      when "static" =>
-         Library_Dir := "../../polyorb/static";
-   end case;
-
-end PolyORB_Common;
+end PolyORB_Config;
