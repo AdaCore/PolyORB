@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,6 +25,8 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
@@ -530,29 +532,31 @@ package body XE_Back.GARLIC is
       Current       : Partition_Type renames Partitions.Table (P);
       Executable    : File_Name_Type renames Current.Executable_File;
       Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
-      I_Part_Dir    : String_Access;
-      Comp_Args     : String_List (1 .. 7);
-      Make_Args     : String_List (1 .. 11);
+      Comp_Args,
+      Make_Args     : Argument_Vec;
       Sfile         : File_Name_Type;
-      Prj_Fname     : File_Name_Type;
+      I_Part_Dir    : constant Unbounded_String :=
+        +("-I" & Get_Name_String (Partition_Dir));
 
    begin
-      Set_Str_To_Name_Buffer ("-I");
-      Get_Name_String_And_Append (Partition_Dir);
-      I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      Push (Comp_Args, Project_File_Flag);
+
+      Push (Comp_Args, Dir (Partition_Dir, Part_Prj_File_Name));
+      Push (Comp_Args, Partition_Dir_Flag (P));
 
       --  Give the priority to partition and stub directory against
       --  current directory.
 
-      Comp_Args (1) := E_Current_Dir;
-      Comp_Args (2) := I_Part_Dir;
-      Comp_Args (3) := A_Stub_Dir;
-      Comp_Args (4) := I_Current_Dir;
-      Comp_Args (5) := Project_File_Flag;
+      Push (Comp_Args, "-cargs");
+      Push (Comp_Args, E_Current_Dir);
+      Push (Comp_Args, I_Part_Dir);
+      Push (Comp_Args, I_Current_Dir);
 
-      Prj_Fname     := Dir (Partition_Dir, Part_Prj_File_Name);
-      Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
-      Comp_Args (7) := new String'(Partition_Dir_Flag (P));
+      Push (Comp_Args, "-bargs");
+      Push (Comp_Args, E_Current_Dir);
+      Push (Comp_Args, I_Part_Dir);
+      Push (Comp_Args, A_Stub_Dir);
+      Push (Comp_Args, I_Current_Dir);
 
       --  Compile Garlic elaboration file
 
@@ -591,21 +595,19 @@ package body XE_Back.GARLIC is
       --  Now we just want to bind and link as the ALI files are now
       --  consistent.
 
-      Make_Args (1) := E_Current_Dir;
-      Make_Args (2) := I_Part_Dir;
-      Make_Args (3) := A_Stub_Dir;
-      Make_Args (4) := I_Current_Dir;
-      Make_Args (5) := Bind_Only_Flag;
-      Make_Args (6) := Link_Only_Flag;
+      Push (Make_Args, E_Current_Dir);
+      Push (Make_Args, I_Part_Dir);
+      Push (Make_Args, A_Stub_Dir);
+      Push (Make_Args, I_Current_Dir);
+      Push (Make_Args, Bind_Only_Flag);
+      Push (Make_Args, Link_Only_Flag);
 
-      Make_Args (7) := Project_File_Flag;
-      Prj_Fname := Dir (Partition_Dir, Part_Prj_File_Name);
-      Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
-      Make_Args (9) := Comp_Args (7);
+      Push (Make_Args, Project_File_Flag);
+      Push (Make_Args, Dir (Partition_Dir, Part_Prj_File_Name));
+      Push (Make_Args, Partition_Dir_Flag (P));
 
-      Make_Args (10) := Output_Flag;
-      Make_Args (11) :=
-        new String'(Get_Name_String (Strip_Directory (Executable)));
+      Push (Make_Args, Output_Flag);
+      Push (Make_Args, Strip_Directory (Executable));
 
       --  While binding and linking partitions, the original (monolithic)
       --  objects and ALIs must be moved out of the builder's visibility,
@@ -615,13 +617,6 @@ package body XE_Back.GARLIC is
       Hide_Stubbed_Units;
       Build (Sfile, Make_Args, Fatal => True);
       Unhide_Stubbed_Units;
-
-      Free (Comp_Args (6));
-      Free (Comp_Args (7));
-
-      Free (Make_Args (2));
-      Free (Make_Args (8));
-      Free (Make_Args (11));
    end Generate_Executable_File;
 
    ----------------------------------

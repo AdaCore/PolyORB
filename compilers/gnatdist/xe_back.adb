@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,7 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Command_Line;      use Ada.Command_Line;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.HTable;
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
@@ -67,8 +68,8 @@ package body XE_Back is
 
    type Casing_Rule is record
       Size : Natural;
-      From : String_Access;
-      Into : String_Access;
+      From : GNAT.OS_Lib.String_Access;
+      Into : GNAT.OS_Lib.String_Access;
    end record;
 
    Rules : array (1 .. 64) of Casing_Rule;
@@ -256,8 +257,8 @@ package body XE_Back is
       Write_Str  ("project ");
       Write_Name (Dist_App_Project);
 
-      if Project_File_Name /= null then
-         Write_Str (" extends all """ & Project_File_Name.all & """");
+      if Project_File_Name /= Null_Unbounded_String then
+         Write_Str (" extends all """ & To_String (Project_File_Name) & """");
       end if;
 
       Write_Line (" is");
@@ -270,14 +271,14 @@ package body XE_Back is
       --  project (so that they can be individually recompiled).
 
       Write_Str  ("   for Source_Dirs use ("".""");
-      if Project_File_Name = null then
+      if Project_File_Name = Null_Unbounded_String then
          Write_Line (",");
          Write_Line ("     ""../..""");
-         for J in Source_Directories.First .. Source_Directories.Last loop
+         for D of Source_Directories loop
             declare
                Normalized_Dir : constant String :=
                                   Normalize_Pathname
-                                    (Source_Directories.Table (J).all,
+                                    (To_String (D),
                                      Resolve_Links => Resolve_Links);
             begin
                if Is_Directory (Normalized_Dir) then
@@ -293,7 +294,7 @@ package body XE_Back is
       --  source file partition.adb (in addition to all other sources, which
       --  are sources of this project by virtue of "extends all").
 
-      if Project_File_Name /= null then
+      if Project_File_Name /= Null_Unbounded_String then
          Write_Str  ("   for Source_Files use (""");
          Write_Name (Monolithic_Src_Base_Name);
          Write_Line (""");");
@@ -305,14 +306,12 @@ package body XE_Back is
       Close (Prj_File);
       Set_Standard_Output;
 
-      Free (Project_File_Name);
-
       --  Distributed app project file extends user provided project, and
       --  includes the PCS as well.
 
-      Project_File_Name := new String'(
-                             Normalize_Pathname (Get_Name_String (Prj_Fname),
-                             Resolve_Links => Resolve_Links));
+      Project_File_Name :=
+        +Normalize_Pathname (Get_Name_String (Prj_Fname),
+                             Resolve_Links => Resolve_Links);
    end Generate_Application_Project_Files;
 
    -------------------------------------
@@ -338,7 +337,7 @@ package body XE_Back is
       --  global configuration pragmas) are preserved.
 
       Write_Str  ("project Partition extends all """);
-      Write_Str  (Project_File_Name.all);
+      Write_Str  (To_String (Project_File_Name));
       Write_Line (""" is");
       Write_Line ("   for Object_Dir use ""."";");
 
@@ -382,7 +381,7 @@ package body XE_Back is
       Full_ALI_File  : File_Name_Type;
       Skel_Object    : File_Name_Type;
       Skel_ALI       : File_Name_Type;
-      Arguments      : Argument_List (1 .. 4);
+      Arguments      : Argument_Vec;
       Part_Prj_Fname : File_Name_Type;
       Directory      : Directory_Name_Type
         renames Partitions.Table (P).Partition_Dir;
@@ -442,25 +441,21 @@ package body XE_Back is
             "receiver stubs from", Normalize_CWD (Full_Unit_File));
       end if;
 
-      Arguments (1) := Skel_Flag;
+      Push (Arguments, Skel_Flag);
 
-      if Project_File_Name = null then
-         Arguments (2) := Object_Dir_Flag;
-         Arguments (3) := new String'(Get_Name_String (Directory));
+      if Project_File_Name = Null_Unbounded_String then
+         Push (Arguments, Object_Dir_Flag);
+         Push (Arguments, Directory);
 
       else
-         Arguments (2)  := Project_File_Flag;
+         Push (Arguments, Project_File_Flag);
          Part_Prj_Fname := Dir (Directory, Part_Prj_File_Name);
-         Get_Name_String (Part_Prj_Fname);
-         Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
+         Push (Arguments, Part_Prj_Fname);
       end if;
 
-      Arguments (4) := new String'(Partition_Dir_Flag (P));
+      Push (Arguments, Partition_Dir_Flag (P));
 
       Compile (Full_Unit_File, Arguments, Fatal => False);
-
-      Free (Arguments (3));
-      Free (Arguments (4));
    end Generate_Skel;
 
    -------------------------
@@ -682,8 +677,7 @@ package body XE_Back is
       Stub_ALI_Base    : File_Name_Type;
       Stub_ALI         : File_Name_Type;
       Unit             : Unit_Id := ALIs.Table (A).Last_Unit;
-      Arguments        : Argument_List (1 .. 3);
-      Part_Prj_Fname   : File_Name_Type := No_File_Name;
+      Arguments        : Argument_Vec;
 
    begin
       if Units.Table (Unit).Shared_Passive then
@@ -753,17 +747,15 @@ package body XE_Back is
             "caller stubs from", Normalize_CWD (Full_Unit_File));
       end if;
 
-      Arguments (1) := Stub_Flag;
+      Push (Arguments, Stub_Flag);
 
-      if Project_File_Name = null then
-         Arguments (2) := Object_Dir_Flag;
-         Arguments (3) := Stub_Dir;
+      if Project_File_Name = Null_Unbounded_String then
+         Push (Arguments, Object_Dir_Flag);
+         Push (Arguments, Stub_Dir);
 
       else
-         Arguments (2)  := Project_File_Flag;
-         Part_Prj_Fname := Dir (Stub_Dir, Part_Prj_File_Name);
-         Get_Name_String (Part_Prj_Fname);
-         Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
+         Push (Arguments, Project_File_Flag);
+         Push (Arguments, Dir (Stub_Dir, Part_Prj_File_Name));
       end if;
 
       Compile (Full_Unit_File, Arguments, Fatal => False);
@@ -781,11 +773,6 @@ package body XE_Back is
             Do_Rename (Stub_Object, Final_Object);
          end;
       end if;
-
-      if Present (Part_Prj_Fname) then
-         Free (Arguments (3));
-      end if;
-
    end Generate_Stub;
 
    --------------------------
@@ -804,7 +791,8 @@ package body XE_Back is
       --  Case of command name containing no directory separator
 
       declare
-         Abs_Command_Access : String_Access := Locate_Exec_On_Path (Cmd);
+         Abs_Command_Access : GNAT.OS_Lib.String_Access :=
+           Locate_Exec_On_Path (Cmd);
          Abs_Command : constant String := Abs_Command_Access.all;
       begin
          Free (Abs_Command_Access);
@@ -977,14 +965,14 @@ package body XE_Back is
    -- Prepare_Directories --
    -------------------------
 
-   procedure Prepare_Directories
-   is
+   procedure Prepare_Directories is
       Afile   : File_Name_Type;
       Unit    : Unit_Id;
       Uname   : Unit_Name_Type;
       Current : Partition_Type;
+
    begin
-      if Project_File_Name /= null then
+      if Project_File_Name /= Null_Unbounded_String then
          Generate_Partition_Project_File (Stub_Dir_Name);
       end if;
 
@@ -1007,7 +995,7 @@ package body XE_Back is
                Create_Dir (Current.Executable_Dir);
             end if;
 
-            if Project_File_Name /= null then
+            if Project_File_Name /= Null_Unbounded_String then
                Generate_Partition_Project_File (Current.Partition_Dir, J);
             end if;
 
