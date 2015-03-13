@@ -857,26 +857,16 @@ package body XE_List is
 
    begin
       Push (Comp_Flags, Semantic_Only_Flag);
+      Push (Comp_Flags, Project_File_Flag);
+      Push (Comp_Flags, Project_File_Name);
 
       Push (List_Flags, GLADE_List_Flag);
+      Push (List_Flags, Project_File_Flag);
+      Push (List_Flags, Project_File_Name);
 
       Push (Make_Flags, Compile_Only_Flag);
-      --  Only use the project flags if a project has been set
-
-      if Project_File_Name /= Null_Unbounded_String then
-         Push (Comp_Flags, Project_File_Flag);
-         Push (Comp_Flags, Project_File_Name);
-
-         Push (List_Flags, Project_File_Flag);
-         Push (List_Flags, Project_File_Name);
-
-         Push (Make_Flags, Project_File_Flag);
-         Push (Make_Flags, Project_File_Name);
-
-      else
-         Push (Comp_Flags, Object_Dir_Flag);
-         Push (Comp_Flags, Monolithic_Obj_Dir);
-      end if;
+      Push (Make_Flags, Project_File_Flag);
+      Push (Make_Flags, Project_File_Name);
 
       --  Finish up main library procedure with a dummy body
 

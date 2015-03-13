@@ -53,7 +53,6 @@ package XE_Flags is
 
    Display_Compilation_Progress : Boolean := False;
 
-   Readonly_Flag       : constant Unbounded_String := +"-a";
    Bind_Only_Flag      : constant Unbounded_String := +"-b";
    Compile_Only_Flag   : constant Unbounded_String := +"-c";
    Object_Dir_Flag     : constant Unbounded_String := +"-D";

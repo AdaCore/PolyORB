@@ -273,7 +273,7 @@ package body XE_Back is
       Write_Str  ("   for Source_Dirs use ("".""");
       if Project_File_Name = Null_Unbounded_String then
          Write_Line (",");
-         Write_Line ("     ""../..""");
+         Write_Str  ("     ""../..""");
          for D of Source_Directories loop
             declare
                Normalized_Dir : constant String :=
@@ -442,17 +442,9 @@ package body XE_Back is
       end if;
 
       Push (Arguments, Skel_Flag);
-
-      if Project_File_Name = Null_Unbounded_String then
-         Push (Arguments, Object_Dir_Flag);
-         Push (Arguments, Directory);
-
-      else
-         Push (Arguments, Project_File_Flag);
-         Part_Prj_Fname := Dir (Directory, Part_Prj_File_Name);
-         Push (Arguments, Part_Prj_Fname);
-      end if;
-
+      Push (Arguments, Project_File_Flag);
+      Part_Prj_Fname := Dir (Directory, Part_Prj_File_Name);
+      Push (Arguments, Part_Prj_Fname);
       Push (Arguments, Partition_Dir_Flag (P));
 
       Compile (Full_Unit_File, Arguments, Fatal => False);
@@ -748,15 +740,8 @@ package body XE_Back is
       end if;
 
       Push (Arguments, Stub_Flag);
-
-      if Project_File_Name = Null_Unbounded_String then
-         Push (Arguments, Object_Dir_Flag);
-         Push (Arguments, Stub_Dir);
-
-      else
-         Push (Arguments, Project_File_Flag);
-         Push (Arguments, Dir (Stub_Dir, Part_Prj_File_Name));
-      end if;
+      Push (Arguments, Project_File_Flag);
+      Push (Arguments, Dir (Stub_Dir, Part_Prj_File_Name));
 
       Compile (Full_Unit_File, Arguments, Fatal => False);
 
@@ -972,9 +957,7 @@ package body XE_Back is
       Current : Partition_Type;
 
    begin
-      if Project_File_Name /= Null_Unbounded_String then
-         Generate_Partition_Project_File (Stub_Dir_Name);
-      end if;
+      Generate_Partition_Project_File (Stub_Dir_Name);
 
       for J in Partitions.First + 1 .. Partitions.Last loop
          Current := Partitions.Table (J);
@@ -995,9 +978,7 @@ package body XE_Back is
                Create_Dir (Current.Executable_Dir);
             end if;
 
-            if Project_File_Name /= Null_Unbounded_String then
-               Generate_Partition_Project_File (Current.Partition_Dir, J);
-            end if;
+            Generate_Partition_Project_File (Current.Partition_Dir, J);
 
             for K in ALIs.First .. ALIs.Last loop
                Afile := ALIs.Table (K).Afile;

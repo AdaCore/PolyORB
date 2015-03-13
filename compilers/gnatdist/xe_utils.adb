@@ -383,14 +383,6 @@ package body XE_Utils is
                      (Get_Name_String (Source),
                       Resolve_Links => Resolve_Links));
 
-      --  Check whether we have a predefined unit
-
-      Set_Str_To_Name_Buffer
-        (Strip_Directory (To_String (Flags.Last_Element)));
-      if Is_Predefined_File (Name_Find) then
-         Push (Flags, Readonly_Flag);
-      end if;
-
       if Quiet_Mode then
          --  Pass -q to gnatmake
 
@@ -615,15 +607,12 @@ package body XE_Utils is
          GNAT_Driver := Locate ("gnat");
       end if;
 
-      --  Note: we initialize variable GPRBuild in Scan_Dist_Arg rather than
-      --  unconditionally in Initialize so that the absence of gprbuild does
-      --  not cause initialization to fail in the normal case where -dB is not
-      --  used. However if Use_GPRBuild is the default we need to do it right
-      --  now.
+      --  Use gprbuild by default if available. This is consistent
+      --  with the behaviour of the "gnat" driver. Note that the
+      --  default can be overridden using debugging switch -dM.
 
-      if Use_GPRBuild then
-         GPRBuild := Locate ("gprbuild");
-      end if;
+      GPRBuild := Locate ("gprbuild", Show_Error => False);
+      Use_GPRBuild := GPRBuild /= null;
 
       Check_User_Provided_S_RPC (".");
    end Initialize;
@@ -656,7 +645,6 @@ package body XE_Utils is
       Result  : File_Name_Type := No_File_Name;
       Has_Prj : Boolean := False;
       Skip    : Boolean;
-      Predef  : Boolean := False;
 
       Saved_Standout : File_Descriptor;
 
@@ -669,14 +657,7 @@ package body XE_Utils is
 
       for J in Sources'Range loop
          Push (Flags, Sources (J));
-         if Is_Predefined_File (Sources (J)) then
-            Predef := True;
-         end if;
       end loop;
-
-      if Predef then
-         Push (Flags, Readonly_Flag);
-      end if;
 
       for Arg of Arguments loop
          Push (Flags, Arg);
@@ -696,9 +677,7 @@ package body XE_Utils is
          --  If there is a project file among the arguments then any
          --  project file from the List switches is ignored.
 
-         elsif Has_Prj
-           and then Is_Project_Switch (List_Switch)
-         then
+         elsif Has_Prj and then Is_Project_Switch (List_Switch) then
             if List_Switch = Project_File_Flag then
 
                --  Case of "-P" followed by project file name in a separate
@@ -740,18 +719,12 @@ package body XE_Utils is
       Show_Error : Boolean := True)
       return GNAT.OS_Lib.String_Access
    is
-      Loc : GNAT.OS_Lib.String_Access;
+      Loc : constant GNAT.OS_Lib.String_Access :=
+              GNAT.OS_Lib.Locate_Exec_On_Path (Exec_Name);
    begin
-      Name_Len := Exec_Name'Length;
-      Name_Buffer (1 .. Name_Len) := Exec_Name;
-      declare
-         Exe : constant String := Name_Buffer (1 .. Name_Len);
-      begin
-         Loc := GNAT.OS_Lib.Locate_Exec_On_Path (Exe);
-         if Loc = null and then Show_Error then
-            raise Fatal_Error with Exe & " is not in your path";
-         end if;
-      end;
+      if Loc = null and then Show_Error then
+         raise Fatal_Error with Exec_Name & " not found on PATH";
+      end if;
       return Loc;
    end Locate;
 
@@ -911,8 +884,10 @@ package body XE_Utils is
          --  Processing for -I-
 
          elsif Argv = "-I-" then
-            Add_List_Switch (Argv);
-            Add_Make_Switch (Argv);
+            if not Use_GPRBuild then
+               Add_List_Switch (Argv);
+               Add_Make_Switch (Argv);
+            end if;
 
          --  Forbid -?- or -??- where ? is any character
 
@@ -925,8 +900,11 @@ package body XE_Utils is
            or else Argv (Argv'First + 1) = 'I'
            or else Argv (Argv'First + 1) = 'L'
          then
-            Add_List_Switch (Argv);
-            Add_Make_Switch (Argv);
+            if Use_GPRBuild then
+               Add_List_Switch (Argv);
+               Add_Make_Switch (Argv);
+            end if;
+
             if Argv (Argv'First + 1) = 'I' and then not Implicit then
                Add_Source_Directory (Argv (Argv'First + 2 .. Argv'Last));
             end if;
@@ -1002,12 +980,10 @@ package body XE_Utils is
                   when 'f' =>
                      Add_Make_Switch ("-df");
 
-                  --  -dB: Use gprbuild (implies -dP)
-                  --       (for experimentation, not expected to work yet???)
+                  --  -dM: revert to using gnatmake even if gprbuild is present
 
-                  when 'B' =>
-                     GPRBuild := Locate ("gprbuild");
-                     Use_GPRBuild := True;
+                  when 'M' =>
+                     Use_GPRBuild := False;
 
                   when others =>
                      --  Pass other debugging flags to the builder untouched

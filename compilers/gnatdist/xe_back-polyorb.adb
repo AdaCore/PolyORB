@@ -487,32 +487,8 @@ package body XE_Back.PolyORB is
       I_Part_Dir    : constant Unbounded_String :=
                         +("-I" & Get_Name_String (Partition_Dir));
    begin
-      --  If there is no project file, then save ALI and object files in the
-      --  partition directory.
-
-      if Project_File_Name = Null_Unbounded_String then
-         Push (Comp_Args, Object_Dir_Flag);
-         Push (Comp_Args, Partition_Dir);
-
-      else
-         Push (Comp_Args, Project_File_Flag);
-         Push (Comp_Args, Dir (Partition_Dir, Part_Prj_File_Name));
-      end if;
-
-      --  We already checked the consistency of all the partition
-      --  units. In case of an inconsistency of exception mode, we may
-      --  have to rebuild some parts of polyorb (units configured just
-      --  for this partition). Note that some parts of PolyORB may have
-      --  been already recompiled when the monolithic application was
-      --  initially build. Some bodies may be missing as they are
-      --  assigned to partitions we do not want to build. So compile
-      --  silently and do not exit on errors (keep going).
-
-      if Project_File_Name = Null_Unbounded_String then
-         Push (Comp_Args, Compile_Only_Flag);
-         Push (Comp_Args, Keep_Going_Flag);
-         Push (Comp_Args, Readonly_Flag);
-      end if;
+      Push (Comp_Args, Project_File_Flag);
+      Push (Comp_Args, Dir (Partition_Dir, Part_Prj_File_Name));
 
       --  Compile elaboration file
 
@@ -529,10 +505,8 @@ package body XE_Back.PolyORB is
       Sfile := Dir (Partition_Dir, Partition_Main_File & ADB_Suffix_Id);
       Compile (Sfile, Comp_Args);
 
-      if Project_File_Name /= Null_Unbounded_String then
-         Push (Make_Args, Project_File_Flag);
-         Push (Make_Args, Dir (Partition_Dir, Part_Prj_File_Name));
-      end if;
+      Push (Make_Args, Project_File_Flag);
+      Push (Make_Args, Dir (Partition_Dir, Part_Prj_File_Name));
 
       --  Now we just want to bind and link as the ALI files are now consistent
 
