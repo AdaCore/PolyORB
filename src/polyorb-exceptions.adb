@@ -455,6 +455,7 @@ package body PolyORB.Exceptions is
          Leave (All_Exceptions_Lock);
 
          pragma Debug (C, O ("no einfo found, returning 'Unknown' exception"));
+         return null;
       end if;
 
       return Info : constant access Exception_Info := Value (It) do
