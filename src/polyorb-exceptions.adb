@@ -391,9 +391,17 @@ package body PolyORB.Exceptions is
       Occurence     : PolyORB.Any.Any;
       Message       : Standard.String := "")
    is
+      EI : constant access Exception_Info :=
+        Find_Exception_Info (To_String (Repository_Id));
    begin
-      Find_Exception_Info (To_String (Repository_Id)).Raiser.all
-         (Occurence, Message);
+      if EI /= null then
+         EI.Raiser (Occurence, Message);
+      else
+         raise Program_Error with
+           "unknown exception "
+           & To_String (Repository_Id) & ASCII.LF
+           & Message;
+      end if;
    end Raise_User_Exception_From_Any;
 
    ----------------------------
