@@ -872,7 +872,6 @@ package body XE_Back is
    procedure Initialize is
    begin
       Build_Stamp_File    := Id ("glade.sta");
-      Partition_Main_File := Id ("partition");
       Partition_Main_Name := Id ("Partition");
    end Initialize;
 

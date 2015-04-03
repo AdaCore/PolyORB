@@ -589,7 +589,7 @@ package body XE_Back.GARLIC is
       --  assigned to partitions we do not want to build. So compile
       --  silently and do not exit on errors (keep going).
 
-      Sfile := Partition_Main_File & ADB_Suffix_Id;
+      Sfile := Part_Main_Body_Name;
       Build (Sfile, Comp_Args, Fatal => False);
 
       --  Now we just want to bind and link as the ALI files are now
@@ -652,7 +652,7 @@ package body XE_Back.GARLIC is
       end Import_Stub_From;
 
    begin
-      Filename := Partition_Main_File & ADB_Suffix_Id;
+      Filename := Part_Main_Body_Name;
       Filename := Dir (Current.Partition_Dir, Filename);
       Create_File (File, Filename);
       Set_Output  (File);

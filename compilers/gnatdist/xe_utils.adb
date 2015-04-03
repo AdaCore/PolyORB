@@ -559,9 +559,10 @@ package body XE_Utils is
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
 
-      Part_Main_Src_Name := Id ("partition" & ADB_Suffix);
-      Part_Main_ALI_Name := To_Afile (Part_Main_Src_Name);
-      Part_Main_Obj_Name := To_Ofile (Part_Main_Src_Name);
+      Part_Main_Spec_Name := Id ("partition" & ADS_Suffix);
+      Part_Main_Body_Name := Id ("partition" & ADB_Suffix);
+      Part_Main_ALI_Name := To_Afile (Part_Main_Body_Name);
+      Part_Main_Obj_Name := To_Ofile (Part_Main_Body_Name);
 
       Part_Prj_File_Name := Id ("partition.gpr");
 

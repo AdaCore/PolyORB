@@ -88,9 +88,11 @@ package XE_Utils is
    PCS_Project_File  : File_Name_Type;
    --  Project file for the PCS
 
-   Part_Main_Src_Name : File_Name_Type;
-   Part_Main_ALI_Name : File_Name_Type;
-   Part_Main_Obj_Name : File_Name_Type;
+   Part_Main_Base_Name : File_Name_Type;
+   Part_Main_Spec_Name : File_Name_Type;
+   Part_Main_Body_Name : File_Name_Type;
+   Part_Main_ALI_Name  : File_Name_Type;
+   Part_Main_Obj_Name  : File_Name_Type;
    --  Partition main subprogram
 
    Part_Prj_File_Name : File_Name_Type;
