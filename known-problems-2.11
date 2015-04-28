@@ -17,6 +17,16 @@ in this document.
 Known problems fixed in 2.11.1 and above
 ----------------------------------------
 
+KP-211-O415-015 Static parameters ignored if building with -O2
+
+  Problem:    If PolyORB is built with -O2 optimization, then parameters
+              set by the user using the PolyORB.Parameters.Static circuitry
+              may not be taken into account.
+
+  Status:     This was fixed in 2.12 on 2015-04-28
+
+  Workaround: Compile polyorb-parameters-static.adb with -O1 optimization.
+
 KP-211-O301-002 Installed projects do not account for --enable-shared
 
   Problem:    When building PolyORB as shared libraries with --enable-shared,
