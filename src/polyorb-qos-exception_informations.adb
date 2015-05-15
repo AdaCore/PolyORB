@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -81,32 +81,53 @@ package body PolyORB.QoS.Exception_Informations is
    function Get_Exception_Message
      (R : Requests.Request) return String
    is
-      Exception_Information    : constant String :=
-        Get_Exception_Information (R);
-
-      Exception_Message_Marker : constant String := ASCII.LF & "Message: ";
-      First, Last : Integer;
-   begin
       --  The expected format of the exception information is:
 
-      --  "Exception name: " & Excception_Name & ASCII.LF &
-      --  "Message: " & Exception_Message & ASCII.LF
+      --  "raised " & Exception_Name & " : " Exception_Message & ...etc
 
-      First := Ada.Strings.Fixed.Index
-                 (Source  => Exception_Information,
-                  Pattern => Exception_Message_Marker);
+      --  (see package body Ada.Exceptions).
 
-      --  If separator is not found, just return entire Exception_Information
+      --  If we can't parse the Exception_Information, just return the entire
+      --  string.
 
-      if First = 0 then
-         First := Exception_Information'First;
-      else
-         First := First + Exception_Message_Marker'Length;
+      Exception_Information : constant String :=
+        Get_Exception_Information (R);
+
+      Raised_Marker : constant String := "raised ";
+      Message_Marker : constant String := " : ";
+
+      First : Integer := Exception_Information'First;
+      Last : Integer := Exception_Information'Last;
+   begin
+      if Exception_Information'Length >= Raised_Marker'Length
+        and then Exception_Information (Raised_Marker'Range) = Raised_Marker
+      then
+         Last := First;
+
+         while Last <= Exception_Information'Last
+           and then Exception_Information (Last) /= ASCII.LF
+         loop
+            Last := Last + 1;
+         end loop;
+
+         declare
+            First_Line : String renames Exception_Information (First .. Last);
+         begin
+            First := Ada.Strings.Fixed.Index
+                       (Source  => First_Line,
+                        Pattern => Message_Marker);
+
+            if First = 0 then
+               First := Exception_Information'First;
+               Last := Exception_Information'Last;
+            else
+               First := First + Message_Marker'Length;
+            end if;
+         end;
       end if;
 
       --  Strip trailing newline
 
-      Last := Exception_Information'Last;
       if Last >= First and then Exception_Information (Last) = ASCII.LF then
          Last := Last - 1;
       end if;
