@@ -1,0 +1,99 @@
+include ../Makefile.common
+
+FIG2DEV=fig2dev
+
+FIGFILES=\
+  xe-arch.fig\
+  full-ex.fig
+
+FIG_PDFFILES = $(FIGFILES:.fig=_fig.pdf)
+FIG_SVGFILES = $(FIGFILES:.fig=_fig.svg)
+
+#
+# Figures
+#
+
+
+%_fig.pdf: %.fig
+	$(FIG2DEV) -L pdf $< $@
+
+%_fig.svg: %.fig
+	$(FIG2DEV) -L svg -m 1.5 $< $@
+#
+# Local rules
+# 
+
+.PHONY: images
+images: $(FIG_PDFFILES) $(FIG_SVGFILES)
+
+.PHONY: clean
+clean::
+	-@${RM} -f $(FIG_PDFFILES) $(FIG_SVGFILES)
+
+#
+# Source files to be copied from examples
+# 
+
+SOURCE_FILES= \
+  polyorb-corba_p-corbaloc.ads \
+  polyorb-corba_p-naming_tools.ads \
+  polyorb-corba_p-server_tools.ads \
+  polyorb-rtcorba_p-setup.ads \
+  polyorb-setup-tasking-ravenscar.ads \
+  echo.idl \
+  echo-impl.ads \
+  echo-impl.adb \
+  client.adb \
+  server.adb \
+  dsa_client.adb \
+  dsa_server.ads \
+  dsa_server.adb \
+  dsa_echo-cfg.ads
+
+.PHONY: sources
+sources: $(SOURCE_FILES)
+
+polyorb-corba_p-corbaloc.ads: $(top_srcdir)/src/corba/polyorb-corba_p-corbaloc.ads
+	cp -f $< .
+
+polyorb-corba_p-naming_tools.ads: $(top_srcdir)/idls/cos/naming/polyorb-corba_p-naming_tools.ads
+	cp -f $< .
+
+polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads
+	cp -f $< .
+
+polyorb-rtcorba_p-setup.ads: $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads
+	cp -f $< .
+
+polyorb-setup-tasking-ravenscar.ads: $(top_srcdir)/src/setup/polyorb-setup-tasking-ravenscar.ads
+	cp -f $< .
+
+echo.idl: $(top_srcdir)/examples/corba/echo/echo.idl
+	cp -f $< .
+
+echo-impl.ads: $(top_srcdir)/examples/corba/echo/echo-impl.ads
+	cp -f $< .
+
+echo-impl.adb: $(top_srcdir)/examples/corba/echo/echo-impl.adb
+	cp -f $< .
+
+client.adb: $(top_srcdir)/examples/corba/echo/client.adb
+	cp -f $< .
+
+server.adb: $(top_srcdir)/examples/corba/echo/server.adb
+	cp -f $< .
+
+dsa_client.adb: $(top_srcdir)/examples/dsa/echo/client.adb
+	cp -f $< ./dsa_client.adb
+
+dsa_server.ads: $(top_srcdir)/examples/dsa/echo/server.ads
+	cp -f $< ./dsa_server.ads
+
+dsa_server.adb: $(top_srcdir)/examples/dsa/echo/server.adb
+	cp -f $< ./dsa_server.adb
+
+dsa_echo-cfg.ads: $(top_srcdir)/examples/dsa/echo/echo.cfg
+	cp -f $< ./dsa_echo-cfg.ads
+
+MANIFEST:
+	find _build > MANIFEST

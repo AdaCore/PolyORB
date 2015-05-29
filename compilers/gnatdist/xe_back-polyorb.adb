@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
@@ -480,112 +481,65 @@ package body XE_Back.PolyORB is
       Current       : Partition_Type renames Partitions.Table (P);
       Executable    : File_Name_Type renames Current.Executable_File;
       Partition_Dir : Directory_Name_Type renames Current.Partition_Dir;
-      I_Part_Dir    : String_Access;
-      Comp_Args     : String_List (1 .. 9);
-      Make_Args     : String_List (1 .. 11);
-      Last          : Positive;
+      Comp_Args,
+      Make_Args     : Argument_Vec;
       Sfile         : File_Name_Type;
-      Prj_Fname     : File_Name_Type;
-      Length        : Natural;
-
+      I_Part_Dir    : constant Unbounded_String :=
+                        +("-I" & Get_Name_String (Partition_Dir));
    begin
-      Set_Str_To_Name_Buffer ("-I");
-      Get_Name_String_And_Append (Partition_Dir);
-      I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      --  Give the priority to partition and stub directory against
-      --  current directory.
-
-      Comp_Args (1) := E_Current_Dir;
-      Comp_Args (2) := I_Part_Dir;
-      Comp_Args (3) := A_Stub_Dir;
-      Comp_Args (4) := I_Current_Dir;
-
-      --  If there is no project file, then save ALI and object files in the
-      --  partition directory.
-
-      if Project_File_Name = null then
-         Comp_Args (5) := Object_Dir_Flag;
-         Comp_Args (6) := new String'(Get_Name_String (Partition_Dir));
-
-      else
-         Comp_Args (5) := Project_File_Flag;
-         Prj_Fname     := Dir (Partition_Dir, Part_Prj_File_Name);
-         Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
-      end if;
-
-      Length := 6;
-
-      --  We already checked the consistency of all the partition
-      --  units. In case of an inconsistency of exception mode, we may
-      --  have to rebuild some parts of polyorb (units configured just
-      --  for this partition). Note that some parts of PolyORB may have
-      --  been already recompiled when the monolithic application was
-      --  initially build. Some bodies may be missing as they are
-      --  assigned to partitions we do not want to build. So compile
-      --  silently and do not exit on errors (keep going).
-
-      if Project_File_Name = null then
-         Comp_Args (7) := Compile_Only_Flag;
-         Comp_Args (8) := Keep_Going_Flag;
-         Comp_Args (9) := Readonly_Flag;
-         Length := 9;
-      end if;
+      Push (Comp_Args, Project_File_Flag);
+      Push (Comp_Args, Dir (Partition_Dir, Part_Prj_File_Name));
 
       --  Compile elaboration file
 
       Sfile := Dir (Partition_Dir, Elaboration_File & ADB_Suffix_Id);
-      Compile (Sfile, Comp_Args (1 .. Length));
+      Compile (Sfile, Comp_Args);
 
       --  Compile storage support configuration file
 
       Sfile := Dir (Partition_Dir, Storage_Config_File & ADB_Suffix_Id);
-      Compile (Sfile, Comp_Args (1 .. Length));
+      Compile (Sfile, Comp_Args);
 
       --  Compile main file
 
-      Sfile := Dir (Partition_Dir, Partition_Main_File & ADB_Suffix_Id);
-      Compile (Sfile, Comp_Args (1 .. Length));
+      Sfile := Dir (Partition_Dir, Part_Main_Body_Name);
+      Compile (Sfile, Comp_Args);
 
-      Free (Comp_Args (6));
+      Push (Make_Args, Project_File_Flag);
+      Push (Make_Args, Dir (Partition_Dir, Part_Prj_File_Name));
 
       --  Now we just want to bind and link as the ALI files are now consistent
 
-      Make_Args (1) := E_Current_Dir;
-      Make_Args (2) := I_Part_Dir;
-      Make_Args (3) := A_Stub_Dir;
-      Make_Args (4) := I_Current_Dir;
-      Make_Args (5) := Bind_Only_Flag;
-      Make_Args (6) := Link_Only_Flag;
-      Make_Args (7) := No_Main_Proc_Flag;
-      Make_Args (8) := Output_Flag;
-      Make_Args (9) :=
-        new String'(Get_Name_String (Strip_Directory (Executable)));
+      Push (Make_Args, Bind_Only_Flag);
+      Push (Make_Args, Link_Only_Flag);
+      Push (Make_Args, Output_Flag);
+      Push (Make_Args, Strip_Directory (Executable));
 
-      if Project_File_Name = null then
-         Last := 9;
+      Push (Make_Args, "-bargs");
+      Push (Make_Args, No_Main_Proc_Flag);
+      Push (Make_Args, E_Current_Dir);
+      Push (Make_Args, I_Part_Dir);
+      Push (Make_Args, A_Stub_Dir);
+      Push (Make_Args, I_Current_Dir);
 
-      else
-         Make_Args (10) := Project_File_Flag;
-         Prj_Fname := Dir (Partition_Dir, Part_Prj_File_Name);
-         Make_Args (11) := new String'(Get_Name_String (Prj_Fname));
-         Last := 11;
-      end if;
+      Push (Make_Args, "-cargs");
+      Push (Make_Args, E_Current_Dir);
+      Push (Make_Args, I_Part_Dir);
+      Push (Make_Args, I_Current_Dir);
 
       --  While binding and linking partitions, the original (monolithic)
       --  objects and ALIs must be moved out of the builder's visibility,
       --  so that they can be replaced by the stubbed versions supplied
       --  through directories specified on the command line.
 
-      Hide_Stubbed_Units;
-      Build (Sfile, Make_Args (1 .. Last), Fatal => True);
-      Unhide_Stubbed_Units;
+      --  Note: we pass the base name Part_Main_Body_Name, not the full path.
+      --  Gprbuild will locate it through the partition project file, and
+      --  this avoids inconsistencies between the full path name as
+      --  computed by gnatdist and that generated by the project circuitry.
 
-      Free (Make_Args (2));
-      Free (Make_Args (9));
-      if Make_Args (11) /= null then
-         Free (Make_Args (11));
-      end if;
+      Hide_Stubbed_Units;
+      Build (Part_Main_Body_Name, Make_Args, Fatal => True);
+      Unhide_Stubbed_Units;
    end Generate_Executable_File;
 
    --------------------------------
@@ -932,7 +886,6 @@ package body XE_Back.PolyORB is
    ----------------------------------
 
    procedure Generate_Partition_Main_File (P : Partition_Id) is
-      Filename  : File_Name_Type;
       File      : File_Descriptor;
       Current   : Partition_Type renames Partitions.Table (P);
       Conf_Unit : Conf_Unit_Id;
@@ -952,12 +905,12 @@ package body XE_Back.PolyORB is
       ----------------
 
       procedure Start_File (Is_Body : Boolean) is
-         Suffixes : constant array (Boolean) of File_Name_Type :=
-                      (False => ADS_Suffix_Id, True => ADB_Suffix_Id);
       begin
-         Filename := Partition_Main_File & Suffixes (Is_Body);
-         Filename := Dir (Current.Partition_Dir, Filename);
-         Create_File (File, Filename);
+         Create_File (File,
+           Dir (Current.Partition_Dir,
+                (if Is_Body
+                 then Part_Main_Body_Name
+                 else Part_Main_Spec_Name)));
          Set_Output  (File);
          Write_Warnings_Pragmas;
       end Start_File;
@@ -1083,8 +1036,7 @@ package body XE_Back.PolyORB is
 
       DSA_Inc_Dir : File_Name_Type;
 
-      List_Flags : constant Argument_List := (new String'("-Ppolyorb"),
-                                              new String'("-s"));
+      List_Flags  : Argument_Vec;
       Output      : File_Name_Type;
       First, Last : Text_Ptr;
       Buffer      : Text_Buffer_Ptr;
@@ -1098,6 +1050,9 @@ package body XE_Back.PolyORB is
       --  lead to incorrect behaviour if that path involves symblic links,
       --  and we end up referencing sources using a diffrent path than the
       --  one the project manager expects.
+
+      Push (List_Flags, "-Ppolyorb");
+      Push (List_Flags, "-s");
 
       Set_Str_To_Name_Buffer ("polyorb.ads");
       List

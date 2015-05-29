@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . A N Y . E X C E P T I O N L I S T             --
+--                            E C H O . I M P L                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
+--           Copyright (C) 2015, Free Software Foundation, Inc.             --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,10 +15,6 @@
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License for  more details.                                               --
---                                                                          --
--- As a special exception under Section 7 of GPL version 3, you are granted --
--- additional permissions described in the GCC Runtime Library Exception,   --
--- version 3.1, as published by the Free Software Foundation.               --
 --                                                                          --
 -- You should have received a copy of the GNU General Public License and    --
 -- a copy of the GCC Runtime Library Exception along with this program;     --
@@ -30,57 +26,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Any;
-with PolyORB.Smart_Pointers;
-pragma Elaborate_All (PolyORB.Smart_Pointers);
-with PolyORB.Types;
+with CORBA;
+with PortableServer;
 
-with PolyORB.Utils.Chained_Lists;
+package Echo.Impl is
 
-package PolyORB.Any.ExceptionList is
+   type Object is new PortableServer.Servant_Base with null record;
 
-   pragma Elaborate_Body;
+   type Object_Acc is access Object;
 
-   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
-   Nil_Ref : constant Ref;
+   function EchoString
+     (Self : access Object;
+      Mesg : CORBA.String) return CORBA.String;
 
-   function Get_Count (Self : Ref) return PolyORB.Types.Unsigned_Long;
-
-   procedure Add (Self : Ref; Exc : TypeCode.Local_Ref);
-
-   function Item
-     (Self  : Ref;
-      Index : Types.Unsigned_Long) return TypeCode.Local_Ref;
-
-   procedure Remove
-     (Self  : Ref;
-      Index : PolyORB.Types.Unsigned_Long);
-
-   procedure Create_List (Self : out Ref);
-
-   function Search_Exception_Id
-     (Self : Ref;
-      Name : Types.String) return Types.Unsigned_Long;
-   --  Return the (1-based) index of the named exception in Self, or 0 if
-   --  not found.
-
-private
-
-   use PolyORB.Any.TypeCode;
-
-   Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
-
-   --  The actual implementation of an ExceptionList: a list of TypeCodes
-
-   package Exception_Lists is new PolyORB.Utils.Chained_Lists
-     (PolyORB.Any.TypeCode.Local_Ref, Doubly_Chained => True);
-
-   type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity with record
-      List : Exception_Lists.List;
-   end record;
-   type Object_Ptr is access all Object;
-
-   overriding procedure Finalize (X : in out Object);
-   --  Deallocate the underlying chain list and all of its components
-
-end PolyORB.Any.ExceptionList;
+end Echo.Impl;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -109,9 +109,13 @@ package PolyORB.Exceptions is
    -- Exception utility functions --
    ---------------------------------
 
-   function Exception_Name (Repository_Id : Standard.String)
-     return Standard.String;
-   --  Return the name of an exception from its repository ID
+   function Exception_Name
+     (Repository_Id : Standard.String) return Standard.String;
+   --  Return the name of an exception from its repository id
+
+   function Exception_TC
+     (Repository_Id : Standard.String) return Any.TypeCode.Local_Ref;
+   --  Return the TypeCode of an exception from its repository id
 
    procedure Exception_Name_To_Error_Id
      (Name     :     String;

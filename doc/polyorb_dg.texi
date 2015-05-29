@@ -1,3 +1,5 @@
+@c Copyright (C) 2004-2015, Free Software Foundation, Inc.
+
 \input texinfo @c load conversion file for TeX format
 
 @c start of the header
@@ -156,7 +158,7 @@ PolyORB.
 @subsection @code{PolyORB.Configuration}
 
 User control of various middleware aspects is implemented
-through a generic configuration framework. 
+through a generic configuration framework.
 
 At start-up, PolyORB will search for various configuration files,
 containing application profiles. See 'polyorb.conf' for a detail
@@ -458,7 +460,7 @@ And then you just have to convert the reference into an IOR, URI, or
 whatever you wish (@pxref{references}).
 
 @section Setting a minimal servant
-@anchor{minimal servants} 
+@anchor{minimal servants}
 
 Minimal servants are alternative to classical servants. As their name
 suggests, they offer less flexibility than normal servants; however
@@ -493,7 +495,7 @@ When your servant receives a request, it must get all information in
 order to correctly handle the request.
 
 Method name is simply retrieved by reading the corresponding field
-inside the request.  
+inside the request.
 
 In order to retrieve the arguments, you have to call the procedure
 @code{Arguments} of the package @code{PolyORB.Requests}.  Indeed, the
@@ -527,13 +529,13 @@ expected, and there should be no extra ones.
 Invoking a request implies three mechanisms:
 
 @enumerate
-@item 
+@item
 create a request;
 
-@item 
+@item
 send it through the ORB;
 
-@item 
+@item
 receive and analyse the answer (if the personality is based on a
 request/answer mechanism).
 @end enumerate
@@ -550,16 +552,16 @@ are:
 
 @itemize
 
-@item 
+@item
 the neutral reference of the targeted object;
 
 @item
 the name of the operation you want to invoke
 
-@item 
+@item
 a list containing all the arguments sent to the object;
 
-@item 
+@item
 a list describing the signature of the data expected as return, and an
 optional other for the possible exceptions;
 
@@ -632,7 +634,7 @@ interface as SOA. It also offers the interface specified in
 @subsubsection POA policies
 
 A POA is managed following policies, that define how to manage
-servants, etc.  The available policies are those that are defined 
+servants, etc.  The available policies are those that are defined
 in @acronym{CORBA}. They are located in @code{PolyORB.POA_Policies.*}
 
 @node Protocol layer
@@ -693,7 +695,7 @@ should write something like:
 @example
   procedure body Initialize is
   begin
-    --  calling the registering procedures 
+    --  calling the registering procedures
   end Initialize;
 
 begin
@@ -734,7 +736,7 @@ concrete implementations of the abstract procedures declared in
 @node Neutral layer
 @chapter Neutral layer
 
-@noindent 
+@noindent
 The Neutral Layer is actually the inner middleware in itself.  It
 offers several services and mechanisms to personalities.
 
@@ -770,7 +772,7 @@ Data that are exchanged between client and server are transported in
 what are called @dfn{Any types}.  Any types can carry various data
 types: integer, string, etc.@: An Any type associates raw data to a
 @dfn{TypeCode}, which indicates the nature of the
-data. 
+data.
 
 @subsection Any types
 
@@ -853,7 +855,7 @@ if Kind_Of_Any = Tk_Array then
               := PolyORB.Any.TypeCode.Content_Type
               (PolyORB.Any.Get_Type (Item));
 
-        The_Array : array (1 .. Integer (Number_Of_Elements)) 
+        The_Array : array (1 .. Integer (Number_Of_Elements))
                   of Element_Type;
 @end example
 

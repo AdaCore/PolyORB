@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -59,7 +59,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
 
    protected type Condition_PO is
 
-      entry Release_Then_Wait (M : PTM.Mutex_Access);
+      entry Release_Then_Wait (M : access PTM.Mutex_Type'Class);
       --  Atomically release mutex M, then requeue on Wait
 
       entry Wait;
@@ -112,7 +112,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       -- Release_Then_Wait --
       -----------------------
 
-      entry Release_Then_Wait (M : PTM.Mutex_Access) when True is
+      entry Release_Then_Wait (M : access PTM.Mutex_Type'Class) when True is
       begin
          PTM.Leave (M);
          requeue Condition_PO.Wait with abort;
@@ -205,7 +205,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    is
    begin
       pragma Debug (C, O ("Wait: enter"));
-      Cond.The_PO.Release_Then_Wait (PTM.Mutex_Access (M));
+      Cond.The_PO.Release_Then_Wait (M);
       pragma Debug (C, O ("Wait: leave"));
       PTM.Enter (M);
    end Wait;

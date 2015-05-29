@@ -64,32 +64,35 @@ define(NODEBUG_OPTIONS, [dnl
 # By default use no-debug options
 NODEBUG_OPTIONS
 
+AC_MSG_CHECKING([debugging mode])
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug], [Turn on debugging options (yes/all/no)]),
 [
+AC_MSG_RESULT($enableval)
 if test "$enableval" = "all"; then
   VALIDITY_FLAG="-gnatVa"
   enableval=yes
 fi
 if test "$enableval" = "yes"; then
   DEBUG_OPTIONS
-fi],
-[])
+fi
+],
+[AC_MSG_RESULT(no)])
 
-# LIBRARY_TYPE_OPTIONS set to use static or shared libraries consistently.
+# LIBRARY_TYPE set to use static or shared libraries consistently.
 
 # By default build static libs
-LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=static"
+LIBRARY_TYPE=static
 
 AC_ARG_ENABLE(shared,
 AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
 [
 if test "$enableval" = "yes"; then
-  LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=relocatable"
+  LIBRARY_TYPE="relocatable"
 fi
 ],
 [])
-AC_SUBST(LIBRARY_TYPE_OPTIONS)
+AC_SUBST(LIBRARY_TYPE)
 
 # WARNINGS_MODE can be set to:
 #  e (treat warnings as errors)
@@ -947,12 +950,12 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/gnatprfh.adb
-	docs/Makefile
-	docs/polyorb_version.texi
+	docs/polyorb_version.py
 	projects/polyorb.gpr
 	projects/polyorb_config.gpr
 	projects/polyorb_src_setup.gpr
 	projects-distrib/polyorb.gpr
+	projects-distrib/polyorb/polyorb_config.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
 	src/src.exclude

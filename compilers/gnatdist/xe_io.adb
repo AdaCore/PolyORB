@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -123,7 +123,7 @@ package body XE_IO is
    ---------------
 
    procedure Copy_File (Source, Target : File_Name_Type) is
-      S, T : String_Access;
+      S, T : GNAT.OS_Lib.String_Access;
       OK   : Boolean;
 
    begin
@@ -258,14 +258,11 @@ package body XE_IO is
    ---------
 
    function Dir
-     (D1 : String_Access;
+     (D1 : Unbounded_String;
       D2 : File_Name_Type)
       return File_Name_Type is
    begin
-      pragma Assert (D1 /= null);
-
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer (D1.all);
+      Set_Str_To_Name_Buffer (To_String (D1));
 
       if D2 = No_File_Name then
          return Format_Pathname (Name_Find, UNIX);
@@ -648,7 +645,7 @@ package body XE_IO is
    -----------------
 
    procedure Rename_File (Source, Target : File_Name_Type) is
-      S, T : String_Access;
+      S, T : GNAT.OS_Lib.String_Access;
       OK   : Boolean;
 
    begin
