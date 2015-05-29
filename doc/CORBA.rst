@@ -401,7 +401,7 @@ IDL definition of an `echo` object
 This interface defines an `echo` object with a unique method
 `echoString`. Per construction, this method returns its argument.
 
-.. literalinclude:: echo.idl
+.. literalinclude:: ../examples/corba/echo/echo.idl
    :language: idl
 
 Implementation code for the `echo` object
@@ -410,9 +410,9 @@ Implementation code for the `echo` object
 Package `Echo.Impl` is an implementation of this interface. This
 implementation follows the *IDL-to-Ada* mapping.
 
-.. literalinclude:: echo-impl.ads
+.. literalinclude:: ../examples/corba/echo/echo-impl.ads
    :language: ada
-.. literalinclude:: echo-impl.adb
+.. literalinclude:: ../examples/corba/echo/echo-impl.adb
    :language: ada
 
 Note: the body of `Echo.Impl` must have a dependency on
@@ -434,14 +434,14 @@ configuration, see :ref:`Sample_files`.
   from a stringified reference (or `IOR`), which is passed on command
   line.
 
-.. literalinclude:: client.adb
+.. literalinclude:: ../examples/corba/echo/client.adb
    :language: ada
 
 * The server code sets up a no-tasking node. The object is registered to
   the `RootPOA`. Then an `IOR` reference is built to enable
   interaction with other nodes.
 
-.. literalinclude:: server.adb
+.. literalinclude:: ../examples/corba/echo/server.adb
    :language: ada
 
 
@@ -951,7 +951,7 @@ PolyORB defines packages to help in the development of CORBA programs.
 
 .. index:: `PolyORB.CORBA_P.Naming_Tools`
 
-.. literalinclude:: ../src/corba/polyorb-corba_p-naming_tools.ads
+.. literalinclude:: ../idls/cos/naming/polyorb-corba_p-naming_tools.ads
    :language: ada
 
 .. _`PolyORB.CORBA_P.Server_Tools`:

@@ -925,17 +925,17 @@ will take a String and return it to the caller.
 Here is the code for the server:
 
 :file:`server.ads`:
-.. literalinclude:: dsa_server.ads
+.. literalinclude:: ../examples/dsa/echo/server.ads
    :language: ada
 
 :file:`server.adb`:
-.. literalinclude:: dsa_server.adb
+.. literalinclude:: ../examples/dsa/echo/server.adb
    :language: ada
 
 And here is the code for the client:
 
 :file:`client.adb`:
-.. literalinclude:: dsa_client.adb
+.. literalinclude:: ../examples/dsa/echo/client.adb
    :language: ada
 
 For more details about the Distributed Systems Annex,

@@ -100,7 +100,7 @@ CORBA Interoperability
 This set encompasses chapters 12-16.
 
 
-* See :ref:`CORBA-GIOP_standards_conformance` for more information
+* See :ref:`CORBA/GIOP_standards_conformance` for more information
   on this point.
 
 

@@ -16,7 +16,6 @@ entitled 'GNU Free Documentation License'.
    :numbered:
    :maxdepth: 3
 
-   About_This_Guide
    Introduction_to_PolyORB
    Installation
    Overview_of_PolyORB_personalities
@@ -32,7 +31,6 @@ entitled 'GNU Free Documentation License'.
    Performance
    Conformance
    References
-   Index
    
    
 .. _About_This_Guide:

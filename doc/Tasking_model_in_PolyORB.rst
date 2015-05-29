@@ -56,7 +56,7 @@ To configure tasking constructs used by PolyORB, one must instantiate
 the `PolyORB.Setup.Tasking.Ravenscar` generic package shown below
 to set up tasks and protected objects used by PolyORB core.
 
-.. literalinclude:: ../../src/polyorb-setup-tasking-ravenscar.ads
+.. literalinclude:: ../src/setup/polyorb-setup-tasking-ravenscar.ads
    :language: ada
 
 .. _PolyORB_ORB_Tasking_policies:
@@ -173,8 +173,8 @@ or wait for I/O sources.
 Half Sync/Half Async
 --------------------
 
-The Half Sync/Half Async ORB Controller policy implements the ``Half
-Sync/Half Async'' design pattern: it discriminates between one thread
+The Half Sync/Half Async ORB Controller policy implements the "Half
+Sync/Half Async" design pattern: it discriminates between one thread
 dedicated to I/O monitoring that queue middleware jobs; another pool
 of threads dequeue jobs and process them.
 
