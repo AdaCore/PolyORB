@@ -1,0 +1,62 @@
+include ../Makefile.common
+
+srcdir=$(top_srcdir)/doc
+
+FIG2DEV=fig2dev
+
+FIGFILES=\
+  xe-arch.fig\
+  full-ex.fig
+
+FIG_PDFFILES = $(FIGFILES:.fig=_fig.pdf)
+FIG_SVGFILES = $(FIGFILES:.fig=_fig.svg)
+
+#
+# Figures
+#
+
+
+%_fig.pdf: %.fig
+	$(FIG2DEV) -L pdf $< $@
+
+%_fig.svg: %.fig
+	$(FIG2DEV) -L svg -m 1.5 $< $@
+#
+# Images (rebuild manually if necessary, then check in generated files)
+# 
+
+.PHONY: images
+images: $(FIG_PDFFILES) $(FIG_SVGFILES)
+
+#
+# Source files
+# 
+
+.PHONY: sources
+sources: $(SOURCE_FILES)
+	gnatchop -w $(srcdir)/glade-sources
+
+MANIFEST:
+	find _build > MANIFEST
+
+# Note: the target below can be invoked locally from the doc build dir,
+# in which case it will install the locally built documentation, or from
+# the top-level Makefile with doc_build_dir pointing to the doc source
+# directory, to install pre-built documentation.
+
+.PHONY: install
+install:
+	$(PINSTALL) -d $(datadir)/doc/polyorb
+	$(PINSTALL) -d $(datadir)/doc/polyorb/pdf
+	$(PINSTALL) -d $(datadir)/doc/polyorb/html
+
+	$(INSTALL_DATA) $(doc_build_dir)_build/latex/polyorb_ug.pdf $(datadir)/doc/polyorb/pdf
+	cd $(doc_build_dir)_build/html && (find . -type f | ${INSTALL_DATA} -R - $(datadir)/doc/polyorb/html)
+
+	$(PINSTALL) -d $(datadir)/gps/plug-ins/
+	$(INSTALL_DATA) $(srcdir)/polyorb_gps.xml $(datadir)/gps/plug-ins/
+
+	for mansec in 1 7; do \
+		$(PINSTALL) -d $(datadir)/man/man$$mansec && \
+		$(INSTALL_DATA) $(srcdir)/*.$$mansec $(datadir)/man/man$$mansec; \
+	done

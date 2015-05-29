@@ -814,7 +814,7 @@ ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
 # the docs directory.
 .PHONY: docs
 docs:
-	(cd docs && ${MAKE})
+	(cd doc && ${MAKE} sources html latexpdf MANIFEST)
 
 ################################################################
 
@@ -882,12 +882,12 @@ install:
 	${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb
 	# Install documentation only if it has been built locally, or
 	# pre-built and packaged with sources.
-	if [ -r docs/polyorb_ug.html ]; \
+	if [ -r doc/_build ]; \
 	then \
-	  (cd docs && ${MAKE} install prefix="${prefix}"); \
-	elif [ -r $(top_srcdir)/docs/polyorb_ug.html ]; \
+	  (cd doc && ${MAKE} install prefix="${prefix}"); \
+	elif [ -r $(top_srcdir)/doc/_build ]; \
 	then \
-	  (cd docs && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/docs/"); \
+	  (cd doc && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/doc/"); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.

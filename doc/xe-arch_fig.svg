@@ -1,0 +1,114 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: fig2dev Version 3.2 Patchlevel 5e -->
+<!-- CreationDate: Fri May 29 16:08:02 2015 -->
+<!-- Magnification: 1.575 -->
+<svg	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="6.0in" height="4.2in"
+	viewBox="674 674 7173 5029">
+<g style="stroke-width:.025in; fill:none">
+<!-- Line: box -->
+<rect x="2834" y="3543" width="1771" height="1062" rx="0" 
+style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="5669" y="3543" width="1771" height="1062" rx="0" 
+style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="729,5669
+7812,5669
+" style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="1417,2125
+1417,2480
+" style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="7086,2125
+7086,2480
+" style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="1417,4960
+1417,5669
+" style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line -->
+<polyline points="7086,4960
+7086,5669
+" style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="1062" y="3543" width="1428" height="1062" rx="0" 
+style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="708" y="2480" width="4251" height="2480" rx="0" 
+style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="5314" y="2480" width="2497" height="2480" rx="0" 
+style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="1062" y="1062" width="1417" height="708" rx="0" 
+style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Line: box -->
+<rect x="708" y="708" width="7103" height="1417" rx="0" 
+style="stroke:#000000;stroke-width:24;
+stroke-linejoin:miter; stroke-linecap:butt;
+"/>
+<!-- Text -->
+<text xml:space="preserve" x="1417" y="1417" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Data_1</text>
+<!-- Text -->
+<text xml:space="preserve" x="1417" y="3897" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Unit_1</text>
+<!-- Text -->
+<text xml:space="preserve" x="1417" y="4251" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Data_2</text>
+<!-- Text -->
+<text xml:space="preserve" x="3188" y="3897" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Unit_2 (*)</text>
+<!-- Text -->
+<text xml:space="preserve" x="3188" y="4251" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Unit_3 (*)</text>
+<!-- Text -->
+<text xml:space="preserve" x="6023" y="3897" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Unit_2 (*)</text>
+<!-- Text -->
+<text xml:space="preserve" x="6023" y="4251" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Unit_3 (*)</text>
+<!-- Text -->
+<text xml:space="preserve" x="1062" y="2834" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Processing Node</text>
+<!-- Text -->
+<text xml:space="preserve" x="5669" y="2834" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Processing Node</text>
+<!-- Text -->
+<text xml:space="preserve" x="5669" y="3401" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Partition_2</text>
+<!-- Text -->
+<text xml:space="preserve" x="4606" y="3401" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="end">Partition_2</text>
+<!-- Text -->
+<text xml:space="preserve" x="1062" y="3401" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Partition_1</text>
+<!-- Text -->
+<text xml:space="preserve" x="4251" y="5314" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="middle">Network</text>
+<!-- Text -->
+<text xml:space="preserve" x="2834" y="1771" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Passive_Partition</text>
+<!-- Text -->
+<text xml:space="preserve" x="2834" y="1062" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">Storage Node</text>
+<!-- Text -->
+<text xml:space="preserve" x="5669" y="1771" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">* Shared Memory</text>
+<!-- Text -->
+<text xml:space="preserve" x="5669" y="1417" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">* Database</text>
+<!-- Text -->
+<text xml:space="preserve" x="5669" y="1062" fill="#000000"  font-family="Times" font-style="normal" font-weight="bold" font-size="208" text-anchor="start">* File</text>
+</g>
+</svg>

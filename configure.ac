@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.11.1]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.11.2]))
 
 AC_PREREQ(2.60)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -947,8 +947,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/gnatprfh.adb
-	docs/Makefile
-	docs/polyorb_version.texi
+	doc/polyorb_version.py
 	projects/polyorb.gpr
 	projects/polyorb_config.gpr
 	projects/polyorb_src_setup.gpr
