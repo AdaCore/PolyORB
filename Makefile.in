@@ -814,7 +814,7 @@ ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
 # the docs directory.
 .PHONY: docs
 docs:
-	(cd doc && ${MAKE} sources && make html latexpdf MANIFEST)
+	(cd doc && ${MAKE} sources html latexpdf MANIFEST)
 
 ################################################################
 

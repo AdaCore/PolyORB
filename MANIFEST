@@ -454,7 +454,7 @@ doc/Installation.rst
 doc/Introduction_to_PolyORB.rst
 doc/MOMA.rst
 doc/Makefile
-doc/Makefile.local
+doc/Makefile.polyorb_doc
 doc/OMG_TAGS
 doc/Overview_of_PolyORB_personalities.rst
 doc/PROBLEM-REPORT-FORM
