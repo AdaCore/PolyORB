@@ -135,10 +135,7 @@ done
 ###################################################
 
 if $with_doc; then
-  ./configure
-  cd doc
-  make sources && make html latexpdf MANIFEST
-  cd ..
+  ./configure && make docs
   sed 's#^#doc/#' < doc/MANIFEST >> MANIFEST.distrib
 fi
 

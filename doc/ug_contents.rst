@@ -29,8 +29,8 @@ entitled 'GNU Free Documentation License'.
    GIOP
    SOAP
    Tools
-   Performance_considerations
-   Conformance_to_standards
+   Performance
+   Conformance
    References
    Index
    
@@ -87,7 +87,10 @@ This guide contains the following chapters:
 
 * :ref:`Tools` describes PolyORB's tools.
 
-* :ref:`Conformance_to_standards` discusses the conformance of the
+* :ref:`Performance` discusses possible configuration adjustments
+  to optimize PolyORB's run time performance.
+
+* :ref:`Conformance` discusses the conformance of the
   PolyORB's personalities to the CORBA and SOAP standards.
 
 * :ref:`References` provides a list of useful references to

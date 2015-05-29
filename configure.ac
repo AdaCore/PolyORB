@@ -950,7 +950,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/gnatprfh.adb
-	docs/polyorb_version.py
+	doc/polyorb_version.py
 	projects/polyorb.gpr
 	projects/polyorb_config.gpr
 	projects/polyorb_src_setup.gpr

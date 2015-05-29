@@ -115,7 +115,7 @@ html_theme = 'default'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-# html_title = None
+html_title = '%s %s User\'s Guide' % (project, version)
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -155,7 +155,7 @@ html_static_path = ['_static']
 # html_additional_pages = {}
 
 # If false, no module index is generated.
-# html_domain_indices = True
+html_domain_indices = False
 
 # If false, no index is generated.
 # html_use_index = True
@@ -167,7 +167,7 @@ html_static_path = ['_static']
 # html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-# html_show_sphinx = True
+html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 # html_show_copyright = True
@@ -181,7 +181,7 @@ html_static_path = ['_static']
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PolyORBUsersGuidedoc'
+htmlhelp_basename = 'polyorb_ug'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -201,7 +201,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('ug_contents', 'PolyORBUsersGuide.tex', u'PolyORB User\'s Guide',
+    ('ug_contents', 'polyorb_ug.tex', u'PolyORB User\'s Guide',
      u'Free Software Foundation', 'manual'),
 ]
 
@@ -231,7 +231,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('ug_contents', 'polyorbusersguide', u'PolyORB User\'s Guide',
+    ('ug_contents', 'polyorb_ug', u'PolyORB User\'s Guide',
      [u'Free Software Foundation'], 1)
 ]
 
@@ -245,7 +245,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('ug_contents', 'PolyORBUsersGuide', u'PolyORB User\'s Guide',
+    ('ug_contents', 'polyorb_ug', u'PolyORB User\'s Guide',
                     u'Free Software Foundation', 'PolyORBUsersGuide',
                     'PolyORB middleware components',
                     'Miscellaneous'),
