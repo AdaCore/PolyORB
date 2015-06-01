@@ -453,7 +453,7 @@ doc/GIOP.rst
 doc/Installation.rst
 doc/Introduction_to_PolyORB.rst
 doc/MOMA.rst
-doc/Makefile
+doc/Makefile.in
 doc/Makefile.polyorb_doc
 doc/OMG_TAGS
 doc/Overview_of_PolyORB_personalities.rst
