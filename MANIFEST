@@ -712,7 +712,6 @@ examples/static/README
 examples/static/po_static_conf.ads
 features-2.10
 features-2.11
-features-2.12
 features-2.2
 features-2.3
 features-2.4
@@ -823,13 +822,11 @@ idls/cos/transaction/CosTSInteroperation.idl
 idls/cos/transaction/CosTSPortability.idl
 idls/cos/transaction/CosTransactions.idl
 known-problems-2.10
-known-problems-2.11
 known-problems-2.9
 polyorb-config.in
 projects-distrib/README
 projects-distrib/polyorb.gpr.in
 projects-distrib/polyorb/polyorb_common.gpr
-projects-distrib/polyorb/polyorb_config.gpr.in
 projects-distrib/polyorb/polyorb_cos_event.gpr
 projects-distrib/polyorb/polyorb_cos_ir.gpr
 projects-distrib/polyorb/polyorb_cos_naming.gpr

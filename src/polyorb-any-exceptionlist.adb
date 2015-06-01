@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -154,17 +154,15 @@ package body PolyORB.Any.ExceptionList is
          Counter : PolyORB.Types.Unsigned_Long := 1;
 
       begin
-         loop
-            if Last (It) then
-               return 0;
-
-            elsif TypeCode.Id (Value (It).all) =  RepositoryId (Name) then
-               return Counter;
-            end if;
+         while not Last (It) loop
+            exit when PolyORB.Any.TypeCode.Id (Value (It).all)
+              =  RepositoryId (Name);
 
             Counter := Counter + 1;
             Next (It);
          end loop;
+
+         return Counter;
       end;
    end Search_Exception_Id;
 

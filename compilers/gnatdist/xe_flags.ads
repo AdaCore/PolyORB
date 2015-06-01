@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,8 +29,8 @@
 --  This package contains the flags available for GNATDIST as well as
 --  those used by GNATDIST and passed to GNATMAKE and GNATLS.
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with XE_Utils; use XE_Utils;
+with GNAT.Table;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 package XE_Flags is
 
@@ -53,29 +53,49 @@ package XE_Flags is
 
    Display_Compilation_Progress : Boolean := False;
 
-   Bind_Only_Flag      : constant Unbounded_String := +"-b";
-   Compile_Only_Flag   : constant Unbounded_String := +"-c";
-   Object_Dir_Flag     : constant Unbounded_String := +"-D";
-   Progress_Flag       : constant Unbounded_String := +"-d";
-   Keep_Going_Flag     : constant Unbounded_String := +"-k";
-   Link_Only_Flag      : constant Unbounded_String := +"-l";
-   Output_Flag         : constant Unbounded_String := +"-o";
-   Project_File_Flag   : constant Unbounded_String := +"-P";
-   Quiet_Flag          : constant Unbounded_String := +"-q";
-   Verbose_Flag        : constant Unbounded_String := +"-v";
-   GLADE_List_Flag     : constant Unbounded_String := +"-V";
-   External_Units_Flag : constant Unbounded_String := +"-x";
-   No_Main_Proc_Flag   : constant Unbounded_String := +"-z";
-   Semantic_Only_Flag  : constant Unbounded_String := +"-gnatc";
-   Skel_Flag           : constant Unbounded_String := +"-gnatzr";
-   Stub_Flag           : constant Unbounded_String := +"-gnatzc";
-   Comp_Args_Flag      : constant Unbounded_String := +"-cargs";
-   Bind_Args_Flag      : constant Unbounded_String := +"-bargs";
-   Link_Args_Flag      : constant Unbounded_String := +"-largs";
-   Make_Args_Flag      : constant Unbounded_String := +"-margs";
+   Readonly_Flag       : constant String_Access := new String'("-a");
+   Bind_Only_Flag      : constant String_Access := new String'("-b");
+   Compile_Only_Flag   : constant String_Access := new String'("-c");
+   Object_Dir_Flag     : constant String_Access := new String'("-D");
+   Progress_Flag       : constant String_Access := new String'("-d");
+   Keep_Going_Flag     : constant String_Access := new String'("-k");
+   Link_Only_Flag      : constant String_Access := new String'("-l");
+   Output_Flag         : constant String_Access := new String'("-o");
+   Project_File_Flag   : constant String_Access := new String'("-P");
+   Quiet_Flag          : constant String_Access := new String'("-q");
+   Verbose_Flag        : constant String_Access := new String'("-v");
+   GLADE_List_Flag     : constant String_Access := new String'("-V");
+   External_Units_Flag : constant String_Access := new String'("-x");
+   No_Main_Proc_Flag   : constant String_Access := new String'("-z");
+   Semantic_Only_Flag  : constant String_Access := new String'("-gnatc");
+   Skel_Flag           : constant String_Access := new String'("-gnatzr");
+   Stub_Flag           : constant String_Access := new String'("-gnatzc");
+   Comp_Args_Flag      : constant String_Access := new String'("-cargs");
+   Bind_Args_Flag      : constant String_Access := new String'("-bargs");
+   Link_Args_Flag      : constant String_Access := new String'("-largs");
+   Make_Args_Flag      : constant String_Access := new String'("-margs");
 
-   Project_File_Name : Unbounded_String;
+   Project_File_Name : String_Access;
 
-   Make_Switches, List_Switches, Source_Directories : Argument_Vec;
+   package Make_Switches is new GNAT.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100);
+
+   package List_Switches is new GNAT.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100);
+
+   package Source_Directories is new GNAT.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100);
 
 end XE_Flags;

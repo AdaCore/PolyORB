@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,8 +25,6 @@
 --                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with GNAT.OS_Lib;               use GNAT.OS_Lib;
@@ -100,7 +98,7 @@ package body XE_List is
       subtype Valid_Token_Type is Token_Type
         range Token_Type'First .. Token_Type'Last - 1;
 
-      Image : constant array (Valid_Token_Type) of GNAT.OS_Lib.String_Access :=
+      Image : constant array (Valid_Token_Type) of String_Access :=
         (T_No_ALI          => new String'("No_ALI"),
          T_ALI             => new String'("ALI"),
          T_Unit            => new String'("Unit"),
@@ -383,7 +381,7 @@ package body XE_List is
       -----------------
 
       procedure Write_Token (T : Token_Type) is
-         Img : String renames Image (T).all;
+         Img : String_Access renames Image (T);
 
       begin
          case T is
@@ -392,7 +390,7 @@ package body XE_List is
                   Write_Str ("   ");
                end loop;
 
-               Write_Str (Img);
+               Write_Str (Img.all);
 
                for J in Img'Length .. 12 loop
                   Write_Char (' ');
@@ -406,10 +404,10 @@ package body XE_List is
 
             when T_Preelaborated .. T_Body =>
                Write_Char (' ');
-               Write_Str  (Img);
+               Write_Str  (Img.all);
 
             when others =>
-               Write_Str  (Img);
+               Write_Str  (Img.all);
 
          end case;
       end Write_Token;
@@ -847,7 +845,19 @@ package body XE_List is
    -------------------------------
 
    procedure Load_All_Registered_Units is
-      Comp_Flags, List_Flags, Make_Flags : Argument_Vec;
+      Comp_Flags : Argument_List := (Semantic_Only_Flag, null, null);
+
+      List_Args : constant Argument_List :=
+                    (GLADE_List_Flag,
+                     Project_File_Flag,
+                     Project_File_Name);
+
+      Make_Args : constant Argument_List :=
+                    (Compile_Only_Flag,
+                     Project_File_Flag,
+                     Project_File_Name);
+
+      List_Args_Length, Make_Args_Length : Natural;
 
       Sfile      : File_Name_Type;
       Afile      : File_Name_Type;
@@ -856,192 +866,205 @@ package body XE_List is
       Output     : File_Name_Type;
 
    begin
-      Push (Comp_Flags, Semantic_Only_Flag);
-      Push (Comp_Flags, Project_File_Flag);
-      Push (Comp_Flags, Project_File_Name);
+      --  Only use the project flags if a project has been set
 
-      Push (List_Flags, GLADE_List_Flag);
-      Push (List_Flags, Project_File_Flag);
-      Push (List_Flags, Project_File_Name);
+      if Project_File_Name /= null then
+         List_Args_Length := 3;
+         Make_Args_Length := 3;
 
-      Push (Make_Flags, Compile_Only_Flag);
-      Push (Make_Flags, Project_File_Flag);
-      Push (Make_Flags, Project_File_Name);
+         Comp_Flags (2) := Project_File_Flag;
+         Comp_Flags (3) := Project_File_Name;
 
-      --  Finish up main library procedure with a dummy body
+      else
+         List_Args_Length := 1;
+         Make_Args_Length := 1;
 
-      Write_Str  ("procedure ");
-      Write_Name (Monolithic_App_Unit_Name);
-      Write_Line (" is");
-      Write_Line ("begin");
-      Write_Line ("   null;");
-      Write_Str  ("end ");
-      Write_Name (Monolithic_App_Unit_Name);
-      Write_Line (";");
-      Close (Monolithic_Src_File);
-      Set_Standard_Output;
-
-      --  Build the monolithic application with a fake main subprogram
-      --  Monolithic_App. Note that we must pass the bare file name (without
-      --  directory information) to gnat make, Monolithic_Src_Base_Name,
-      --  not Monolithic_Src_Name.
-
-      Sfile := Monolithic_Src_Base_Name;
-      Build
-        (Sfile, Make_Flags, not Keep_Going, Display_Compilation_Progress);
-
-      --  Load the info from its ALI file
-
-      List ((1 => Monolithic_ALI_Name), List_Flags, Output);
-      Load_ALIs (Output);
-      ALI := Get_ALI_Id (Monolithic_ALI_Name);
-
-      --  Do not delete the source file for the fake main subprogram,
-      --  it is needed by List later on.
-
-      Remove_Temp_File (Part_Main_ALI_Name);
-      Remove_Temp_File (Part_Main_Obj_Name);
-
-      --  The compilation of monolithic_app.adb failed. There is no way to
-      --  rescue this situation.
-
-      if ALI = No_ALI_Id then
-         raise Compilation_Error;
+         Comp_Flags (2) := Object_Dir_Flag;
+         Comp_Flags (3) := new String'(Get_Name_String (Monolithic_Obj_Dir));
       end if;
 
-      --  Load in the sources stack all the withed units or in other
-      --  words the configured units.
+      declare
+         Make_Flags : Argument_List
+           renames Make_Args (1 .. Make_Args_Length);
 
-      for J in
-        ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
-      loop
-         for K in
-           Units.Table (J).First_With .. Units.Table (J).Last_With
+         List_Flags : Argument_List
+           renames List_Args (1 .. List_Args_Length);
+      begin
+         --  Finish up main library procedure with a dummy body
+
+         Write_Str  ("procedure ");
+         Write_Name (Monolithic_App_Unit_Name);
+         Write_Line (" is");
+         Write_Line ("begin");
+         Write_Line ("   null;");
+         Write_Str  ("end ");
+         Write_Name (Monolithic_App_Unit_Name);
+         Write_Line (";");
+         Close (Monolithic_Src_File);
+         Set_Standard_Output;
+
+         --  Build the monolithic application with a fake main subprogram
+         --  Monolithic_App. Note that we must pass the bare file name (without
+         --  directory information) to gnat make, Monolithic_Src_Base_Name,
+         --  not Monolithic_Src_Name.
+
+         Sfile := Monolithic_Src_Base_Name;
+         Build
+           (Sfile, Make_Flags, not Keep_Going, Display_Compilation_Progress);
+
+         --  Load the info from its ALI file
+
+         List ((1 => Monolithic_ALI_Name), List_Flags, Output);
+         Load_ALIs (Output);
+         ALI := Get_ALI_Id (Monolithic_ALI_Name);
+
+         --  Do not delete the source file for the fake main subprogram,
+         --  it is needed by List later on.
+
+         Remove_Temp_File (Part_Main_ALI_Name);
+         Remove_Temp_File (Part_Main_Obj_Name);
+
+         --  The compilation of monolithic_app.adb failed. There is no way to
+         --  rescue this situation.
+
+         if ALI = No_ALI_Id then
+            raise Compilation_Error;
+         end if;
+
+         --  Load in the sources stack all the withed units or in other
+         --  words the configured units.
+
+         for J in
+           ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
          loop
-            Sfile := Withs.Table (K).Sfile;
+            for K in
+              Units.Table (J).First_With .. Units.Table (J).Last_With
+            loop
+               Sfile := Withs.Table (K).Sfile;
 
-            if Present (Sfile) then
-               Set_Name_Table_Byte (Sfile, 1);
-               Sources.Append
-                 (Sources_Entry'
-                    (Sfile => Sfile,
-                     Afile => Withs.Table (K).Afile));
-            end if;
-         end loop;
-      end loop;
-
-      while Sources.First <= Sources.Last loop
-         declare
-            Last   : Natural := Sources.Last + 1 - Sources.First;
-            Afiles : File_Name_List (1 .. Last);
-            Sfiles : File_Name_List (1 .. Last);
-
-         begin
-            --  Load in Args the sources whose corresponding ALI file is not
-            --  yet available.
-
-            Last := 0;
-            for J in Sources.First .. Sources.Last loop
-               Sfile := Sources.Table (J).Sfile;
-               Afile := Sources.Table (J).Afile;
-
-               --  We never tried to download this ALI file. Its info
-               --  is not a valid ALI id (not even No_ALI_Id).
-
-               if Get_Name_Table_Info (Afile) = 0 then
-                  Last := Last + 1;
-                  Afiles (Last) := Afile;
-                  Sfiles (Last) := Sfile;
+               if Present (Sfile) then
+                  Set_Name_Table_Byte (Sfile, 1);
+                  Sources.Append
+                    (Sources_Entry'
+                     (Sfile => Sfile,
+                      Afile => Withs.Table (K).Afile));
                end if;
             end loop;
-            Sources.Init;
+         end loop;
 
-            List (Afiles (1 .. Last), List_Flags, Output);
-            Load_ALIs (Output);
+         while Sources.First <= Sources.Last loop
+            declare
+               Last   : Natural := Sources.Last + 1 - Sources.First;
+               Afiles : File_Name_List (1 .. Last);
+               Sfiles : File_Name_List (1 .. Last);
 
-            for J in 1 .. Last loop
-               Sfile := Sfiles (J);
-               Afile := Afiles (J);
-               ALI   := Get_ALI_Id (Afile);
+            begin
+               --  Load in Args the sources whose corresponding ALI file is not
+               --  yet available.
 
-               --  The ALI file does not exist. It may come from a missing
-               --  body file although the spec file is available (the main
-               --  subprogram is compiled with the -k (keep going) flag).
-               --  Therefore compile the spec file with the -gnatc
-               --  (semantics only) flag in order to obtain an ALI file
-               --  anyway. Then check, this operation was successul, i.e.
-               --  that the unit is an RCI. The missing body file is not an
-               --  issue as long as the unit is not assigned to a partition
-               --  to build.
+               Last := 0;
+               for J in Sources.First .. Sources.Last loop
+                  Sfile := Sources.Table (J).Sfile;
+                  Afile := Sources.Table (J).Afile;
 
-               if ALI = No_ALI_Id then
-                  if Debug_Mode then
-                     Write_Str ("No ALI yet for ");
-                     Write_Name (Sfile);
+                  --  We never tried to download this ALI file. Its info
+                  --  is not a valid ALI id (not even No_ALI_Id).
+
+                  if Get_Name_Table_Info (Afile) = 0 then
+                     Last := Last + 1;
+                     Afiles (Last) := Afile;
+                     Sfiles (Last) := Sfile;
                   end if;
+               end loop;
+               Sources.Init;
 
-                  Compile (Sfile, Comp_Flags, Fatal => False);
-                  List ((1 => Afile), List_Flags, Output);
-                  Load_ALIs (Output);
+               List (Afiles (1 .. Last), List_Flags, Output);
+               Load_ALIs (Output);
 
-                  --  If the ALI file is still missing, then we have a real
-                  --  problem.
+               for J in 1 .. Last loop
+                  Sfile := Sfiles (J);
+                  Afile := Afiles (J);
+                  ALI   := Get_ALI_Id (Afile);
 
-                  ALI := Get_ALI_Id (Afile);
+                  --  The ALI file does not exist. It may come from a missing
+                  --  body file although the spec file is available (the main
+                  --  subprogram is compiled with the -k (keep going) flag).
+                  --  Therefore compile the spec file with the -gnatc
+                  --  (semantics only) flag in order to obtain an ALI file
+                  --  anyway. Then check, this operation was successul, i.e.
+                  --  that the unit is an RCI. The missing body file is not an
+                  --  issue as long as the unit is not assigned to a partition
+                  --  to build.
+
                   if ALI = No_ALI_Id then
-                     Get_Name_String (Sfile);
-                     raise Fatal_Error with "failed to load ALI for "
-                       & Name_Buffer (1 .. Name_Len);
-                  end if;
-
-                  --  Check that the unit was really assigned to a partition
-                  --  we are not going to build.
-
-                  Partition := Get_Partition_Id (ALIs.Table (ALI).Uname);
-                  if not Units.Table (ALIs.Table (ALI).Last_Unit).RCI
-                    or else Partition = No_Partition_Id
-                    or else Partitions.Table (Partition).To_Build
-                  then
-                     Get_Name_String (ALIs.Table (ALI).Uname);
-                     raise Fatal_Error with "invalid partition for "
-                       & Name_Buffer (1 .. Name_Len);
-                  end if;
-               end if;
-
-               if Debug_Mode then
-                  Dump_ALI (ALI);
-               end if;
-
-               --  Check that the withed units are present.
-
-               for J in
-                 ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
-               loop
-                  for K in
-                    Units.Table (J).First_With .. Units.Table (J).Last_With
-                  loop
-                     Sfile := Withs.Table (K).Sfile;
-
-                     --  We can ignore the sources that have already
-                     --  been loaded and the predefined ones (they are
-                     --  not defined as configured units at this stage
-                     --  and they cannot be categorized).
-
-                     if Present (Sfile)
-                       and then not Is_Predefined_File (Sfile)
-                       and then Get_Name_Table_Byte (Sfile) = 0
-                     then
-                        Set_Name_Table_Byte (Sfile, 1);
-                        Sources.Append
-                          (Sources_Entry'
-                             (Sfile => Sfile,
-                              Afile => Withs.Table (K).Afile));
+                     if Debug_Mode then
+                        Write_Str ("No ALI yet for ");
+                        Write_Name (Sfile);
                      end if;
+
+                     Compile (Sfile, Comp_Flags, Fatal => False);
+                     List ((1 => Afile), List_Flags, Output);
+                     Load_ALIs (Output);
+
+                     --  If the ALI file is still missing, then we have a real
+                     --  problem.
+
+                     ALI := Get_ALI_Id (Afile);
+                     if ALI = No_ALI_Id then
+                        Get_Name_String (Sfile);
+                        raise Fatal_Error with "failed to load ALI for "
+                          & Name_Buffer (1 .. Name_Len);
+                     end if;
+
+                     --  Check that the unit was really assigned to a partition
+                     --  we are not going to build.
+
+                     Partition := Get_Partition_Id (ALIs.Table (ALI).Uname);
+                     if not Units.Table (ALIs.Table (ALI).Last_Unit).RCI
+                       or else Partition = No_Partition_Id
+                       or else Partitions.Table (Partition).To_Build
+                     then
+                        Get_Name_String (ALIs.Table (ALI).Uname);
+                        raise Fatal_Error with "invalid partition for "
+                          & Name_Buffer (1 .. Name_Len);
+                     end if;
+                  end if;
+
+                  if Debug_Mode then
+                     Dump_ALI (ALI);
+                  end if;
+
+                  --  Check that the withed units are present.
+
+                  for J in
+                    ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit
+                  loop
+                     for K in
+                       Units.Table (J).First_With .. Units.Table (J).Last_With
+                     loop
+                        Sfile := Withs.Table (K).Sfile;
+
+                        --  We can ignore the sources that have already
+                        --  been loaded and the predefined ones (they are
+                        --  not defined as configured units at this stage
+                        --  and they cannot be categorized).
+
+                        if Present (Sfile)
+                          and then not Is_Predefined_File (Sfile)
+                          and then Get_Name_Table_Byte (Sfile) = 0
+                        then
+                           Set_Name_Table_Byte (Sfile, 1);
+                           Sources.Append
+                             (Sources_Entry'
+                              (Sfile => Sfile,
+                               Afile => Withs.Table (K).Afile));
+                        end if;
+                     end loop;
                   end loop;
                end loop;
-            end loop;
-         end;
-      end loop;
+            end;
+         end loop;
+      end;
    end Load_All_Registered_Units;
 
    ---------------------------

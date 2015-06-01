@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -2073,7 +2073,7 @@ package body System.Partition_Interface is
          declare
             E   : constant PolyORB.Any.Any := R.Exception_Info;
             Msg : constant String :=
-              PolyORB.QoS.Exception_Informations.Get_Exception_Message (R);
+              PolyORB.QoS.Exception_Informations.  Get_Exception_Message (R);
          begin
             Raise_From_Any (E, Msg);
          end;

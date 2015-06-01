@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.12.0w]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.11.2]))
 
 AC_PREREQ(2.60)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -64,35 +64,32 @@ define(NODEBUG_OPTIONS, [dnl
 # By default use no-debug options
 NODEBUG_OPTIONS
 
-AC_MSG_CHECKING([debugging mode])
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug], [Turn on debugging options (yes/all/no)]),
 [
-AC_MSG_RESULT($enableval)
 if test "$enableval" = "all"; then
   VALIDITY_FLAG="-gnatVa"
   enableval=yes
 fi
 if test "$enableval" = "yes"; then
   DEBUG_OPTIONS
-fi
-],
-[AC_MSG_RESULT(no)])
+fi],
+[])
 
-# LIBRARY_TYPE set to use static or shared libraries consistently.
+# LIBRARY_TYPE_OPTIONS set to use static or shared libraries consistently.
 
 # By default build static libs
-LIBRARY_TYPE=static
+LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=static"
 
 AC_ARG_ENABLE(shared,
 AS_HELP_STRING([--enable-shared], [Enable build of shared libraries]),
 [
 if test "$enableval" = "yes"; then
-  LIBRARY_TYPE="relocatable"
+  LIBRARY_TYPE_OPTIONS="-XLIBRARY_TYPE=relocatable"
 fi
 ],
 [])
-AC_SUBST(LIBRARY_TYPE)
+AC_SUBST(LIBRARY_TYPE_OPTIONS)
 
 # WARNINGS_MODE can be set to:
 #  e (treat warnings as errors)
@@ -956,7 +953,6 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	projects/polyorb_config.gpr
 	projects/polyorb_src_setup.gpr
 	projects-distrib/polyorb.gpr
-	projects-distrib/polyorb/polyorb_config.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
 	src/src.exclude

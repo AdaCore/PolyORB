@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,10 +29,7 @@
 --  This package contains all the routines needed to handle input and
 --  output operations.
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-
 with XE_Types;    use XE_Types;
 with XE_Units;    use XE_Units;
 
@@ -76,7 +73,7 @@ package XE_IO is
       D2   : Directory_Name_Type)
       return Directory_Name_Type;
    function Dir
-     (D1   : Unbounded_String;
+     (D1   : String_Access;
       D2   : Directory_Name_Type)
       return Directory_Name_Type;
    --  Concatenate several names and insert a directory separator

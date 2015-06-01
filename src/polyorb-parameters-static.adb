@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008-2013, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -40,13 +40,11 @@ use type System.Address;
 
 package body PolyORB.Parameters.Static is
 
-   --  The length of the actual (user-provided) array is unknown: the last
-   --  entry is denoted by Last_Entry. Note: the index subtype used to be
-   --  1..1, but this may lead to a loop iterating on the array's elements
-   --  to be incorrectly optimized out at -O2.
+   --  The length of the array is unknown, the last entry must be marked with
+   --  a null access.
 
    pragma Suppress (Range_Check);
-   Parameters : Static_Parameter_Array  (1 .. Positive'Last);
+   Parameters : Static_Parameter_Array  (1 .. 1);
    pragma Import (Ada, Parameters, Static_Parameters_Link_Name);
 
    Last_Index : Natural := 0;

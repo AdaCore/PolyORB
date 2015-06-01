@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -885,30 +885,10 @@ package body PolyORB.Protocols.GIOP.Common is
                Except_Index : constant PolyORB.Types.Unsigned_Long
                  := Any.ExceptionList.Search_Exception_Id
                  (Current_Req.Req.Exc_List, Types.String (RepositoryId));
-
-               Except_TC : Any.TypeCode.Local_Ref;
-
             begin
                pragma Debug (C, O ("Exception repository ID:"
                                 & To_Standard_String (RepositoryId)));
-
-               if Except_Index /= 0 then
-                  --  Exception found in RAISES clause for this operation
-
-                  Except_TC := Any.ExceptionList.Item
-                    (Current_Req.Req.Exc_List, Except_Index);
-
-               else
-                  --  Fallback: look for registered repositoryid
-
-                  Except_TC :=
-                    Exception_TC (To_Standard_String (RepositoryId));
-               end if;
-
-               if Any.TypeCode.Is_Nil (Except_TC) then
-                  --  Here if not listed in RAISES, and not otherwise
-                  --  identified.
-
+               if Except_Index = 0 then
                   declare
                      --  Received an unexpected exception: we'll
                      --  have to conjure up a minimal exception
@@ -927,18 +907,14 @@ package body PolyORB.Protocols.GIOP.Common is
                      --  which would even allow us to unmarshall
                      --  the valuation of an unknown exception.
 
-                     --  Note that this malformed aggregate is only suitable
-                     --  for raising through the default (system) raiser, as
-                     --  it won't have the proper members for the specific
-                     --  exception.
-
                      Exception_Name : constant String
                        := Exceptions.Exception_Name
                        (To_Standard_String (RepositoryId));
                      Slash, Next_Slash : Integer;
 
+                     TC : constant Any.TypeCode.Local_Ref :=
+                            TypeCode.TCF_Except;
                   begin
-                     Except_TC := TypeCode.TCF_Except;
                      Slash := Exception_Name'First - 1;
                      loop
                         Next_Slash := Utils.Find
@@ -952,18 +928,19 @@ package body PolyORB.Protocols.GIOP.Common is
                      end if;
 
                      TypeCode.Add_Parameter
-                       (Except_TC, To_Any (To_PolyORB_String
+                       (TC, To_Any (To_PolyORB_String
                                     (Exception_Name
                                      (Slash .. Exception_Name'Last))));
                      TypeCode.Add_Parameter
-                       (Except_TC, To_Any (Types.String (RepositoryId)));
+                       (TC, To_Any (Types.String (RepositoryId)));
                      Current_Req.Req.Exception_Info
-                       := PolyORB.Any.Get_Empty_Any_Aggregate (Except_TC);
+                       := PolyORB.Any.Get_Empty_Any_Aggregate (TC);
                   end;
-
                else
-                  Current_Req.Req.Exception_Info :=
-                    PolyORB.Any.Get_Empty_Any (Except_TC);
+                  Current_Req.Req.Exception_Info
+                    := PolyORB.Any.Get_Empty_Any
+                    (Any.ExceptionList.Item
+                     (Current_Req.Req.Exc_List, Except_Index));
                   Unmarshall_To_Any
                     (Sess.Repr,
                      Sess.Buffer_In,

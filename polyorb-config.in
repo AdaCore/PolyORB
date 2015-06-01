@@ -13,9 +13,9 @@ else
   is_cross=true
 fi
 
-# Library type
+# Library type (for now always static)
 
-LIBRARY_TYPE=@LIBRARY_TYPE@
+LIBRARY_TYPE=static
 
 # Determine installation prefix
 

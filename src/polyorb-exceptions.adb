@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,7 +75,8 @@ package body PolyORB.Exceptions is
      PolyORB.Utils.Chained_Lists (Exception_Info);
 
    function Find_Exception_Info
-     (For_Exception : String) return access Exception_Info;
+     (For_Exception : PolyORB.Types.RepositoryId)
+     return Exception_Info;
    --  Return Exception_Info associated to 'For_Exception'
 
    All_Exceptions : Exception_Lists.List;
@@ -391,17 +392,8 @@ package body PolyORB.Exceptions is
       Occurence     : PolyORB.Any.Any;
       Message       : Standard.String := "")
    is
-      EI : constant access Exception_Info :=
-        Find_Exception_Info (To_String (Repository_Id));
    begin
-      if EI /= null then
-         EI.Raiser (Occurence, Message);
-      else
-         raise Program_Error with
-           "unknown exception "
-           & To_String (Repository_Id) & ASCII.LF
-           & Message;
-      end if;
+      Find_Exception_Info (Repository_Id).Raiser.all (Occurence, Message);
    end Raise_User_Exception_From_Any;
 
    ----------------------------
@@ -440,22 +432,24 @@ package body PolyORB.Exceptions is
    -------------------------
 
    function Find_Exception_Info
-     (For_Exception : String) return access Exception_Info
+     (For_Exception : PolyORB.Types.RepositoryId)
+     return Exception_Info
    is
       use Exception_Lists;
 
-      Id : constant String := For_Exception;
+      Id : constant Types.RepositoryId := For_Exception;
       It : Exception_Lists.Iterator;
+      Info : Exception_Info;
 
    begin
       pragma Debug
-        (C, O ("Looking up einfo for " & For_Exception));
+        (C, O ("Looking up einfo for " & To_Standard_String (For_Exception)));
 
       Enter (All_Exceptions_Lock);
       It := First (All_Exceptions);
 
       while not Last (It) loop
-         exit when To_String (PolyORB.Any.TypeCode.Id (Value (It).TC)) = Id;
+         exit when PolyORB.Any.TypeCode.Id (Value (It).TC) = Id;
          Next (It);
       end loop;
 
@@ -463,12 +457,13 @@ package body PolyORB.Exceptions is
          Leave (All_Exceptions_Lock);
 
          pragma Debug (C, O ("no einfo found, returning 'Unknown' exception"));
-         return null;
+         --         Raise_Unknown;
       end if;
 
-      return Info : constant access Exception_Info := Value (It) do
-         Leave (All_Exceptions_Lock);
-      end return;
+      Info := Value (It).all;
+      Leave (All_Exceptions_Lock);
+
+      return Info;
    end Find_Exception_Info;
 
    ---------------------------------
@@ -500,19 +495,6 @@ package body PolyORB.Exceptions is
          return Repository_Id;
       end if;
    end Exception_Name;
-
-   function Exception_TC
-     (Repository_Id : Standard.String) return Any.TypeCode.Local_Ref
-   is
-      Info : constant access Exception_Info :=
-               Find_Exception_Info (Repository_Id);
-      TC : Any.TypeCode.Local_Ref;
-   begin
-      if Info /= null then
-         TC := Info.TC;
-      end if;
-      return TC;
-   end Exception_TC;
 
    --------------------------------
    -- Exception_Name_To_Error_Id --
