@@ -176,4 +176,4 @@ pseudoxml:
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
-include Makefile.polyorb_doc
+include @srcdir@/Makefile.polyorb_doc
