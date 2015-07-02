@@ -281,14 +281,52 @@ polyorb_lib="$polyorb_lib -lpolyorb-setup"
 
 if $require_xmlada; then
   case $LIBRARY_TYPE in
-    relocatable) xmlada_libtypeflag=--shared ;;
-    *)           xmlada_libtypeflag=--static ;;
+    relocatable) xmlada_libtypeflag=shared ;;
+    *)           xmlada_libtypeflag=static ;;
   esac
 
-  xmlada_config_cmd="xmlada-config ${xmlada_libtypeflag}"
-  xmlada_dir="`${xmlada_config_cmd} --cflags`"
-  xmlada_lib="`${xmlada_config_cmd} --libs`"
-  xmlada_mflags="`${xmlada_config_cmd}`"
+  # first we start with the include dirs
+  popt="-aI"
+
+  xmlada_mflags=""
+  xmlada_lib=""
+  xmlada_dir=""
+
+  # get all paths for xmlada project, there is 3 sections:
+  #
+  #   1. Source Search Path:
+  #      -> paths prepended with -aI
+  #   2. Object Search Path:
+  #      -> paths prepended with -oI and lib paths with -L
+  #   3. Project Search Path:
+  #      -> ignored, no path containing xmlada string
+
+  gnatls=`gnat ls -v -XXMLADA_BUILD=$xmlada_libtypeflag -Pxmlada`
+
+  while read line; do
+      if test "$line" = "Object Search Path:" ; then
+          popt="-aO"
+      elif test "$line" = "Project Search Path:" ; then
+          popt=""
+      fi
+
+      xline=`echo -n "$line" | grep xmlada | tr -d " \n"`
+
+      if test -n "$xline" -a -n "$popt"; then
+          xmlada_mflags="$xmlada_mflags ${popt}$xline"
+
+          if test "$popt" = "-aI" ; then
+              xmlada_dir="$xmlada_dir -I$xline"
+          elif test "$popt" = "-aO" ; then
+              xmlada_lib="$xmlada_lib -L$xline"
+          fi
+      fi
+  done<<EOF
+echo -e $gnatls
+EOF
+
+  # hard code all xmlada libraries here
+  xmlada_lib="$xmlada_lib -lxmlada_sax -lxmlada_unicode -lxmlada_input_sources -lxmlada_dom -lxmlada_schema"
 fi
 
 if test x$have_gnatmake_aPdir = xyes; then
