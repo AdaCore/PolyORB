@@ -301,8 +301,9 @@ if $require_xmlada; then
   #   3. Project Search Path:
   #      -> ignored, no path containing xmlada string
 
-  gnatls=`gnat ls -v -XXMLADA_BUILD=$xmlada_libtypeflag -Pxmlada`
+  gnat ls -v -XXMLADA_BUILD=$xmlada_libtypeflag -Pxmlada > /tmp/gnatls.$$
 
+  exec 3<&0 < /tmp/gnatls.$$
   while read line; do
       if test "$line" = "Object Search Path:" ; then
           popt="-aO"
@@ -310,7 +311,7 @@ if $require_xmlada; then
           popt=""
       fi
 
-      xline=`echo -n "$line" | grep xmlada | tr -d " \n"`
+      xline=`echo "$line" | grep xmlada | tr -d " \n"`
 
       if test -n "$xline" -a -n "$popt"; then
           xmlada_mflags="$xmlada_mflags ${popt}$xline"
@@ -321,9 +322,10 @@ if $require_xmlada; then
               xmlada_lib="$xmlada_lib -L$xline"
           fi
       fi
-  done<<EOF
-echo -e $gnatls
-EOF
+  done
+  exec <&3 3<&-
+
+  rm /tmp/gnatls.$$
 
   # hard code all xmlada libraries here
   xmlada_lib="$xmlada_lib -lxmlada_sax -lxmlada_unicode -lxmlada_input_sources -lxmlada_dom -lxmlada_schema"
