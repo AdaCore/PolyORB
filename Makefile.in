@@ -881,13 +881,15 @@ install:
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb
 	# Install documentation only if it has been built locally, or
-	# pre-built and packaged with sources.
+	# pre-built and packaged with sources. In that case, pass
+        # SPHINXBUILD=true to child make process in order to bypass
+        # check for existence of sphinx-build.
 	if [ -r doc/_build ]; \
 	then \
-	  (cd doc && ${MAKE} install prefix="${prefix}"); \
+	  (cd doc && ${MAKE} install prefix="${prefix}" SPHINXBUILD=true); \
 	elif [ -r $(top_srcdir)/doc/_build ]; \
 	then \
-	  (cd doc && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/doc/"); \
+	  (cd doc && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/doc/" SPHINXBUILD=true); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.
