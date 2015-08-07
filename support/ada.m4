@@ -84,7 +84,7 @@ dnl Check whether a given configuration pragma is supported.
 
 AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,[check.adb],
 [procedure Check is begin null; end Check;],[$1],[$2],[$3])])
 
 dnl Usage: AM_TRY_ADA_COMPILER_SWITCH(switch, success, failure)
@@ -92,7 +92,7 @@ dnl Check whether a given compiler command line switch is supported.
 
 AC_DEFUN([AM_TRY_ADA_COMPILER_SWITCH],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
-AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $1],[check.adb],
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH, $1],[check.adb],
 [procedure Check is begin null; end Check;],[],[$2],[$3])])
 
 dnl Usage: AM_PROG_WORKING_ADA
@@ -248,7 +248,7 @@ AC_BEFORE([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS])
 AC_BEFORE([AM_HAS_PRAGMA_PROFILE_RAVENSCAR])
 AC_BEFORE([AM_HAS_PRAGMA_PROFILE_WARNINGS])
 AC_MSG_CHECKING([whether you have GNAT.Sockets.Copy])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,,[check.adb],
 [with GNAT.Sockets;
 procedure Check is
    S1, S2 : GNAT.Sockets.Socket_Set_Type;
@@ -268,7 +268,7 @@ dnl Determine whether GNAT.OS_Lib has a Close operation with status report.
 AC_DEFUN([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether you have GNAT.OS_Lib.Close (FD : File_Descriptor; Status : out Boolean)])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,,[check.adb],
 [with GNAT.OS_Lib;
 procedure Check is
    FD : GNAT.OS_Lib.File_Descriptor;
@@ -289,7 +289,7 @@ dnl Determine whether GNAT.Perfect_Hash_Generators exists
 AC_DEFUN([AM_HAS_GNAT_PERFECT_HASH_GENERATORS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether you have GNAT.Perfect_Hash_Generators])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,[check.adb],
 [with GNAT.Perfect_Hash_Generators;
 procedure Check is begin null; end Check;
 ], [], [AC_MSG_RESULT(yes)
@@ -377,7 +377,7 @@ dnl Transfer of Control.
 AC_DEFUN([AM_HAS_ADA_ATC],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether environment supports ATC])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,,[check.adb],
 [procedure Check is
 begin
    select delay 1.0; then abort null; end select;
@@ -395,7 +395,7 @@ dnl Determines whether the target environment supports dynamic task priotities
 AC_DEFUN([AM_HAS_ADA_DYNAMIC_PRIORITIES],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether environment supports dynamic task priorities])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,[check.adb],
 [with Ada.Dynamic_Priorities;
 procedure Check is
 begin
@@ -415,7 +415,7 @@ dnl task termination.
 AC_DEFUN([AM_HAS_FREE_ON_TERMINATION],
 [AC_REQUIRE([AM_CROSS_PROG_GNATLS])
 AC_MSG_CHECKING([whether environment supports free-on-termination])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,[check.adb],
 [with System.Tasking;
 procedure Check is
    ATCB : System.Tasking.Ada_Task_Control_Block (0);
@@ -508,7 +508,7 @@ dnl operations
 AC_DEFUN([AM_HAS_INTRINSIC_SYNC_COUNTERS],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether platform supports atomic increment/decrement])
-AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET],[check.adb],
+AM_TRY_ADA([$GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH],[check.adb],
 [
 with Interfaces; use Interfaces;
 procedure Check is

@@ -14,8 +14,18 @@ entry.
 Note that older releases might or might not be affected by the problems listed
 in this document.
 
-Known problems fixed in 2.11.1 and above
+Known problems fixed in 2.12.1 and above
 ----------------------------------------
+
+KP-211-O807-004 Compilation fails when using --enable-conf-pragmas
+
+  Problem:    Compilation fails if an additional configuration pragmas file
+              is provided, and gprbuild is used to build PolyORB.
+
+  Status:     This was fixed in 2.12 on 2015-08-07
+
+  Workaround: Add any required configuration pragmas to src/config.adc.in,
+              then re-run configure without --enable-conf-pragmas.
 
 KP-211-O415-015 Static parameters ignored if building with -O2
 

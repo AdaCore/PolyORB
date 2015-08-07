@@ -128,20 +128,21 @@ AS_HELP_STRING([--enable-conf-pragmas=F],
                [Additional Ada configuration pragmas file for target]),
 [
   if test -f "${enableval}"; then
-    # Set switch that will be incorporated into ADAFLAGS_FOR_TARGET (for
-    # configure's own purposes).
+    # Compute absolute path, as configure tests are run from a temporary
+    # directory. This variable is used only for configure tests (which are
+    # executed from a temporary directory).
 
-    ADDITIONAL_CONF_PRAGMAS_SWITCH="-gnatec=${enableval}"
+    ADDITIONAL_CONF_PRAGMAS_SWITCH="-gnatec=$(cd "$(dirname "${enableval}")"; pwd)/$(basename "${enableval}")"
 
-    # Set substitution for project file
+    # Set substitution for config.adc.in
 
-    ADDITIONAL_CONF_PRAGMAS="\"${ADDITIONAL_CONF_PRAGMAS_SWITCH}\""
+    ADDITIONAL_CONF_PRAGMAS="${enableval}"
   else
     AC_ERROR([valid file name required for --enable-conf-pragmas])
   fi
 ],
-[ADDITIONAL_CONF_PRAGAMS=""])
-AC_SUBST(ADDITIONAL_CONF_PRAGMAS)
+[ADDITIONAL_CONF_PRAGMAS="/dev/null"])
+AC_SUBST_FILE(ADDITIONAL_CONF_PRAGMAS)
 
 ##########################################
 # Set platform-specific supplementary CFLAGS and options
@@ -188,7 +189,7 @@ case $target_os in
     TARGET_EXE_SUFFIX=.exe
     ;;
 esac
-ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET} ${ADDITIONAL_CONF_PRAGMAS_SWITCH}"
+ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
 AC_SUBST(WINDOWS_ON_TARGET)
