@@ -377,7 +377,7 @@ dnl Transfer of Control.
 AC_DEFUN([AM_HAS_ADA_ATC],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether environment supports ATC])
-AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,,[check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET $ADAFLAGS_FOR_TARGET $ADDITIONAL_CONF_PRAGMAS_SWITCH,[check.adb],
 [procedure Check is
 begin
    select delay 1.0; then abort null; end select;
