@@ -27,6 +27,17 @@ KP-211-O807-004 Compilation fails when using --enable-conf-pragmas
   Workaround: Add any required configuration pragmas to src/config.adc.in,
               then re-run configure without --enable-conf-pragmas.
 
+KP-211-O807-003 Doc installation complains about missing sphinx-build
+
+  Problem:    Pre-built PDF and HTML documentation is included in packaged
+              sources. However, "make install" will check for the presence
+              of the sphinx-build tool anyway, and installation will fail if
+              it is not present.
+
+  Status:     This was fixed in 2.12 on 2015-08-07
+
+  Workaround: Supply a dummy executable "sphinx-build" in PATH.
+
 KP-211-O415-015 Static parameters ignored if building with -O2
 
   Problem:    If PolyORB is built with -O2 optimization, then parameters
