@@ -1,0 +1,19 @@
+==============================
+Known problems in PolyORB 2.12
+==============================
+
+Copyright (C) 2015, AdaCore
+
+The following is a listing of known problems in release 2.12.1.
+Each entry contains a status line stating when the problem was fixed, and on
+which release(s). In addition, any wavefront issued subsequent to the date
+specified (in ISO format YYYY-MM-DD) also contains the fix. This can be used
+to determine if a given release or wavefront has the fix identified in the
+entry.
+
+Note that older releases might or might not be affected by the problems listed
+in this document.
+
+Known problems fixed in 17.1 and above
+--------------------------------------
+

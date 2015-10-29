@@ -710,6 +710,7 @@ examples/polyorb/polyorb-test_object_soa.adb
 examples/polyorb/polyorb-test_object_soa.ads
 examples/static/README
 examples/static/po_static_conf.ads
+features-17
 features-2.10
 features-2.11
 features-2.12
@@ -824,6 +825,7 @@ idls/cos/transaction/CosTSPortability.idl
 idls/cos/transaction/CosTransactions.idl
 known-problems-2.10
 known-problems-2.11
+known-problems-2.12
 known-problems-2.9
 polyorb-config.in
 projects-distrib/README
