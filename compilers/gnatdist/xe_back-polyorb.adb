@@ -1054,7 +1054,7 @@ package body XE_Back.PolyORB is
       Push (List_Flags, "-Ppolyorb");
       Push (List_Flags, "-s");
 
-      Set_Str_To_Name_Buffer ("polyorb.ads");
+      Set_Str_To_Name_Buffer ("polyorb.ali");
       List
         (Sources   => (1 => Name_Find),
          Arguments => List_Flags,
