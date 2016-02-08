@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,6 +33,7 @@ with Ada.Directories;
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 
 with Platform;
+with Utils;    use Utils;
 
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
@@ -1027,15 +1028,14 @@ package body XE_Utils is
 
          --  Processing for --PCS=
 
-         elsif Argv'Length > 6
-           and then Argv (Argv'First + 1 .. Argv'First + 5) = "-PCS="
-         then
+         elsif Starts_With (Argv, "--PCS=") then
             Set_PCS_Name (Argv (Argv'First + 6 .. Argv'Last));
 
-         --  Processing for --RTS=
+         --  Switches to be passed to builder and lister
 
-         elsif Argv'Length > 6
-           and then Argv (Argv'First + 1 .. Argv'First + 5) = "-RTS="
+         elsif Starts_With (Argv, "--RTS=")
+                 or else
+               Argv = "--unchecked-shared-lib-imports"
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);

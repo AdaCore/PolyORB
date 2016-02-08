@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -136,6 +136,16 @@ package body Utils is
       end if;
       return Name;
    end Simple_Command_Name;
+
+   -----------------
+   -- Starts_With --
+   -----------------
+
+   function Starts_With (S, Prefix : String) return Boolean is
+   begin
+      return S'Length >= Prefix'Length
+               and then S (S'First .. S'First + Prefix'Length - 1) = Prefix;
+   end Starts_With;
 
    --------------
    -- To_Lower --

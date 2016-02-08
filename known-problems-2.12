@@ -2,7 +2,7 @@
 Known problems in PolyORB 2.12
 ==============================
 
-Copyright (C) 2015, AdaCore
+Copyright (C) 2016, AdaCore
 
 The following is a listing of known problems in release 2.12.1.
 Each entry contains a status line stating when the problem was fixed, and on
@@ -14,6 +14,15 @@ entry.
 Note that older releases might or might not be affected by the problems listed
 in this document.
 
-Known problems fixed in 17.1 and above
---------------------------------------
+Known problems in 2.12.1
+------------------------
 
+KP-212-P120-017 po_gnatdist handling of --unchecked-shared-lib-imports
+
+  Problem:    Partitioning fails if the project tree requires
+              --unchecked-shared-lib-imports, as this option is not
+              passed down to "gnat ls".
+
+  Status:     This was fixed in 17.0 on 2016-02-08
+
+  Workaround: Reorganize projects to use static libraries.
