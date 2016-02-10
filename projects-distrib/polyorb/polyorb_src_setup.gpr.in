@@ -37,7 +37,7 @@
 --  drag in an appropriate middleware configuration. They contain only
 --  WITH clauses for the PolyORB components.
 
-with "polyorb_common", "polyorb_src";
+with "polyorb_install_common", "polyorb_src";
 @WITH_PROTO_PRJS@
 @WITH_APPLI_PRJS@
 @WITH_SERVICE_PRJS@

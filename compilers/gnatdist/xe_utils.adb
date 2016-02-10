@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,10 +28,12 @@
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Command_Line;        use Ada.Command_Line;
+with Ada.Directories;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 
 with Platform;
+with Utils;    use Utils;
 
 with XE_Defs;          use XE_Defs;
 with XE_Flags;         use XE_Flags;
@@ -66,24 +68,23 @@ package body XE_Utils is
    procedure Dup2 (Old_Fd, New_Fd : File_Descriptor);
    pragma Import (C, Dup2);
 
-   GNAT_Driver : String_Access;
-   GPRBuild    : String_Access;
-
-   List_Command    : constant String_Access := new String'("list");
-   Build_Command   : constant String_Access := new String'("make");
-   Compile_Command : constant String_Access := new String'("compile");
+   GNAT_Driver : GNAT.OS_Lib.String_Access;
+   GPRBuild    : GNAT.OS_Lib.String_Access;
 
    function Locate
      (Exec_Name  : String;
-      Show_Error : Boolean := True) return String_Access;
+      Show_Error : Boolean := True) return GNAT.OS_Lib.String_Access;
    --  look for Exec_Name on the path. If Exec_Name is found then the full
    --  pathname for Exec_Name is returned. If Exec_Name is not found and
    --  Show_Error is set to False then null is returned. If Exec_Name is not
    --  found and Show_Error is set to True then Fatal_Error is raised.
 
-   procedure Add_Make_Switch (Argv : String_Access);
+   procedure Add_Make_Switch (Argv : Unbounded_String);
    procedure Add_Make_Switch (Argv : String);
+
+   procedure Add_List_Switch (Argv : Unbounded_String);
    procedure Add_List_Switch (Argv : String);
+
    procedure Add_Main_Source (Source : String);
    procedure Add_Source_Directory (Argv : String);
 
@@ -108,7 +109,7 @@ package body XE_Utils is
    --  Check whether the given directory contains a user-provided version of
    --  s-rpc.adb, and if so set the global flag User_Provided_S_RPC to True.
 
-   function Is_Project_Switch (S : String) return Boolean;
+   function Is_Project_Switch (S : Unbounded_String) return Boolean;
    --  True if S is a builder command line switch specifying a project file
 
    ---------
@@ -151,9 +152,14 @@ package body XE_Utils is
    -- Add_List_Switch --
    ---------------------
 
+   procedure Add_List_Switch (Argv : Unbounded_String) is
+   begin
+      Push (List_Switches, Argv);
+   end Add_List_Switch;
+
    procedure Add_List_Switch (Argv : String) is
    begin
-      List_Switches.Append (new String'(Argv));
+      Push (List_Switches, Argv);
    end Add_List_Switch;
 
    ---------------------
@@ -175,9 +181,9 @@ package body XE_Utils is
    -- Add_Make_Switch --
    ---------------------
 
-   procedure Add_Make_Switch (Argv : String_Access) is
+   procedure Add_Make_Switch (Argv : Unbounded_String) is
    begin
-      Make_Switches.Append (Argv);
+      Push (Make_Switches, Argv);
    end Add_Make_Switch;
 
    ---------------------
@@ -186,7 +192,7 @@ package body XE_Utils is
 
    procedure Add_Make_Switch (Argv : String) is
    begin
-      Make_Switches.Append (new String'(Argv));
+      Push (Make_Switches, Argv);
    end Add_Make_Switch;
 
    --------------------------
@@ -196,7 +202,7 @@ package body XE_Utils is
    procedure Add_Source_Directory (Argv : String) is
    begin
       Check_User_Provided_S_RPC (Argv);
-      Source_Directories.Append (new String'(Argv));
+      Push (Source_Directories, Argv);
    end Add_Source_Directory;
 
    -----------
@@ -205,22 +211,15 @@ package body XE_Utils is
 
    procedure Build
      (Library   : File_Name_Type;
-      Arguments : Argument_List;
+      Arguments : Argument_Vec;
       Fatal     : Boolean := True;
       Progress  : Boolean := False)
    is
-      Length            : constant Positive :=
-                            Arguments'Length + 5
-                              + Make_Switches.Last
-                              - Make_Switches.First;
-      Flags             : Argument_List (1 .. Length);
-      N_Flags           : Natural := 0;
-      Library_Name_Flag : Natural;
-      Success           : Boolean;
-      Has_Prj           : Boolean := False;
-      Index             : Natural;
-
-      Builder : String_Access;
+      Flags   : Argument_Vec;
+      Success : Boolean;
+      Has_Prj : Boolean := False;
+      Skip    : Boolean;
+      Builder : GNAT.OS_Lib.String_Access;
    begin
       if Use_GPRBuild then
          Builder := GPRBuild;
@@ -230,81 +229,67 @@ package body XE_Utils is
 
          --  gnat make
 
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Build_Command;
+         Push (Flags, "make");
       end if;
 
       if Quiet_Mode then
          --  Pass -q to gnatmake
 
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Quiet_Flag;
+         Push (Flags, Quiet_Flag);
 
       elsif Verbose_Mode then
          --  Pass -v to gnatmake
 
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Verbose_Flag;
+         Push (Flags, Verbose_Flag);
       end if;
 
       if Progress then
          --  Pass -d to gnatmake
 
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Progress_Flag;
+         Push (Flags, Progress_Flag);
       end if;
 
       --  Library file name (free'd at exit of Compile, must record position
       --  in Flags array).
 
-      N_Flags := N_Flags + 1;
-      Get_Name_String (Library);
-      Flags (N_Flags) := new String'(Name_Buffer (1 .. Name_Len));
-      Library_Name_Flag := N_Flags;
+      Push (Flags, Library);
 
-      for I in Arguments'Range loop
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Arguments (I);
+      for Arg of Arguments loop
+         Push (Flags, Arg);
 
          --  Detect any project file
 
-         if Is_Project_Switch (Arguments (I).all) then
+         if Is_Project_Switch (Arg) then
             Has_Prj := True;
          end if;
       end loop;
 
-      Index := Make_Switches.First;
-      while Index <= Make_Switches.Last loop
+      Skip := False;
+      for Make_Switch of Make_Switches loop
+         if Skip then
+            Skip := False;
 
          --  If there is a project file among the arguments then any project
          --  file from the Make switches is ignored.
 
-         if Has_Prj
-           and then Is_Project_Switch (Make_Switches.Table (Index).all)
+         elsif Has_Prj
+           and then Is_Project_Switch (Make_Switch)
          then
-            if Make_Switches.Table (Index).all = Project_File_Flag.all then
-
+            if Make_Switch = Project_File_Flag then
                --  Case of "-P" followed by project file name in a separate
                --  argument.
 
-               Index := Index + 1;
+               Skip := True;
             end if;
 
          else
-            N_Flags := N_Flags + 1;
-            Flags (N_Flags) := Make_Switches.Table (Index);
+            Push (Flags, Make_Switch);
          end if;
-
-         Index := Index + 1;
       end loop;
 
       --  Call gnat make
 
-      Execute (Builder, Flags (1 .. N_Flags), Success);
-
-      --  Free library file name argument
-
-      Free (Flags (Library_Name_Flag));
+      Execute (Builder.all, Flags, Success);
 
       if not Success and then Fatal then
          raise Compilation_Error;
@@ -380,103 +365,71 @@ package body XE_Utils is
 
    procedure Compile
      (Source    : File_Name_Type;
-      Arguments : Argument_List;
+      Arguments : Argument_Vec;
       Fatal     : Boolean := True)
    is
-      Length  : constant Natural :=
-                  Arguments'Length + 5
-                    + Make_Switches.Last
-                    - Make_Switches.First;
-      Flags   : Argument_List (1 .. Length);
-      N_Flags : Natural := 0;
+      Flags   : Argument_Vec;
       Success : Boolean;
       Has_Prj : Boolean := False;
-      Index   : Natural;
+      Skip    : Boolean;
 
    begin
       --  gnat compile
 
-      N_Flags := N_Flags + 1;
-      Flags (N_Flags) := Compile_Command;
+      Push (Flags, "compile");
 
-      --  Source file name (free'd at exit of Compile, must be at constant
-      --  position in Flags array).
+      --  Source file name
 
-      N_Flags := N_Flags + 1;
-      Get_Name_String (Source);
-      Flags (N_Flags) :=
-        new String'(Normalize_Pathname
-                      (Name_Buffer (1 .. Name_Len),
-                       Resolve_Links => Resolve_Links));
-
-      --  Check whether we have a predefined unit
-
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer (Strip_Directory (Flags (N_Flags).all));
-      if Name_Len > 2
-        and then Name_Buffer (2) = '-'
-        and then (Name_Buffer (1) = 'a'
-                  or else Name_Buffer (1) = 'g'
-                  or else Name_Buffer (1) = 's')
-      then
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Readonly_Flag;
-      end if;
+      Push (Flags, Normalize_Pathname
+                     (Get_Name_String (Source),
+                      Resolve_Links => Resolve_Links));
 
       if Quiet_Mode then
          --  Pass -q to gnatmake
 
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Quiet_Flag;
+         Push (Flags, Quiet_Flag);
 
       elsif Verbose_Mode then
          --  Pass -v to gnatmake
 
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Verbose_Flag;
+         Push (Flags, Verbose_Flag);
       end if;
 
-      for I in Arguments'Range loop
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Arguments (I);
+      for Arg of Arguments loop
+         Push (Flags, Arg);
 
          --  Detect any project file
 
-         if Is_Project_Switch (Arguments (I).all) then
+         if Is_Project_Switch (Arg) then
             Has_Prj := True;
          end if;
       end loop;
 
-      Index := Make_Switches.First;
-      while Index <= Make_Switches.Last loop
-
+      Skip := False;
+      for Make_Switch of Make_Switches loop
          --  If there is a project file among the arguments then any project
          --  file from the Make switches is ignored.
 
-         if Has_Prj
-           and then Is_Project_Switch (Make_Switches.Table (Index).all)
+         if Skip then
+            Skip := False;
+
+         elsif Has_Prj
+           and then Is_Project_Switch (Make_Switch)
          then
-            if Make_Switches.Table (Index).all = Project_File_Flag.all then
+            if Make_Switch = Project_File_Flag then
 
                --  Case of "-P" followed by project file name in a separate
                --  argument.
 
-               Index := Index + 1;
+               Skip := True;
             end if;
 
          else
-            N_Flags := N_Flags + 1;
-            Flags (N_Flags) := Make_Switches.Table (Index);
+            Push (Flags, Make_Switch);
          end if;
-
-         Index := Index + 1;
       end loop;
 
-      Execute (GNAT_Driver, Flags (1 .. N_Flags), Success);
-
-      --  Free source file name argument
-
-      Free (Flags (2));
+      Execute (GNAT_Driver.all, Flags, Success);
 
       if not Success and then Fatal then
          raise Compilation_Error;
@@ -490,7 +443,7 @@ package body XE_Utils is
    procedure Ensure_Make_Args is
    begin
       if Program_Args /= None then
-         Add_Make_Switch (Make_Args_Flag);
+         Add_Make_Switch (To_String (Make_Args_Flag));
          Program_Args := None;
       end if;
    end Ensure_Make_Args;
@@ -500,25 +453,31 @@ package body XE_Utils is
    -------------
 
    procedure Execute
-     (Command   : String_Access;
-      Arguments : Argument_List;
+     (Command   : String;
+      Arguments : Argument_Vec;
       Success   : out Boolean)
    is
+      Arg_List : Argument_List (1 .. Integer (Arguments.Length));
    begin
+      for J in Arg_List'Range loop
+         Arg_List (J) := new String'(To_String (Arguments.Element (J)));
+      end loop;
+
       if not Quiet_Mode then
          Set_Standard_Error;
-         Write_Str (Command.all);
-         for J in Arguments'Range loop
-            if Arguments (J) /= null then
-               Write_Str (" ");
-               Write_Str (Arguments (J).all);
-            end if;
+         Write_Str (Command);
+         for J in Arg_List'Range loop
+            Write_Str (" ");
+            Write_Str (Arg_List (J).all);
          end loop;
          Write_Eol;
          Set_Standard_Output;
       end if;
 
-      Spawn (Command.all, Arguments, Success);
+      Spawn (Command, Arg_List, Success);
+      for Arg of Arg_List loop
+         Free (Arg);
+      end loop;
    end Execute;
 
    ------------------
@@ -584,13 +543,16 @@ package body XE_Utils is
       ALI_Suffix_Id  := Id (ALI_Suffix);
       ADB_Suffix_Id  := Id (ADB_Suffix);
       ADS_Suffix_Id  := Id (ADS_Suffix);
-      Root_Id        := Dir (Id (Root), Id (Platform.Target));
+      Set_Str_To_Name_Buffer (Ada.Directories.Current_Directory);
+      Curdir_Id      := Name_Find;
+      Root_Id        := Dir (Curdir_Id, Id (Root));
+      Root_Id        := Dir (Root_Id, Id (Platform.Target));
       Part_Dir_Name  := Dir (Root_Id, Id ("partitions"));
       Stub_Dir_Name  := Dir (Root_Id, Id ("stubs"));
-      Stub_Dir       := new String'(Name_Buffer (1 .. Name_Len));
+      Stub_Dir       := +Name_Buffer (1 .. Name_Len);
       PWD_Id         := Dir (Id ("`pwd`"), No_File_Name);
-      I_Current_Dir  := new String'("-I.");
-      E_Current_Dir  := new String'("-I-");
+      I_Current_Dir  := +"-I.";
+      E_Current_Dir  := +"-I-";
 
       Monolithic_Obj_Dir := Dir (Root_Id, Id ("obj"));
       Hidden_Stubs_Dir   := Dir (Monolithic_Obj_Dir, Id ("monolithic"));
@@ -598,18 +560,18 @@ package body XE_Utils is
       PCS_Project        := Id ("pcs_project");
       Set_Corresponding_Project_File_Name (PCS_Project_File);
 
-      Part_Main_Src_Name := Id ("partition" & ADB_Suffix);
-      Part_Main_ALI_Name := To_Afile (Part_Main_Src_Name);
-      Part_Main_Obj_Name := To_Ofile (Part_Main_Src_Name);
+      Part_Main_Spec_Name := Id ("partition" & ADS_Suffix);
+      Part_Main_Body_Name := Id ("partition" & ADB_Suffix);
+      Part_Main_ALI_Name := To_Afile (Part_Main_Body_Name);
+      Part_Main_Obj_Name := To_Ofile (Part_Main_Body_Name);
 
       Part_Prj_File_Name := Id ("partition.gpr");
 
       Overridden_PCS_Units := Id ("pcs_excluded.lst");
 
-      Name_Len := 2;
-      Name_Buffer (1 .. 2) := "-A";
+      Set_Str_To_Name_Buffer ("-aO");
       Get_Name_String_And_Append (Stub_Dir_Name);
-      A_Stub_Dir := new String'(Name_Buffer (1 .. Name_Len));
+      A_Stub_Dir := +Name_Buffer (1 .. Name_Len);
 
       for J in 1 .. Argument_Count loop
          Scan_Dist_Arg (Argument (J), Implicit => False);
@@ -619,15 +581,17 @@ package body XE_Utils is
          Fail ("project file name missing after -P");
       end if;
 
-      if Check_Readonly_Files and then Project_File_Name = null then
+      if Check_Readonly_Files
+        and then Project_File_Name = Null_Unbounded_String
+      then
          --  If the user asks for recompilation of files with read-only ALIs
          --  (in practice recompilation of the GNAT runtime), and no project
          --  has been provided, then assume that additional files to be
-         --  recompiled won't be covered by the generated project, and pass
-         --  extra flag to gnatmake to allow compiling them anyway.
+         --  recompiled won't be covered by the generated project, and
+         --  pass extra flag to gnatmake to allow compiling them anyway.
 
          Ensure_Make_Args;
-         Add_Make_Switch (External_Units_Flag);
+         Add_Make_Switch (To_String (External_Units_Flag));
       end if;
 
       XE_Defs.Initialize;
@@ -645,10 +609,12 @@ package body XE_Utils is
          GNAT_Driver := Locate ("gnat");
       end if;
 
-      --  Note: we initialize variable GPRBuild in Scan_Dist_Arg rather than
-      --  unconditionally in Initialize so that the absence of gprbuild does
-      --  not cause initialization to fail in the normal case where -dB is not
-      --  used.
+      --  Use gprbuild by default if available. This is consistent
+      --  with the behaviour of the "gnat" driver. Note that the
+      --  default can be overridden using debugging switch -dM.
+
+      GPRBuild := Locate ("gprbuild", Show_Error => False);
+      Use_GPRBuild := GPRBuild /= null;
 
       Check_User_Provided_S_RPC (".");
    end Initialize;
@@ -657,11 +623,12 @@ package body XE_Utils is
    -- Is_Project_Switch --
    -----------------------
 
-   function Is_Project_Switch (S : String) return Boolean is
-      Fl : String renames Project_File_Flag.all;
+   function Is_Project_Switch (S : Unbounded_String) return Boolean is
+      St : String renames To_String (S);
+      Fl : String renames To_String (Project_File_Flag);
    begin
-      return S'Length >= Fl'Length
-               and then S (S'First .. S'First + Fl'Length - 1) = Fl;
+      return St'Length >= Fl'Length
+               and then St (St'First .. St'First + Fl'Length - 1) = Fl;
    end Is_Project_Switch;
 
    ----------
@@ -670,89 +637,67 @@ package body XE_Utils is
 
    procedure List
      (Sources   : File_Name_List;
-      Arguments : Argument_List;
+      Arguments : Argument_Vec;
       Output    : out File_Name_Type;
       Fatal     : Boolean := True)
    is
-      Length  : constant Natural :=
-                  Sources'Length + 4
-                   + Arguments'Length
-                   + List_Switches.Last
-                   - List_Switches.First;
-      Flags   : Argument_List (1 .. Length);
-      N_Flags : Natural := 0;
+      Flags   : Argument_Vec;
       File    : GNAT.OS_Lib.File_Descriptor;
       Success : Boolean;
       Result  : File_Name_Type := No_File_Name;
       Has_Prj : Boolean := False;
-      Index   : Natural;
-      Predef  : Boolean := False;
+      Skip    : Boolean;
 
       Saved_Standout : File_Descriptor;
 
    begin
       --  gnat list
 
-      N_Flags := N_Flags + 1;
-      Flags (N_Flags) := List_Command;
+      Push (Flags, "list");
 
-      --  Source file names (free'd at exit of List, must be at constant
-      --  position in Flags array).
+      --  Source file names
 
       for J in Sources'Range loop
-         N_Flags := N_Flags + 1;
-         Get_Name_String (Sources (J));
-         Flags (N_Flags) := new String'(Name_Buffer (1 .. Name_Len));
-
-         Predef := Predef or else Is_Predefined_File (Sources (J));
+         Push (Flags, Sources (J));
       end loop;
 
-      if Predef then
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Readonly_Flag;
-      end if;
-
-      for I in Arguments'Range loop
-         N_Flags := N_Flags + 1;
-         Flags (N_Flags) := Arguments (I);
+      for Arg of Arguments loop
+         Push (Flags, Arg);
 
          --  Detect any project file
 
-         if Is_Project_Switch (Arguments (I).all) then
+         if Is_Project_Switch (Arg) then
             Has_Prj := True;
          end if;
       end loop;
 
-      Index := List_Switches.First;
-      while Index <= List_Switches.Last loop
+      Skip := False;
+      for List_Switch of List_Switches loop
+         if Skip then
+            Skip := False;
 
          --  If there is a project file among the arguments then any
          --  project file from the List switches is ignored.
 
-         if Has_Prj
-           and then Is_Project_Switch (List_Switches.Table (Index).all)
-         then
-            if List_Switches.Table (Index).all = Project_File_Flag.all then
+         elsif Has_Prj and then Is_Project_Switch (List_Switch) then
+            if List_Switch = Project_File_Flag then
 
                --  Case of "-P" followed by project file name in a separate
                --  argument.
 
-               Index := Index + 1;
+               Skip := True;
             end if;
 
          else
-            N_Flags := N_Flags + 1;
-            Flags (N_Flags) := List_Switches.Table (Index);
+            Push (Flags, List_Switch);
          end if;
-
-         Index := Index + 1;
       end loop;
 
       Register_Temp_File (File, Result);
       Saved_Standout := Dup (Standout);
       Dup2 (File, Standout);
 
-      Execute (GNAT_Driver, Flags (1 .. N_Flags), Success);
+      Execute (GNAT_Driver.all, Flags, Success);
 
       Dup2 (Saved_Standout, Standout);
       Close (Saved_Standout);
@@ -764,14 +709,6 @@ package body XE_Utils is
          Remove_Temp_File (Result);
       end if;
 
-      --  Free source filename arguments
-
-      N_Flags := 1;
-      for J in Sources'Range loop
-         N_Flags := N_Flags + 1;
-         Free (Flags (N_Flags));
-      end loop;
-
       Output := Result;
    end List;
 
@@ -782,20 +719,14 @@ package body XE_Utils is
    function Locate
      (Exec_Name  : String;
       Show_Error : Boolean := True)
-      return String_Access
+      return GNAT.OS_Lib.String_Access
    is
-      Loc : String_Access;
+      Loc : constant GNAT.OS_Lib.String_Access :=
+              GNAT.OS_Lib.Locate_Exec_On_Path (Exec_Name);
    begin
-      Name_Len := Exec_Name'Length;
-      Name_Buffer (1 .. Name_Len) := Exec_Name;
-      declare
-         Exe : constant String := Name_Buffer (1 .. Name_Len);
-      begin
-         Loc := GNAT.OS_Lib.Locate_Exec_On_Path (Exe);
-         if Loc = null and then Show_Error then
-            raise Fatal_Error with Exe & " is not in your path";
-         end if;
-      end;
+      if Loc = null and then Show_Error then
+         raise Fatal_Error with Exec_Name & " not found on PATH";
+      end if;
       return Loc;
    end Locate;
 
@@ -866,6 +797,25 @@ package body XE_Utils is
       return N /= No_Name;
    end Present;
 
+   ----------
+   -- Push --
+   ----------
+
+   procedure Push (AV : in out Argument_Vec; U : Unbounded_String) is
+   begin
+      AV.Append (U);
+   end Push;
+
+   procedure Push (AV : in out Argument_Vec; S : String) is
+   begin
+      AV.Append (To_Unbounded_String (S));
+   end Push;
+
+   procedure Push (AV : in out Argument_Vec; N : Name_Id) is
+   begin
+      AV.Append (To_Unbounded_String (Get_Name_String (N)));
+   end Push;
+
    -----------
    -- Quote --
    -----------
@@ -922,10 +872,10 @@ package body XE_Utils is
 
       if Project_File_Name_Expected then
          Project_File_Name :=
-           new String'(Normalize_Pathname (Argv,
-                                           Resolve_Links => Resolve_Links));
-         Add_List_Switch (Project_File_Name.all);
-         Add_Make_Switch (Project_File_Name.all);
+           +Normalize_Pathname (Argv,
+                                Resolve_Links => Resolve_Links);
+         Add_List_Switch (Project_File_Name);
+         Add_Make_Switch (Project_File_Name);
          Project_File_Name_Expected := False;
 
       elsif Argv (Argv'First) = '-' then
@@ -936,8 +886,10 @@ package body XE_Utils is
          --  Processing for -I-
 
          elsif Argv = "-I-" then
-            Add_List_Switch (Argv);
-            Add_Make_Switch (Argv);
+            if not Use_GPRBuild then
+               Add_List_Switch (Argv);
+               Add_Make_Switch (Argv);
+            end if;
 
          --  Forbid -?- or -??- where ? is any character
 
@@ -950,8 +902,11 @@ package body XE_Utils is
            or else Argv (Argv'First + 1) = 'I'
            or else Argv (Argv'First + 1) = 'L'
          then
-            Add_List_Switch (Argv);
-            Add_Make_Switch (Argv);
+            if Use_GPRBuild then
+               Add_List_Switch (Argv);
+               Add_Make_Switch (Argv);
+            end if;
+
             if Argv (Argv'First + 1) = 'I' and then not Implicit then
                Add_Source_Directory (Argv (Argv'First + 2 .. Argv'Last));
             end if;
@@ -975,25 +930,26 @@ package body XE_Utils is
          elsif Argv (Argv'First + 1) = 'P' then
 
             if Project_File_Name_Expected
-                 or else Project_File_Name /= null
+              or else Project_File_Name /= Null_Unbounded_String
             then
                Fail ("cannot have several project files specified");
             end if;
 
             if Argv'Length > 2 then
                Project_File_Name :=
-                 new String'(Normalize_Pathname
-                              (Argv (Argv'First + 2 .. Argv'Last),
-                               Resolve_Links => Resolve_Links));
-               Add_List_Switch (Project_File_Flag.all);
-               Add_List_Switch (Project_File_Name.all);
-               Add_Make_Switch (Project_File_Flag.all);
-               Add_Make_Switch (Project_File_Name.all);
+                 +Normalize_Pathname
+                    (Argv (Argv'First + 2 .. Argv'Last),
+                     Resolve_Links => Resolve_Links);
+               Add_List_Switch (Project_File_Flag);
+               Add_List_Switch (Project_File_Name);
+
+               Add_Make_Switch (Project_File_Flag);
+               Add_Make_Switch (Project_File_Name);
 
             else
                Project_File_Name_Expected := True;
-               Add_List_Switch (Project_File_Flag.all);
-               Add_Make_Switch (Project_File_Flag.all);
+               Add_List_Switch (Project_File_Flag);
+               Add_Make_Switch (Project_File_Flag);
             end if;
 
          elsif Argv (Argv'First + 1) = 'e' then
@@ -1026,12 +982,10 @@ package body XE_Utils is
                   when 'f' =>
                      Add_Make_Switch ("-df");
 
-                  --  -dB: Use gprbuild (implies -dP)
-                  --       (for experimentation, not expected to work yet???)
+                  --  -dM: revert to using gnatmake even if gprbuild is present
 
-                  when 'B' =>
-                     GPRBuild := Locate ("gprbuild");
-                     Use_GPRBuild := True;
+                  when 'M' =>
+                     Use_GPRBuild := False;
 
                   when others =>
                      --  Pass other debugging flags to the builder untouched
@@ -1074,15 +1028,14 @@ package body XE_Utils is
 
          --  Processing for --PCS=
 
-         elsif Argv'Length > 6
-           and then Argv (Argv'First + 1 .. Argv'First + 5) = "-PCS="
-         then
+         elsif Starts_With (Argv, "--PCS=") then
             Set_PCS_Name (Argv (Argv'First + 6 .. Argv'Last));
 
-         --  Processing for --RTS=
+         --  Switches to be passed to builder and lister
 
-         elsif Argv'Length > 6
-           and then Argv (Argv'First + 1 .. Argv'First + 5) = "-RTS="
+         elsif Starts_With (Argv, "--RTS=")
+                 or else
+               Argv = "--unchecked-shared-lib-imports"
          then
             Add_List_Switch (Argv);
             Add_Make_Switch (Argv);
@@ -1133,11 +1086,12 @@ package body XE_Utils is
 
    procedure Show_Dist_Args is
    begin
-      for J in Make_Switches.First .. Make_Switches.Last loop
-         Message ("make = " & Make_Switches.Table (J).all);
+      for Sw of Make_Switches loop
+         Message ("make = " & To_String (Sw));
       end loop;
-      for J in List_Switches.First .. List_Switches.Last loop
-         Message ("list = " & List_Switches.Table (J).all);
+
+      for Sw of List_Switches loop
+         Message ("list = " & To_String (Sw));
       end loop;
    end Show_Dist_Args;
 

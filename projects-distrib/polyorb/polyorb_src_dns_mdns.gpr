@@ -31,14 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_common", "polyorb_src", "polyorb_src_dns";
+with "polyorb_install_common", "polyorb_src", "polyorb_src_dns";
 
 project PolyORB_src_dns_mdns is
 
    for Source_Files use ();
    for Library_Name use "polyorb-dns-mdns";
-   for Library_Dir use PolyORB_Common.Library_Dir;
-   for Library_Kind use PolyORB_Common.Library_Type;
+   for Library_Dir use PolyORB_Install_Common.Library_Dir;
+   for Library_Kind use PolyORB_Install_Common.Library_Type;
    for Externally_Built use "true";
 
 end PolyORB_src_dns_mdns;

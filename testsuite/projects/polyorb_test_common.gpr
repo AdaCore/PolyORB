@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                       P O L Y O R B _ C O N F I G                        --
+--                  P O L Y O R B _ T E S T _ C O M M O N                   --
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
@@ -31,13 +31,23 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Defaults set by configure
+with "polyorb_common";
 
---  @configure_input@
+project PolyORB_Test_Common is
 
-project PolyORB_Config is
+   --  This project is imported by all the local.gpr projects under examples and
+   --  testsuite.
 
    for Source_Files use ();
-   Default_Library_Type := "@LIBRARY_TYPE@";
 
-end PolyORB_Config;
+   Build_Dir := PolyORB_Common.Build_Dir;
+   Source_Dir := PolyORB_Common.Source_Dir;
+
+   package Compiler is
+
+      for Default_Switches ("Ada")
+         use PolyORB_Common.Compiler'Default_Switches ("Ada");
+
+   end Compiler;
+
+end PolyORB_Test_Common;

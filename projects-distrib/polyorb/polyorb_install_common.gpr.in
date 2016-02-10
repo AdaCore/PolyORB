@@ -31,17 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_config";
+abstract project PolyORB_Install_Common is
 
-abstract project PolyORB_Common is
-
-   --  This project is imported by all the polyorb project files.
+   --  This project is imported by all installed PolyORB project files
 
    for Source_Files use ();
 
    type Library_Type_Type is ("relocatable", "static");
    Library_Type : Library_Type_Type :=
-     external ("LIBRARY_TYPE", PolyORB_Config.Default_Library_Type);
+     external ("LIBRARY_TYPE", "@LIBRARY_TYPE@");
+
 
    Library_Dir := "../..";
 
@@ -53,4 +52,4 @@ abstract project PolyORB_Common is
          Library_Dir := "../../polyorb/static";
    end case;
 
-end PolyORB_Common;
+end PolyORB_Install_Common;

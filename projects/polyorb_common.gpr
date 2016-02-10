@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with "polyorb_config";
+
 project PolyORB_Common is
 
    --  This project is imported by all the polyorb project files.

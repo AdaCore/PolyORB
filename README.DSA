@@ -22,6 +22,12 @@ GNAT Pro 6.4  | PolyORB 2.7
 GNAT Pro 7.0  | PolyORB 2.8
 GNAT GPL 2012 | PoylORB GPL 2012
 GNAT Pro 7.1  | PolyORB 2.9
-GNAT Pro 7.2  | PoltORB 2.10
-GNAT Pro 7.3  | PoltORB 2.11
-GNAT Pro 7.4  | PoltORB 2.12 (planned)
+GNAT Pro 7.2  | PolyORB 2.10
+GNAT Pro 7.3  | PolyORB 2.11
+GNAT Pro 7.4  | PolyORB 2.12
+
+Subsequent versions of GNAT Pro and PolyORB (starting with GNAT Pro 17
+and PolyORB 17) follow consistent numbering schemes. Compatibility is
+guaranteed for GNAT and PolyORB versions bearing the same major release
+number.
+

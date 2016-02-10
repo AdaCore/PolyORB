@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[2.12.0w]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[17.0w]))
 
 AC_PREREQ(2.60)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -128,20 +128,21 @@ AS_HELP_STRING([--enable-conf-pragmas=F],
                [Additional Ada configuration pragmas file for target]),
 [
   if test -f "${enableval}"; then
-    # Set switch that will be incorporated into ADAFLAGS_FOR_TARGET (for
-    # configure's own purposes).
+    # Compute absolute path, as configure tests are run from a temporary
+    # directory. This variable is used only for configure tests (which are
+    # executed from a temporary directory).
 
-    ADDITIONAL_CONF_PRAGMAS_SWITCH="-gnatec=${enableval}"
+    ADDITIONAL_CONF_PRAGMAS_SWITCH="-gnatec=$(cd "$(dirname "${enableval}")"; pwd)/$(basename "${enableval}")"
 
-    # Set substitution for project file
+    # Set substitution for config.adc.in
 
-    ADDITIONAL_CONF_PRAGMAS="\"${ADDITIONAL_CONF_PRAGMAS_SWITCH}\""
+    ADDITIONAL_CONF_PRAGMAS="${enableval}"
   else
     AC_ERROR([valid file name required for --enable-conf-pragmas])
   fi
 ],
-[ADDITIONAL_CONF_PRAGAMS=""])
-AC_SUBST(ADDITIONAL_CONF_PRAGMAS)
+[ADDITIONAL_CONF_PRAGMAS="/dev/null"])
+AC_SUBST_FILE(ADDITIONAL_CONF_PRAGMAS)
 
 ##########################################
 # Set platform-specific supplementary CFLAGS and options
@@ -188,7 +189,7 @@ case $target_os in
     TARGET_EXE_SUFFIX=.exe
     ;;
 esac
-ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET} ${ADDITIONAL_CONF_PRAGMAS_SWITCH}"
+ADAFLAGS_FOR_TARGET="${CFLAGS_FOR_TARGET}"
 AC_SUBST(CFLAGS_FOR_TARGET)
 AC_SUBST(ADAFLAGS_FOR_TARGET)
 AC_SUBST(WINDOWS_ON_TARGET)
@@ -372,6 +373,15 @@ AS_HELP_STRING([--disable-idlac-wrapper], [Do not use idlac_wrapper for build]),
 esac],
 [USE_IDLAC_WRAPPER=yes])
 AC_SUBST(USE_IDLAC_WRAPPER)
+
+AC_ARG_ENABLE(use-installed,
+AS_HELP_STRING([--enable-use-installed], [Use installed PolyORB to build testsuite and examples]),
+[case "$enableval" in
+   yes|no) USE_INSTALLED=$enableval ;;
+   *)      AC_ERROR([invalid argument to --enable-use-installed: $enableval]) ;;
+esac],
+[USE_INSTALLED=no])
+AC_SUBST(USE_INSTALLED)
 
 AM_IDLCPP_NEEDS_DOT
 
@@ -680,6 +690,7 @@ do
    if test "$P" != ir
    then
       SERVICE_PRJS="${SERVICE_PRJS} polyorb_idls_cos_${P}.gpr"
+      SERVICE_PRJS="${SERVICE_PRJS} polyorb_cos_${P}.gpr"
    fi
 done
 
@@ -940,7 +951,10 @@ AC_SUBST(WITH_EXTRA_PRJS)
 ##########################################
 
 AC_CONFIG_HEADERS([src/config.h])
-AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_pointers-sync_counters__$SYNC_COUNTERS_IMPL.adb])
+AC_CONFIG_LINKS([src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_pointers-sync_counters__$SYNC_COUNTERS_IMPL.adb
+                 testsuite/projects/polyorb_config.gpr:projects/polyorb_config.gpr
+                 testsuite/projects/polyorb_common.gpr:projects/polyorb_common.gpr])
+
 
 AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	Makefile
@@ -950,13 +964,13 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	compilers/config.adc
 	compilers/gnatdist/xe_defs-defaults.ads
 	compilers/gnatprfh/gnatprfh.adb
-	docs/Makefile
-	docs/polyorb_version.texi
+	doc/Makefile
+	doc/polyorb_version.py
 	projects/polyorb.gpr
 	projects/polyorb_config.gpr
 	projects/polyorb_src_setup.gpr
 	projects-distrib/polyorb.gpr
-	projects-distrib/polyorb/polyorb_config.gpr
+	projects-distrib/polyorb/polyorb_install_common.gpr
 	projects-distrib/polyorb/polyorb_src_setup.gpr
 	src/config.adc
 	src/src.exclude

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_common", "polyorb_src";
+with "polyorb_install_common", "polyorb_src";
 
 project PolyORB_src_dsa is
 

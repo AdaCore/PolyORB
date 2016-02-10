@@ -35,7 +35,7 @@
 
 --  See src_setup for purpose and usage rules
 
-with "polyorb_common", "polyorb_src", "polyorb_src_corba", "polyorb_src_giop", "polyorb_src_security", "polyorb_src_security_gssup", "polyorb_src_corba_security", "polyorb_src_giop_iiop_security", "polyorb_src_giop_iiop_security_tls";
+with "polyorb_install_common", "polyorb_src", "polyorb_src_corba", "polyorb_src_giop", "polyorb_src_security", "polyorb_src_security_gssup", "polyorb_src_corba_security", "polyorb_src_giop_iiop_security", "polyorb_src_giop_iiop_security_tls";
 
 project PolyORB_src_setup_security is
 

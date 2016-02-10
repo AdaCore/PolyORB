@@ -31,14 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_common", "polyorb_src", "polyorb_src_corba", "polyorb_src_corba_iop";
+with "polyorb_install_common", "polyorb_src", "polyorb_src_corba", "polyorb_src_corba_iop";
 
 project PolyORB_src_corba_rtcorba is
 
    for Source_Files use ();
    for Library_Name use "polyorb-corba-rtcorba";
-   for Library_Dir use PolyORB_Common.Library_Dir;
-   for Library_Kind use PolyORB_Common.Library_Type;
+   for Library_Dir use PolyORB_Install_Common.Library_Dir;
+   for Library_Kind use PolyORB_Install_Common.Library_Type;
    for Externally_Built use "true";
 
 end PolyORB_src_corba_rtcorba;

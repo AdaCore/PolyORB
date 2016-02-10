@@ -286,8 +286,10 @@ idlac_include_flags := \
 # Command used to run idlac:
 ifeq (@USE_IDLAC_WRAPPER@,yes)
 idlac := ${IDLAC_WRAPPER} --idlac="${top_builddir}/${IDLAC_bin}" ${idlac_include_flags}
+installed_idlac := ${IDLAC_WRAPPER} --idlac=@IDLAC@ ${idlac_include_flags}
 else
 idlac := ${top_builddir}/${IDLAC_bin} ${idlac_include_flags}
+installed_idlac := @IDLAC@ ${idlac_include_flags}
 endif
 
 ################################################################
@@ -653,7 +655,16 @@ test_dirs := ${top_srcdir}/examples ${top_srcdir}/testsuite
 test_idls := ${shell find ${test_dirs} -name '*.idl' 2> /dev/null}
 test_idls := ${patsubst ${top_srcdir}/%,%,${test_idls}}
 test_idl_stamps := ${patsubst %.idl,%.idl-stamp,${test_idls}}
+
+
+ifeq (@USE_INSTALLED@,yes)
+${test_idl_stamps}: %.idl-stamp: ${top_srcdir}/%.idl
+	mkdir -p ${dir $@}
+	cd ${dir $@} && ${installed_idlac} ${idlac_flags} $<
+	touch $@
+else
 self_idl_stamps += ${test_idl_stamps}
+endif
 
 # Include all the Makefile.local files.
 
@@ -661,9 +672,21 @@ self_idl_stamps += ${test_idl_stamps}
 
 test_targets := ${sort ${test_targets}}
 
+
+TESTSUITE_GNATMAKE_FLAGS := -aP"${top_builddir}/testsuite/projects" -aP"${top_srcdir}/testsuite/projects"
+
+ifeq (@USE_INSTALLED@,yes)
+INSTALLED_TARGET_PREFIX=${shell echo `dirname \`which iac\``/..}
+TESTSUITE_GNATMAKE_FLAGS += -aP"${INSTALLED_TARGET_PREFIX}/${projects_subdir}"
+else
+# If building examples and testsuite using the newly built PolyORB,
+# add build-time project files to project path.
+TESTSUITE_GNATMAKE_FLAGS += -aP"${top_builddir}/projects" -aP"${top_srcdir}/projects"
+endif
+
 .PHONY: ${test_targets}
 ${test_targets}: %/build-test:
-	${GPRBUILD_FOR_TARGET} "-XTest_Dir=$*" -aP"${top_builddir}/projects" -aP"${top_srcdir}/projects" -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
+	${GPRBUILD_FOR_TARGET} "-XTest_Dir=$*" $(TESTSUITE_GNATMAKE_FLAGS) -P ${top_srcdir}/$*/local.gpr ${BASE_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
 # Set active_tests to a subset of test_targets -- remove the ones that are for
 # application personalities that were not configured. Note: examples/polyorb
@@ -814,7 +837,7 @@ ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
 # the docs directory.
 .PHONY: docs
 docs:
-	(cd docs && ${MAKE})
+	(cd doc && ${MAKE} sources html latexpdf MANIFEST)
 
 ################################################################
 
@@ -835,6 +858,7 @@ else
   host_cmdprefix=${target}-
   target_exe_dir=${target_prefix}/bin
 endif
+projects_subdir=lib/gnat/polyorb
 
 .PHONY: install
 install:
@@ -844,8 +868,8 @@ install:
 	@echo "          Host: ${host}"
 	@echo "        Target: ${target}"
 	${PINSTALL} -d ${prefix}/bin ${target_prefix}/bin
-	${RM} -fr "${target_prefix}/lib/gnat/polyorb"
-	${PINSTALL} -d ${target_prefix}/lib/gnat/polyorb
+	${RM} -fr "${target_prefix}/${projects_subdir}"
+	${PINSTALL} -d ${target_prefix}/${projects_subdir}
 	${PINSTALL} -d ${target_prefix}/lib/polyorb
 	${PINSTALL} -d ${target_prefix}/lib/polyorb/static
 	${RM} -fr "${target_prefix}/include/polyorb"
@@ -862,8 +886,8 @@ install:
 	ls ${top_builddir}/lib/*.dll | ${PINSTALL} -m 555 - ${target_prefix}/lib
 	ls ${top_srcdir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
 	ls ${top_builddir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
-	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat/polyorb
-	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat/polyorb
+	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/${projects_subdir}
+	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/${projects_subdir}
 	(find \
 	  ${top_builddir}/src \
 	  ${top_builddir}/cos \
@@ -881,13 +905,15 @@ install:
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb
 	# Install documentation only if it has been built locally, or
-	# pre-built and packaged with sources.
-	if [ -r docs/polyorb_ug.html ]; \
+	# pre-built and packaged with sources. In that case, pass
+        # SPHINXBUILD=true to child make process in order to bypass
+        # check for existence of sphinx-build.
+	if [ -r doc/_build ]; \
 	then \
-	  (cd docs && ${MAKE} install prefix="${prefix}"); \
-	elif [ -r $(top_srcdir)/docs/polyorb_ug.html ]; \
+	  (cd doc && ${MAKE} install prefix="${prefix}" SPHINXBUILD=true); \
+	elif [ -r $(top_srcdir)/doc/_build ]; \
 	then \
-	  (cd docs && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/docs/"); \
+	  (cd doc && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/doc/" SPHINXBUILD=true); \
 	fi
 
 # polyorb-dsa_p-partitions.ali is a special case above.

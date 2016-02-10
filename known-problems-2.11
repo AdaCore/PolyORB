@@ -14,8 +14,50 @@ entry.
 Note that older releases might or might not be affected by the problems listed
 in this document.
 
-Known problems fixed in 2.11.1 and above
+Known problems fixed in 2.12.1 and above
 ----------------------------------------
+
+KP-211-O807-004 Compilation fails when using --enable-conf-pragmas
+
+  Problem:    Compilation fails if an additional configuration pragmas file
+              is provided, and gprbuild is used to build PolyORB.
+
+  Status:     This was fixed in 2.12 on 2015-08-07
+
+  Workaround: Add any required configuration pragmas to src/config.adc.in,
+              then re-run configure without --enable-conf-pragmas.
+
+KP-211-O807-003 Doc installation complains about missing sphinx-build
+
+  Problem:    Pre-built PDF and HTML documentation is included in packaged
+              sources. However, "make install" will check for the presence
+              of the sphinx-build tool anyway, and installation will fail if
+              it is not present.
+
+  Status:     This was fixed in 2.12 on 2015-08-07
+
+  Workaround: Supply a dummy executable "sphinx-build" in PATH.
+
+KP-211-O415-015 Static parameters ignored if building with -O2
+
+  Problem:    If PolyORB is built with -O2 optimization, then parameters
+              set by the user using the PolyORB.Parameters.Static circuitry
+              may not be taken into account.
+
+  Status:     This was fixed in 2.12 on 2015-04-28
+
+  Workaround: Compile polyorb-parameters-static.adb with -O1 optimization.
+
+KP-211-O301-002 Installed projects do not account for --enable-shared
+
+  Problem:    When building PolyORB as shared libraries with --enable-shared,
+              the installed project files still default to referencing a
+              (nonexistent) static build.
+
+  Status:     This was fixed in 2.12 on 2015-03-10
+
+  Workaround: When building an application, explicitly specify
+              -XLIBRARY_TYPE=relocatable on the gprbuild command line.
 
 KP-211-O213-032 Crash on unknown user exception
 

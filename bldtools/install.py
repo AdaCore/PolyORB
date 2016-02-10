@@ -1,22 +1,34 @@
 #! /usr/bin/env python
 
-import getopt, os, shutil, string, sys
+import getopt
+import os
+import shutil
+import string
+import sys
+
 
 def usage():
-    print "Usage: install.py [-m MODE] SRCFILE... DSTDIR"
+    print "Usage: install.py [-m MODE] [-R] SRCFILE... DSTDIR"
     sys.exit(2)
+
+
+def ensure_dir(d):
+    if not os.path.isdir(d):
+        os.makedirs(d)
+
 
 def main():
     dir = False
     mode = 0444
     strip = False
     verbose = False
+    preserve_relative_path = False
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "dm:sv")
+        opts, args = getopt.getopt(sys.argv[1:], "dm:svR")
     except getopt.GetoptError, err:
         # print help information and exit:
-        print str(err) # will print something like "option -a not recognized"
+        print str(err)  # will print something like "option -a not recognized"
         usage()
 
     for o, a in opts:
@@ -28,6 +40,8 @@ def main():
             strip = True
         elif o == "-v":
             verbose = True
+        elif o == "-R":
+            preserve_relative_path = True
         else:
             assert False, "unhandled option"
 
@@ -42,12 +56,17 @@ def main():
             args.extend(map(string.rstrip, sys.stdin.readlines()))
 
         elif dir:
-            if not os.path.isdir(file):
-                os.makedirs(file)
+            ensure_dir(file)
 
         else:
             if os.path.isdir(dst):
-                dstfile = os.path.join(dst,os.path.basename(file))
+                if preserve_relative_path:
+                    dstfile = file
+                else:
+                    dstfile = os.path.basename(file)
+                dstfile = os.path.join(dst, dstfile)
+                if preserve_relative_path:
+                    ensure_dir(os.path.dirname(dstfile))
             else:
                 dstfile = dst
 

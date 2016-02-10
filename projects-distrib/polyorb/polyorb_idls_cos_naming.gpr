@@ -31,15 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with "polyorb_common", "polyorb_src";
+with "polyorb_install_common", "polyorb_src";
 limited with "polyorb_src_corba", "polyorb_cos_naming";
 
 project PolyORB_idls_cos_naming is
 
    for Source_Files use ();
    for Library_Name use "polyorb-corba-cos-naming";
-   for Library_Dir use PolyORB_Common.Library_Dir;
-   for Library_Kind use PolyORB_Common.Library_Type;
+   for Library_Dir use PolyORB_Install_Common.Library_Dir;
+   for Library_Kind use PolyORB_Install_Common.Library_Type;
    for Externally_Built use "true";
 
 end PolyORB_idls_cos_naming;

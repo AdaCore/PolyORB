@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -54,5 +54,8 @@ package Utils is
    --  Returns the simple name of the command. Same as
    --  Ada.Command_Line.Command_Name, except this strips off the directory and
    --  extension, if any.
+
+   function Starts_With (S, Prefix : String) return Boolean;
+   --  True if S starts with Prefix
 
 end Utils;

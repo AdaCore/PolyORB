@@ -6,3 +6,6 @@ pragma Debug_Policy (@DEBUG_POLICY@);
 --  Set Initialize_Scalars for debug builds
 
 @DEBUG_ONLY@pragma Initialize_Scalars;
+
+--  Additional user-provided configuration pragmas below
+@ADDITIONAL_CONF_PRAGMAS@

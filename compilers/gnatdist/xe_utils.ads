@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,6 +29,9 @@
 --  This package provides several global variables, routines and
 --  exceptions of general use.
 
+with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 pragma Elaborate_All (GNAT.OS_Lib);
 
@@ -47,6 +50,7 @@ package XE_Utils is
    ALI_Suffix    : constant String := ".ali";
    ADB_Suffix    : constant String := ".adb";
    ADS_Suffix    : constant String := ".ads";
+   Curdir_Id     : File_Name_Type;
    Root_Id       : File_Name_Type;
    Cfg_Suffix_Id : File_Name_Type;
    Obj_Suffix_Id : File_Name_Type;
@@ -57,10 +61,10 @@ package XE_Utils is
    Stub_Dir_Name : File_Name_Type;
    Part_Dir_Name : File_Name_Type;
    PWD_Id        : File_Name_Type;
-   Stub_Dir      : String_Access;
-   A_Stub_Dir    : String_Access;
-   E_Current_Dir : String_Access;
-   I_Current_Dir : String_Access;
+   Stub_Dir      : Unbounded_String;
+   A_Stub_Dir    : Unbounded_String;
+   E_Current_Dir : Unbounded_String;
+   I_Current_Dir : Unbounded_String;
 
    --  Monolithic application main subprogram (set by Set_Application_Names)
 
@@ -84,9 +88,11 @@ package XE_Utils is
    PCS_Project_File  : File_Name_Type;
    --  Project file for the PCS
 
-   Part_Main_Src_Name : File_Name_Type;
-   Part_Main_ALI_Name : File_Name_Type;
-   Part_Main_Obj_Name : File_Name_Type;
+   Part_Main_Base_Name : File_Name_Type;
+   Part_Main_Spec_Name : File_Name_Type;
+   Part_Main_Body_Name : File_Name_Type;
+   Part_Main_ALI_Name  : File_Name_Type;
+   Part_Main_Obj_Name  : File_Name_Type;
    --  Partition main subprogram
 
    Part_Prj_File_Name : File_Name_Type;
@@ -94,8 +100,6 @@ package XE_Utils is
 
    Overridden_PCS_Units : File_Name_Type;
    --  Per-partition list of PCS units that are overridden by the partition
-
-   No_Args : constant Argument_List (1 .. 0) := (others => null);
 
    procedure Initialize;
    --  Perform global initialization of this unit
@@ -194,29 +198,45 @@ package XE_Utils is
    --  Command Handling --
    -----------------------
 
+   function "+" (S : String) return Unbounded_String
+     renames To_Unbounded_String;
+
+   package Unbounded_String_Vectors is
+     new Ada.Containers.Vectors
+           (Index_Type   => Positive,
+            Element_Type => Ada.Strings.Unbounded.Unbounded_String);
+   subtype Argument_Vec is Unbounded_String_Vectors.Vector;
+   No_Args : Argument_Vec renames Unbounded_String_Vectors.Empty_Vector;
+
+   procedure Push (AV : in out Argument_Vec; U : Unbounded_String);
+   procedure Push (AV : in out Argument_Vec; S : String);
+   procedure Push (AV : in out Argument_Vec; N : Name_Id);
+   --  Append the given argument to AV.
+   --  Note: the Name_Id variant clobbers Name_Buffer and Name_Len.
+
    type File_Name_List is array (Natural range <>) of File_Name_Type;
 
    procedure Execute
-     (Command   : String_Access;
-      Arguments : Argument_List;
+     (Command   : String;
+      Arguments : Argument_Vec;
       Success   : out Boolean);
 
    procedure Build
      (Library    : File_Name_Type;
-      Arguments  : Argument_List;
+      Arguments  : Argument_Vec;
       Fatal      : Boolean := True;
       Progress   : Boolean := False);
    --  Execute gnat make and add gnatdist link flags
 
    procedure Compile
      (Source    : File_Name_Type;
-      Arguments : Argument_List;
+      Arguments : Argument_Vec;
       Fatal     : Boolean := True);
    --  Execute gnat compile and add gnatdist gcc flags
 
    procedure List
      (Sources   : File_Name_List;
-      Arguments : Argument_List;
+      Arguments : Argument_Vec;
       Output    : out File_Name_Type;
       Fatal     : Boolean := True);
    --  List source info into Output and raise Fatal Error if not
