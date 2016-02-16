@@ -112,6 +112,22 @@ package body XE_Utils is
    function Is_Project_Switch (S : Unbounded_String) return Boolean;
    --  True if S is a builder command line switch specifying a project file
 
+   procedure Check_Section_Argument
+     (Arg        : String;
+      Is_Section : out Boolean;
+      Program    : in out Make_Program_Type);
+   --  Determine whether Arg is a section switch (-Xarg), and if so
+   --  set Is_Section to True, and Program to the corresponding value.
+   --  If not, leave Program unchanged.
+
+   procedure Copy_Build_Arguments
+     (From     : Argument_Vec;
+      To       : in out Argument_Vec;
+      Has_Prj  : out Boolean);
+   --  Copy command line arguments from From to To.
+   --  Upon exit, "-margs" is also appended to To if From changed the section.
+   --  Has_Prj is set True if From contains a -P flag.
+
    ---------
    -- "&" --
    ---------
@@ -215,11 +231,12 @@ package body XE_Utils is
       Fatal     : Boolean := True;
       Progress  : Boolean := False)
    is
-      Flags   : Argument_Vec;
-      Success : Boolean;
-      Has_Prj : Boolean := False;
-      Skip    : Boolean;
-      Builder : GNAT.OS_Lib.String_Access;
+      Flags      : Argument_Vec;
+      Success    : Boolean;
+      Has_Prj    : Boolean := False;
+      Skip       : Boolean;
+      Builder    : GNAT.OS_Lib.String_Access;
+
    begin
       if Use_GPRBuild then
          Builder := GPRBuild;
@@ -254,15 +271,10 @@ package body XE_Utils is
 
       Push (Flags, Library);
 
-      for Arg of Arguments loop
-         Push (Flags, Arg);
+      --  Copy additional arguments
 
-         --  Detect any project file
-
-         if Is_Project_Switch (Arg) then
-            Has_Prj := True;
-         end if;
-      end loop;
+      Copy_Build_Arguments
+        (From => Arguments, To => Flags, Has_Prj => Has_Prj);
 
       Skip := False;
       for Make_Switch of Make_Switches loop
@@ -307,20 +319,12 @@ package body XE_Utils is
       return Name_Find;
    end Capitalize;
 
-   ----------------
-   -- Capitalize --
-   ----------------
-
    function Capitalize (S : String) return String is
       R : String := S;
    begin
       Capitalize (R);
       return R;
    end Capitalize;
-
-   ----------------
-   -- Capitalize --
-   ----------------
 
    procedure Capitalize (S : in out String) is
       Capitalized : Boolean := True;
@@ -345,6 +349,35 @@ package body XE_Utils is
       end loop;
    end Capitalize;
 
+   ----------------------------
+   -- Check_Section_Argument --
+   ----------------------------
+
+   procedure Check_Section_Argument
+     (Arg        : String;
+      Is_Section : out Boolean;
+      Program    : in out Make_Program_Type)
+   is
+   begin
+      if Arg'Length = 6
+        and then Arg (Arg'First) = '-'
+        and then Arg (Arg'First + 2 .. Arg'Last) = "args"
+      then
+         case Arg (Arg'First + 1) is
+            when 'c' => Program := Compiler;
+            when 'b' => Program := Binder;
+            when 'l' => Program := Linker;
+            when 'm' => Program := None;
+            when others =>
+               raise Program_Error
+                 with "unexpected switch " & Arg;
+         end case;
+         Is_Section := True;
+      else
+         Is_Section := False;
+      end if;
+   end Check_Section_Argument;
+
    -------------------------------
    -- Check_User_Provided_S_RPC --
    -------------------------------
@@ -358,6 +391,40 @@ package body XE_Utils is
          XE_Flags.User_Provided_S_RPC := True;
       end if;
    end Check_User_Provided_S_RPC;
+
+   --------------------------
+   -- Copy_Build_Arguments --
+   --------------------------
+
+   procedure Copy_Build_Arguments
+     (From     : Argument_Vec;
+      To       : in out Argument_Vec;
+      Has_Prj  : out Boolean)
+   is
+      Is_Section : Boolean;
+      pragma Unreferenced (Is_Section);
+
+      Prog : Make_Program_Type := None;
+
+   begin
+      for Arg of From loop
+         Push (To, Arg);
+
+         --  Detect any project file
+
+         if Is_Project_Switch (Arg) then
+            Has_Prj := True;
+         end if;
+
+         --  Record section changes
+
+         Check_Section_Argument (To_String (Arg), Is_Section, Prog);
+      end loop;
+
+      if Prog /= None then
+         Push (To, "-margs");
+      end if;
+   end Copy_Build_Arguments;
 
    -------------
    -- Compile --
@@ -395,15 +462,10 @@ package body XE_Utils is
          Push (Flags, Verbose_Flag);
       end if;
 
-      for Arg of Arguments loop
-         Push (Flags, Arg);
+      --  Copy additional arguments
 
-         --  Detect any project file
-
-         if Is_Project_Switch (Arg) then
-            Has_Prj := True;
-         end if;
-      end loop;
+      Copy_Build_Arguments
+        (From => Arguments, To => Flags, Has_Prj => Has_Prj);
 
       Skip := False;
       for Make_Switch of Make_Switches loop
@@ -443,7 +505,7 @@ package body XE_Utils is
    procedure Ensure_Make_Args is
    begin
       if Program_Args /= None then
-         Add_Make_Switch (To_String (Make_Args_Flag));
+         Add_Make_Switch ("-margs");
          Program_Args := None;
       end if;
    end Ensure_Make_Args;
@@ -836,29 +898,15 @@ package body XE_Utils is
    -------------------
 
    procedure Scan_Dist_Arg (Argv : String; Implicit : Boolean := True) is
+      Is_Section : Boolean;
    begin
       if Argv'Length = 0 then
          return;
       end if;
 
-      if Argv = "-cargs" then
-         Program_Args := Compiler;
-         Add_Make_Switch (Comp_Args_Flag);
-         return;
-
-      elsif Argv = "-bargs" then
-         Program_Args := Binder;
-         Add_Make_Switch (Bind_Args_Flag);
-         return;
-
-      elsif Argv = "-largs" then
-         Program_Args := Linker;
-         Add_Make_Switch (Link_Args_Flag);
-         return;
-
-      elsif Argv = "-margs" then
-         Program_Args := None;
-         Add_Make_Switch (Make_Args_Flag);
+      Check_Section_Argument (Argv, Is_Section, Program_Args);
+      if Is_Section then
+         Add_Make_Switch (Argv);
          return;
       end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -69,10 +69,6 @@ package XE_Flags is
    Semantic_Only_Flag  : constant Unbounded_String := +"-gnatc";
    Skel_Flag           : constant Unbounded_String := +"-gnatzr";
    Stub_Flag           : constant Unbounded_String := +"-gnatzc";
-   Comp_Args_Flag      : constant Unbounded_String := +"-cargs";
-   Bind_Args_Flag      : constant Unbounded_String := +"-bargs";
-   Link_Args_Flag      : constant Unbounded_String := +"-largs";
-   Make_Args_Flag      : constant Unbounded_String := +"-margs";
 
    Project_File_Name : Unbounded_String;
 
