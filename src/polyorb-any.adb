@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -270,50 +270,50 @@ package body PolyORB.Any is
    package Elementary_Any_Octet is
      new Elementary_Any (Types.Octet, TypeCode.PTC_Octet'Access);
    package Elementary_Any_Short is
-     new Elementary_Any (Types.Short, Typecode.PTC_Short'Access);
+     new Elementary_Any (Types.Short, TypeCode.PTC_Short'Access);
    package Elementary_Any_Long is
-     new Elementary_Any (Types.Long, Typecode.PTC_Long'Access);
+     new Elementary_Any (Types.Long, TypeCode.PTC_Long'Access);
    package Elementary_Any_Long_Long is
-     new Elementary_Any (Types.Long_Long, Typecode.PTC_Long_Long'Access);
+     new Elementary_Any (Types.Long_Long, TypeCode.PTC_Long_Long'Access);
    package Elementary_Any_UShort is
      new Elementary_Any (Types.Unsigned_Short,
-                         Typecode.PTC_Unsigned_Short'Access);
+                         TypeCode.PTC_Unsigned_Short'Access);
    package Elementary_Any_ULong is
      new Elementary_Any (Types.Unsigned_Long,
-                         Typecode.PTC_Unsigned_Long'Access);
+                         TypeCode.PTC_Unsigned_Long'Access);
    package Elementary_Any_ULong_Long is
      new Elementary_Any (Types.Unsigned_Long_Long,
-                         Typecode.PTC_Unsigned_Long_Long'Access);
+                         TypeCode.PTC_Unsigned_Long_Long'Access);
    package Elementary_Any_Boolean is
-     new Elementary_Any (Types.Boolean, Typecode.PTC_Boolean'Access);
+     new Elementary_Any (Types.Boolean, TypeCode.PTC_Boolean'Access);
    package Elementary_Any_Char is
-     new Elementary_Any (Types.Char, Typecode.PTC_Char'Access);
+     new Elementary_Any (Types.Char, TypeCode.PTC_Char'Access);
    package Elementary_Any_Wchar is
-     new Elementary_Any (Types.Wchar, Typecode.PTC_Wchar'Access);
+     new Elementary_Any (Types.Wchar, TypeCode.PTC_Wchar'Access);
    package Elementary_Any_Float is
-     new Elementary_Any (Types.Float, Typecode.PTC_Float'Access);
+     new Elementary_Any (Types.Float, TypeCode.PTC_Float'Access);
    package Elementary_Any_Double is
-     new Elementary_Any (Types.Double, Typecode.PTC_Double'Access);
+     new Elementary_Any (Types.Double, TypeCode.PTC_Double'Access);
    package Elementary_Any_Long_Double is
-     new Elementary_Any (Types.Long_Double, Typecode.PTC_Long_Double'Access);
+     new Elementary_Any (Types.Long_Double, TypeCode.PTC_Long_Double'Access);
    package Elementary_Any_String is
-     new Elementary_Any (Types.String, Typecode.PTC_String'Access);
+     new Elementary_Any (Types.String, TypeCode.PTC_String'Access);
    package Elementary_Any_Wide_String is
-     new Elementary_Any (Types.Wide_String, Typecode.PTC_Wide_String'Access);
+     new Elementary_Any (Types.Wide_String, TypeCode.PTC_Wide_String'Access);
 
    --  Wrong typecodes used below, should use bounded typecodes???
 
    package Elementary_Any_Bounded_String is
      new Elementary_Any (Ada.Strings.Superbounded.Super_String,
-                         Typecode.PTC_String'Access);
+                         TypeCode.PTC_String'Access);
    package Elementary_Any_Bounded_Wide_String is
      new Elementary_Any (Ada.Strings.Wide_Superbounded.Super_String,
-                         Typecode.PTC_Wide_string'Access);
+                         TypeCode.PTC_Wide_String'Access);
 
    package Elementary_Any_Any is
-     new Elementary_Any (Any, Typecode.PTC_Any'Access);
+     new Elementary_Any (Any, TypeCode.PTC_Any'Access);
    package Elementary_Any_TypeCode is
-     new Elementary_Any (TypeCode.Local_Ref, Typecode.PTC_TypeCode'Access);
+     new Elementary_Any (TypeCode.Local_Ref, TypeCode.PTC_TypeCode'Access);
 
    ---------------------------------
    -- 'Aggregate' content wrapper --
