@@ -14,8 +14,19 @@ entry.
 Note that older releases might or might not be affected by the problems listed
 in this document.
 
-Known problems in 2.12.1
-------------------------
+Known problems in 2.12.1 and 2.12.2
+-----------------------------------
+
+KP-212-P913-006 Crash with new elaboration order
+
+  Problem:    Applications may crash at initialization when built with
+              newer 17.0 compilers that implement a new elaboration
+              order algorithm.
+
+  Status:     This was fixed in 17.0 on 2016-09-13
+
+  Workaround: Build with the old elaboration order algorithm (binder
+              switch -dp).
 
 KP-212-P120-017 po_gnatdist handling of --unchecked-shared-lib-imports
 

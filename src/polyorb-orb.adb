@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1490,7 +1490,9 @@ begin
                    & "protocols.giop?"
                    & "protocols.soap?"
                    & "smart_pointers"
-                   & "tasking.threads",
+                   & "tasking.threads"
+                   & "tasking.condition_variables",
+
        Provides => Empty,
        Implicit => False,
        Init     => Initialize'Access,
