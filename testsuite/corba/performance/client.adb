@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -169,6 +169,8 @@ procedure Client is
         := (123, CORBA.To_CORBA_String ("Hello world!"));
 
       R : benchs.simple_struct;
+      pragma Warnings (Off, R);
+      --  WAG:7.4 P919-036
       pragma Unreferenced (R);
    begin
       R := benchs.echoStruct (Ref, Test_Struct);
