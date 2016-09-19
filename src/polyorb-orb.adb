@@ -498,9 +498,9 @@ package body PolyORB.ORB is
                       TI_Reference   => TI_Ref,
                       Req            => Request);
          pragma Warnings (Off, Witness);
-         --  WAG:6.4 The compiler might warn about a useless assignment
-         --  to a component of Witness. A reference actually does exist
-         --  in the Finalize operation of the Task_Witness type.
+         --  The compiler will warn about a useless assignment to a
+         --  component of Witness. A reference actually does exist in
+         --  the Finalize operation of the Task_Witness type.
 
       begin
          --  ORB Main loop
