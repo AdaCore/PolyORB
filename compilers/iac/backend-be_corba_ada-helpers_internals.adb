@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -3821,7 +3821,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
             Append_To (Statements,
               Make_Subprogram_Call
                 (RE (RE_Disable_Ref_Counting),
-                 New_List (Get_TC_Node (E))));
+                 New_List (Make_Identifier (Entity_TC_Name))));
          end if;
 
          --  Mark typecode construction as completed. The typecode can
@@ -3829,7 +3829,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          Append_To (Statements,
            Make_Subprogram_Call
-             (RE (RE_Freeze), New_List (Get_TC_Node (E))));
+             (RE (RE_Freeze), New_List (Make_Identifier (Entity_TC_Name))));
       end Initialize_Routine;
 
       -----------------------------
