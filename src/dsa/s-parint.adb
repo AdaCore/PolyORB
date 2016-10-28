@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2016, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -34,6 +34,7 @@ pragma Ada_2005;
 
 with Ada.Characters.Handling;
 with Ada.Finalization;
+with Ada.Strings.Fixed;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
@@ -588,19 +589,17 @@ package body System.Partition_Interface is
       Retrieve_RCI_Info (Name, Info);
 
       declare
-         Type_Id    : constant String := Type_Id_Of (Info.Base_Ref);
-         Last_Colon : Integer;
-      begin
-         for C in reverse Type_Id'Range loop
-            if Type_Id (C) = ':' then
-               Last_Colon := C;
-               exit;
-            end if;
-         end loop;
+         use Ada.Strings, Ada.Strings.Fixed;
 
+         Type_Id        : constant String := Type_Id_Of (Info.Base_Ref);
+         Last_Colon     : constant Natural := Index (Type_Id, ":", Backward);
+         Actual_Version : String
+           renames Type_Id (Last_Colon + 1 .. Type_Id'Last);
+      begin
          if Version /= Type_Id (Last_Colon + 1 .. Type_Id'Last) then
             raise Program_Error
-              with "Versions differ for unit """ & Name & """";
+              with "Versions differ for unit """ & Name & """: expected "
+                & Version & ", actual " & Actual_Version;
          end if;
       end;
    end Check;
