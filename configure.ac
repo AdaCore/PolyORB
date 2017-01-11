@@ -986,6 +986,7 @@ AC_OUTPUT(FILTER_OUTPUT_FILES(OUTPUT_FILTER,[
 	examples/corba/secure_echo/gssup.conf
 	examples/corba/secure_echo/tls.conf
 	examples/corba/secure_echo/tls_gssup.conf
+	testsuite/tests/config.py
 	tools/po_catref/po_catref_setup.adb
 	tools/po_createref/po_createref_setup.adb
 	polyorb-config

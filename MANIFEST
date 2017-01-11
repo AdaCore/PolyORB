@@ -830,7 +830,6 @@ known-problems-2.9
 polyorb-config.in
 projects-distrib/README
 projects-distrib/polyorb.gpr.in
-projects-distrib/polyorb/polyorb_install_common.gpr.in
 projects-distrib/polyorb/polyorb_cos_event.gpr
 projects-distrib/polyorb/polyorb_cos_ir.gpr
 projects-distrib/polyorb/polyorb_cos_naming.gpr
@@ -840,6 +839,7 @@ projects-distrib/polyorb/polyorb_idls_cos_event.gpr
 projects-distrib/polyorb/polyorb_idls_cos_naming.gpr
 projects-distrib/polyorb/polyorb_idls_cos_notification.gpr
 projects-distrib/polyorb/polyorb_idls_cos_time.gpr
+projects-distrib/polyorb/polyorb_install_common.gpr.in
 projects-distrib/polyorb/polyorb_src.gpr
 projects-distrib/polyorb/polyorb_src_corba.gpr
 projects-distrib/polyorb/polyorb_src_corba_dynamicany.gpr
@@ -2825,6 +2825,7 @@ testsuite/projects/polyorb_test_common.gpr
 testsuite/ssl-cert.conf
 testsuite/tests/always_fail/test.opt
 testsuite/tests/always_fail/test.py
+testsuite/tests/config.py.in
 testsuite/tests/confs/broken_codesets.conf
 testsuite/tests/confs/code_sets_000_client.conf
 testsuite/tests/confs/code_sets_000_server.conf

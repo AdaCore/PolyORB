@@ -10,7 +10,7 @@ You should never call this module directly. To run a single testcase, use
 """
 
 from gnatpython.env import Env
-from gnatpython.ex import Run, STDOUT
+from gnatpython.ex import Run, STDOUT, which
 from gnatpython.fileutils import FileUtilsError, mkdir
 
 from subprocess import Popen, PIPE
@@ -19,6 +19,8 @@ from time import sleep
 import os
 import re
 import sys
+
+import config
 
 POLYORB_CONF = "POLYORB_CONF"
 
@@ -43,6 +45,8 @@ CONF_DIR = os.path.join(SRC_DIR, 'tests', 'confs')
 EXE_EXT = Env().target.os.exeext
 
 OUTPUT_FILENAME = os.path.join(Env().log_dir, TEST_NAME)
+
+USE_INSTALLED = config.use_installed == "yes"
 
 try:
     if not os.path.isdir(os.path.dirname(OUTPUT_FILENAME)):
@@ -94,6 +98,18 @@ def get_conf_path(conf_filename):
             return p
 
     assert False, "%s not found" % (conf_filename)
+
+def get_tool_path(tool_dir, tool_name):
+    """Return tool_dir and tool_name joined, unless we are using an installed
+    version of PolyORB, in which case locate it on PATH."""
+
+    if USE_INSTALLED:
+        tool_path = which(tool_name)
+        if tool_path == "":
+            raise Exception('failed to locate %s on PATH' % tool_name)
+        return tool_path
+    else:
+        return os.path.join(tool_dir, tool_name)
 
 def client_server(client_cmd, client_conf, server_cmd, server_conf):
     """Run a client server testcase
