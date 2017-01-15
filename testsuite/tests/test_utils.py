@@ -115,6 +115,13 @@ def get_tool_path(tool_dir, tool_name):
     else:
         return os.path.join(tool_dir, tool_name)
 
+def add_extension(exe_name):
+    '''Add EXE_EXT if exe_name doesn't already carry it (case insensitive)'''
+
+    if not exe_name.lower().endswith(EXE_EXT):
+        exe_name = exe_name + EXE_EXT
+    return exe_name
+
 def client_server(client_cmd, client_conf, server_cmd, server_conf):
     """Run a client server testcase
 
@@ -125,8 +132,8 @@ def client_server(client_cmd, client_conf, server_cmd, server_conf):
     """
     print "Running client %s (config=%s)\nserver %s (config=%s)" % (
         client_cmd, client_conf, server_cmd, server_conf)
-    client = os.path.join(BASE_DIR, client_cmd + EXE_EXT)
-    server = os.path.join(BASE_DIR, server_cmd + EXE_EXT)
+    client = add_extension(os.path.join(BASE_DIR, client_cmd))
+    server = add_extension(os.path.join(BASE_DIR, server_cmd))
 
     # Check that files exist
     assert_exists(client)
@@ -224,7 +231,7 @@ def local(cmd, config_file, args=None):
         assert_exists(os.path.join(CONF_DIR, config_file))
     os.environ[POLYORB_CONF] = config_file
 
-    command = os.path.join(BASE_DIR, cmd + EXE_EXT)
+    command = add_extension(os.path.join(BASE_DIR, cmd))
     assert_exists(command)
 
     p_cmd = [command] + args
