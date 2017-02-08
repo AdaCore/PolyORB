@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2016, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -617,8 +617,7 @@ package body System.Partition_Interface is
       Set (Left_Object, Left.Target);
       Set (Right_Object, Right.Target);
 
-      return Left /= null and then Right /= null
-        and then PolyORB.References.Is_Equivalent (Left_Object, Right_Object);
+      return PolyORB.References.Is_Equivalent (Left_Object, Right_Object);
    end Compare_Content;
 
    ----------------
