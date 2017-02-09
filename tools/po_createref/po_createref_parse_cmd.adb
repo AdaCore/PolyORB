@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -129,38 +129,44 @@ package body PO_CreateRef_Parse_Cmd is
                   end if;
 
                   Profile_Index := Profile_Index + 1;
-                  Param.Profiles.all (Profile_Index).Profile_Type :=
+                  Param.Profiles (Profile_Index).Profile_Type :=
                     new String'(Parameter);
 
                elsif Full_Switch = "p" then
-                  Param.Profiles.all (Profile_Index).Address.Port
-                    := Positive'Value (Parameter);
+                  if Param.Profiles (Profile_Index).Components = null then
+                     Param.Profiles (Profile_Index).Address.Port
+                       := Positive'Value (Parameter);
+                  else
+                     Param.Profiles (Profile_Index).
+                       Components (Component_Index).Address.Port
+                       := Positive'Value (Parameter);
+                  end if;
 
                elsif Full_Switch = "pe" then
                   null;
 
                elsif Full_Switch = "pol_nb" then
-                  Param.Profiles.all (Profile_Index).
-                    Components.all (Component_Index).Policies
+                  Param.Profiles (Profile_Index).
+                    Components (Component_Index).Policies
                     := new Policies_Array
                     (1 .. Natural'Value (Parameter));
 
-                  for I in Param.Profiles.all (Profile_Index).
-                    Components.all (Component_Index).Policies.all'Range loop
+                  for I in Param.Profiles (Profile_Index).
+                    Components (Component_Index).Policies.all'Range loop
                      for J in 1 .. 2 loop
                         case Getopt ("model: priority:") is
                            when 'm' =>
                               if Full_Switch = "model" then
-                                 Param.Profiles.all (Profile_Index).
-                                   Components.all (Component_Index).
+                                 Param.Profiles (Profile_Index).
+                                   Components (Component_Index).
                                    Policies.all (I).Priority_Model :=
                                    new String'(Parameter);
                               end if;
 
                            when 'p' =>
                               if Full_Switch = "priority" then
-                                 Param.Profiles.all (Profile_Index).
-                                   Components.all (Component_Index).
+                                 Param.Profiles (Profile_Index).
+                                   Components (Component_Index).
                                    Policies.all (I).Priority_Value :=
                                    Positive'Value (Parameter);
                               end if;
@@ -173,11 +179,6 @@ package body PO_CreateRef_Parse_Cmd is
                         end case;
                      end loop;
                   end loop;
-
-               elsif Full_Switch = "p" then
-                  Param.Profiles.all (Profile_Index).
-                    Components.all (Component_Index).Address.Port
-                    := Positive'Value (Parameter);
                end if;
 
             when 't' =>
@@ -191,49 +192,54 @@ package body PO_CreateRef_Parse_Cmd is
 
             when 'a' =>
                if Full_Switch = "a" then
-                  Param.Profiles.all (Profile_Index).Address.Inet_Addr
-                    := new String'(Parameter);
+                  if Param.Profiles (Profile_Index).Components = null then
+                     Param.Profiles (Profile_Index).Address.Inet_Addr
+                       := new String'(Parameter);
+                  else
+                     Param.Profiles (Profile_Index).
+                       Components (Component_Index).Address.Inet_Addr
+                       := new String'(Parameter);
+                  end if;
                end if;
-
             when 'c' =>
                if Full_Switch = "cr" then
-                  Param.Profiles.all (Profile_Index).Creator_Name
+                  Param.Profiles (Profile_Index).Creator_Name
                     := new String'(Parameter);
 
                elsif Full_Switch = "cn" then
-                  Param.Profiles.all (Profile_Index).Components :=
+                  Param.Profiles (Profile_Index).Components :=
                     new Component_Array (1 .. Natural'Value (Parameter));
                   Component_Index := 0;
 
                elsif Full_Switch = "ct" then
-                  if Param.Profiles.all (Profile_Index).Components = null then
+                  if Param.Profiles (Profile_Index).Components = null then
                      Put_Line ("No component should be defined before "
                                & "component number");
                      raise Program_Error;
 
                   end if;
                   Component_Index := Component_Index + 1;
-                  Param.Profiles.all (Profile_Index).Components.all
+                  Param.Profiles (Profile_Index).Components.all
                     (Component_Index).C_Type := new String'(Parameter);
 
                elsif Full_Switch = "char" then
-                  Param.Profiles.all (Profile_Index).
-                    Components.all (Component_Index).Cchar
+                  Param.Profiles (Profile_Index).
+                    Components (Component_Index).Cchar
                     := new String'(Parameter);
                   case Getopt ("s:") is
 
                      when 's' =>
-                        Param.Profiles.all (Profile_Index).
-                          Components.all (Component_Index).C_Supported
+                        Param.Profiles (Profile_Index).
+                          Components (Component_Index).C_Supported
                           := new Codeset_Array
                           (1 .. Positive'Value (Parameter));
 
-                        for I in Param.Profiles.all (Profile_Index).
-                          Components.all (Component_Index).
+                        for I in Param.Profiles (Profile_Index).
+                          Components (Component_Index).
                           C_Supported.all'Range loop
 
-                           Param.Profiles.all (Profile_Index).
-                             Components.all (Component_Index).
+                           Param.Profiles (Profile_Index).
+                             Components (Component_Index).
                              C_Supported.all (I) :=
                              new String'(Get_Argument);
                         end loop;
@@ -250,51 +256,51 @@ package body PO_CreateRef_Parse_Cmd is
 
             when 'g' =>
                if Full_Switch = "g" then
-                  Param.Profiles.all (Profile_Index).Is_Generated := True;
+                  Param.Profiles (Profile_Index).Is_Generated := True;
                end if;
 
             when 'i' =>
                if Full_Switch = "i" then
-                  Param.Profiles.all (Profile_Index).Index
+                  Param.Profiles (Profile_Index).Index
                     := new String'(Parameter);
                end if;
 
             when 'v' =>
                if Full_Switch = "vmj" then
-                  Param.Profiles.all (Profile_Index).Version_Major
+                  Param.Profiles (Profile_Index).Version_Major
                     := PolyORB.Types.Octet'Value (Parameter);
 
                elsif Full_Switch = "vmn" then
-                  Param.Profiles.all (Profile_Index).Version_Minor
+                  Param.Profiles (Profile_Index).Version_Minor
                     := PolyORB.Types.Octet'Value
                     (Parameter);
                end if;
 
             when 'w' =>
                if Full_Switch = "wchar" then
-                  Param.Profiles.all (Profile_Index).
-                    Components.all (Component_Index).Wchar
+                  Param.Profiles (Profile_Index).
+                    Components (Component_Index).Wchar
                     := new String'(Parameter);
 
                   case Getopt ("s:") is
 
                      when ASCII.NUL =>
-                        Param.Profiles.all (Profile_Index).
-                          Components.all (Component_Index).
+                        Param.Profiles (Profile_Index).
+                          Components (Component_Index).
                           W_Supported := null;
                         exit;
 
                      when 's' =>
-                        Param.Profiles.all (Profile_Index).
-                          Components.all (Component_Index).
+                        Param.Profiles (Profile_Index).
+                          Components (Component_Index).
                           W_Supported := new Codeset_Array
                           (1 .. Positive'Value (Parameter));
 
-                        for I in Param.Profiles.all (Profile_Index).
-                          Components.all (Component_Index).
+                        for I in Param.Profiles (Profile_Index).
+                          Components (Component_Index).
                           W_Supported.all'Range loop
-                           Param.Profiles.all (Profile_Index).
-                             Components.all (Component_Index).
+                           Param.Profiles (Profile_Index).
+                             Components (Component_Index).
                              W_Supported.all (I) :=
                              new String'(Get_Argument);
                         end loop;
@@ -306,15 +312,15 @@ package body PO_CreateRef_Parse_Cmd is
 
             when 's' =>
                if Full_Switch = "supports" then
-                  Param.Profiles.all (Profile_Index).
-                    Components.all (Component_Index).SSL_Supports
+                  Param.Profiles (Profile_Index).
+                    Components (Component_Index).SSL_Supports
                     := new String'(Parameter);
                end if;
 
             when 'r' =>
                if Full_Switch = "requires" then
-                  Param.Profiles.all (Profile_Index).
-                    Components.all (Component_Index).SSL_Requires
+                  Param.Profiles (Profile_Index).
+                    Components (Component_Index).SSL_Requires
                     := new String'(Parameter);
                end if;
 
@@ -384,7 +390,7 @@ package body PO_CreateRef_Parse_Cmd is
       Free (Ptr.Ref_Type);
 
       for J in Ptr.Profiles.all'Range loop
-         Free (Ptr.Profiles.all (J));
+         Free (Ptr.Profiles (J));
       end loop;
 
       Free (Ptr.Profiles);
@@ -396,11 +402,13 @@ package body PO_CreateRef_Parse_Cmd is
       Free (Obj.Index);
       Free (Obj.Creator_Name);
 
-      for J in Obj.Components.all'Range loop
-         Free (Obj.Components.all (J));
-      end loop;
+      if Obj.Components /= null then
+         for J in Obj.Components'Range loop
+            Free (Obj.Components (J));
+         end loop;
+         Free (Obj.Components);
+      end if;
 
-      Free (Obj.Components);
    end Free;
 
    procedure Free (Obj : in out Parameter_Component) is
