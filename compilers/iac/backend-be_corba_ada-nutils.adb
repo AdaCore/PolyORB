@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -700,13 +700,11 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
    begin
       case BEN.Kind (N) is
-         when K_Full_Type_Declaration |
-           K_Subprogram_Specification =>
-            P  := Parent (X);
-            FE := FE_Node (X);
-
-         when K_Object_Declaration
-           | K_Exception_Declaration =>
+         when K_Full_Type_Declaration
+           | K_Subprogram_Specification
+           | K_Object_Declaration
+           | K_Exception_Declaration
+           | K_Package_Instantiation =>
             P  := Parent (X);
             FE := FE_Node (X);
 
@@ -718,10 +716,6 @@ package body Backend.BE_CORBA_Ada.Nutils is
          when K_Package_Declaration =>
             P  := Parent (N);
             FE := FE_Node (IDL_Unit (X));
-
-         when K_Package_Instantiation =>
-            P := Parent (X);
-            FE := FE_Node (X);
 
          when K_Selected_Component =>
             --  If N is already expanded, just add the necessary with clause

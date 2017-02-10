@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2016, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -3670,7 +3670,7 @@ package body PolyORB.Any is
                Res := From_Any (Get_Parameter (Self, 2 * Index + 3).all);
                return Identifier (Res);
 
-            when Tk_Union =>
+            when Tk_Union | Tk_Value | Tk_Event =>
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;
@@ -3682,14 +3682,6 @@ package body PolyORB.Any is
                   raise Bounds;
                end if;
                Res := From_Any (Get_Parameter (Self, Index + 2).all);
-               return Identifier (Res);
-
-            when Tk_Value
-              | Tk_Event =>
-               if Param_Nb < 3 * Index + 7 then
-                  raise Bounds;
-               end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 6).all);
                return Identifier (Res);
 
             when others =>
@@ -3733,14 +3725,7 @@ package body PolyORB.Any is
                end if;
                return Get_Parameter (Self, 2 * Index + 2);
 
-            when Tk_Union =>
-               if Param_Nb < 3 * Index + 7 then
-                  raise Bounds;
-               end if;
-               return Get_Parameter (Self, 3 * Index + 5);
-
-            when Tk_Value
-              | Tk_Event =>
+            when Tk_Union | Tk_Value | Tk_Event =>
                if Param_Nb < 3 * Index + 7 then
                   raise Bounds;
                end if;

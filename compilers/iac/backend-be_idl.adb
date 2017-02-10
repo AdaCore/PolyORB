@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -866,7 +866,7 @@ package body Backend.BE_IDL is
       Write_Space;
 
       case Pragma_Kind (E) is
-         when Pragma_Id =>
+         when Pragma_Id | Pragma_Range =>
             Generate (Target (E));
             Write_Space;
             Write_Char ('"');
@@ -878,17 +878,10 @@ package body Backend.BE_IDL is
             Write_Name (Data (E));
             Write_Char ('"');
 
-         when Pragma_Version =>
+         when Pragma_Version | Pragma_Switchname =>
             Generate (Target (E));
             Write_Space;
             Write_Name (Data (E));
-
-         when Pragma_Range =>
-            Generate (Target (E));
-            Write_Space;
-            Write_Char ('"');
-            Write_Name (Data (E));
-            Write_Char ('"');
 
          when Pragma_Range_Idl =>
             Generate (Target (E));
@@ -901,16 +894,8 @@ package body Backend.BE_IDL is
                Generate (Upper_Bound_Expr (E));
             end if;
 
-         when Pragma_Subtype =>
+         when Pragma_Subtype | Pragma_Derived =>
             Generate (Target (E));
-
-         when Pragma_Derived =>
-            Generate (Target (E));
-
-         when Pragma_Switchname =>
-            Generate (Target (E));
-            Write_Space;
-            Write_Name (Data (E));
 
          when Pragma_Unrecognized =>
             --  Extract from the CORBA 3.0 ($10.7.5) :

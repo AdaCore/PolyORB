@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2016, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -4155,7 +4155,7 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
 
          case (FEN.Kind (T)) is
 
-            when K_Fixed_Point_Type =>
+            when K_Fixed_Point_Type | K_String_Type | K_Wide_String_Type =>
                --  The Wrap function body
 
                N := Wrap_Body (T);
@@ -4178,17 +4178,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   N := Wrap_Body (T);
                   Append_To (Statements (Current_Package), N);
                end if;
-
-               --  The Initialize body
-
-               N := Initialize_Body (T);
-               Append_To (Statements (Current_Package), N);
-
-            when K_String_Type | K_Wide_String_Type =>
-               --  The Wrap function body
-
-               N := Wrap_Body (T);
-               Append_To (Statements (Current_Package), N);
 
                --  The Initialize body
 

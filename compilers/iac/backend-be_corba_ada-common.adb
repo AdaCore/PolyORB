@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -664,12 +664,6 @@ package body Backend.BE_CORBA_Ada.Common is
          when K_String =>
             return RE (RE_String_10);
 
-         when K_Sequence_Type =>
-            M := Make_Selected_Component
-              (Defining_Identifier (Aligned_Package (Current_Entity)),
-               Make_Identifier (IDL_Name (Identifier (N))));
-            return M;
-
          when K_Long =>
             return RE (RE_Long_10);
 
@@ -710,13 +704,9 @@ package body Backend.BE_CORBA_Ada.Common is
          when K_Double =>
             return RE (RE_Double_10);
 
-         when K_Complex_Declarator =>
-            M := Make_Selected_Component
-              (Defining_Identifier (Aligned_Package (Current_Entity)),
-               Make_Identifier (IDL_Name (Identifier (N))));
-            return M;
-
-         when K_String_Type
+         when K_Complex_Declarator
+           | K_Sequence_Type
+           | K_String_Type
            | K_Wide_String_Type
            | K_Structure_Type
            | K_Union_Type
@@ -1185,6 +1175,9 @@ package body Backend.BE_CORBA_Ada.Common is
       end case;
 
       N := Make_Identifier (Fully_Qualified_Name (Var));
+
+      --  Below code is suspicious, the two branches of the IF
+      --  are identical???
 
       if Var_Exp /= No_Node then
          N := Make_Selected_Component
