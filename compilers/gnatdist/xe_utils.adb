@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2016, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -445,11 +445,9 @@ package body XE_Utils is
 
       Push (Flags, "compile");
 
-      --  Source file name
+      --  Source file name (as provided by "gnat list")
 
-      Push (Flags, Normalize_Pathname
-                     (Get_Name_String (Source),
-                      Resolve_Links => Resolve_Links));
+      Push (Flags, Get_Name_String (Source));
 
       if Quiet_Mode then
          --  Pass -q to gnatmake
