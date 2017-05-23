@@ -32,6 +32,7 @@
 
 pragma Ada_2005;
 
+with Ada.Containers.Indefinite_Ordered_Maps;
 with Ada.Characters.Handling;
 with Ada.Finalization;
 with Ada.Strings.Fixed;
@@ -76,7 +77,6 @@ with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Termination_Activity;
-with PolyORB.Utils.Configuration_File;
 with PolyORB.Utils.Strings.Lists;
 
 package body System.Partition_Interface is
@@ -102,7 +102,6 @@ package body System.Partition_Interface is
    package PTM    renames PolyORB.Tasking.Mutexes;
    package PTCV   renames PolyORB.Tasking.Condition_Variables;
    package PTT    renames PolyORB.Tasking.Threads;
-   package PUCFCT renames PolyORB.Utils.Configuration_File.Configuration_Table;
 
    subtype String_Ptr is PolyORB.Utils.Strings.String_Ptr;
    use type String_Ptr;
@@ -237,7 +236,11 @@ package body System.Partition_Interface is
    -- DSA parameters source --
    ---------------------------
 
-   Conf_Table : PUCFCT.Table_Instance;
+   package String_String_Maps is new Ada.Containers.Indefinite_Ordered_Maps
+     (String, String);
+   use String_String_Maps;
+
+   Conf_Table : String_String_Maps.Map;
 
    type DSA_Source is
      new PolyORB.Parameters.Parameters_Source with null record;
@@ -1069,11 +1072,11 @@ package body System.Partition_Interface is
       Section, Key : String) return String
    is
       pragma Unreferenced (Source);
-      V : constant String_Ptr :=
-        PUCFCT.Lookup (Conf_Table, Make_Global_Key (Section, Key), null);
+      V : constant String_String_Maps.Cursor :=
+        Find (Conf_Table, Make_Global_Key (Section, Key));
    begin
-      if V /= null then
-         return V.all;
+      if Has_Element (V) then
+         return Element (V);
       else
          return "";
       end if;
@@ -1634,7 +1637,7 @@ package body System.Partition_Interface is
       begin
          pragma Debug
            (C, O ("Set_Conf: [" & Section & "] " & Key & " = " & Value));
-         PUCFCT.Insert (Conf_Table, Make_Global_Key (Section, Key), +Value);
+         Include (Conf_Table, Make_Global_Key (Section, Key), Value);
       end Set_Conf;
 
       ------------------
@@ -1681,7 +1684,6 @@ package body System.Partition_Interface is
    begin
       --  Set up parameter source for values provided by gnatdist
 
-      PUCFCT.Initialize (Conf_Table);
       PolyORB.Partition_Elaboration.Configure (Set_Conf'Access);
       PolyORB.Parameters.Register_Source (The_DSA_Source'Access);
 
