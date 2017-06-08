@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1151,8 +1151,15 @@ package body PolyORB.Buffers is
             if Count > 0 then
                Vecs (Index).Iov_Base := Vecs (Index).Iov_Base + Count;
                Vecs (Index).Iov_Len  := Vecs (Index).Iov_Len  - Count;
+               Remainder := Remainder - Count;
             end if;
 
+            --  Abort completion point, in case this is being called
+            --  indirectly from an asynchronous transfer of control.
+            --  Otherwise, we might loop forever when using the ZCX
+            --  runtime.
+
+            delay 0.0;
          end loop;
       end Send_Iovec_Pool;
 
