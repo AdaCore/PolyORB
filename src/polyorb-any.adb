@@ -1601,7 +1601,6 @@ package body PolyORB.Any is
         Get_Aggregate_Element (CA_Ptr, TC, Index, M'Access);
 
       New_CC : Content_Ptr;
-      use PolyORB.Smart_Pointers;
    begin
       Set_Type (A, TC);
 

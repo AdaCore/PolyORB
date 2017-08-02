@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,7 +44,6 @@ with PolyORB.Services.Naming.Helper;
 package body PolyORB.Services.Naming.NamingContext.Helper is
 
    use PolyORB.Any;
-   use PolyORB.Any.ObjRef;
    use PolyORB.Types;
 
    use PolyORB.Services.Naming.Helper;

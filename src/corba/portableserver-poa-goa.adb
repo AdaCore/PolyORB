@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -220,7 +220,6 @@ package body PortableServer.POA.GOA is
       use PolyORB.POA;
       use PolyORB.POA_Types;
       use PolyORB.Servants;
-      use PolyORB.Servants.Group_Servants;
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       U_Oid : Unmarshalled_Oid;
@@ -334,7 +333,6 @@ package body PortableServer.POA.GOA is
       pragma Warnings (On);
 
       use PolyORB.Servants;
-      use PolyORB.Servants.Group_Servants;
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access
@@ -366,7 +364,6 @@ package body PortableServer.POA.GOA is
       pragma Warnings (On);
 
       use PolyORB.Servants;
-      use PolyORB.Servants.Group_Servants;
       use PolyORB.Obj_Adapters.Group_Object_Adapter;
 
       GS : constant Servant_Access

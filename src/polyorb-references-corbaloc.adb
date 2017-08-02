@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -259,8 +259,6 @@ package body PolyORB.References.Corbaloc is
    ----------------------
 
    function String_To_Object (Str : String) return Corbaloc_Type is
-      use PolyORB.Types;
-
       Result : Corbaloc_Type;
       Pro    : Profile_Access;
    begin

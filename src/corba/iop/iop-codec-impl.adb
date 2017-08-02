@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -148,8 +148,6 @@ package body IOP.Codec.Impl is
       Buffer : Buffer_Access := new Buffer_Type;
       Error  : Error_Container;
       Result : CORBA.IDL_SEQUENCES.OctetSeq;
-
-      use PolyORB.Any;
 
    begin
       Start_Encapsulation (Buffer);

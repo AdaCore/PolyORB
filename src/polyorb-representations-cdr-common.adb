@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -38,7 +38,6 @@ pragma Elaborate_All (PolyORB.Utils.Buffers);
 
 package body PolyORB.Representations.CDR.Common is
 
-   use PolyORB.Any;
    use PolyORB.Log;
    use PolyORB.Types;
    use PolyORB.Utils.Buffers;
@@ -829,7 +828,6 @@ package body PolyORB.Representations.CDR.Common is
       ---------------------
 
       function Fixed_To_Octets (Data : F) return Stream_Element_Array is
-         use PolyORB.Fixed_Point;
          use FPC;
 
          N : constant PolyORB.Fixed_Point.Nibbles := Fixed_To_Nibbles (Data);

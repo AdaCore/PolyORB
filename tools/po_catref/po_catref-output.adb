@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,7 +31,6 @@ with Ada.Strings.Unbounded;
 
 package body PO_Catref.Output is
 
-   use Ada.Text_IO;
    use Ada.Strings.Unbounded;
 
    Indent_Size : constant Natural := 3;

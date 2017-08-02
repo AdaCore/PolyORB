@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,7 +43,6 @@ with PolyORB.Transport.Datagram.Sockets;
 
 package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
 
-   use PolyORB.Components;
    use PolyORB.Errors;
    use PolyORB.Parameters;
    use PolyORB.Sockets;
@@ -84,7 +83,6 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.UIPMC is
       pragma Unreferenced (QoS);
 
       use PolyORB.Binding_Data;
-      use PolyORB.Binding_Objects;
 
       Sock        : Socket_Type;
       TTL         : constant Natural :=

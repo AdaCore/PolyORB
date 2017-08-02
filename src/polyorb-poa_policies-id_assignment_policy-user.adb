@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -128,7 +128,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       use PolyORB.Errors;
 
       use PolyORB.POA_Policies.Lifespan_Policy;
-      use PolyORB.Types;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
@@ -174,7 +173,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       pragma Unreferenced (Error);
 
       use PolyORB.POA_Policies.Lifespan_Policy;
-      use PolyORB.Types;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);

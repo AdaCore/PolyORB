@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -111,9 +111,6 @@ package body PolyORB.Requests is
         Ident_By_Position;
       Dependent_Binding_Object   : Smart_Pointers.Entity_Ptr := null)
    is
-      use PolyORB.Request_QoS;
-      use type Smart_Pointers.Entity_Ptr;
-
    begin
       pragma Debug (C, O ("Create_Request: enter"));
 
@@ -231,7 +228,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Components;
 
       Src_It : Iterator := First (List_Of (Src_Args).all);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
@@ -354,8 +350,6 @@ package body PolyORB.Requests is
       Ignore_Src_Mode :        Boolean;
       Can_Extend      :        Boolean := False)
    is
-      use PolyORB.Components;
-
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
@@ -473,8 +467,6 @@ package body PolyORB.Requests is
       Ignore_Src_Mode :        Boolean;
       Can_Extend      :        Boolean := False)
    is
-      use PolyORB.Components;
-
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;

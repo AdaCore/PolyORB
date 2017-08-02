@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,7 +50,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Print is
       use PolyORB.GIOP_P.Tagged_Components.Print;
       use PolyORB.GIOP_P.Transport_Mechanisms;
       use PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
-      use PolyORB.Utils;
 
       DIOP_Prof : DIOP_Profile_Type renames DIOP_Profile_Type (Prof.all);
 

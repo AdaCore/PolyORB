@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,6 @@ with PO_CreateRef_Parse_Cmd; use PO_CreateRef_Parse_Cmd;
 with PolyORB.GIOP_P.Tagged_Components.Policies;
 
 package PolyORB.GIOP_P.Tagged_Components.Policies.Create is
-   use PolyORB.GIOP_P.Tagged_Components.Policies;
 
    procedure Create_TC
      (Param      : Parameter_Component;

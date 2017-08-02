@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -268,8 +268,6 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-
-      use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access :=
         PolyORB.POA.Obj_Adapter_Access (OA);

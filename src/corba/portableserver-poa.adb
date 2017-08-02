@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -925,8 +925,6 @@ package body PortableServer.POA is
      return POAList
    is
       use PolyORB.POA_Types.POA_Lists;
-      use PolyORB.Smart_Pointers;
-      use IDL_SEQUENCE_PortableServer_POA_Forward;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
@@ -990,7 +988,6 @@ package body PortableServer.POA is
      (Self : Local_Ref)
      return PortableServer.POAManager.Local_Ref
    is
-      use PolyORB.Smart_Pointers;
       use PortableServer.POAManager;
 
       Res : PortableServer.POAManager.Local_Ref;
@@ -1522,7 +1519,6 @@ package body PortableServer.POA is
      (Self : Local_Ref;
       Imgr : PortableServer.ServantManager.Local_Ref'Class)
    is
-      use PolyORB.CORBA_P.ServantActivator;
       use PolyORB.CORBA_P.ServantLocator;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);

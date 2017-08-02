@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,7 +33,6 @@
 --  Pools of memory chunks, with associated client metadata.
 
 with Ada.Unchecked_Deallocation;
-with System;
 
 package body PolyORB.Opaque.Chunk_Pools is
 
@@ -116,7 +115,6 @@ package body PolyORB.Opaque.Chunk_Pools is
    begin
       while not Last (It) loop
          declare
-            use type System.Address;
             This : Chunk_Access := Value (It);
          begin
             Remove (Pool.Dynamic_Chunks, It);

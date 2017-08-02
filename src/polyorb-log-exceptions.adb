@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,7 +41,6 @@ with PolyORB.Utils.Strings;
 package body PolyORB.Log.Exceptions is
 
    use Ada.Exceptions;
-   use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.log.exceptions");
    procedure O (Message : String; Level : Log_Level := Debug)

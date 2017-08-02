@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -62,7 +62,6 @@ package body PolyORB.Transport.Connected is
       use PolyORB.Components;
       use PolyORB.ORB;
       use PolyORB.ORB.Iface;
-      use PolyORB.Filters;
 
       New_TE : Transport_Endpoint_Access;
    begin

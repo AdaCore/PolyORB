@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -38,6 +38,7 @@ with Ada.Exceptions;
 
 with System.Storage_Elements;
 
+with PolyORB.Asynch_Ev;
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 with PolyORB.Utils.Socket_Access_Points;
@@ -46,6 +47,7 @@ package body PolyORB.Transport.Datagram.Sockets is
 
    use Ada.Streams;
 
+   use PolyORB.Asynch_Ev;
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
    use PolyORB.Utils.Socket_Access_Points;

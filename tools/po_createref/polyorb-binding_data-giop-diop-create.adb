@@ -41,7 +41,6 @@ package body PolyORB.Binding_Data.GIOP.DIOP.Create is
 
    use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.GIOP_P.Tagged_Components.Create;
-   use PolyORB.GIOP_P.Transport_Mechanisms.DIOP;
    use PolyORB.GIOP_P.Transport_Mechanisms;
    use PolyORB.POA_Types;
    use PolyORB.Sockets;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -118,7 +118,6 @@ package body PolyORB.Servants is
       Req       : Requests.Request_Access;
       Requestor : Components.Component_Access) return Boolean
    is
-      use PolyORB.Servants;
       pragma Unreferenced (Self);
    begin
       return Abortable_Execute_Servant (Servant_Access (Requestor), Req);

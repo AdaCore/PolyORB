@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -99,7 +99,6 @@ package body PolyORB.Protocols.GIOP is
       Prefix                : String)
    is
       use PolyORB.Parameters;
-      use PolyORB.Utils;
 
    begin
       pragma Debug (C, O ("Initialize parameters for GIOP Protocol"));
@@ -525,9 +524,6 @@ package body PolyORB.Protocols.GIOP is
       Profile : Binding_Data.Profile_Access;
       Error   : in out Errors.Error_Container)
    is
-      use PolyORB.Errors;
-      use Unsigned_Long_Flags;
-
       New_Pending_Req : Pending_Request_Access;
 
    begin
@@ -867,7 +863,6 @@ package body PolyORB.Protocols.GIOP is
       Version         : GIOP_Version;
       Allow_Downgrade : Boolean := False)
    is
-      use PolyORB.Utils;
       Use_Version : GIOP_Version := Version;
    begin
       pragma Debug (C, O ("Looking up implementation for "
@@ -965,8 +960,6 @@ package body PolyORB.Protocols.GIOP is
       Id      : Types.Unsigned_Long;
       Success : out Boolean)
    is
-      use Pend_Req_Tables;
-
       Ignored_Req : Pending_Request;
       pragma Unreferenced (Ignored_Req);
    begin
@@ -992,8 +985,6 @@ package body PolyORB.Protocols.GIOP is
       Id      : Types.Unsigned_Long;
       Success :    out Boolean)
    is
-      use Pend_Req_Tables;
-
       Ignored_Req : Pending_Request_Access;
       pragma Unreferenced (Ignored_Req);
    begin
@@ -1058,8 +1049,6 @@ package body PolyORB.Protocols.GIOP is
      (Implem : access GIOP_Implem'Class)
      return String
    is
-      use PolyORB.Utils;
-
    begin
       return To_Standard_String (Implem.Prefix)
         & ".1."

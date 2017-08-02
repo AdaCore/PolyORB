@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -45,8 +45,6 @@ pragma Warnings (Off, CosNaming.NamingContext.Skel);
 with GNAT.HTable;
 
 package body CosNaming.NamingContext.Impl is
-
-   use CosNaming;
 
    use PolyORB.Log;
 

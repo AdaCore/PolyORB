@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -273,7 +273,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       use PolyORB.Obj_Adapters;
       use PolyORB.Any.NVList;
       use PolyORB.References;
-      use PolyORB.Annotations;
 
       Object_Key       : Objects.Object_Id_Access;
       Request_Id       : Unsigned_Long;
@@ -480,7 +479,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Warnings (On);
 
       use PolyORB.Binding_Data;
-      use PolyORB.Errors;
       use PolyORB.ORB;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
@@ -633,8 +631,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       MCtx   : access GIOP_Message_Context'Class;
       Buffer : access Buffers.Buffer_Type)
    is
-      use Octet_Flags;
-
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
       pragma Warnings (On);

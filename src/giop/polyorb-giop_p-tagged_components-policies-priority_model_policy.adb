@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -62,9 +62,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy is
       use PolyORB.RT_POA;
       use PolyORB.RT_POA_Policies.Priority_Model_Policy;
       use PolyORB.Tasking.Priorities;
-      use Policy_Value_Seq;
       use PolyORB.Representations.CDR.Common;
-      use type PolyORB.Types.Unsigned_Long;
 
       Result : Policy_Value;
       Buffer : Buffer_Access;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -81,8 +81,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
      (Components : Tagged_Component_List)
       return PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.List
    is
-      use PolyORB.QoS.Tagged_Components;
-
       C      : Tagged_Component_Access;
       It     : Iterator := First (Components);
       Result : PolyORB.QoS.Tagged_Components.GIOP_Tagged_Component_Lists.List;
@@ -169,8 +167,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
       New_Empty_Component : New_Empty_Component_Func_Access;
       Fetch_Component : Fetch_Component_Func_Access)
    is
-      use type PolyORB.Types.Unsigned_Long;
-
    begin
       --  Check if this Tag has already been registered
 
@@ -243,8 +239,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
      (Tag : Tag_Value)
      return Tagged_Component_Access
    is
-      use type PolyORB.Types.Unsigned_Long;
-
    begin
       pragma Debug (C, O ("Search for tag :" & Tag'Img));
 
@@ -326,8 +320,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
       C      :    out Tagged_Component_Access;
       Error  :    out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Errors;
-
       Tag : Tag_Value;
 
    begin
@@ -344,8 +336,6 @@ package body PolyORB.GIOP_P.Tagged_Components is
      (List : Tagged_Component_List;
       Tag  : Tag_Value) return Tagged_Component_Access
    is
-      use type PolyORB.Types.Unsigned_Long;
-
       It : Iterator := First (List);
 
    begin

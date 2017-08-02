@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,7 +75,6 @@ package body PolyORB.MIOP_P.Tagged_Components is
      (Comp   : access TC_Group_Info;
       Buffer : access Buffer_Type)
    is
-      use PolyORB.Types;
       Temp_Buf : Buffer_Access := new Buffer_Type;
    begin
       pragma Debug (C, O ("Marshall Group_Info"));
@@ -166,7 +165,6 @@ package body PolyORB.MIOP_P.Tagged_Components is
    function To_String (Comp : access TC_Group_Info) return String
    is
       use PolyORB.Types;
-      use PolyORB.Utils;
    begin
       pragma Debug (C, O ("To_String Group_Info"));
       pragma Debug (C, O ("Group : " & Image (Comp.G_I)));
@@ -199,7 +197,6 @@ package body PolyORB.MIOP_P.Tagged_Components is
    is
       use PolyORB.Types;
       use PolyORB.Utils;
-      use PolyORB.Utils.Strings;
 
       Index  : Integer := S'First;
       Index2 : Integer;

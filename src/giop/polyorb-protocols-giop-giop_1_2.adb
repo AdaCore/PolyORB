@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -437,7 +437,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure Process_Request
      (S : access GIOP_Session)
    is
-      use PolyORB.Annotations;
       use PolyORB.Any.NVList;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
@@ -690,8 +689,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer :        Buffers.Buffer_Access;
       Error  : in out Errors.Error_Container)
    is
-      use Octet_Flags;
-
       Sess : GIOP_Session renames GIOP_Session (S.all);
 
       MCtx_1_2  : GIOP_Message_Context_1_2
@@ -845,7 +842,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    is
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
-      use PolyORB.ORB;
       use PolyORB.References;
 
       Sess    : GIOP_Session renames GIOP_Session (S);

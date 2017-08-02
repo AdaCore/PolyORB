@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -48,7 +48,6 @@ with PolyORB.Utils.Strings;
 package body PolyORB.ORB.Thread_Per_Session is
 
    use PolyORB.Annotations;
-   use PolyORB.Asynch_Ev;
    use PolyORB.Filters;
    use PolyORB.Filters.Iface;
    use PolyORB.Log;

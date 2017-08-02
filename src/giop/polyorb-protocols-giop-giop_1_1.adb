@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -262,7 +262,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure Process_Request
      (S : access GIOP_Session)
    is
-      use PolyORB.Annotations;
       use PolyORB.Any.NVList;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;

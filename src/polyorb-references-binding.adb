@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -77,7 +77,6 @@ package body PolyORB.References.Binding is
       Local_Only : Boolean;
       Error      : in out PolyORB.Errors.Error_Container)
    is
-      use type Components.Component_Access;
       use Binding_Data.Local;
       use Binding_Objects;
       use Obj_Adapters;
@@ -427,7 +426,6 @@ package body PolyORB.References.Binding is
       Error     : in out PolyORB.Errors.Error_Container)
    is
       use PolyORB.ORB;
-      use type PolyORB.Types.Unsigned_Long;
 
       Local_ORB : ORB_Access renames Setup.The_ORB;
 
@@ -499,8 +497,6 @@ package body PolyORB.References.Binding is
    ------------
 
    procedure Unbind (R : Ref'Class) is
-      use Binding_Objects;
-      use Smart_Pointers;
 
       RI : constant Reference_Info_Access := Ref_Info_Of (R);
 

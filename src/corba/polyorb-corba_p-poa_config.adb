@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -78,29 +78,7 @@ package body PolyORB.CORBA_P.POA_Config is
 
    use PolyORB.POA_Policies;
 
-   use PolyORB.POA_Policies.Id_Assignment_Policy.System;
-   use PolyORB.POA_Policies.Id_Assignment_Policy.User;
-
-   use PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
-   use PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;
-
-   use PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;
-   use PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
-
-   use PolyORB.POA_Policies.Lifespan_Policy.Persistent;
-   use PolyORB.POA_Policies.Lifespan_Policy.Transient;
-
-   use PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
-   use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
-   use PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
    package RPP renames PolyORB.POA_Policies.Request_Processing_Policy;
-
-   use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
-   use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
-
-   use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
-   use PolyORB.POA_Policies.Thread_Policy.Single_Thread;
-   use PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
    type Allocator_Record is record
       Policy : CORBA.PolicyType;

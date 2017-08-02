@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -61,7 +61,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    use PolyORB.Objects;
    use PolyORB.References.Corbaloc;
    use PolyORB.References.IOR;
-   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.binding_data.giop.iiop");
@@ -326,9 +325,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (P : IIOP_Profile_Type)
      return Profile_Access
    is
-      use PolyORB.QoS;
-      use PolyORB.QoS.Tagged_Components;
-
       Result : constant Profile_Access := new IIOP_Profile_Type;
 
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
@@ -377,10 +373,6 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (Buffer : access Buffer_Type)
       return Profile_Access
    is
-      use PolyORB.QoS;
-      use PolyORB.QoS.Tagged_Components;
-      use PolyORB.Utils.Sockets;
-
       Result  : constant Profile_Access := new IIOP_Profile_Type;
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
       Address : constant Utils.Sockets.Socket_Name :=

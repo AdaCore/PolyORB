@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,8 +50,6 @@ package body PolyORB.Binding_Objects is
      renames L.Enabled;
 
    use PolyORB.Binding_Data;
-
-   use type PolyORB.Components.Component_Access;
 
    --------------
    -- Finalize --

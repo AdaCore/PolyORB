@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -142,7 +142,6 @@ package body RTCORBA.Helper is
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
-      use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC);
    begin
@@ -321,7 +320,6 @@ package body RTCORBA.Helper is
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
-      use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC, Index);
       pragma Suppress (All_Checks);
@@ -482,7 +480,6 @@ package body RTCORBA.Helper is
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
-      use type PolyORB.Types.Unsigned_Long;
       use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC);
    begin
@@ -582,8 +579,6 @@ package body RTCORBA.Helper is
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
    is
-      use type PolyORB.Types.Unsigned_Long;
-      use type PolyORB.Any.Mechanism;
       pragma Unreferenced (TC);
    begin
       Mech.all := PolyORB.Any.By_Reference;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -242,9 +242,7 @@ package body PolyORB.Servants.Group_Servants is
    is
       use PolyORB.Requests;
       use PolyORB.ORB;
-      use PolyORB.Any;
       use PolyORB.ORB.Iface;
-      use PolyORB.Servants.Iface;
       use Unsigned_Long_Flags;
 
       It : TPL.Iterator;
@@ -410,8 +408,6 @@ package body PolyORB.Servants.Group_Servants is
      (Self : access Group_Servant;
       Ref  : References.Ref)
    is
-      use PolyORB.References;
-
    begin
       pragma Debug (C, O ("Unregister on group servant: "
                        & PolyORB.Objects.Image (Self.Oid.all)));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -346,7 +346,6 @@ package body PolyORB.References.IOR is
 
    function Object_To_String (IOR : PolyORB.References.Ref) return String
    is
-      use PolyORB.Types;
    begin
       return IOR_Prefix & SEA_To_Hex_String (Object_To_Opaque (IOR));
    end Object_To_String;
@@ -357,9 +356,6 @@ package body PolyORB.References.IOR is
 
    function String_To_Object (Str : String) return PolyORB.References.Ref
    is
-      use PolyORB.Types;
-      use PolyORB.Utils.Strings;
-
    begin
       pragma Debug (C, O ("Try to decode IOR"));
       if Has_Prefix (Str, IOR_Prefix) then

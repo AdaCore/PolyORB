@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -156,8 +156,6 @@ package body PolyORB.Utils.Configuration_File is
 
       Line : String (1 .. 1_024);
       Last : Integer;
-
-      use PolyORB.Utils;
 
    --  Start of processing for Load_Configuration_Table
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -104,7 +104,6 @@ package RTCORBA is
    ThreadpoolLanes_Repository_Id : constant PolyORB.Std.String
      := "IDL:omg.org/RTCORBA/ThreadpoolLanes:1.0";
 
-   use type CORBA.PolicyType;
    PRIORITY_MODEL_POLICY_TYPE : constant CORBA.PolicyType
      := 40;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -86,7 +86,6 @@ package body CORBA is
    TC_Completion_Status_Cache : CORBA.TypeCode.Object;
 
    function TC_Completion_Status return CORBA.TypeCode.Object is
-      use type PolyORB.Types.Unsigned_Long;
 
       TC : CORBA.TypeCode.Object renames TC_Completion_Status_Cache;
 

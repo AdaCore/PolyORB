@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -61,7 +61,6 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
    function Allocate_CV
      (ITM : access Idle_Tasks_Manager) return Condition_Access
    is
-      use type CV_Lists.List;
       Result : Condition_Access;
 
    begin

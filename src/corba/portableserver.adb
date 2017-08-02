@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -119,7 +119,6 @@ package body PortableServer is
      (Self : not null access DynamicImplementation;
       Req  : PolyORB.Requests.Request_Access) return Boolean
    is
-      use CORBA.ServerRequest;
       use PolyORB.Annotations;
       use PolyORB.Binding_Data;
       use PolyORB.Errors;

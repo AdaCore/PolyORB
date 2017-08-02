@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -211,7 +211,6 @@ package body PolyORB.Representations.CDR is
       Minor : Types.Octet) return CDR_Representation_Access
    is
       use Factory_Lists;
-      use TC_Maps;
 
       Iter   : Iterator := First (Factory_Registry);
       Result : CDR_Representation_Access;
@@ -1393,7 +1392,6 @@ package body PolyORB.Representations.CDR is
      (Representation  : access CDR_Representation'Class;
       Relative_Offset : Types.Long) return Types.Long
    is
-      use TC_Maps;
       T : TC_Maps.Instance renames Representation.TC_Map;
    begin
       if Representation.Current_Complex /= -1 then

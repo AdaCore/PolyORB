@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -185,8 +185,6 @@ package body PolyORB.Binding_Data.GIOP.INET is
       Prefix  : String)
      return String
    is
-      use PolyORB.Sockets;
-
       GIOP_Profile : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
       Oid_Str : String (1 .. Profile.Object_Id'Length);

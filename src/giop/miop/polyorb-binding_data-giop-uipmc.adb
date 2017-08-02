@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -304,7 +304,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    function Profile_To_Corbaloc (P : Profile_Access) return String is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
-      use PolyORB.Sockets;
       use PolyORB.Utils;
 
       UIPMC_Profile : UIPMC_Profile_Type renames UIPMC_Profile_Type (P.all);
@@ -449,9 +448,6 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -----------
 
    overriding function Image (Prof : UIPMC_Profile_Type) return String is
-      use PolyORB.Servants.Group_Servants;
-      use PolyORB.Sockets;
-
    begin
       if Prof.G_I /= null then
          return "Address : "

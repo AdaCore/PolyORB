@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,7 +44,6 @@ package body PolyORB.Utils.TCP_Access_Points is
 
    use PolyORB.Log;
    use PolyORB.Transport.Connected.Sockets;
-   use PolyORB.Utils.Sockets;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.utils.tcp_access_points");

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,7 +41,6 @@ with PolyORB.Request_QoS;
 with PolyORB.Requests;
 with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
-with PolyORB.Utils.Strings;
 with PolyORB.QoS.Static_Buffers;
 with PolyORB.Opaque;
 
@@ -154,7 +153,6 @@ package body PolyORB.Protocols.GIOP.Common is
    is
       use PolyORB.Annotations;
       use PolyORB.Any;
-      use PolyORB.Components;
       use PolyORB.Errors;
       use PolyORB.Errors.Helper;
       use type PolyORB.Any.TypeCode.Local_Ref;
@@ -454,8 +452,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Forward_Ref        : References.Ref;
       Error              : in out Errors.Error_Container)
    is
-      use PolyORB.Components;
-
       Buffer        : Buffer_Access := new Buffer_Type;
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation :=
@@ -533,8 +529,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Locate_Request_Id :        Types.Unsigned_Long;
       Loc_Type          :        Locate_Reply_Type)
    is
-      use type PolyORB.Utils.Strings.String_Ptr;
-
       ORB : constant PolyORB.ORB.ORB_Access
         := PolyORB.ORB.ORB_Access (Sess.Server);
 

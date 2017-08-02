@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,7 +44,6 @@ with PolyORB.RT_POA_Policies.Priority_Model_Policy;
 with PolyORB.RT_POA_Policies.Thread_Pool_Policy;
 with PolyORB.Servants;
 with PolyORB.Setup;
-with PolyORB.Task_Info;
 with PolyORB.Tasking.Priorities;
 with PolyORB.Utils.Strings;
 
@@ -73,7 +72,6 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       use PolyORB.Lanes;
       use PolyORB.Servants;
 
-      use type Task_Info.Task_Info_Access;
       Surrogate : Components.Component_Access;
       Pro : PolyORB.Binding_Data.Profile_Access;
       Error : Errors.Error_Container;

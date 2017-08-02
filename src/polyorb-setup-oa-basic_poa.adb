@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -48,9 +48,6 @@ with PolyORB.Setup.Proxies_POA;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Setup.OA.Basic_POA is
-
-   use PolyORB.POA.Basic_POA;
-   use type PolyORB.POA.Obj_Adapter_Access;
 
    ----------------
    -- Initialize --

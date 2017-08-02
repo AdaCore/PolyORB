@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -58,8 +58,6 @@ package body PolyORB.GIOP_P.Tagged_Components.Print is
      (TCs : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List)
    is
       use PO_Catref.Output;
-
-      use PolyORB.Utils;
       use PolyORB.Types;
 
       TC : Tagged_Component_Access;

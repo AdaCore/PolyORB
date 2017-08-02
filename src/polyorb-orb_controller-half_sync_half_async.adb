@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,7 +43,6 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
    use PolyORB.Asynch_Ev;
    use PolyORB.Task_Info;
    use PolyORB.Tasking.Condition_Variables;
-   use PolyORB.Tasking.Mutexes;
 
    function AEM_Index_Of_Task
      (O  : access ORB_Controller_Half_Sync_Half_Async;

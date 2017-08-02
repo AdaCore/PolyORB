@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,13 +35,11 @@ pragma Ada_2005;
 with Ada.Tags;
 
 with PolyORB.Binding_Object_QoS;
-with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Types;
 
 package body PolyORB.References is
 
-   use type PolyORB.Components.Component_Access;
    use PolyORB.Binding_Objects;
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;

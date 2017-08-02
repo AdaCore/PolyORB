@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,7 +41,7 @@ with Flags;        use Flags;
 with Lexer;
 with Namet;        use Namet;
 with Output;       use Output;
-with Parser;       use Parser;
+with Parser;
 with Scopes;
 with Source_Input; use Source_Input;
 with Types;        use Types;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,10 +32,7 @@ with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.GIOP_P.Tagged_Components.Policies.Create is
 
-   use PolyORB.GIOP_P.Tagged_Components.Policies;
-   use PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy;
    use PolyORB.Representations.CDR.Common;
-   use PolyORB.Types;
    use Policy_Value_Seq;
 
    procedure Create_TC
