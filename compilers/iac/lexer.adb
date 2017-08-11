@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -691,6 +691,7 @@ package body Lexer is
          New_Token (T_Wide_String_Literal, "<wide string literal>");
          New_Token (T_Identifier, "<identifier>");
          New_Token (T_Pragma, "#pragma");
+         New_Token (T_Pragma_Unrecognized, "<unrecognized>");
          New_Token (T_Pragma_Id, "ID");
          New_Token (T_Pragma_Prefix, "prefix");
          New_Token (T_Pragma_Version, "version");
@@ -699,7 +700,7 @@ package body Lexer is
          New_Token (T_Pragma_Subtype, "subtype");
          New_Token (T_Pragma_Derived, "derived");
          New_Token (T_Pragma_Switchname, "switchname");
-         New_Token (T_Pragma_Unrecognized, "<unrecognized>");
+         New_Token (T_Pragma_javaPackage, "javaPackage");
          New_Token (T_EOF, "<end of file>");
       end if;
 

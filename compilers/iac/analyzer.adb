@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1035,6 +1035,12 @@ package body Analyzer is
 
          when Pragma_Switchname =>
             Push_Switchname (IDL_Name (Identifier (Target (E))), Data (E));
+
+         --  javaPackage is a pragma recognized by idlj (idl-to-java),
+         --  which we ignore without a warning.
+
+         when Pragma_javaPackage =>
+            null;
 
          when others =>
             Error_Loc (1) := Loc (E);

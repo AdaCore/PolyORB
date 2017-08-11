@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -2161,6 +2161,8 @@ package body Parser is
             Token := T_Pragma_Derived;
          elsif Pragma_Image = Image (T_Pragma_Switchname) then
             Token := T_Pragma_Switchname;
+         elsif Pragma_Image = Image (T_Pragma_javaPackage) then
+            Token := T_Pragma_javaPackage;
          end if;
       end;
 
@@ -2316,6 +2318,10 @@ package body Parser is
 
             Scan_Token (T_Identifier);
             Set_Data (Pragma_Node, Name_Find);
+
+         when Pragma_javaPackage =>
+            Set_Pragma_Kind (Pragma_Node, Pragma_Kind);
+            Skip_Line; -- skip string literal and newline
 
          when Pragma_Unrecognized =>
             Set_Pragma_Kind (Pragma_Node, Pragma_Kind);

@@ -897,7 +897,7 @@ package body Backend.BE_IDL is
          when Pragma_Subtype | Pragma_Derived =>
             Generate (Target (E));
 
-         when Pragma_Unrecognized =>
+         when Pragma_javaPackage | Pragma_Unrecognized =>
             --  Extract from the CORBA 3.0 ($10.7.5) :
             --  "Conforming IDL compilers may support additional non-standard
             --   pragmas, but must not refuse to compile IDL source containing

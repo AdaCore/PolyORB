@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,6 +44,7 @@ pragma Elaborate_Body (Lexer);
       --  About pragmas
 
       T_Pragma,
+      T_Pragma_Unrecognized,
       T_Pragma_Id,
       T_Pragma_Prefix,
       T_Pragma_Version,
@@ -52,7 +53,7 @@ pragma Elaborate_Body (Lexer);
       T_Pragma_Subtype,
       T_Pragma_Derived,
       T_Pragma_Switchname,
-      T_Pragma_Unrecognized,
+      T_Pragma_javaPackage,
 
       --  About basic keywords
 
@@ -192,6 +193,8 @@ pragma Elaborate_Body (Lexer);
    First_Token_Pos : constant := Token_Type'Pos (Token_Type'First);
    Last_Token_Pos  : constant := Token_Type'Pos (Token_Type'Last);
 
+   First_Pragma_Token_Pos : constant := Token_Type'Pos (T_Pragma_Unrecognized);
+
    type Token_List_Type is array (Positive range <>) of Token_Type;
 
    subtype Keyword_Type is Token_Type
@@ -221,17 +224,19 @@ pragma Elaborate_Body (Lexer);
 
    --  Can't we do away with the annoying duplication???
 
-   Pragma_Id           : constant := 0;
-   Pragma_Prefix       : constant := 1;
-   Pragma_Version      : constant := 2;
-   Pragma_Range        : constant := 3;
-   Pragma_Range_Idl    : constant := 4;
-   Pragma_Subtype      : constant := 5;
-   Pragma_Derived      : constant := 6;
-   Pragma_Switchname   : constant := 7;
-   Pragma_Unrecognized : constant := 8;
+   Pragma_Unrecognized : constant := 0;
+   Pragma_Id           : constant := 1;
+   Pragma_Prefix       : constant := 2;
+   Pragma_Version      : constant := 3;
+   Pragma_Range        : constant := 4;
+   Pragma_Range_Idl    : constant := 5;
+   Pragma_Subtype      : constant := 6;
+   Pragma_Derived      : constant := 7;
+   Pragma_Switchname   : constant := 8;
+   Pragma_javaPackage  : constant := 9;
 
-   type Pragma_Type is new Byte range Pragma_Id .. Pragma_Unrecognized;
+   type Pragma_Type is new Byte
+     range Pragma_Unrecognized .. Pragma_javaPackage;
 
    Token          : Token_Type;
    Token_Name     : Name_Id;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -827,7 +827,7 @@ package body Frontend.Nutils is
 
    function Get_Pragma_Type (T : Token_Type) return Pragma_Type is
    begin
-      return Token_Type'Pos (T) - Token_Type'Pos (T_Pragma_Id);
+      return Token_Type'Pos (T) - First_Pragma_Token_Pos;
    end Get_Pragma_Type;
 
    ---------------------
@@ -836,7 +836,7 @@ package body Frontend.Nutils is
 
    function Get_Pragma_Type (P : Pragma_Type) return Token_Type is
    begin
-      return Token_Type'Val (P + Token_Type'Pos (T_Pragma_Id));
+      return Token_Type'Val (P + First_Pragma_Token_Pos);
    end Get_Pragma_Type;
 
    ---------------------------
