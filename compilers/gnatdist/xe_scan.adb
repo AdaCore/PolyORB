@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -424,8 +424,6 @@ package body XE_Scan is
 
    procedure Write_Location
      (Where   : Location_Type) is
-
-      use ASCII;
 
    begin
       Write_Name (Configuration_File_Name);

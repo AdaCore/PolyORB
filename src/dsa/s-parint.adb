@@ -614,7 +614,6 @@ package body System.Partition_Interface is
    function Compare_Content
      (Left, Right : RACW_Stub_Type_Access) return Boolean
    is
-      use System.RPC;
       Left_Object, Right_Object : PolyORB.References.Ref;
    begin
       Set (Left_Object, Left.Target);
@@ -659,7 +658,6 @@ package body System.Partition_Interface is
    function DSA_Exception_To_Any
      (E : Ada.Exceptions.Exception_Occurrence) return Any
    is
-      use PolyORB.Errors;
       use PolyORB.Types;
 
       Name   : constant String := PolyORB.Exceptions.Occurrence_To_Name (E);
@@ -816,8 +814,6 @@ package body System.Partition_Interface is
       PolyORB.QoS.Term_Manager_Info.Extract_TM_Info (Req);
 
       pragma Assert (Self.Handler /= null);
-      declare
-         use PolyORB.Errors;
       begin
          Self.Handler.all (Req);
       exception
