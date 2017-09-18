@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1162,8 +1162,6 @@ package body Idl_Fe.Types is
      (Identifier : String)
      return Uniq_Id
    is
-      use Idl_Fe.Lexer;
-
       Scope : Node_Id;
    begin
       pragma Debug (O2 ("Imported_Identifier_Index : enter"));
@@ -1431,8 +1429,6 @@ package body Idl_Fe.Types is
          Identifier : String)
         return Uniq_Id
       is
-         use Idl_Fe.Lexer;
-
       begin
          pragma Debug (O2 ("Stored_Identifier_Index : enter & end"));
 
@@ -1469,8 +1465,6 @@ package body Idl_Fe.Types is
       Scope : Node_Id)
      return Uniq_Id
    is
-      use Idl_Fe.Lexer;
-
       IT : Storage
         := Identifier_Table (Scope);
       Index : Uniq_Id;
@@ -1543,8 +1537,6 @@ package body Idl_Fe.Types is
       Scope : Node_Id)
      return Uniq_Id
    is
-      use Idl_Fe.Lexer;
-
       Index : Uniq_Id;
       IT : Storage := Imported_Table (Scope);
    begin

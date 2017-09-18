@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1174,7 +1174,6 @@ package body Idl_Fe.Lexer is
                      Go_To_End_Of_String;
                      Set_End_Mark_On_Previous_Char;
                      declare
-                        use GNAT.OS_Lib;
                         Text : constant String := Get_Marked_Text;
                      begin
                         if Text (Text'First) = '<'
@@ -1247,8 +1246,6 @@ package body Idl_Fe.Lexer is
    ----------------
 
    procedure Initialize (Filename : String) is
-      use GNAT.OS_Lib;
-
    begin
       if Initialized then
          Push_State;
