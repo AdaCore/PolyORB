@@ -1,6 +1,6 @@
 # $Id$
 
-define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[17.2]))
+define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[17.4]))
 
 AC_PREREQ(2.60)
 AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
@@ -432,7 +432,7 @@ AC_MSG_RESULT(${LIBS_LIST})
 AC_SUBST(LIBS_LIST)
 
 ##########################################
-# gnatdist flags 
+# gnatdist flags
 ##########################################
 
 PCSNAME="polyorb"
@@ -817,9 +817,9 @@ with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
-  
+
   done
-  
+
   for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-binding_data-*.ads'`
   do
      U=`${AWK} '/^package/{print $2}' ${F}`
@@ -830,7 +830,7 @@ pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
   done
-  
+
   for F in `${FIND} ${srcdir}/src/${P} -name 'polyorb-setup-access_points-*.ads' \
   	| ${GREP} -v polyorb-setup-access_points-tlsiop.ads`
   do
@@ -842,7 +842,7 @@ pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
   done
-  
+
   for F in `${FIND} ${srcdir}/tools/po_catref -name "polyorb-binding_data-${P}-*.ads"`
   do
      U=`${AWK} '/^package/{print $2}' ${F}`
@@ -853,7 +853,7 @@ pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
 EOF
   done
-  
+
   for F in `${FIND} ${srcdir}/tools/po_createref -name "polyorb-binding_data-${P}-*.ads"`
   do
      U=`${AWK} '/^package/{print $2}' ${F}`
@@ -884,7 +884,7 @@ do
       SEDCMD=["${SEDCMD} -e 's/[^ ].*SSLIOP/--  &/'"]
    fi
 
-   if test -e ${F}; then 
+   if test -e ${F}; then
      eval "${SEDCMD}" < ${F} > ${F}.new
      mv ${F}.new ${F}
    fi
