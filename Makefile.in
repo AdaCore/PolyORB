@@ -613,6 +613,97 @@ ${PROJECT_FILES}: %.gpr: \
     tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
 	${GPRBUILD_FOR_TARGET} -aP"${top_builddir}/projects" -aP"${top_srcdir}/projects" -P $@ ${BASE_GNATMAKE_FLAGS} ${PRJ_GNATMAKE_FLAGS} ${GNATMAKE_FLAGS_FOR_TARGET} -bargs -E
 
+################
+# Installation #
+################
+
+# Note: some testsuite targets refer to installation paths, so this must
+# occur first.
+
+host=@host@
+target=@target@
+
+ifeq (${target}, ${host})
+  target_prefix=${prefix}
+  host_exe_dir=${prefix}/bin
+  host_cmdprefix=
+  target_exe_dir=${prefix}/bin
+
+else
+  target_prefix=${prefix}/${target}
+  host_exe_dir=${prefix}/bin
+  host_cmdprefix=${target}-
+  target_exe_dir=${target_prefix}/bin
+endif
+projects_subdir=lib/gnat/polyorb
+
+.PHONY: install
+install:
+	@echo "   Sources dir: ${top_srcdir}"
+	@echo "     Build dir: ${top_builddir}"
+	@echo "Install prefix: ${prefix}"
+	@echo "          Host: ${host}"
+	@echo "        Target: ${target}"
+	${PINSTALL} -d ${prefix}/bin ${target_prefix}/bin
+	${RM} -fr "${target_prefix}/${projects_subdir}"
+	${PINSTALL} -d ${target_prefix}/${projects_subdir}
+	${PINSTALL} -d ${target_prefix}/lib/polyorb
+	${PINSTALL} -d ${target_prefix}/lib/polyorb/static
+	${RM} -fr "${target_prefix}/include/polyorb"
+	${PINSTALL} -d ${target_prefix}/include/polyorb
+	for comp in ${COMPILER_EXES}; do \
+	  ${INSTALL_BIN} ${top_builddir}/compilers/$${comp}${HOST_EXE_SUFFIX} ${host_exe_dir}/${host_cmdprefix}`basename $${comp}`${HOST_EXE_SUFFIX}; \
+	done
+	${INSTALL_SCRIPT} ${top_builddir}/polyorb-config ${host_exe_dir}/${host_cmdprefix}polyorb-config
+	for tool in po_cos_naming/po_cos_naming po_cos_naming/po_cos_naming_shell po_cos_naming/ir_ab_names po_ir/po_ir po_catref/po_catref po_createref/po_createref po_names/po_names po_dumpir/po_dumpir; do \
+	  ${INSTALL_BIN} ${top_builddir}/tools/$$tool${TARGET_EXE_SUFFIX} ${target_exe_dir}/`basename $$tool`${TARGET_EXE_SUFFIX}; \
+	done
+	ls ${top_builddir}/lib/*.a | ${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb/static
+	ls ${top_builddir}/lib/*.so | ${PINSTALL} -m 555 - ${target_prefix}/lib
+	ls ${top_builddir}/lib/*.dll | ${PINSTALL} -m 555 - ${target_prefix}/lib
+	ls ${top_srcdir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
+	ls ${top_builddir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
+	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/${projects_subdir}
+	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/${projects_subdir}
+	(find \
+	  ${top_builddir}/src \
+	  ${top_builddir}/cos \
+	  ${top_builddir}/idls \
+	  ${top_srcdir}/src \
+	  ${top_srcdir}/cos \
+	  ${top_srcdir}/idls \
+	  -name '*.ads' -o -name '*.adb' -o -name '*.idl') | \
+	${PINSTALL} -m 444 - ${target_prefix}/include/polyorb
+	(find \
+	  ${top_builddir}/ali \
+	  -name '*.ali' \
+	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
+	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
+	  -a ! -name 'polyorb-partition_elaboration.ali') | \
+	${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb
+	# Install documentation only if it has been built locally, or
+	# pre-built and packaged with sources. In that case, pass
+	# SPHINXBUILD=true to child make process in order to bypass
+	# check for existence of sphinx-build.
+	if [ -r doc/_build ]; \
+	then \
+	  (cd doc && ${MAKE} install prefix="${prefix}" SPHINXBUILD=true); \
+	elif [ -r $(top_srcdir)/doc/_build ]; \
+	then \
+	  (cd doc && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/doc/" SPHINXBUILD=true); \
+	fi
+
+# polyorb-dsa_p-partitions.ali is a special case above.
+# It is never installed, so that this unit is recompiled for each application
+# by gnatdist. This is necessary because two compilations must occur:
+# receiving stubs for the main partition, and calling stubs for others.
+#
+# Note that any change of the location where DSA application personality
+# files are installed (relative to ${prefix}) must be reflected in
+# gnatdist.
+
+################################################################
+
 ##########################
 # examples and testsuite #
 ##########################
@@ -672,11 +763,15 @@ endif
 
 test_targets := ${sort ${test_targets}}
 
-
 TESTSUITE_GNATMAKE_FLAGS := -aP"${top_builddir}/testsuite/projects" -aP"${top_srcdir}/testsuite/projects"
 
 ifeq (@USE_INSTALLED@,yes)
-INSTALLED_TARGET_PREFIX=${shell echo `dirname \`which iac\``/..}
+INSTALLED_IAC=$(shell which iac)
+ifeq ($(strip ${INSTALLED_IAC}),)
+$(error Installed iac(1) not found)
+endif
+
+INSTALLED_TARGET_PREFIX=${shell echo `dirname ${INSTALLED_IAC}`/..}
 TESTSUITE_GNATMAKE_FLAGS += -aP"${INSTALLED_TARGET_PREFIX}/${projects_subdir}"
 else
 # If building examples and testsuite using the newly built PolyORB,
@@ -838,94 +933,6 @@ ${all_idl_stamps}: ${IDLAC_bin} ${IDLAC_WRAPPER}
 .PHONY: docs
 docs:
 	(cd doc && ${MAKE} sources html latexpdf MANIFEST)
-
-################################################################
-
-# Installation
-
-host=@host@
-target=@target@
-
-ifeq (${target}, ${host})
-  target_prefix=${prefix}
-  host_exe_dir=${prefix}/bin
-  host_cmdprefix=
-  target_exe_dir=${prefix}/bin
-
-else
-  target_prefix=${prefix}/${target}
-  host_exe_dir=${prefix}/bin
-  host_cmdprefix=${target}-
-  target_exe_dir=${target_prefix}/bin
-endif
-projects_subdir=lib/gnat/polyorb
-
-.PHONY: install
-install:
-	@echo "   Sources dir: ${top_srcdir}"
-	@echo "     Build dir: ${top_builddir}"
-	@echo "Install prefix: ${prefix}"
-	@echo "          Host: ${host}"
-	@echo "        Target: ${target}"
-	${PINSTALL} -d ${prefix}/bin ${target_prefix}/bin
-	${RM} -fr "${target_prefix}/${projects_subdir}"
-	${PINSTALL} -d ${target_prefix}/${projects_subdir}
-	${PINSTALL} -d ${target_prefix}/lib/polyorb
-	${PINSTALL} -d ${target_prefix}/lib/polyorb/static
-	${RM} -fr "${target_prefix}/include/polyorb"
-	${PINSTALL} -d ${target_prefix}/include/polyorb
-	for comp in ${COMPILER_EXES}; do \
-	  ${INSTALL_BIN} ${top_builddir}/compilers/$${comp}${HOST_EXE_SUFFIX} ${host_exe_dir}/${host_cmdprefix}`basename $${comp}`${HOST_EXE_SUFFIX}; \
-	done
-	${INSTALL_SCRIPT} ${top_builddir}/polyorb-config ${host_exe_dir}/${host_cmdprefix}polyorb-config
-	for tool in po_cos_naming/po_cos_naming po_cos_naming/po_cos_naming_shell po_cos_naming/ir_ab_names po_ir/po_ir po_catref/po_catref po_createref/po_createref po_names/po_names po_dumpir/po_dumpir; do \
-	  ${INSTALL_BIN} ${top_builddir}/tools/$$tool${TARGET_EXE_SUFFIX} ${target_exe_dir}/`basename $$tool`${TARGET_EXE_SUFFIX}; \
-	done
-	ls ${top_builddir}/lib/*.a | ${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb/static
-	ls ${top_builddir}/lib/*.so | ${PINSTALL} -m 555 - ${target_prefix}/lib
-	ls ${top_builddir}/lib/*.dll | ${PINSTALL} -m 555 - ${target_prefix}/lib
-	ls ${top_srcdir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
-	ls ${top_builddir}/projects-distrib/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/lib/gnat
-	ls ${top_srcdir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/${projects_subdir}
-	ls ${top_builddir}/projects-distrib/polyorb/*.gpr | ${PINSTALL} -m 444 - ${target_prefix}/${projects_subdir}
-	(find \
-	  ${top_builddir}/src \
-	  ${top_builddir}/cos \
-	  ${top_builddir}/idls \
-	  ${top_srcdir}/src \
-	  ${top_srcdir}/cos \
-	  ${top_srcdir}/idls \
-	  -name '*.ads' -o -name '*.adb' -o -name '*.idl') | \
-	${PINSTALL} -m 444 - ${target_prefix}/include/polyorb
-	(find \
-	  ${top_builddir}/ali \
-	  -name '*.ali' \
-	  -a ! -name 'polyorb-dsa_p-partitions.ali' \
-	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
-	  -a ! -name 'polyorb-partition_elaboration.ali') | \
-	${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb
-	# Install documentation only if it has been built locally, or
-	# pre-built and packaged with sources. In that case, pass
-        # SPHINXBUILD=true to child make process in order to bypass
-        # check for existence of sphinx-build.
-	if [ -r doc/_build ]; \
-	then \
-	  (cd doc && ${MAKE} install prefix="${prefix}" SPHINXBUILD=true); \
-	elif [ -r $(top_srcdir)/doc/_build ]; \
-	then \
-	  (cd doc && ${MAKE} install prefix="${prefix}" doc_build_dir="$(top_srcdir)/doc/" SPHINXBUILD=true); \
-	fi
-
-# polyorb-dsa_p-partitions.ali is a special case above.
-# It is never installed, so that this unit is recompiled for each application
-# by gnatdist. This is necessary because two compilations must occur:
-# receiving stubs for the main partition, and calling stubs for others.
-#
-# Note that any change of the location where DSA application personality
-# files are installed (relative to ${prefix}) must be reflected in
-# gnatdist.
-
-################################################################
 
 force::
 
