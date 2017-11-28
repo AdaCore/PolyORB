@@ -42,24 +42,3 @@ int __PolyORB_sk_SSL_CIPHER_num (STACK_OF(SSL_CIPHER) *sk) {
 SSL_CIPHER *__PolyORB_sk_SSL_CIPHER_value (STACK_OF(SSL_CIPHER) *sk, int i) {
     return sk_SSL_CIPHER_value(sk, i);
 }
-
-/*
- * For versions of OpenSSL where SSLv2 is disabled, provide stubs for the
- * SSLv2*_method routines if not present in libssl.
- */
-
-#ifndef HAVE_SSLv2_METHOD
-
-const SSL_METHOD *SSLv2_method(void) {
-  return NULL;
-}
-
-const SSL_METHOD *SSLv2_server_method(void) {
-  return NULL;
-}
-
-const SSL_METHOD *SSLv2_client_method(void) {
-  return NULL;
-}
-
-#endif

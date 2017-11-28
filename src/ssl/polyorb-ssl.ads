@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -45,8 +45,7 @@ package PolyORB.SSL is
    No_SSL_Socket : constant SSL_Socket_Type;
 
    type SSL_Method_Type is
-     (SSL_2, SSL_2_Client, SSL_2_Server,
-      SSL_3, SSL_3_Client, SSL_3_Server,
+     (SSL_3, SSL_3_Client, SSL_3_Server,
       TLS_1, TLS_1_Client, TLS_1_Server,
       Any,   Any_Client,   Any_Server);
 
