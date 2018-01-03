@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2018, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1922,8 +1922,6 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
          N            : Node_Id;
 
       begin
-         N := Make_Used_Type (RE (RE_Unsigned_Long_1));
-         Append_To (Dcl_Part, N);
          N := Make_Used_Type (RE (RE_Mechanism));
          Append_To (Dcl_Part, N);
 
@@ -2183,6 +2181,11 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
                   O                   : Node_Id;
                   T                   : Node_Id;
                begin
+                  --  Make "=" for Index visible
+
+                  N := Make_Used_Type (RE (RE_Unsigned_Long_1));
+                  Append_To (Dcl_Part, N);
+
                   --  Index = 0: discriminant
 
                   Condition := Make_Expression
