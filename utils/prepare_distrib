@@ -102,10 +102,10 @@ if [ -n "$additional_version" ]; then
   echo "define([ADDITIONAL_VERSION],[$additional_version])"
 fi
 
-# Subversion revision information (optional)
+# Source configuration management revision information (optional)
 
 if [ -n "$change" ]; then
-  echo "define([DISTRIB_SVNREVISION],[${change}])"
+  echo "define([DISTRIB_CMREVISION],[${change}])"
 fi
 
 # Use MANIFEST to filter output files
