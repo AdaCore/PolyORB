@@ -76,13 +76,6 @@ AC_DEFUN([AM_WITH_OPENSSL],
         # -lcrypto), since some undefined symbols in libssl are provided
         # by libcrypto.
 
-        # Test for presence of SSLv2_method (if missing, we need to provide a stub)
-
-        AC_CHECK_LIB([ssl], [SSLv2_method],
-                     AC_DEFINE(HAVE_SSLv2_METHOD, yes, [SSLv2_method function is present]),
-                     [],
-                     [$SSL_LIBDL])
-
         # Check whether we see appropriate headers and libraries
 
         ssl_fail="no"

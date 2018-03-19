@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -432,7 +432,7 @@ package body PolyORB.SSL is
    --------------------
 
    procedure Create_Context
-     (Context                    :    out SSL_Context_Type;
+     (Context                    : out SSL_Context_Type;
       Method                     : SSL_Method_Type;
       Private_Key_File           : String;
       Certificate_File           : String;
@@ -447,15 +447,6 @@ package body PolyORB.SSL is
 
    begin
       case Method is
-         when SSL_2 =>
-            M := Thin.SSLv2_method;
-
-         when SSL_2_Client =>
-            M := Thin.SSLv2_client_method;
-
-         when SSL_2_Server =>
-            M := Thin.SSLv2_server_method;
-
          when SSL_3 =>
             M := Thin.SSLv3_method;
 
