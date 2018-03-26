@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2018, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,7 +43,7 @@ with PolyORB.Tasking.Priorities;
 package body PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy is
 
    Priority_Model_Policy_Type : constant := 40;
-   --  Defined in RT-CORA specifications
+   --  Defined in RT-CORBA specifications
 
    ---------------------
    -- Fetch_Component --
