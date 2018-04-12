@@ -1,32 +1,26 @@
-------------------------------------------------------------------------------
---                                                                          --
---                           POLYORB COMPONENTS                             --
---                                                                          --
---         Copyright (C) 1999-2012, Free Software Foundation, Inc.          --
---                                                                          --
--- This is free software;  you can redistribute it  and/or modify it  under --
--- terms of the  GNU General Public License as published  by the Free Soft- --
--- ware  Foundation;  either version 3,  or (at your option) any later ver- --
--- sion.  This software is distributed in the hope  that it will be useful, --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License for  more details.                                               --
---                                                                          --
--- You should have received a copy of the GNU General Public License and    --
--- a copy of the GCC Runtime Library Exception along with this program;     --
--- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
--- <http://www.gnu.org/licenses/>.                                          --
---                                                                          --
---                  PolyORB is maintained by AdaCore                        --
---                     (email: sales@adacore.com)                           --
---                                                                          --
-------------------------------------------------------------------------------
+POLYORB
+=======
 
-This is the README file for PolyORB version @polyorb_version@.
+Copyright (C) 1999-2018, Free Software Foundation, Inc.
 
-The home page of the project is located at http://libre.adacore.com/polyorb/
-This is where you can find news about the project, new releases, and
-pointers to several documents and papers related to PolyORB.
+This is free software; you can redistribute it and/or modify it under
+terms of the GNU General Public License as published by the Free Software
+Foundation; either version 3, or (at your option) any later version. This
+software is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively. If not, see
+<http://www.gnu.org/licenses/>.
+
+*PolyORB is maintained by AdaCore (email: sales@adacore.com)*
+
+This is the README file for PolyORB.
+
+The home page of the project is located at <https://github.com/AdaCore/PolyORB/>
 
 What is PolyORB?
 ----------------
@@ -39,9 +33,9 @@ and transparent construction of distributed applications.  A number
 of different standards exist for creating object-oriented distributed
 applications.  These standards define two things:
 
-    * the interface seen by the developer's applicative objects;
-    * the protocol used by the middleware environment to talk to other
-      nodes in the distributed application.
+* the interface seen by the developer's applicative objects;
+* the protocol used by the middleware environment to talk to other
+  nodes in the distributed application.
 
 Usually, middleware for one platform supports only one set of such interfaces,
 and cannot interoperate with other platforms.
@@ -80,45 +74,28 @@ process.
 Documentation overview
 ----------------------
 
-README      : This file, first instructions.
-INSTALL     : Detail PolyORB installation process.
-NEWS        : Detail updates between PolyORB's releases.
-              Includes listing of new features, fixed bugs and incompatible
-              changes in each release.
-FEATURES    : List PolyORB's features.
-src/ROADMAP : Overview of PolyORB source code.
-docs/*      : Documents describing PolyORB internals, including
-              PolyORB User's Guide.
+Documentation entry points can be found in the following files:
 
-Usage of PolyORB
-----------------
+Filename    | Contents
+------------|------------------------------
+README.md   | This file, first instructions.
+INSTALL     | Detail PolyORB installation process.
+FEATURES    | List PolyORB's features.
+src/ROADMAP | Overview of PolyORB source code.
+docs/       | Documents describing PolyORB internals, and sources for the PolyORB User's Guide.
 
-See the PolyORB User's Guide for more details on PolyORB usage.
+The PolyORB User's Guide is also available online at
+<https://docs.adacore.com/polyorb-docs/html/ug_contents.html>
 
 Bug reports
 -----------
 
-If you find a bug or would like to submit patches, please do so indicating
-the release you use. We accept patch files. To produce such a patch file,
-put your files in the PolyORB directory and our files in the directory
-PolyORB.orig, and use the following command:
+We gladly accept problem reports and patches from the community. Please
+submit them through through Github issues and pull requests.
 
-  diff --recursive --context PolyORB.orig PolyORB > patch_file
-
-If your diff version do not understand the --recursive or --context
-option, please use the GNU diffutils package which may be found on any
-GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
-
-Note that unified diff files (-u option of GNU diff) are also welcomed.
-
-Unsupported users may directly send their patches and bug report via
-e-mail at the address
-   polyorb-bugs@lists.adacore.com
-
-or seek community support through the public mailing list:
+You can also seek community support through the public mailing list:
    polyorb-users@lists.adacore.com
 
-Please use the Problem Report Form in docs/PROBLEM-REPORT-FORM.
 Please include the complete output of "polyorb-config --version"
 in any problem report.
 
@@ -132,7 +109,7 @@ The PoyORB testsuite uses GNATPython.
 
 To use it:
 
-git clone https://forge.open-do.org/anonscm/git/gnatpython/gnatpython.git
+    git clone https://github.com/Nikokrock/gnatpython
 
 Then install it in your python distribution (./setup.py install) or
 export PYTHONPATH=/path/to/gnatpython and compile
@@ -149,7 +126,7 @@ discussions about PolyORB among users.
 
 You can subscribe to this list and browse the archive at the URL:
 
-http://lists.adacore.com/mailman/listinfo/polyorb-users
+<http://lists.adacore.com/mailman/listinfo/polyorb-users>
 
 Contributors:
 -------------

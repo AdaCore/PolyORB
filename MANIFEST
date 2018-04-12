@@ -7,7 +7,7 @@ MANIFEST
 Makefile.common.in
 Makefile.common.project.in
 Makefile.in
-README
+README.md
 README.DSA
 VERSION
 acinclude.m4
