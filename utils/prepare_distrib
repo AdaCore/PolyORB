@@ -126,7 +126,7 @@ sh support/reconfig -w
 polyorb_version=`./configure --version | sed -n 's/^PolyORB configure //p'`
 echo "Setting version: ${polyorb_version}"
 
-for f in README VERSION; do
+for f in VERSION; do
   sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
 done
 
