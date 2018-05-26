@@ -660,6 +660,7 @@ package body Lexer is
          New_Token (T_Semi_Colon, ";");
          New_Token (T_Left_Brace, "{");
          New_Token (T_Right_Brace, "}");
+         New_Token (T_At, "@");
          New_Token (T_Colon, ":");
          New_Token (T_Comma, ",");
          New_Token (T_Colon_Colon, "::");
@@ -1544,6 +1545,31 @@ package body Lexer is
             when '}' =>
                Token_Location.Scan := Token_Location.Scan + 1;
                Token := T_Right_Brace;
+
+            when '@' =>
+               Token_Location.Scan := Token_Location.Scan + 1;
+               --  Currently, annotations are skipped.
+               --  They are not yet analyzed or stored.
+               if Is_Letter (Buffer (Token_Location.Scan)) then
+                  while Is_Letter (Buffer (Token_Location.Scan))
+                    or else Buffer (Token_Location.Scan) in '0' .. '9'
+                    or else Buffer (Token_Location.Scan) = '_'
+                  loop
+                     Token_Location.Scan := Token_Location.Scan + 1;
+                  end loop;
+                  Skip_Spaces;
+                  if Buffer (Token_Location.Scan) = '(' then
+                     while Buffer (Token_Location.Scan) /= EOF
+                       and then Buffer (Token_Location.Scan) /= ')' loop
+                        Token_Location.Scan := Token_Location.Scan + 1;
+                     end loop;
+                     if Buffer (Token_Location.Scan) = ')' then
+                        Token_Location.Scan := Token_Location.Scan + 1;
+                     end if;
+                  end if;
+               else
+                  Token := T_At;
+               end if;
 
             when ':' =>
                Token_Location.Scan := Token_Location.Scan + 1;
