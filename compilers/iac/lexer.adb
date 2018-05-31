@@ -1559,13 +1559,23 @@ package body Lexer is
                   end loop;
                   Skip_Spaces;
                   if Buffer (Token_Location.Scan) = '(' then
-                     while Buffer (Token_Location.Scan) /= EOF
-                       and then Buffer (Token_Location.Scan) /= ')' loop
-                        Token_Location.Scan := Token_Location.Scan + 1;
-                     end loop;
-                     if Buffer (Token_Location.Scan) = ')' then
-                        Token_Location.Scan := Token_Location.Scan + 1;
-                     end if;
+                     Token_Location.Scan := Token_Location.Scan + 1;
+                     declare
+                        Parentheses : Integer := 1;
+                     begin
+                        loop
+                           Scan_Token (Fatal => False);
+                           exit when Token = T_EOF;
+                           if Token = T_Left_Paren then
+                              Parentheses := Parentheses + 1;
+                           elsif Token = T_Right_Paren then
+                              exit when Parentheses <= 0;
+                              Parentheses := Parentheses - 1;
+                           else
+                              exit when Parentheses <= 0;
+                           end if;
+                        end loop;
+                     end;
                   end if;
                else
                   Token := T_At;
