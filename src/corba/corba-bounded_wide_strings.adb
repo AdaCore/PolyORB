@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 pragma Warnings (Off);
 with Ada.Strings.Wide_Superbounded;  --  Internal GNAT unit
 pragma Warnings (On);

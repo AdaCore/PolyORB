@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Event handlers associated with all transport access points and endpoints
 
 with PolyORB.Asynch_Ev;

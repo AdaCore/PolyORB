@@ -32,8 +32,6 @@
 
 --  PolyORB runtime configuration facility.
 
-pragma Ada_2005;
-
 with PolyORB.Utils;
 
 package PolyORB.Parameters is

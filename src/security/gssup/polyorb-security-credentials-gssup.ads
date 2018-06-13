@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Security.Exported_Names;
 with PolyORB.Types;
 

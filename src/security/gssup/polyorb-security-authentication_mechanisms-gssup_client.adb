@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Buffers;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;

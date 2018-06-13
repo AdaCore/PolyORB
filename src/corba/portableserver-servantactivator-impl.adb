@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package body PortableServer.ServantActivator.Impl is
 
    -----------------

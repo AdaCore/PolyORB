@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  TAG_POLICIES tagged component
 
 with PolyORB.Representations.CDR.Common;

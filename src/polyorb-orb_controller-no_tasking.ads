@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  No Tasking ORB Controller for PolyORB ORB main loop.
 
 --  This ORB Controller is dedicated to partition WITHOUT tasking, it

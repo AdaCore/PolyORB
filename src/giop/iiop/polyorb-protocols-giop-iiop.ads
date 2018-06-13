@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Protocols.GIOP.IIOP is
 
    type IIOP_Protocol is new GIOP_Protocol with private;

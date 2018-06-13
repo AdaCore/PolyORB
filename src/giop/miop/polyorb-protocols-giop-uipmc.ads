@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Protocols.GIOP.UIPMC is
 
    type UIPMC_Protocol is new GIOP_Protocol with private;

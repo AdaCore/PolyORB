@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Filters.Iface;

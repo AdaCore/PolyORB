@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Support package for CDR representation of char and strings for GIOP 1.0
 
 package PolyORB.Representations.CDR.GIOP_1_0 is

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Support for object method invocation protocols.
 
 with Ada.Tags;

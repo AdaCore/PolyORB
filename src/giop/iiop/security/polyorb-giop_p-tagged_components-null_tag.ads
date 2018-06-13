@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Used only as transport_mech in TAG_CSI_SEC_MECH_LIST tagged component.
 
 package PolyORB.GIOP_P.Tagged_Components.Null_Tag is

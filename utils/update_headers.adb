@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Calendar; use Ada.Calendar;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Command_Line;

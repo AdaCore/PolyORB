@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with CORBA.Object;
 with CORBA.Sequences.Unbounded;
 

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 

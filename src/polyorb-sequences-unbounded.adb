@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package body PolyORB.Sequences.Unbounded is
 
    Dummy_Element_Ptr : Element_Ptr;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of Threads under the Ravenscar profile.
 
 --  WAG:601

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Utils.Report;
 
 with PolyORB.Tasking.Threads;

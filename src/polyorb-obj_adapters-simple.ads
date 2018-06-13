@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Simple implementation of a PolyORB Object Adapter.
 
 with PolyORB.Tasking.Mutexes;

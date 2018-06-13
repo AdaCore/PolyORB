@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Types;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Sequences.Unbounded.Helper;

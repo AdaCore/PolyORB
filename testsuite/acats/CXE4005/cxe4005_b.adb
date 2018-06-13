@@ -143,7 +143,6 @@ begin  -- CXE4005_B
                                   Integer'Image (Test_Number));
   end;
 
-  
   -- Check that Program_Error is raised if the tag of the actual
   -- parameter identifies a tagged type declared in a normal package.
   -- E.4(18);6.0

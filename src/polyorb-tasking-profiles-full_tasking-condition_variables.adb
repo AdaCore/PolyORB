@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of condition variables under the Full_Tasking profile.
 
 with Ada.Unchecked_Deallocation;

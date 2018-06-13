@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of the POA Policy 'Single Thread'.
 
 --  Under this policy, upcalls made by a POA shall not be made concurrently.

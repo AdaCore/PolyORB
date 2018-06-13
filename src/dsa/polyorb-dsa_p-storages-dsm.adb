@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package body contains the full declaration of the concret type
 --  DSM_Manager. This is convenient because it allows to use non remote
 --  types in DSM_Manager record (Mutexes, Any), so only RACW primitives
@@ -46,8 +44,6 @@ pragma Ada_2005;
 --  So we track version numbers of variables, and ingnore invalidation
 --  requests that refer to previous version numbers of the variable than
 --  the local partition one.
-
-pragma Ada_2005;
 
 with Ada.Unchecked_Conversion;
 

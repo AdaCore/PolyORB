@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.GIOP;
 with PolyORB.Components;

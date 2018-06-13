@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  MAny message type.
 --
 --  A MAny message's payload is a PolyORB Any. It's an 'all purpose' message

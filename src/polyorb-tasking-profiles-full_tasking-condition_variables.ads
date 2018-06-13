@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of POSIX-like condition variables with full Ada
 --  tasking. More comments can be found at polyorb-tasking-condition_variables.
 

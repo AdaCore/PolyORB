@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with CORBA.Local;
 with CORBA.Policy;
 with CORBA.PolicyManager;

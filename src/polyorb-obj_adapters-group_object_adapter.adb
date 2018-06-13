@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Special Object Adapter to manage group servants
 
 with PolyORB.Binding_Data;

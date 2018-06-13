@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Code sets converters
 
 --  Each code set converter process conversion between native code set and

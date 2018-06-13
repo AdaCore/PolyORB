@@ -32,8 +32,6 @@
 
 --  Job management for ORB activities.
 
-pragma Ada_2005;
-
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Jobs is

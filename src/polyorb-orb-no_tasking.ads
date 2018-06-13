@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Tasking policy for the ORB core: 'No_Tasking'.
 
 package PolyORB.ORB.No_Tasking is

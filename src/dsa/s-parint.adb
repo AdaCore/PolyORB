@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Containers.Indefinite_Ordered_Maps;
 with Ada.Characters.Handling;
 with Ada.Finalization;

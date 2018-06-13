@@ -32,8 +32,6 @@
 
 --  Runnables with optional support for abortion
 
-pragma Ada_2005;
-
 with Ada.Tags.Generic_Dispatching_Constructor;
 
 with PolyORB.Tasking.Threads;

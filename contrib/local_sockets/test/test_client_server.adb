@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
-
 with LS_Setup;
 pragma Warnings (Off, LS_Setup);
 pragma Elaborate_All (LS_Setup);

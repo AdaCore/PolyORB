@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A dummy data representation method, just for show.
 
 with PolyORB.Buffers;

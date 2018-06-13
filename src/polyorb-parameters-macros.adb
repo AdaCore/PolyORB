@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with GNATCOLL.Templates;
 
 with PolyORB.Initialization;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Minimal_Servant;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Requests;

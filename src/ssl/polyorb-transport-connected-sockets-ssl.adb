@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Exceptions;
 with Ada.Streams;
 with System.Storage_Elements;

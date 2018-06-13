@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of POSIX-like mutexes with full Ada tasking.
 --  This variant uses GNAT-specific library facilities.
 

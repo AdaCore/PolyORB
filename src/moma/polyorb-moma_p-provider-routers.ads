@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A servant used for routing topic messages.
 
 with MOMA.Destinations;

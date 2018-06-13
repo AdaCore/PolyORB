@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Security.Transport_Mechanisms.TLS is
 
    type Client_TLS_Transport_Mechanism is

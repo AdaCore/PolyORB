@@ -32,8 +32,6 @@
 
 --  Miscellaneous utility subprograms
 
-pragma Ada_2005;
-
 with Ada.Streams;
 
 package PolyORB.Utils is

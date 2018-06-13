@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Binding_Data.GIOP.UIPMC;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.MIOP.MIOP_Out;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Log;
 
 package body PolyORB.Asynch_Ev.Sockets.SSL is

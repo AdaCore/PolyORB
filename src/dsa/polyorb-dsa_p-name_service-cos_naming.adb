@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Utils;
 with PolyORB.Log;
 with PolyORB.Services.Naming.NamingContext;

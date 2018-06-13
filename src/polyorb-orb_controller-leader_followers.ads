@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Leader/Followers ORB Controller for PolyORB ORB main loop.
 
 --  It is a tasking ORB Controller implementation, it supports:

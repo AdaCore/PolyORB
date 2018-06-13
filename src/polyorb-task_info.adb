@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package body PolyORB.Task_Info is
 
    procedure Increment (C : in out Natural);

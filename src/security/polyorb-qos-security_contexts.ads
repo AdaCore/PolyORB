@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Request Security Service Context
 
 with PolyORB.Security.Authorization_Elements;

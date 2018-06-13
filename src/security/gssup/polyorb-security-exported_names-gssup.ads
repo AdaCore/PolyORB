@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package provide support for GSSUP mechanism Exported Name
 
 package PolyORB.Security.Exported_Names.GSSUP is

@@ -35,10 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
-pragma Ada_2005;
-
 with Ada.Exceptions;
 
 with CORBA.Forward;

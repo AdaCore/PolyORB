@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package implements the actual mDNS servant. It stores a local list
 --  of entries representing the respective RCI/SP packages and upon reception
 --  of a request, looks up the requested package's informations and send them

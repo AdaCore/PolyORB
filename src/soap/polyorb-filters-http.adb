@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;

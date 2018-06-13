@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation Note: this package implements the recommendation of
 --  the OMG issue #3706, that add new primitives to CORBA::Object.
 --  See CORBA.Object package specifications for more details.

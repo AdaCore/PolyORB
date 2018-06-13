@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Security.Credentials.Compound is
 
    --  Compound Credentials

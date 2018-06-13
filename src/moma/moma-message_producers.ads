@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A Message_Producer object is the client view of the message sending
 --  process. It is the facade to all communication carried out with
 --  a message pool to send messages; it contains the stub to access

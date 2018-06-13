@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;

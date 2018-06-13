@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A dummy protocol, just for testing.
 
 with PolyORB.Buffers;

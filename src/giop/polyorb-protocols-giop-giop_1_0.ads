@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Protocols.GIOP.GIOP_1_0 is
 
 private

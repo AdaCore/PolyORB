@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
 
    type GSSUP_Client_Authentication_Mechanism is

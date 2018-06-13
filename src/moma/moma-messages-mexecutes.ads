@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  MExecute message type.
 --
 --  A MExecute message derives directly from MMap message.

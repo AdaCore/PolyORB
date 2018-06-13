@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  An asynchrous event source that is a set of SSL sockets.
 
 with PolyORB.TLS;

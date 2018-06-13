@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package is based on Tree_Reader from the XMLada package. It is used
 --  to create a DOM object using the SAX parser.
 

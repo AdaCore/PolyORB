@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with CORBA.Impl;
 
 package body CORBA.Value.Box.Helper is

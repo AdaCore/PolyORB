@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Note: this implementation does not actually support GIOP 1.1
 --  fragmentation: incoming fragmented messages won't be accepted, and
 --  outgoing messages will never be fragmented.

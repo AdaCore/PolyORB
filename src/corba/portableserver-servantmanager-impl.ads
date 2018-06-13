@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with CORBA.Local;
 
 package PortableServer.ServantManager.Impl is

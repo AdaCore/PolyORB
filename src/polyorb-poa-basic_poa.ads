@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Basic POA implementation.
 
 --  As an implementation package of abstract functions defined in

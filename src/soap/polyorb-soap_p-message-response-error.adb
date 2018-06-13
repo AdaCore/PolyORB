@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Any; use PolyORB.Any;
 with PolyORB.Types; use PolyORB.Types;
 

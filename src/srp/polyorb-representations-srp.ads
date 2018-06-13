@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A representation for our own Simple Request Protocol (SRP).
 
 with Ada.Streams;

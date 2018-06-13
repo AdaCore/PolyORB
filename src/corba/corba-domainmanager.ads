@@ -35,10 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
-pragma Ada_2005;
-
 with CORBA.Object;
 with CORBA.Policy;
 with CORBA.Sequences.Unbounded;

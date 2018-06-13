@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    type System_Id_Policy is new IdAssignmentPolicy with null record;

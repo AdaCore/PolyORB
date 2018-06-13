@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
 
    type Multiple_Id_Policy is new IdUniquenessPolicy with null record;

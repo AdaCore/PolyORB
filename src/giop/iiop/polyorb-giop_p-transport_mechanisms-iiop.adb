@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters.Slicers;

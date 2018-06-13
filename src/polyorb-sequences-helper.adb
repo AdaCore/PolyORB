@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Any conversion subprograms for sequences (both bounded and unbounded)
 
 with Ada.Unchecked_Deallocation;

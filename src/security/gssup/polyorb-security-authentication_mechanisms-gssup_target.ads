@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Types;
 
 package PolyORB.Security.Authentication_Mechanisms.GSSUP_Target is

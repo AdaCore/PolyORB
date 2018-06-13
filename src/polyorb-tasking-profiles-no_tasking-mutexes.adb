@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of POSIX-like mutexes under the No_Tasking profile.
 
 with PolyORB.Initialization;

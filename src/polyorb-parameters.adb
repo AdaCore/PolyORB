@@ -32,8 +32,6 @@
 
 --  PolyORB runtime configuration facility
 
-pragma Ada_2005;
-
 with PolyORB.Constants;
 with PolyORB.Initialization;
 with PolyORB.Utils.Chained_Lists;

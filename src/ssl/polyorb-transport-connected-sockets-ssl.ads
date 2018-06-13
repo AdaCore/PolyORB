@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  SSL transport service access points and transport endpoints.
 
 with PolyORB.SSL;

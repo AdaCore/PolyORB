@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Abstraction types for Ravenscar tasking.
 
 --  Under the Ravenscar profile, "Threads" are associated with an

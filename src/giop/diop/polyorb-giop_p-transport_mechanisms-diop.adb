@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Binding_Data.GIOP.DIOP;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters;

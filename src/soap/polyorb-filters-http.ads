@@ -33,8 +33,6 @@
 --  HTTP protocol implementation (as a filter so higher-level protocol
 --  engines can be plugged on it.)
 
-pragma Ada_2005;
-
 with Ada.Streams;
 
 with PolyORB.Buffers;

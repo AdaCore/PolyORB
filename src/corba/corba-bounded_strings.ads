@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  As defined by the IDL-to-Ada mapping, this package has the same
 --  specification and semantic as the
 --  Ada.Strings.Bounded.Generic_Bounded_Length package

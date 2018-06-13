@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Sockets;
 

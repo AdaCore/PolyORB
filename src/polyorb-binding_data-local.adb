@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package body PolyORB.Binding_Data.Local is
 
    use PolyORB.Objects;

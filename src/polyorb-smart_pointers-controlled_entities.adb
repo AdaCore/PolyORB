@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package body PolyORB.Smart_Pointers.Controlled_Entities is
 
    --------------

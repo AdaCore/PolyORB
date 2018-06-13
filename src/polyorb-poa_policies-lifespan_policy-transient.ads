@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    type Transient_Policy is new LifespanPolicy with null record;

@@ -32,8 +32,6 @@
 
 --  Root type for concrete object implementations (servants)
 
-pragma Ada_2005;
-
 with PolyORB.Annotations;
 with PolyORB.Components;
 with PolyORB.Requests;

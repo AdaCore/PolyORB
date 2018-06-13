@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A POA configuration for the Proxy-objects-subPOA.
 
 with PolyORB.POA_Policies;

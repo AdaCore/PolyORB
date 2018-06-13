@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Base types for the Portable Object Adapter.
 
 with Ada.Unchecked_Deallocation;

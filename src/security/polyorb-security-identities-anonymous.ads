@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Security.Identities.Anonymous is
 
    type Anonymous_Identity_Type is new Identity_Type with null record;

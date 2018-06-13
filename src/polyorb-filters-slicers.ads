@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A filter that slices a stream into a set of known-length messages.
 
 with Ada.Streams;

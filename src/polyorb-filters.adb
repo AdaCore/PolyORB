@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A communication filter (a transport Data_Unit handler/forwarder).
 
 with Ada.Tags;

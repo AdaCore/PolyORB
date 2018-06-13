@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Requests;
 with PolyORB.Servants;
 with PolyORB.Smart_Pointers;

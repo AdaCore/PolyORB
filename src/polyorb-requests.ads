@@ -32,8 +32,6 @@
 
 --  The Request object
 
-pragma Ada_2005;
-
 with Ada.Finalization;
 
 with PolyORB.Annotations;

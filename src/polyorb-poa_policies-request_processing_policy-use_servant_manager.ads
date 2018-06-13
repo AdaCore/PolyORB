@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager is
 
    type Use_Servant_Manager_Policy is

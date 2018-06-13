@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Generic chained list
 
 package body PolyORB.Utils.Strings.Lists is

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    type No_Activation_Policy is new ImplicitActivationPolicy with null record;

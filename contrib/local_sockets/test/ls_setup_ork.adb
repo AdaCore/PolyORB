@@ -70,7 +70,6 @@ with PolyORB.Binding_Data.GIOP.Local_Sockets;
 pragma Elaborate_All (PolyORB.Binding_Data.GIOP.Local_Sockets);
 pragma Warnings (Off, PolyORB.Binding_Data.GIOP.Local_Sockets);
 
-
 with PolyORB.Binding_Data.GIOP;
 pragma Elaborate_All (PolyORB.Binding_Data.GIOP);
 pragma Warnings (Off, PolyORB.Binding_Data.GIOP);

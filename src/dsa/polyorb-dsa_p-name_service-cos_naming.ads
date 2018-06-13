@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package represents the CORBA COS Naming context, that uses the
 --  concept of a centralized name server.
 

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Strings.Fixed;
 
 with PolyORB.Binding_Data.GIOP.IIOP;

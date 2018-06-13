@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  TAG_ALTERNATE_IIOP_ADDRESS tagged component
 
 with PolyORB.Utils.Sockets;

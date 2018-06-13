@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Abstract transport service access points and transport endpoints.
 
 with Ada.Streams;

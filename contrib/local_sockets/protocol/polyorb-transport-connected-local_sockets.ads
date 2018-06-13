@@ -49,8 +49,6 @@ package PolyORB.Transport.Connected.Local_Sockets is
    --  transport service access point as a listening stream-oriented
    --  socket.
 
-
-
    procedure Create
      (SAP     : in out Local_Socket_Access_Point;
       Socket  : Local_Socket_Type;

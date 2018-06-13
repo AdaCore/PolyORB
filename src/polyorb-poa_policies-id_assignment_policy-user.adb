@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Object_Maps.User;

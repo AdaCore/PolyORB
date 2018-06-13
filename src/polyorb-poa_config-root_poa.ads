@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A POA configuration corresponding to CORBA RootPOA policies.
 
 package PolyORB.POA_Config.Root_POA is
