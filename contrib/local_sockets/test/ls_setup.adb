@@ -39,7 +39,6 @@ with PolyORB.Log.Stderr;
 pragma Warnings (Off, PolyORB.Log.Stderr);
 pragma Elaborate_All (PolyORB.Log.Stderr);
 
-
 with PolyORB.ORB.Thread_Pool;
 pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
 pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
@@ -71,7 +70,6 @@ pragma Warnings (Off, PolyORB.Local_Sockets);
 with PolyORB.Binding_Data.GIOP.Local_Sockets;
 pragma Elaborate_All (PolyORB.Binding_Data.GIOP.Local_Sockets);
 pragma Warnings (Off, PolyORB.Binding_Data.GIOP.Local_Sockets);
-
 
 with PolyORB.Binding_Data.GIOP;
 pragma Elaborate_All (PolyORB.Binding_Data.GIOP);

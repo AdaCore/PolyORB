@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Half-Sync/Half-Async ORB Controller for PolyORB ORB main loop
 
 --  It is a tasking ORB Controller implementation, it supports

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 pragma Warnings (Off);
 --  System.DSA_Types is an internal GNAT unit
 with System.DSA_Types;

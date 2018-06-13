@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of PolyORB.Tasking.Threads for the No_Tasking profile.
 
 with System;

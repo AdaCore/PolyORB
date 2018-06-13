@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A protocol similar to the HTTP protocol
 --  SRP : Simple Request Protocol (from M. Friess report)
 

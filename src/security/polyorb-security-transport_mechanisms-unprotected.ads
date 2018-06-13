@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Security.Transport_Mechanisms.Unprotected is
 
    type Unprotected_Transport_Mechanism is

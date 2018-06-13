@@ -32,8 +32,6 @@
 
 --  Implementation of the 'Single thread' POA Policy
 
-pragma Ada_2005;
-
 with PolyORB.Components;
 with PolyORB.Requests;
 

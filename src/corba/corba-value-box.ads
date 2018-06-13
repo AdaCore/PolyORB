@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 generic
    type Boxed is private;
    type Boxed_Access is access all Boxed;

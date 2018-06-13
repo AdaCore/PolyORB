@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Security.Types;
 
 package PolyORB.Security.Exported_Names.Unknown is

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package provides glue codee between PolyORB's
 --  ServantLocator and CORBA specific ServantLocator.
 

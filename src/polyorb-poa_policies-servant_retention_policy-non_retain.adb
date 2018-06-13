@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Tags;
 
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;

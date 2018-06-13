@@ -32,8 +32,6 @@
 
 --  Abortable object using ATC
 
-pragma Ada_2005;
-
 package PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
 
    pragma Elaborate_Body;

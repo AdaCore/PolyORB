@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Types;

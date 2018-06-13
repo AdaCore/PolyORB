@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Security.Authorization_Elements.Unknown is

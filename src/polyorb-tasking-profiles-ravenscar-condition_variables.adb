@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of synchronisation objects under the ravenscar profile
 
 with PolyORB.Log;

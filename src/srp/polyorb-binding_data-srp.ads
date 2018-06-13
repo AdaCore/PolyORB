@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Binding data for the Simple Request Protocol over TCP
 
 with PolyORB.Utils.Sockets;

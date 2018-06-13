@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Workers ORB Controller for PolyORB ORB main loop.
 
 --  It is an all-purpose ORB Controller implementation, it supports:

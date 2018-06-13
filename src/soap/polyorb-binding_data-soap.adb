@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Binding data concrete implementation for SOAP over HTTP.
 
 with Ada.Streams;

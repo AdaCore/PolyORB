@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This unit provides generic helper routines for fixed point numeric types
 
 with Ada.Streams;

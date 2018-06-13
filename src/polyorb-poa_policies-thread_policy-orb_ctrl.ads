@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of the 'ORB Control' POA Policy.
 
 package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is

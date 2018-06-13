@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant is
 
    type Use_Default_Servant_Policy is

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  TAG_CODE_SETS tagged component
 
 with PolyORB.GIOP_P.Code_Sets;

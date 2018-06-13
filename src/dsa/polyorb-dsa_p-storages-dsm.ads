@@ -43,8 +43,6 @@
 --  a shared variable state, like access rigths, probable owner, read
 --  only copies node refenreces, requiered to running the algorithm.
 
-pragma Ada_2005;
-
 with PolyORB.Utils.Dynamic_Tables;
 
 package PolyORB.DSA_P.Storages.DSM is

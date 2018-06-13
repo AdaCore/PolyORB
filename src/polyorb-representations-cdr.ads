@@ -36,8 +36,6 @@
 --    Version 3.0", Open Management Group
 --    (http://www.omg.org/).
 
-pragma Ada_2005;
-
 with PolyORB.Types;
 with PolyORB.Utils.Dynamic_Tables;
 

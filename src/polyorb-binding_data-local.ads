@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Profile type for objects registered with the local ORB
 
 with PolyORB.Objects;

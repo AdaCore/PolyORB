@@ -32,8 +32,6 @@
 
 --  Connections management
 
-pragma Ada_2005;
-
 package PolyORB.DSA_P.Connections is
 
    generic

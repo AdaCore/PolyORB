@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with CORBA;
 
 package body PortableServer.ServantManager.Impl is

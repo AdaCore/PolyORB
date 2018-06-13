@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Base POA Manager concrete implementation.
 
 with PolyORB.Requests;

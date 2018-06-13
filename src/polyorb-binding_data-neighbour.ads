@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Neighbour profiles are used to reach partitions for which a local client
 --  binding object linking to them exists, which we call the target binding
 --  object. Neighbour profiles allow us to make requests to remote object in

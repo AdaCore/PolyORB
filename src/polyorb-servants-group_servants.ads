@@ -32,8 +32,6 @@
 
 --  A servant that manages a group of servants, and acts as a proxy for them
 
-pragma Ada_2005;
-
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Errors;

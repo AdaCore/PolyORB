@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  MMap message type.
 --
 --  A MMap message contains a sequence of named value, similar to a bag

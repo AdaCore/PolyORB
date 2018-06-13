@@ -32,8 +32,6 @@
 
 --  Utility routines to set up TCP listening sockets
 
-pragma Ada_2005;
-
 with Ada.Exceptions;
 
 with PolyORB.Log;

@@ -30,10 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
-pragma Ada_2005;
-
 with Ada.Streams;
 with Ada.Streams.Stream_IO;
 

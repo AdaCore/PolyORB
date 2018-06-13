@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Jobs;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;

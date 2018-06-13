@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  A POA configuration corresponding to minimumCORBA policies
 
 with PolyORB.POA_Policies;

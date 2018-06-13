@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Binding data concrete implementation for MIOP
 
 with PolyORB.Binding_Data.GIOP.INET;

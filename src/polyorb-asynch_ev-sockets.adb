@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  An asynchronous event source that is a set of socket descriptors.
 
 with Ada.Exceptions;

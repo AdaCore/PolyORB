@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.GIOP_P.Transport_Mechanisms;
 with PolyORB.Protocols.GIOP;

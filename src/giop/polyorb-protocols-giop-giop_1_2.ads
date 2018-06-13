@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.QoS.Code_Sets;

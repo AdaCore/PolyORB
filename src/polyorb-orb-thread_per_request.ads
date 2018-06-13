@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.ORB.Thread_Per_Request is
 
    pragma Elaborate_Body;

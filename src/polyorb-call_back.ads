@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Call back component.
 --
 --  A Call back component act as a request 'bouncer'. It is associated to a

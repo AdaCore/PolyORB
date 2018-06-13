@@ -112,7 +112,6 @@ package RTCORBA is
    --  Implementation Note: this is equivalent to
    --  type PriorityModel is (CLIENT_PROPAGATED, SERVER_DECLARED);
 
-
    PriorityModel_Repository_Id : constant PolyORB.Std.String
      := "IDL:omg.org/RTCORBA/PriorityModel:1.0";
 

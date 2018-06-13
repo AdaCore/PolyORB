@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.DSA_P.Name_Service.None is
 
    type None_Name_Server is new Name_Server with null record;

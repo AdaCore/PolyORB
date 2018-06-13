@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 generic
    with function Element_From_Any (Item : CORBA.Any) return Boxed;
    with function Element_To_Any   (Item : Boxed) return CORBA.Any;

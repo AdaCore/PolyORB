@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Tags;
 with PolyORB.Asynch_Ev;
 with PolyORB.Initialization;

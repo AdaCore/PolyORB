@@ -32,8 +32,6 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
-pragma Ada_2005;
-
 with PolyORB.Utils.Ilists;
 
 generic

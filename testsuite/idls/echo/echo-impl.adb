@@ -35,7 +35,6 @@ pragma Warnings (Off, Echo.Skel);
 
 package body Echo.Impl is
 
-
    function echoString
      (Self : access Object;
       Mesg : in CORBA.String)

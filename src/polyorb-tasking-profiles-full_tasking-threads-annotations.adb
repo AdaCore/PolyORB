@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Task_Attributes;
 with Ada.Unchecked_Deallocation;
 

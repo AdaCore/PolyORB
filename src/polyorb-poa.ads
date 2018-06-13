@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Abstract interface for the POA Object Adapter
 
 --  This package provides a higher level abstraction (the POA) of a

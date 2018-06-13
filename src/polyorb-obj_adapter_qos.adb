@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Annotations;
 
 package body PolyORB.Obj_Adapter_QoS is

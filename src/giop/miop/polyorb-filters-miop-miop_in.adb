@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  MIOP filter for data which arrive from network to ORB
 --  this filter MUST be under a GIOP Session
 

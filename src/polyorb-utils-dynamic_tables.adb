@@ -33,8 +33,6 @@
 --  This package provides one-dimensional, variable-size arrays support.
 --  See the package specification for more details.
 
-pragma Ada_2005;
-
 with Ada.Unchecked_Deallocation;
 with System;
 

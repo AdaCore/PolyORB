@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Binding object: A protocol stacks considered as a reference-counted entity
 
 with PolyORB.Errors;

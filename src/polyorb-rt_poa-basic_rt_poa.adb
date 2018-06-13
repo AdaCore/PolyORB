@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Log;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.Utils.Chained_Lists;

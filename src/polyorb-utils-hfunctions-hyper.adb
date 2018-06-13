@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Utils.Random;
 
 package body PolyORB.Utils.HFunctions.Hyper is

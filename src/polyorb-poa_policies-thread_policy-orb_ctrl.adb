@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of the 'ORB Control' POA Policy.
 
 --  Under this policy, the ORB is responsible for the creation, management,

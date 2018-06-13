@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Security.Exported_Names;
 
 package PolyORB.Security.Identities.Principal_Name is

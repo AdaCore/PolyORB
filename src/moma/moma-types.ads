@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package provides definition of all MOMA types.
 
 with Ada.Strings.Unbounded;

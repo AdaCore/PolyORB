@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Utils.Sockets;
 
 package PolyORB.GIOP_P.Transport_Mechanisms.DIOP is

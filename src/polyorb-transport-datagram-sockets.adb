@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Datagram Socket Access Point and End Point to receive data from network
 
 with Ada.Exceptions;

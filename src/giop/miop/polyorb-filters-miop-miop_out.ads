@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  MIOP filter for data which arrive from a GIOP Session
 
 with PolyORB.Buffers;

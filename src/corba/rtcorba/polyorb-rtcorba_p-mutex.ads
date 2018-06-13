@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Mutexes;
 

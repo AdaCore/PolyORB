@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Common definitions for all socket-based access points
 
 with GNAT.Regpat;

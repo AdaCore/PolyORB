@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package body PolyORB.Utils.HFunctions.Mul is
 
    Default_Prime : constant := 1_777_771;

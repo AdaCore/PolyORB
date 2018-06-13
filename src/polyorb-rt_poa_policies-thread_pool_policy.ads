@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Errors;
 with PolyORB.Lanes;
 with PolyORB.POA_Policies;

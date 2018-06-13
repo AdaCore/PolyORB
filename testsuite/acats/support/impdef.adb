@@ -28,7 +28,6 @@
 
      --==================================================================--
 
- 
 package body ImpDef is
  
    -- NOTE: These are example bodies.  It is expected that implementors

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  MByte message type.
 --
 --  A MByte message's payload is a basic type among: Boolean, Byte, Char,

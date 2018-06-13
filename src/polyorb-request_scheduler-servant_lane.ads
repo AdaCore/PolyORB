@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.Request_Scheduler.Servant_Lane is
 
    type Request_Scheduler_Servant_Lane is new Request_Scheduler with private;

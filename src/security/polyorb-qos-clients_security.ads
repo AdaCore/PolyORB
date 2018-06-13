@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Client Side CORBA CSI Version 2 Compound Mechanism Configuration
 
 with PolyORB.Annotations;

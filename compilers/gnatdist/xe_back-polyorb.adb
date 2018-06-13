@@ -317,7 +317,6 @@ package body XE_Back.PolyORB is
       Set_Output  (File);
 
       Write_Warnings_Pragmas;
-      Write_Line  ("pragma Ada_2005;");
 
       --  First drag platform the specific base setup
 

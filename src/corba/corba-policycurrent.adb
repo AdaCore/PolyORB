@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Annotations;
 with PolyORB.Initial_References;
 with PolyORB.CORBA_P.Policy_Management;

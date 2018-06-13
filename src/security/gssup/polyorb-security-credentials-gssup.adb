@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Initialization;
 with PolyORB.Parameters;
 with PolyORB.Security.Exported_Names.GSSUP;

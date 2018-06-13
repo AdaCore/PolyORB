@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Security.Credentials.Compound;
 with PolyORB.Security.Credentials.TLS;
 with PolyORB.Transport.Connected.Sockets.TLS;

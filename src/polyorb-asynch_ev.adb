@@ -32,8 +32,6 @@
 
 --  Abstract data type for an asynchrous event source.
 
-pragma Ada_2005;
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Actual implementation of the Message_Producer object. It is
 --  derived from PolyORB's Minimal_Servant. This package contains
 --  Message_Producer skeleton and implementation subroutines. By

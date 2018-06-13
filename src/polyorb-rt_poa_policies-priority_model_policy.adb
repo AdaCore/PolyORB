@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Annotations;
 
 package body PolyORB.RT_POA_Policies.Priority_Model_Policy is

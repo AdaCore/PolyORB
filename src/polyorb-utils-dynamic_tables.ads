@@ -50,8 +50,6 @@
 --  This is a derived version of GNAT.Dynamic_Table, simplified in order
 --  to be preelaborable.
 
-pragma Ada_2005;
-
 generic
    type Table_Component_Type is private;
    type Table_Index_Type     is range <>;

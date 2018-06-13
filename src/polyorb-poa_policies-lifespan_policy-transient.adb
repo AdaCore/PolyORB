@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.POA;
 
 package body PolyORB.POA_Policies.Lifespan_Policy.Transient is

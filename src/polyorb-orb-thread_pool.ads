@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of thread pool architecture
 
 package PolyORB.ORB.Thread_Pool is

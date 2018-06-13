@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Implementation of the 'Main thread' POA Policy.
 
 --  Under this policy, requests to *all* main-thread POAs are

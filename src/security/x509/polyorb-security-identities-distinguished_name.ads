@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.X509;
 
 package PolyORB.Security.Identities.Distinguished_Name is

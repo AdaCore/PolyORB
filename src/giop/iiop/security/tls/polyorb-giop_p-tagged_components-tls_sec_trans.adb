@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List;
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;

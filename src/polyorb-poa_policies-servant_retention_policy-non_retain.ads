@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 package PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    type Non_Retain_Policy is new ServantRetentionPolicy with null record;

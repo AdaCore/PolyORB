@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  TAG_CSI_SEC_MECH_LIST Tagged Component
 
 with PolyORB.ASN1;

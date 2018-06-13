@@ -43,7 +43,6 @@ package PolyORB.Local_Sockets is
    --  GNAT.Sockets. The communications are simulated by some
    --  Ravenscar compilant synchronization primitives offered by PolyORB.
 
-
    Channel_Number : constant Natural := 10;
 
    procedure Initialize;

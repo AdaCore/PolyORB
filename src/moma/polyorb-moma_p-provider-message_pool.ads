@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  Actual implementation of the Message_Pool object. It is derived
 --  from PolyORB's Minimal_Servant. This package contains Message_Pool
 --  skeleton and implementation subroutines.

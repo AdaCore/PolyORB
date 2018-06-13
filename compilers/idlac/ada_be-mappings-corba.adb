@@ -26,8 +26,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  The CORBA personality IDL mapping.
 
 with Idlac_Errors;                  use Idlac_Errors;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package provide an implementation for base types for tasking
 --  using full Ada tasking, yet it does not allow for dynamic priority
 --  modification of a running thread. For all comments, see

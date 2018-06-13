@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Security.Exported_Names.Unknown is

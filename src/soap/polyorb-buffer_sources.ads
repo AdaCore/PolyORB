@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  An XML/Ada input source type based on PolyORB buffers.
 
 with PolyORB.Buffers;

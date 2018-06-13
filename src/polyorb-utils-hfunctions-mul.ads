@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 --  This package provides a simple class of hashing functions for strings.
 
 --  Hash_Mul computes for string S = (Si)i the sum of the elements

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PolyORB.Requests;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;

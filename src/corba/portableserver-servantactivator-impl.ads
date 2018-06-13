@@ -35,8 +35,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
-
 with PortableServer.ServantManager.Impl;
 
 package PortableServer.ServantActivator.Impl is
