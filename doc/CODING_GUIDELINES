@@ -42,7 +42,7 @@ This should be clearly indicated in package name and source code.
 The code shall not produce warnings when compiled with -gnatwa -gnatyg.
 Any use of pragma Warnings (Off) shall be documented by a comment.
 
-Usage of Ada 2005 features is restricted as follows:
+Usage of post-Ada 95 features is restricted as follows:
 
   * The following Ada 2005 features are allowed:
 
@@ -54,12 +54,13 @@ Usage of Ada 2005 features is restricted as follows:
      - use of "overriding" and "not overriding" indicators
      - abstract interfaces
 
-  * All other Ada 2005 features are prohibited. In particular, the code must
-    be compatible with application components using Ada 95 and Ada 2005 alike.
-    Any unit containing an Ada 2005 specific construct must have a pragma
-    Ada_2005.
- 
   * No Ada 2012 feature is permitted.
+
+  * All other post-Ada 95 features are prohibited. In particular, the code must
+    be compatible with application components using Ada 95, Ada 2005, or
+    Ada 2012. Any unit containing a post-Ada 95 construct must have a pragma
+    Ada_2012. (Note that pragma Ada 2005 cannot be used, as it is no longer
+    supported by GNAT Community releases).
 
   * In addition to the restrictions above, there is a general requirement
     that PolyORB can be compiled with any GNAT version that is listed as

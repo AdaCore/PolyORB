@@ -32,7 +32,7 @@
 
 --  This package implements the multicast DNS unit discovery for DSA
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.DSA_P.Name_Service;
 with PolyORB.POA_Policies;

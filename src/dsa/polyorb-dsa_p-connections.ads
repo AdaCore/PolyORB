@@ -32,7 +32,7 @@
 
 --  Connections management
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 package PolyORB.DSA_P.Connections is
 

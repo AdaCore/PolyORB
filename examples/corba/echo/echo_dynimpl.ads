@@ -26,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Implementation of a dynamic servant, using the Dynamic Skeleton
 --  Interface (DSI).

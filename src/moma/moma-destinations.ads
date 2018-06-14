@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  A Destination contains data to reference an object to which messages
 --  can be sent, or from which messages can be retrieved.

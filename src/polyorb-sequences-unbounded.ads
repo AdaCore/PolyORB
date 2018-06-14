@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  This package provides the definitions required by the IDL-to-Ada
 --  mapping specification for unbounded sequences. This package is

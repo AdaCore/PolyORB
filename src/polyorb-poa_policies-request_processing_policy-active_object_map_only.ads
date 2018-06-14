@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 package
   PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only

@@ -32,7 +32,7 @@
 
 --  Root type for concrete object implementations (servants)
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Annotations;
 with PolyORB.Components;

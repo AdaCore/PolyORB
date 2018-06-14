@@ -32,7 +32,7 @@
 
 --  References on object exported by the ORB.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;

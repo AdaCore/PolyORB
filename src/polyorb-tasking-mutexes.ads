@@ -35,7 +35,7 @@
 --  A complete implementation of this package is provided for all
 --  tasking profiles.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with Ada.Finalization;
 

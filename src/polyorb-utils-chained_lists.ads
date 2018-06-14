@@ -32,7 +32,7 @@
 
 --  Generic chained list of nonlimited values with dynamic allocation
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Utils.Ilists;
 

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with Ada.Task_Attributes;
 with Ada.Unchecked_Deallocation;

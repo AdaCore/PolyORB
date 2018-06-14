@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Neighbour profiles are used to reach partitions for which a local client
 --  binding object linking to them exists, which we call the target binding

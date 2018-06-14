@@ -33,7 +33,7 @@
 --  Dummy placeholder body, replaced by a partition-specific one by the
 --  partitioning tool.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 package body PolyORB.Partition_Elaboration is
 

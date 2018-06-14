@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Notes: TLS credentials are usually useful at both accepting and
 --  invocation credentials. But, supported functionality are very

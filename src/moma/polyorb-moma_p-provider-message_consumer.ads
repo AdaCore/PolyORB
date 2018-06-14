@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Actual implementation of the Message_Consumer object. It is
 --  derived from PolyORB's Minimal_Servant. This package contains

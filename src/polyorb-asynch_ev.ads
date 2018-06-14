@@ -32,7 +32,7 @@
 
 --  Abstract data type for an asynchrous event source
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Jobs;
 

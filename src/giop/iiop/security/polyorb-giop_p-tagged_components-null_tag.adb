@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Binding_Data.GIOP;
 with PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List;

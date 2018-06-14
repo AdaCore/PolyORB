@@ -32,7 +32,7 @@
 
 --  Abortable object using ATC
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 package PolyORB.Tasking.Profiles.Full_Tasking_ATC.Abortables is
 

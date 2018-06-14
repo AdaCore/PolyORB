@@ -32,7 +32,7 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Utils.Ilists;
 

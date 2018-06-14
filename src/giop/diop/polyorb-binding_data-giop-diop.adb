@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.GIOP_P.Transport_Mechanisms.DIOP;

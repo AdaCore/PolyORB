@@ -32,7 +32,7 @@
 
 --  Job management for ORB activities.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Utils.Chained_Lists;
 

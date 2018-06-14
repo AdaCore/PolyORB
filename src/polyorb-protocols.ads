@@ -32,7 +32,7 @@
 
 --  Support for object method invocation protocols
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with Ada.Streams;
 

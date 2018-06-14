@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  This package provide an implementation for base types for tasking
 --  using full Ada tasking, yet it does not allow for dynamic priority
