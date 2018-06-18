@@ -63,6 +63,7 @@ idl07053/tin.idl:idl_errors
 #iac003/tin.idl
 #iac004/tin.idl
 #iac005/tin.idl
+annapp01/tin.idl:idl_frontend
 # Tests from vsorb
 test001/tin.idl:idl_frontend
 test002/tin.idl:idl_frontend

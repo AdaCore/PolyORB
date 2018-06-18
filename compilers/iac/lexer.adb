@@ -1548,38 +1548,7 @@ package body Lexer is
 
             when '@' =>
                Token_Location.Scan := Token_Location.Scan + 1;
-               --  Currently, annotations are skipped.
-               --  They are not yet analyzed or stored.
-               if Is_Letter (Buffer (Token_Location.Scan)) then
-                  while Is_Letter (Buffer (Token_Location.Scan))
-                    or else Buffer (Token_Location.Scan) in '0' .. '9'
-                    or else Buffer (Token_Location.Scan) = '_'
-                  loop
-                     Token_Location.Scan := Token_Location.Scan + 1;
-                  end loop;
-                  Skip_Spaces;
-                  if Buffer (Token_Location.Scan) = '(' then
-                     Token_Location.Scan := Token_Location.Scan + 1;
-                     declare
-                        Parentheses : Integer := 1;
-                     begin
-                        loop
-                           Scan_Token (Fatal => False);
-                           exit when Token = T_EOF;
-                           if Token = T_Left_Paren then
-                              Parentheses := Parentheses + 1;
-                           elsif Token = T_Right_Paren then
-                              exit when Parentheses <= 0;
-                              Parentheses := Parentheses - 1;
-                           else
-                              exit when Parentheses <= 0;
-                           end if;
-                        end loop;
-                     end;
-                  end if;
-               else
-                  Token := T_At;
-               end if;
+               Token := T_At;
 
             when ':' =>
                Token_Location.Scan := Token_Location.Scan + 1;
