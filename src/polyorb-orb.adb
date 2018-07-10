@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2018, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1082,6 +1082,9 @@ package body PolyORB.ORB is
                Set_Exception (Req.all, Error);
                Catch (Error);
 
+               --  If binding failed, Surrogate should be unset
+
+               pragma Assert (Req.Surrogate = null);
                Emit_No_Reply (Req.Requesting_Component,
                               Servants.Iface.Executed_Request'(Req => Req));
                return;

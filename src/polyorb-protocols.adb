@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2018, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -245,15 +245,23 @@ package body PolyORB.Protocols is
                   Protocols.Iface.Flush'(Message with null record));
             end if;
 
+            --  Send a reply if one is expected (per sync scope) and the
+            --  request was completed (i.e. not aborted). Note that for
+            --  a Sync_With_Server request, the ORB normally generates an
+            --  Acknowledge_Request after the servant has been located and
+            --  prior to making the upcall, but it can also generate an
+            --  Executed_Request to return an exception in the case where
+            --  servant location failed (denoted by Surrogate = null).
+
             if not Req.Aborted
                  and then
                (Is_Set (Sync_With_Target, Req.Req_Flags)
                   or else
-                Is_Set (Sync_Call_Back,   Req.Req_Flags))
+                Is_Set (Sync_Call_Back, Req.Req_Flags)
+                  or else
+                (Is_Set (Sync_With_Server, Req.Req_Flags)
+                   and then Req.Surrogate = null))
             then
-               --  Send a reply if one is expected (per sync scope) and the
-               --  request was completed (i.e. not aborted).
-
                Send_Reply (Session_Access (Sess), Req);
             end if;
 
