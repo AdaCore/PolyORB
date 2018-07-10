@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  This package body contains the full declaration of the concret type
 --  DSM_Manager. This is convenient because it allows to use non remote
@@ -47,7 +47,7 @@ pragma Ada_2005;
 --  requests that refer to previous version numbers of the variable than
 --  the local partition one.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with Ada.Unchecked_Conversion;
 

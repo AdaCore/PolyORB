@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with Ada.IO_Exceptions;
 with Ada.Unchecked_Conversion;

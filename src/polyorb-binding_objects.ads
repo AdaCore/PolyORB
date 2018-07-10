@@ -32,7 +32,7 @@
 
 --  Binding object: protocol stack seen globally as a reference-counted entity
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;

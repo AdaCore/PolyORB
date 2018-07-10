@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  A Minimal_Servant is servant independant from any application
 --  personalities. It allows the creation of servants on top of PolyORB's

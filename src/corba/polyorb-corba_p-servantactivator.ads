@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  This package provides glue codee between PolyORB's
 --  ServantActivator and CORBA specific ServantActivator.

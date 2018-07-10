@@ -35,7 +35,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with CORBA.AbstractBase;
 with PolyORB.Any.NVList;

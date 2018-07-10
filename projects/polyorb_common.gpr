@@ -62,7 +62,7 @@ project PolyORB_Common is
    package Compiler is
 
       Base_Ada_Compiler_Switches :=
-        ("-gnat05",           --  Ada 2005 mode
+        ("-gnat12",           --  Ada 2012 mode
          "-gnati1",           --  Full ISO 8859-1 character set allowed in
                               --  source code (for generated CORBA stubs)
          "-gnatf",            --  Full compiler error messages

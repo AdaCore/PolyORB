@@ -43,7 +43,7 @@
 --  a shared variable state, like access rigths, probable owner, read
 --  only copies node refenreces, requiered to running the algorithm.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Utils.Dynamic_Tables;
 

@@ -35,7 +35,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  As defined by the IDL-to-Ada mapping, this package has the same
 --  specification and semantic as the

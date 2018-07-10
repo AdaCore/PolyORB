@@ -32,7 +32,7 @@
 
 --  Setup socket for UDNS
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Binding_Data.DNS.UDNS;
 with PolyORB.Filters;

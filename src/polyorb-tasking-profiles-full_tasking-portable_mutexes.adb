@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Implementation of mutexes under the Full_Tasking profile.
 --  This is a variant that uses only standard Ada constructs. It is not

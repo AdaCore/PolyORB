@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Implementation of POSIX-like condition variables under the Ravenscar
 --  profile. For more details see PolyORB.Tasking.Condition_Variables

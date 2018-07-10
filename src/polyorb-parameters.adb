@@ -32,7 +32,7 @@
 
 --  PolyORB runtime configuration facility
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Constants;
 with PolyORB.Initialization;

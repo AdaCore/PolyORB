@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Sockets;
 with PolyORB.Utils.Simple_Flags;

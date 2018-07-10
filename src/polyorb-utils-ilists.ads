@@ -36,7 +36,7 @@
 --  that exposes Next and (for the doubly linked case) Previous pointers.
 --  None of the provided list operations use any dynamic memory allocation.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 package PolyORB.Utils.Ilists is
 
