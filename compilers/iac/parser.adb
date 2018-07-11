@@ -271,39 +271,45 @@ package body Parser is
    ----------------------------
 
    procedure Skip_Annapp_Scan_Token (T : Token_Type := T_Error) is
-      --  T = T_Error means no specific token expected / do not use T
       Ann_Name : Node_Id := No_Node;
    begin
-      Scan_Token;
       loop
-         exit when Token /= T_At;
+         exit when Next_Token /= T_At;
+         Scan_Token; --  past T_At
          Ann_Name := P_Scoped_Name;
          if No (Ann_Name) then
             return;
          end if;
-         Scan_Token;
-         if Token = T_Left_Paren then
+
+         if Next_Token = T_Left_Paren then
+            Scan_Token;
             declare
                Parentheses : Integer := 1;
             begin
                loop
+                  case Next_Token is
+                     when T_EOF =>
+                        exit;
+                     when T_Left_Paren =>
+                        Parentheses := Parentheses + 1;
+                     when T_Right_Paren =>
+                        exit when Parentheses <= 0;
+                        Parentheses := Parentheses - 1;
+                     when others =>
+                        exit when Parentheses <= 0;
+                  end case;
                   Scan_Token;
-                  exit when Token = T_EOF;
-                  if Token = T_Left_Paren then
-                     Parentheses := Parentheses + 1;
-                  elsif Token = T_Right_Paren then
-                     exit when Parentheses <= 0;
-                     Parentheses := Parentheses - 1;
-                  else
-                     exit when Parentheses <= 0;
-                  end if;
                end loop;
             end;
          end if;
       end loop;
-      if T /= T_Error and then Token /= T then
-         DE ("expected token %", Image (T));
-         Token := T_Error;
+
+      --  T = T_Error means no specific token expected / do not use T
+
+      if T = T_Error then
+         Scan_Token;
+      else
+         Scan_Token (T);
       end if;
    end Skip_Annapp_Scan_Token;
 
