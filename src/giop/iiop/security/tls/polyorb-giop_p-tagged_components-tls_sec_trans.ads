@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Used only as transport_mech in TAG_CSI_SEC_MECH_LIST tagged component
 

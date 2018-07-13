@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Support package for CDR representation of char and strings for GIOP 1.0
 

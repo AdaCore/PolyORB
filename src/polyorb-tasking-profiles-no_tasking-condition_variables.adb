@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Implementation of POSIX-like synchronisation objects under the
 --  No_Tasking profile.

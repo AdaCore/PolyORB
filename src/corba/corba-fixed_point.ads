@@ -35,7 +35,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  This unit provides generic helper routines for fixed point numeric types
 

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Shared code for datagram and connected socket-based transports
 

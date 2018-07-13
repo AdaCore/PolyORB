@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  Half-Sync/Half-Async ORB Controller for PolyORB ORB main loop
 

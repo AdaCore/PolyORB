@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  This package provides the root definition of all Object adapters.
 --  An Object Adapter manages the association of references to servants.

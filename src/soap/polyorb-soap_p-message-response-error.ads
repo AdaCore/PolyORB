@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.SOAP_P.Message.Payload;
 with PolyORB.SOAP_P.Message.Response;

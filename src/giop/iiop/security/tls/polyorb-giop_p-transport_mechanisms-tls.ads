@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.GIOP_P.Tagged_Components.TLS_Sec_Trans;
 --  with PolyORB.Sockets;

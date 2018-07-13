@@ -32,7 +32,7 @@
 
 --  Utility routines to set up TCP listening sockets
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with Ada.Exceptions;
 

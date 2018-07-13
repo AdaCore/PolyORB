@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  This is the version of System.Partition_Interface for PolyORB.
 --  It shares part of its spec with the GLADE version and the GNAT RTL version.

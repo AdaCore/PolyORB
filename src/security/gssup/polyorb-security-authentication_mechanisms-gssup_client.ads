@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 package PolyORB.Security.Authentication_Mechanisms.GSSUP_Client is
 

@@ -32,7 +32,7 @@
 
 --  Implementation of the 'Main thread' POA Policy
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Components;
 with PolyORB.Requests;

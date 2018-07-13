@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 --  mDNS Helper package containing type declarations and corresponding
 --  marshall/unmarshall primitives

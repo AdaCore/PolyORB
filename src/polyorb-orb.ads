@@ -35,7 +35,7 @@
 --        * to gateway asynchronous external events to the
 --          synchronous messaging architecture used within PolyORB.
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;

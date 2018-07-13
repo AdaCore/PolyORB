@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 

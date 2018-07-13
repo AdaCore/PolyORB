@@ -32,7 +32,7 @@
 
 --  Definition of the universal container/wrapper type 'Any'
 
-pragma Ada_2005;
+pragma Ada_2012;
 
 pragma Warnings (Off);
 --  The following are internal GNAT units:
