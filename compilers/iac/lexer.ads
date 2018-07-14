@@ -145,6 +145,7 @@ pragma Elaborate_Body (Lexer);
 
       --  Graphic characters
 
+      T_At,
       T_Colon,
       T_Comma,
       T_Semi_Colon,

@@ -1,0 +1,12 @@
+module AnnApp01 {
+ typedef short around_zero;
+ enum myenum_t {
+ zero,
+ one
+ };
+ struct mystruct_t {
+ long k;
+ AnnApp01::myenum_t e;
+ AnnApp01::around_zero az;
+ };
+};

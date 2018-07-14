@@ -660,6 +660,7 @@ package body Lexer is
          New_Token (T_Semi_Colon, ";");
          New_Token (T_Left_Brace, "{");
          New_Token (T_Right_Brace, "}");
+         New_Token (T_At, "@");
          New_Token (T_Colon, ":");
          New_Token (T_Comma, ",");
          New_Token (T_Colon_Colon, "::");
@@ -1544,6 +1545,10 @@ package body Lexer is
             when '}' =>
                Token_Location.Scan := Token_Location.Scan + 1;
                Token := T_Right_Brace;
+
+            when '@' =>
+               Token_Location.Scan := Token_Location.Scan + 1;
+               Token := T_At;
 
             when ':' =>
                Token_Location.Scan := Token_Location.Scan + 1;

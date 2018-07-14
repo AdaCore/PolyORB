@@ -55,6 +55,26 @@ package body Parser is
    function Locate_Imported_File (Scoped_Name : Node_Id) return Name_Id;
    --  Locate the IDL file corresponding to the imported scope.
 
+   procedure Skip_Annapp_Scan_Token (T : Token_Type := T_Error);
+   --  Similar to Scan_Token but skip any annotation applications that
+   --  may exist at the scanner's current location.
+   --  The optional parameter T is the expected token type.
+   --  If left at its default (T_Error), no specific token type is
+   --  expected and T will not be used.
+   --  The subprogram may be renamed to Save_Annapp_Scan_Token or similar
+   --  once annotation applications are evaluated.
+
+   procedure Skip_Annapp_Scan_Token (State : in out Location);
+   --  Similar to above but update the given scanner state on skipping
+   --  annotation applications.
+
+   function Skip_Annapp_Next_Token return Token_Type;
+   --  Similar to Next_Token but skip any annotation applications that
+   --  may exist at the scanner's current location, advancing the scanner
+   --  location while this is the case.
+   --  The subprogram may be renamed to Save_Annapp_Next_Token or similar
+   --  once annotation applications are evaluated.
+
    Sequencing_Level : Natural := 0;
 
    function P_No_Such_Node return Node_Id;
@@ -246,6 +266,131 @@ package body Parser is
       return No_Name;
    end Locate_Imported_File;
 
+   ----------------------------
+   -- Skip_Annapp_Scan_Token --
+   ----------------------------
+
+   procedure Skip_Annapp_Scan_Token (T : Token_Type := T_Error) is
+      Ann_Name : Node_Id := No_Node;
+   begin
+      loop
+         exit when Next_Token /= T_At;
+         Scan_Token; --  past T_At
+         Ann_Name := P_Scoped_Name;
+         if No (Ann_Name) then
+            return;
+         end if;
+
+         if Next_Token = T_Left_Paren then
+            Scan_Token;
+            declare
+               Parentheses : Integer := 1;
+            begin
+               loop
+                  case Next_Token is
+                     when T_EOF =>
+                        exit;
+                     when T_Left_Paren =>
+                        Parentheses := Parentheses + 1;
+                     when T_Right_Paren =>
+                        exit when Parentheses <= 0;
+                        Parentheses := Parentheses - 1;
+                     when others =>
+                        exit when Parentheses <= 0;
+                  end case;
+                  Scan_Token;
+               end loop;
+            end;
+         end if;
+      end loop;
+
+      --  T = T_Error means no specific token expected / do not use T
+
+      if T = T_Error then
+         Scan_Token;
+      else
+         Scan_Token (T);
+      end if;
+   end Skip_Annapp_Scan_Token;
+
+   ----------------------------
+   -- Skip_Annapp_Scan_Token --
+   ----------------------------
+
+   procedure Skip_Annapp_Scan_Token (State : in out Location) is
+      Ann_Name : Node_Id := No_Node;
+   begin
+      Scan_Token;
+      loop
+         exit when Token /= T_At;
+         Ann_Name := P_Scoped_Name;
+         if No (Ann_Name) then
+            return;
+         end if;
+         Save_Lexer (State);
+         Scan_Token;
+         if Token = T_Left_Paren then
+            declare
+               Parentheses : Integer := 1;
+            begin
+               loop
+                  Save_Lexer (State);
+                  Scan_Token;
+                  exit when Token = T_EOF;
+                  if Token = T_Left_Paren then
+                     Parentheses := Parentheses + 1;
+                  elsif Token = T_Right_Paren then
+                     exit when Parentheses <= 0;
+                     Parentheses := Parentheses - 1;
+                  else
+                     exit when Parentheses <= 0;
+                  end if;
+               end loop;
+            end;
+         end if;
+      end loop;
+   end Skip_Annapp_Scan_Token;
+
+   ----------------------------
+   -- Skip_Annapp_Next_Token --
+   ----------------------------
+
+   function Skip_Annapp_Next_Token return Token_Type is
+      Next : Token_Type;
+      Ann_Name : Node_Id := No_Node;
+   begin
+      loop
+         Next := Next_Token;
+         exit when Next /= T_At;
+         Scan_Token;  --  past '@'
+         Ann_Name := P_Scoped_Name;
+         if No (Ann_Name) then
+            return T_Error;
+         end if;
+         Next := Next_Token;
+         if Next = T_Left_Paren then
+            Scan_Token;  --  past '('
+            declare
+               Parentheses : Integer := 1;
+            begin
+               loop
+                  Next := Next_Token;
+                  exit when Next = T_EOF;
+                  if Next = T_Left_Paren then
+                     Parentheses := Parentheses + 1;
+                  elsif Next = T_Right_Paren then
+                     exit when Parentheses <= 0;
+                     Parentheses := Parentheses - 1;
+                  else
+                     exit when Parentheses <= 0;
+                  end if;
+               end loop;
+            end;
+         end if;
+      end loop;
+      return Next;
+   end Skip_Annapp_Next_Token;
+
    -----------------------------
    -- P_Attribute_Declaration --
    -----------------------------
@@ -280,7 +425,7 @@ package body Parser is
       Setter_Excps    : List_Id := No_List;
 
    begin
-      Scan_Token; --  past "readonly" or "attribute"
+      Skip_Annapp_Scan_Token; --  past "readonly" or "attribute"
 
       if Token = T_Readonly then
          Is_Readonly := True;
@@ -805,9 +950,9 @@ package body Parser is
          --  precedence than the right one, we can reduce the global expression
          --  by assigning the expression value to the right expression of the
          --  left operator. Then as the left operator has already a left
-         --  expression, it becomes an expression value which can be assign to
-         --  the left expression of the right operation. Recompute the size of
-         --  the expression stack.
+         --  expression, it becomes an expression value which can be assigned
+         --  to the left expression of the right operation. Recompute the size
+         --  of the expression stack.
 
          while First + 1 < Last
            and then Is_Expression_Value (Table (Last - 1))
@@ -998,7 +1143,7 @@ package body Parser is
       Token_Backup : Token_Type;
    begin
       Save_Lexer (State);
-      Scan_Token;
+      Skip_Annapp_Scan_Token (State);
       Token_Backup := Token;
       case Token is
          when T_Typedef
@@ -1433,7 +1578,7 @@ package body Parser is
 
    function P_Identifier return Node_Id is
    begin
-      Scan_Token (T_Identifier);
+      Skip_Annapp_Scan_Token (T_Identifier);
       if Token = T_Error then
          return No_Node;
       end if;
@@ -1957,13 +2102,13 @@ package body Parser is
 
    begin
       Save_Lexer (State);
-      Scan_Token;
+      Skip_Annapp_Scan_Token (State);
       Node := New_Node (K_Operation_Declaration, Token_Location);
 
       if Token = T_Oneway then
          Set_Is_Oneway (Node, True);
          Save_Lexer (State);
-         Scan_Token;
+         Skip_Annapp_Scan_Token (State);
       end if;
 
       if Token = T_Void then
@@ -2540,7 +2685,7 @@ package body Parser is
 
    begin
       Size := 0;
-      Next := Next_Token;
+      Next := Skip_Annapp_Next_Token;
       Push_Base_Type_Token (Next);
       case Next is
          when T_Long =>
@@ -2679,7 +2824,7 @@ package body Parser is
       State        : Location;
    begin
       State := Token_Location;
-      Scan_Token; --  past "public" or "private"
+      Skip_Annapp_Scan_Token (State); --  past "public" or "private"
       if Token = T_Public then
          Is_Public := True;
       end if;
