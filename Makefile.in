@@ -940,7 +940,7 @@ force::
 clean:
 	${RM} -f ${all_idl_stamps} ./cos/ir/orb.idl-stamp # ???and more
 	${RM} -f ${idlac_output_files}
-	find . -name '*.ali' -o -name '*.o' | xargs ${RM} -f
+	find . -name '*.ali' -o -name '*.o' -o -name 'b__*.ad?'| xargs ${RM} -f
 	${RM} -f lib/lib*.a
 	${RM} -f ${all_example_exes}
 	(cd compilers && ${RM} -f ${COMPILER_EXES})
@@ -949,15 +949,15 @@ clean:
 	${RM} -f ${IAC_NODES_SOURCES}
 	${RM} -f src/soap/polyorb-http_methods.adb src/soap/polyorb-http_headers.adb
 	${RM} -f cos/ir/po_ir
-	${RM} -f cos/naming/ir_ab_names
-	${RM} -f cos/naming/po_cos_naming
-	${RM} -f cos/naming/po_cos_naming_shell
 	${RM} -f src/giop/tools/gen_codeset
 	${RM} -f src/giop/polyorb-giop_p-code_sets-data.ads
 	${RM} -f src/giop/polyorb-giop_p-code_sets-data.ads-stamp
 	${RM} -f src/soap/perfect_hash.adb
 	${RM} -f src/soap/perfect_hash.ads
 	${RM} -f tools/po_catref/po_catref
+	${RM} -f tools/po_cos_naming/ir_ab_names
+	${RM} -f tools/po_cos_naming/po_cos_naming
+	${RM} -f tools/po_cos_naming/po_cos_naming_shell
 	${RM} -f tools/po_createref/po_createref
 	${RM} -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads
 	${RM} -f tools/po_catref/polyorb-giop_p-code_sets-description_data.ads-stamp
