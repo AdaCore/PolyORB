@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2018, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -199,11 +199,11 @@ package body PolyORB.Security.Credentials.TLS is
       elsif Method_Name = "tls1" then
          Method := TLS_1;
 
-      elsif Method_Name = "ssl3" then
-         Method := SSL_3;
+      elsif Method_Name = "tls11" then
+         Method := TLS_1_1;
 
-      elsif Method_Name = "ssl2" then
-         Method := SSL_2;
+      elsif Method_Name = "tls12" then
+         Method := TLS_1_2;
 
       else
          Throw (Error, Bad_Param_E,
