@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2018, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -199,21 +199,21 @@ package body PolyORB.TLS is
 
       --  Methods
 
-      function SSLv2_method return SSL_Method;
-      function SSLv2_client_method return SSL_Method;
-      function SSLv2_server_method return SSL_Method;
-
-      function SSLv23_method return SSL_Method;
-      function SSLv23_client_method return SSL_Method;
-      function SSLv23_server_method return SSL_Method;
-
-      function SSLv3_method return SSL_Method;
-      function SSLv3_client_method return SSL_Method;
-      function SSLv3_server_method return SSL_Method;
+      function TLS_method return SSL_Method;
+      function TLS_client_method return SSL_Method;
+      function TLS_server_method return SSL_Method;
 
       function TLSv1_method return SSL_Method;
       function TLSv1_client_method return SSL_Method;
       function TLSv1_server_method return SSL_Method;
+
+      function TLSv1_1_method return SSL_Method;
+      function TLSv1_1_client_method return SSL_Method;
+      function TLSv1_1_server_method return SSL_Method;
+
+      function TLSv1_2_method return SSL_Method;
+      function TLSv1_2_client_method return SSL_Method;
+      function TLSv1_2_server_method return SSL_Method;
 
       --  Error handling
 
@@ -279,18 +279,18 @@ package body PolyORB.TLS is
       pragma Import (C, SSL_set_fd,               "SSL_set_fd");
       pragma Import (C, SSL_shutdown,             "SSL_shutdown");
       pragma Import (C, SSL_write,                "SSL_write");
-      pragma Import (C, SSLv2_client_method,      "SSLv2_client_method");
-      pragma Import (C, SSLv2_method,             "SSLv2_method");
-      pragma Import (C, SSLv2_server_method,      "SSLv2_server_method");
-      pragma Import (C, SSLv3_client_method,      "SSLv3_client_method");
-      pragma Import (C, SSLv3_method,             "SSLv3_method");
-      pragma Import (C, SSLv3_server_method,      "SSLv3_server_method");
-      pragma Import (C, SSLv23_client_method,     "SSLv23_client_method");
-      pragma Import (C, SSLv23_method,            "SSLv23_method");
-      pragma Import (C, SSLv23_server_method,     "SSLv23_server_method");
+      pragma Import (C, TLS_client_method,        "TLS_client_method");
+      pragma Import (C, TLS_method,               "TLS_method");
+      pragma Import (C, TLS_server_method,        "TLS_server_method");
       pragma Import (C, TLSv1_client_method,      "TLSv1_client_method");
       pragma Import (C, TLSv1_method,             "TLSv1_method");
       pragma Import (C, TLSv1_server_method,      "TLSv1_server_method");
+      pragma Import (C, TLSv1_1_client_method,    "TLSv1_1_client_method");
+      pragma Import (C, TLSv1_1_method,           "TLSv1_1_method");
+      pragma Import (C, TLSv1_1_server_method,    "TLSv1_1_server_method");
+      pragma Import (C, TLSv1_2_client_method,    "TLSv1_2_client_method");
+      pragma Import (C, TLSv1_2_method,           "TLSv1_2_method");
+      pragma Import (C, TLSv1_2_server_method,    "TLSv1_2_server_method");
       pragma Import (C, sk_SSL_CIPHER_num,
                      "__PolyORB_sk_SSL_CIPHER_num");
       pragma Import (C, sk_SSL_CIPHER_value,
@@ -471,24 +471,6 @@ package body PolyORB.TLS is
 
    begin
       case Method is
-         when SSL_2 =>
-            M := Thin.SSLv2_method;
-
-         when SSL_2_Client =>
-            M := Thin.SSLv2_client_method;
-
-         when SSL_2_Server =>
-            M := Thin.SSLv2_server_method;
-
-         when SSL_3 =>
-            M := Thin.SSLv3_method;
-
-         when SSL_3_Client =>
-            M := Thin.SSLv3_client_method;
-
-         when SSL_3_Server =>
-            M := Thin.SSLv3_server_method;
-
          when TLS_1 =>
             M := Thin.TLSv1_method;
 
@@ -498,14 +480,32 @@ package body PolyORB.TLS is
          when TLS_1_Server =>
             M := Thin.TLSv1_server_method;
 
+         when TLS_1_1 =>
+            M := Thin.TLSv1_1_method;
+
+         when TLS_1_1_Client =>
+            M := Thin.TLSv1_1_client_method;
+
+         when TLS_1_1_Server =>
+            M := Thin.TLSv1_1_server_method;
+
+         when TLS_1_2 =>
+            M := Thin.TLSv1_2_method;
+
+         when TLS_1_2_Client =>
+            M := Thin.TLSv1_2_client_method;
+
+         when TLS_1_2_Server =>
+            M := Thin.TLSv1_2_server_method;
+
          when Any =>
-            M := Thin.SSLv23_method;
+            M := Thin.TLS_method;
 
          when Any_Client =>
-            M := Thin.SSLv23_client_method;
+            M := Thin.TLS_client_method;
 
          when Any_Server =>
-            M := Thin.SSLv23_server_method;
+            M := Thin.TLS_server_method;
       end case;
 
       Result := Thin.SSL_CTX_new (M);
