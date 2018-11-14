@@ -43,20 +43,44 @@ SSL_CIPHER *__PolyORB_sk_SSL_CIPHER_value (STACK_OF(SSL_CIPHER) *sk, int i) {
     return sk_SSL_CIPHER_value(sk, i);
 }
 
-/* Compatibility shim for OpenSSL version prior to 1.1.0 */
+/* Compatibility shims for older OpenSSL versions */
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+/* Version-flexible method returning highest available protocol */
 
-const SSL_METHOD *TLS_method(void) {
+const SSL_METHOD __attribute__((weak)) *TLS_method(void) {
   return SSLv23_method();
 }
 
-const SSL_METHOD *TLS_client_method(void) {
+const SSL_METHOD __attribute__((weak)) *TLS_client_method(void) {
   return SSLv23_client_method();
 }
 
-const SSL_METHOD *TLS_server_method(void) {
+const SSL_METHOD __attribute__((weak)) *TLS_server_method(void) {
   return SSLv23_server_method();
 }
 
-#endif
+/* Version-specific methods */
+
+const SSL_METHOD __attribute__((weak)) *TLSv1_1_method(void) {
+  return NULL;
+}
+
+const SSL_METHOD __attribute__((weak)) *TLSv1_1_client_method(void) {
+  return NULL;
+}
+
+const SSL_METHOD __attribute__((weak)) *TLSv1_1_server_method(void) {
+  return NULL;
+}
+
+const SSL_METHOD __attribute__((weak)) *TLSv1_2_method(void) {
+  return NULL;
+}
+
+const SSL_METHOD __attribute__((weak)) *TLSv1_2_client_method(void) {
+  return NULL;
+}
+
+const SSL_METHOD __attribute__((weak)) *TLSv1_2_server_method(void) {
+  return NULL;
+}
