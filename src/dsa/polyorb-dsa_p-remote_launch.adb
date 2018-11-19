@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
@@ -59,14 +61,15 @@ package body PolyORB.DSA_P.Remote_Launch is
    function C (Level : Log_Level := Debug) return Boolean
      renames L.Enabled;
 
-   function Windows_To_Unix (S : String) return String;
-   --  Translate Windows-style pathnames to Unix-style by changing '\' to '/'.
-   --  ???This is a temporary kludge, but we're assuming the existence of a
-   --  Unix-like shell anyway (see below). The goal is to get tests working
-   --  under Windows using Cygwin. The problem is that Cygwin's 'sh' interprets
+   function Partition_Path (S : String) return String;
+   --  If S is a relative path, resolve it against the starter location.
+   --  Also translate Windows-style pathnames to UNIX-style (changing
+   --  '\' to '/').
+   --  ??? This is a kludge, but we're assuming the existence of a Unix-like
+   --  shell anyway (see below). The goal is to get tests working under
+   --  Windows using Cygwin. The problem is that Cygwin's 'sh' interprets
    --  '\' as a Unix escape, rather than as a directory separator.
    --  This should be made more portable.
-   --  This is a no-op on non-Windows systems.
 
    function Escape_Spaces (S : String) return String;
    --  Protect spaces and shell metacharacters in S with a backslash
@@ -164,7 +167,7 @@ package body PolyORB.DSA_P.Remote_Launch is
      (Host : String; Command : String; Env_Vars : String)
    is
       U_Command : constant String :=
-        Escape_Spaces (Windows_To_Unix (Command))
+        Escape_Spaces (Partition_Path (Command))
                        & " --polyorb-dsa-name_service="
                        & Get_Conf ("dsa", "name_service", "");
       Pid       : Process_Id;
@@ -321,19 +324,25 @@ package body PolyORB.DSA_P.Remote_Launch is
       pragma Debug (C, O ("Launch_Partition: leave"));
    end Launch_Partition;
 
-   ---------------------
-   -- Windows_To_Unix --
-   ---------------------
+   --------------------
+   -- Partition_Path --
+   --------------------
 
-   function Windows_To_Unix (S : String) return String is
+   function Partition_Path (S : String) return String is
+      use Ada.Command_Line;
+      use Ada.Directories;
       use Ada.Strings.Fixed, Ada.Strings.Maps;
    begin
-      if Platform.Windows_On_Target then
-         return Translate (S, To_Mapping ("\", "/"));
-      else
-         return S;
-      end if;
-   end Windows_To_Unix;
+      --  If S is a relative path, resolve it relative
+      --  to the location of the starter.
+
+      return Normalize_Pathname
+        (Name =>
+           (if Platform.Windows_On_Target then
+              Translate (S, To_Mapping ("\", "/"))
+            else S),
+         Directory => Containing_Directory (Command_Name));
+   end Partition_Path;
 
    use PolyORB.Initialization;
    use PolyORB.Utils.Strings;

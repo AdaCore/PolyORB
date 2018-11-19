@@ -51,6 +51,11 @@ package XE_Flags is
    Use_GPRBuild         : Boolean := False;
    --  Use GPRBuild instead of gnatmake
 
+   Relocatable_Starter  : Boolean := False;
+   --  Allow starter and partition binaries to be relocated,
+   --  and resolve partition path against starter location
+   --  at run time.
+
    Display_Compilation_Progress : Boolean := False;
 
    Bind_Only_Flag      : constant Unbounded_String := +"-b";
