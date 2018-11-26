@@ -8,7 +8,7 @@ package body RCI is
       J_Output : JSON_Value := Create_Object;
    begin
       J_Output.Set_Field ("input", J_Input);
-      J_Output.Set_Field ("output",  Create (456));
+      J_Output.Set_Field ("output",  Create (Integer'(456)));
       return Wrap (J_Output);
    end Frob;
 

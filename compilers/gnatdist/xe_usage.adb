@@ -68,6 +68,8 @@ begin
    Write_Eol;
    Write_Str ("  -t        Keep all temporary files");
    Write_Eol;
+   Write_Str ("  -r        Relocatable starter");
+   Write_Eol;
    Write_Str ("  --PCS=... "
               & "Select PCS variant (default: "
               & XE_Defs.Defaults.Default_PCS_Name & ")");

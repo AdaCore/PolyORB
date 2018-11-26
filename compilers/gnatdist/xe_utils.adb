@@ -1057,6 +1057,9 @@ package body XE_Utils is
                   Keep_Tmp_Files := True;
                   Add_Make_Switch ("-dn");
 
+               when 'r' =>
+                  Relocatable_Starter := True;
+
                when 'q' =>
                   Quiet_Mode := True;
                   --  Switch is passed to gnatmake later on

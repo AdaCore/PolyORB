@@ -280,8 +280,10 @@ package body XE_Back.PolyORB is
             declare
                Partition : Partition_Type renames Partitions.Table (J);
                Full_Cmd  : constant String := Get_Name_String
-                             (Quote (To_Absolute_File
-                                       (Partition.Executable_File)
+                             (Quote ((if Relocatable_Starter
+                                      then Partition.Executable_File
+                                      else To_Absolute_File
+                                             (Partition.Executable_File))
                                      & Partition.Command_Line));
                Env : constant String := Get_Env_Vars (J, Names_Only => True);
             begin

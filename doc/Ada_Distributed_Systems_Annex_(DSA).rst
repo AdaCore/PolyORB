@@ -1025,7 +1025,7 @@ user to override the default selection of distribution runtime library
 (PCS). By default `po_gnatdist` outputs a configuration
 report and the actions performed. The switch -n allows `po_gnatdist` to
 skip the first stage of recompilation of the non-distributed
-application.
+application. Switch -r requests a relocatable starter (see :ref:`Pragma_Starter`).
 
 The names of all configuration files must have the suffix
 `.cfg`. There may be several configuration files for the same
@@ -1307,12 +1307,13 @@ and assigned to the partition Main attribute.
 Pragma Starter
 ^^^^^^^^^^^^^^
 
-As a default, the main executable is a full Ada starter procedure. That
-means that it launches all the other partitions from an Ada program. The
-pragma Starter allows the user to ask for one starter or another. When
-the partition host is not statically defined (see :ref:`Partition_Attribute_Host`), the starter subprogram will ask for it interactively
-when it is executed.
+By default, the executable for a distributed application is an Ada
+starter procedure which will launch all other partitions.
+The host for each partition will be interactively obtained
+from the user at run time if not statically specified
+(see :ref:`Partition_Attribute_Host`).
 
+Pragma Starter allows an alternate starter to be requested.
 
 ::
 
@@ -1342,6 +1343,15 @@ when it is executed.
   The user may ask for a None starter. In this case, it is up to the user
   to launch the different partitions.
 
+* 
+  By default, the absolute path to each partition executable is
+  determined at build time and embedded in the starter. However,
+  if gnatdist command line switch -r is used, a relocatable starter
+  is generated. For a relocatable starter, if the Executable_Dir
+  for a partition is a relative path (or left unspecified), then
+  it will be resolved at run time relative to the location of
+  the starter. This allows the user to move the starter and
+  partition executables around after build.
 
 Pragma Remote_Shell
 ^^^^^^^^^^^^^^^^^^^

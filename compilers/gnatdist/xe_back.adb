@@ -518,6 +518,21 @@ package body XE_Back is
          Current   : Partition_Type renames Partitions.Table (P);
 
       begin
+         --  When generating a relocatable starter, resolve partition path
+         --  relative to location of starter.
+
+         Write_Str ("_part=");
+         Get_Name_String (Current.Executable_File);
+         if Relocatable_Starter
+           and then not Is_Absolute_Path (Name_Buffer (1 .. Name_Len))
+         then
+            Write_Str  ("$(cd $(dirname $0) && pwd)/""");
+            Write_Name (Current.Executable_File);
+            Write_Str  ("""");
+         else
+            Write_Name (To_Absolute_File (Current.Executable_File));
+         end if;
+         Write_Eol;
 
          --  For the main partition, the command should be
          --    "<pn>" --boot_location "<bl>" <cline>
@@ -546,7 +561,7 @@ package body XE_Back is
          --  by the shell.
 
          Write_Char (Int_Quote);
-         Write_Name (To_Absolute_File (Current.Executable_File));
+         Write_Str  ("${_part}");
          Write_Char (Int_Quote);
 
          --  Boot_Location not currently supported with PolyORB, instead pass
@@ -968,12 +983,6 @@ package body XE_Back is
             Create_Dir (Current.Partition_Dir);
 
             if Present (Current.Executable_Dir) then
-               Get_Name_String (Current.Executable_Dir);
-               Set_Str_To_Name_Buffer
-                 (Normalize_Pathname
-                    (Name_Buffer (1 .. Name_Len),
-                     Resolve_Links => Resolve_Links));
-               Current.Executable_Dir := Name_Find;
                Create_Dir (Current.Executable_Dir);
             end if;
 
