@@ -332,16 +332,20 @@ package body PolyORB.DSA_P.Remote_Launch is
       use Ada.Command_Line;
       use Ada.Directories;
       use Ada.Strings.Fixed, Ada.Strings.Maps;
-   begin
+
+      Resolved_Path : constant String :=
+        Normalize_Pathname
+          (Name      => S,
+           Directory => Containing_Directory (Command_Name));
       --  If S is a relative path, resolve it relative
       --  to the location of the starter.
 
-      return Normalize_Pathname
-        (Name =>
-           (if Platform.Windows_On_Target then
-              Translate (S, To_Mapping ("\", "/"))
-            else S),
-         Directory => Containing_Directory (Command_Name));
+   begin
+      if Platform.Windows_On_Target then
+         return Translate (Resolved_Path, To_Mapping ("\", "/"));
+      else
+         return Resolved_Path;
+      end if;
    end Partition_Path;
 
    use PolyORB.Initialization;
