@@ -33,6 +33,8 @@ Build requirements
 
 GNU tar is required to unpack PolyORB source packages.
 
+GNU make 3.80 or newer is required to build PolyORB.
+
 Ada compiler:
 
 * GNAT Pro 6.2.* or later
@@ -73,21 +75,27 @@ override the default guess.
 Build instructions
 ==================
 
-To compile and install PolyORB, execute:
+Developers building PolyORB from the version control repository
+will first need to build the configure script and other support files.
 
+To do so, from
+the top-level source directory, run the following command initially, and
+after each update from the repository::
 
-::
+    $ support/reconfig
+
+In addition to the requirements above, developers will need autoconf 2.60
+or newer, automake 1.6.3 or newer, and libtool 1.5.8 or newer.
+
+To compile and install PolyORB, execute::
 
     $ ./configure [some options]
     $ make
     $ make install
-  
 
 This will install files in standard locations.  If you want to choose
 a prefix other than :file:`/usr/local`, give configure a
 *--prefix=whereveryouwant* argument.
-
-NOTE: you must use GNU make (version 3.80 or later) to build PolyORB.
 
 .. _Additional_instructions_for_cross_platforms:
 
@@ -231,13 +239,6 @@ You can add specific build options to GNAT using the
   
 
 You can also pass compiler-only flags using the `ADAFLAGS` variable.
-
-NOTE: Developers building PolyORB from the version control repository
-will need to rebuild the configure script and other files. To do so, from
-the top-level source directory, run the support/reconfig script after each
-update from the repository. In addition to the requirements above, developers
-will need autoconf 2.57 or newer, automake 1.6.3 or newer, and libtool 1.5.8
-or newer.
 
 .. _Platform_notes:
 

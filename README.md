@@ -1,7 +1,7 @@
-POLYORB
+PolyORB
 =======
 
-Copyright (C) 1999-2018, Free Software Foundation, Inc.
+Copyright (C) 1999-2019, Free Software Foundation, Inc.
 
 This is free software; you can redistribute it and/or modify it under
 terms of the GNU General Public License as published by the Free Software
@@ -79,6 +79,7 @@ Documentation entry points can be found in the following files:
 Filename    | Contents
 ------------|------------------------------
 README.md   | This file, first instructions.
+README.DSA  | Additional information for Ada Distributed Systems Annex
 INSTALL     | Detail PolyORB installation process.
 FEATURES    | List PolyORB's features.
 src/ROADMAP | Overview of PolyORB source code.
