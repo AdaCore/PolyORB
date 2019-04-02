@@ -71,6 +71,7 @@ project PolyORB_Common is
                               --  Enable all warnings, also enable elaboration
                               --  warnings, and treat all warnings as errors
                               --  if Warnings_Mode is set to "e".
+         "-gnatw_A",          --  Disable warnings on anonymous allocators
          "-gnatwU")           --  Disable warnings for unused entities
          & PolyORB_Config.Style_Switches;
 
