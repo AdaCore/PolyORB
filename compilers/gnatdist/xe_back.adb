@@ -718,9 +718,9 @@ package body XE_Back is
       --  monolithic ALI). In that case, the output files are renamed after
       --  compilation.
 
-      Stub_ALI_Base    := To_Afile (Strip_Directory (Full_Unit_File));
-      Stub_ALI         := Dir (Stub_Dir_Name, Stub_ALI_Base);
-      Stub_Object      := To_Ofile (Stub_ALI);
+      Stub_ALI_Base := To_Afile (Strip_Directory (Full_Unit_File));
+      Stub_ALI      := Dir (Stub_Dir_Name, Stub_ALI_Base);
+      Stub_Object   := To_Ofile (Stub_ALI);
 
       --  Do we need to regenerate the caller stub and its ali?
 
