@@ -770,13 +770,21 @@ package body XE_Sem is
      (Partition : Partition_Id;
       Success   : in out Boolean)
    is
-      N : constant Unit_Name_Type :=
-            Partitions.Table (Partition).Main_Subprogram;
+      P : Partition_Type renames Partitions.Table (Partition);
+      N : constant Unit_Name_Type := P.Main_Subprogram;
       A : ALI_Id;
 
    begin
       if No (N) then
          return;
+      end if;
+
+      if P.Passive = BTrue then
+         Message
+            ("passive partition",
+             Quote (P.Name),
+             "cannot have a main subprogram");
+         Success := False;
       end if;
 
       A := Get_ALI_Id (N);
