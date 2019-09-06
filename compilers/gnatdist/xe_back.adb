@@ -683,14 +683,10 @@ package body XE_Back is
       Stub_Object      : File_Name_Type;
       Stub_ALI_Base    : File_Name_Type;
       Stub_ALI         : File_Name_Type;
-      Unit             : Unit_Id := ALIs.Table (A).Last_Unit;
+      Unit             : constant Unit_Id := ALIs.Table (A).Last_Unit;
       Arguments        : Argument_Vec;
 
    begin
-      if Units.Table (Unit).Shared_Passive then
-         Unit := ALIs.Table (A).First_Unit;
-      end if;
-
       Full_Unit_File := Units.Table (Unit).Sfile;
       Full_ALI_File  := Dir (Monolithic_Obj_Dir, ALIs.Table (A).Afile);
       Full_ALI_Base  := ALIs.Table (A).Afile;
