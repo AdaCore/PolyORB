@@ -92,17 +92,28 @@ package PolyORB.DSA_P.Storages.DFS is
 
 private
 
+   --  IO_Mutex is used to protect input/output operations for ordinary
+   --  variables. PO_Mutex is used to serialize sequence of input/output
+   --  operations on protected objects. PO_Mutex is obtained by calling
+   --  of Lock subprogram from generated code first, after that IO_Mutex
+   --  may be obtained/released multiple times, and PO_Mutex is released
+   --  by calling of Unlock subprogram.
+   --  Note, it is not necessary to have both IO_Mutex when PO_Mutex in
+   --  case of protected objects, but it is for simplicity.
    type DFS_Manager_Type is new Shared_Data_Manager_Type with record
-      Data  : PolyORB.Any.Any;
-      Name  : OS.String_Access;
-      File  : SIO.File_Type;
-      Lock  : SGL.Lock_Type;
-      Mutex : Mutex_Access;
-      Count : Natural;
-      Dir   : OS.String_Access;
-      Prev  : DFS_Manager_Access;
-      Next  : DFS_Manager_Access;
-      Self  : DFS_Manager_Access;
+      Data     : PolyORB.Any.Any;
+      Name     : OS.String_Access;
+      File     : SIO.File_Type;
+      Lock     : SGL.Lock_Type;
+      PO_Mutex : Mutex_Access;
+      --  It is used to lock/unlock protected objects.
+      IO_Mutex : Mutex_Access;
+      --  It is used to serialize read/write operations.
+      Count    : Natural;
+      Dir      : OS.String_Access;
+      Prev     : DFS_Manager_Access;
+      Next     : DFS_Manager_Access;
+      Self     : DFS_Manager_Access;
    end record;
 
 end PolyORB.DSA_P.Storages.DFS;

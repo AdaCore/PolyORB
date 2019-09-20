@@ -151,7 +151,8 @@ package body PolyORB.DSA_P.Storages.DFS is
       Var.Count := 0;
       Var.Dir   := Manager_Factory.Dir;
       Var.Lock  := SGL.Null_Lock;
-      Create (Var.Mutex);
+      Create (Var.IO_Mutex);
+      Create (Var.PO_Mutex);
 
       return Shared_Data_Manager_RACW (Var);
    end Create;
@@ -303,12 +304,13 @@ package body PolyORB.DSA_P.Storages.DFS is
       Error   : Error_Container;
 
    begin
-      Enter (Self.Mutex);
+      Enter (Self.IO_Mutex);
       Initiate_Request (Self, Read, Success);
 
       if not Success then
          Release (Buffer);
-         Leave (Self.Mutex);
+         Leave (Self.IO_Mutex);
+
          return;
       end if;
 
@@ -335,7 +337,7 @@ package body PolyORB.DSA_P.Storages.DFS is
       Complete_Request (Self);
 
       Release (Buffer);
-      Leave (Self.Mutex);
+      Leave (Self.IO_Mutex);
    end Read;
 
    ------------------------------
@@ -382,12 +384,13 @@ package body PolyORB.DSA_P.Storages.DFS is
       Error   : Error_Container;
 
    begin
-      Enter (Self.Mutex);
+      Enter (Self.IO_Mutex);
       Initiate_Request (Self, Write, Success);
 
       if not Success then
          Release (Buffer);
-         Leave (Self.Mutex);
+         Leave (Self.IO_Mutex);
+
          return;
       end if;
 
@@ -408,20 +411,19 @@ package body PolyORB.DSA_P.Storages.DFS is
       Complete_Request (Self);
 
       Release (Buffer);
-      Leave (Self.Mutex);
+      Leave (Self.IO_Mutex);
    end Write;
 
    ----------
    -- Lock --
    ----------
 
-   overriding procedure Lock   (Self : access DFS_Manager_Type)
-   is
+   overriding procedure Lock (Self : access DFS_Manager_Type) is
       Success : Boolean;
       pragma Unreferenced (Success);
 
    begin
-      Enter (Self.Mutex);
+      Enter (Self.PO_Mutex);
       Initiate_Request (Self, Lock, Success);
    end Lock;
 
@@ -432,7 +434,7 @@ package body PolyORB.DSA_P.Storages.DFS is
    overriding procedure Unlock (Self : access DFS_Manager_Type) is
    begin
       Complete_Request (Self);
-      Leave (Self.Mutex);
+      Leave (Self.PO_Mutex);
    end Unlock;
 
 begin
