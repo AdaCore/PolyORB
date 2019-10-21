@@ -204,11 +204,12 @@ build-iac: ${IAC_NODES_SOURCES}
 .PHONY: build-po_gnatdist
 
 build-po_gnatdist: \
-  PRJ_GNATMAKE_FLAGS := -I${top_srcdir}/compilers/common_files \
-                        -I${top_builddir}/compilers/common_files
+  compiler_dir := gnatdist
 
 build-po_gnatdist: \
-  compiler_dir := gnatdist
+  COMP_TOOLS_GNATMAKE_FLAGS := ${COMP_TOOLS_GNATMAKE_FLAGS} \
+  -P${top_srcdir}/compilers/gnatdist/gnatdist.gpr --relocate-build-tree \
+  -XCOMPILERS_DIR=${top_builddir}/compilers -cargs
 
 ################################################
 # Common build rule for all compile-time tools #
@@ -723,23 +724,23 @@ install:
 
 # local.gpr should contain:
 # with "polyorb", "polyorb_test_common";
-# 
+#
 # project local is
-# 
+#
 #    Dir := external ("Test_Dir");
 #    Obj_Dir := PolyORB_Test_Common.Build_Dir & Dir;
 #    for Object_Dir use Obj_Dir;
 #    for Source_Dirs use (Obj_Dir, PolyORB_Test_Common.Source_Dir & Dir);
-# 
+#
 #    package Compiler is
-# 
+#
 #       for Default_Switches ("Ada")
 #          use PolyORB_Test_Common.Compiler'Default_Switches ("Ada");
-# 
+#
 #    end Compiler;
-# 
+#
 #    for Main use (<...>);
-# 
+#
 # end local;
 # The only variable part is the Mains.
 

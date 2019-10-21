@@ -26,9 +26,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Directory_Operations; use GNAT.Directory_Operations;
-with GNAT.OS_Lib;               use GNAT.OS_Lib;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNAT.Table;
+
+with GPR2.ALI.Definition;
+with GPR2.ALI.Unit;
+with GPR2.Context;
+with GPR2.Path_Name;
+with GPR2.Project.Source.Artifact;
+with GPR2.Project.Tree;
+with GPR2.Project.View;
 
 with XE;
 with XE_Front;    use XE_Front;
@@ -46,13 +55,8 @@ package body XE_List is
    -- Source File Stack --
    -----------------------
 
-   type Sources_Entry is record
-      Sfile : File_Name_Type;
-      Afile : File_Name_Type;
-   end record;
-
    package Sources is new GNAT.Table
-     (Table_Component_Type => Sources_Entry,
+     (Table_Component_Type => With_Record,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
       Table_Initial        => 20,
@@ -93,7 +97,6 @@ package body XE_List is
       T_Subprogram     : constant Token_Type := 24;
       T_Spec           : constant Token_Type := 25;
       T_Body           : constant Token_Type := 26;
-      No_Such_Token    : constant Token_Type := 27;
 
       subtype Valid_Token_Type is Token_Type
         range Token_Type'First .. Token_Type'Last - 1;
@@ -127,241 +130,14 @@ package body XE_List is
          T_Spec            => new String'("spec"),
          T_Body            => new String'("body"));
 
-      procedure Open (Fname : String);
-      --  Open Fname in order to parse it. Initialize the parser by
-      --  loading file in a buffer.
-
-      procedure Get_Line;
-      --  Read one line from current buffer and evaluate fields
-
-      function Field (N : Integer) return String;
-      --  Return Nth field. N has to be in the range of 0 and Number_Of_Fields.
-      --  When N is zero, return the full line. When N < 0, the contents of
-      --  the line starting at the beginning of the |N|th field and until end
-      --  of line is returned.
-
-      function Number_Of_Fields return Natural;
-      --  Return number of fields in the current line
-
-      function End_Of_File return Boolean;
-      --  Return True when there is nothing else to read
-
-      function Token (N : Positive) return Token_Type;
-      --  Return the token corresponding to field N. When there is no
-      --  such corresponding token return No_Such_Token. Note that N
-      --  cannot be zero.
-
-      procedure Close;
-      --  Close current file and free buffer
-
    end Parser;
 
    procedure Dump_ALI (My_ALI : ALI_Id);
    --  Dump content of ALI record
 
-   procedure Load_ALIs (Output : File_Name_Type);
+   procedure Load_ALI
+     (Afile, Sfile : File_Name_Type; View : GPR2.Project.View.Object);
    --  Read from Output all the ALI files available
-
-   ------------
-   -- Parser --
-   ------------
-
-   package body Parser is
-
-      use ASCII;
-
-      type Field_Record is record
-         First, Last : Natural;
-      end record;
-
-      Chars    : String (1 .. 256);
-      N_Chars  : Natural;
-      Fields   : array (1 .. 32) of Field_Record;
-      N_Fields : Natural := 0;
-
-      Buffer : Text_Buffer_Ptr;
-      First  : Text_Ptr;
-      Index  : Text_Ptr;
-      Last   : Text_Ptr;
-
-      --  These values are automatically generated for the set of
-      --  tokens from Token_Type. Do not modify them.
-
-      P  : constant array (0 ..  2) of Natural := (01, 02, 04);
-      T1 : constant array (0 ..  2) of Byte    := (54, 27, 20);
-      T2 : constant array (0 ..  2) of Byte    := (45, 24, 26);
-      G  : constant array (0 .. 54) of Byte    :=
-        (03, 00, 00, 00, 13, 11, 00, 00, 00, 00,
-         13, 00, 03, 00, 13, 00, 00, 00, 06, 01,
-         00, 00, 11, 00, 04, 13, 08, 26, 00, 00,
-         24, 00, 22, 00, 00, 02, 00, 00, 00, 00,
-         00, 05, 25, 03, 00, 26, 26, 14, 10, 00,
-         06, 08, 12, 00, 00);
-
-      function Hash (S : String) return Natural;
-
-      -----------
-      -- Close --
-      -----------
-
-      procedure Close is
-      begin
-         Free (Buffer);
-         Index    := First;
-         Last     := First;
-         N_Fields := 0;
-      end Close;
-
-      -----------------
-      -- End_Of_File --
-      -----------------
-
-      function End_Of_File return Boolean is
-      begin
-         return Last = Index;
-      end End_Of_File;
-
-      -----------
-      -- Field --
-      -----------
-
-      function Field (N : Integer) return String is
-         Last : Natural;
-      begin
-         if N = 0 then
-            return Chars (1 .. N_Chars);
-         end if;
-
-         if N > N_Fields then
-            return "";
-         end if;
-
-         if N < 0 then
-            Last := N_Chars;
-         else
-            Last := Fields (N).Last;
-         end if;
-         return Chars (Fields (abs N).First .. Last);
-      end Field;
-
-      --------------
-      -- Get_Line --
-      --------------
-
-      procedure Get_Line is
-         C : Character;
-
-      begin
-         if Last <= Index then
-            raise Fatal_Error;
-         end if;
-         N_Fields := 0;
-         Fields   := (others => (0, 0));
-         N_Chars  := 0;
-         while Index < Last loop
-            C := Buffer (Index);
-            Index := Index + 1;
-            case C is
-               when LF | FF | CR | VT =>
-                  if N_Fields > 0
-                    and then Fields (N_Fields).Last = 0
-                  then
-                     Fields (N_Fields).Last := N_Chars;
-                  end if;
-                  return;
-
-               when ' ' | HT =>
-                  if N_Fields > 0
-                    and then Fields (N_Fields).Last = 0
-                  then
-                     Fields (N_Fields).Last := N_Chars;
-                  end if;
-                  N_Chars := N_Chars + 1;
-                  Chars (N_Chars) := C;
-
-               when others =>
-                  N_Chars := N_Chars + 1;
-                  Chars (N_Chars) := C;
-                  if N_Fields = 0
-                    or else Fields (N_Fields).Last /= 0
-                  then
-                     N_Fields := N_Fields + 1;
-                     Fields (N_Fields).First := N_Chars;
-                  end if;
-            end case;
-         end loop;
-
-         if N_Fields > 0
-           and then Fields (N_Fields).Last = 0
-         then
-            Fields (N_Fields).Last := N_Chars;
-         end if;
-      end Get_Line;
-
-      ----------
-      -- Hash --
-      ----------
-
-      function Hash (S : String) return Natural is
-         F : constant Natural := S'First - 1;
-         L : constant Natural := S'Length;
-         F1, F2 : Natural := 0;
-         J : Natural;
-      begin
-         for K in P'Range loop
-            exit when L < P (K);
-            J  := Character'Pos (S (P (K) + F));
-            F1 := (F1 + Natural (T1 (K)) * J) mod 55;
-            F2 := (F2 + Natural (T2 (K)) * J) mod 55;
-         end loop;
-         return (Natural (G (F1)) + Natural (G (F2))) mod 27;
-      end Hash;
-
-      ----------------------
-      -- Number_Of_Fields --
-      ----------------------
-
-      function Number_Of_Fields return Natural is
-      begin
-         if Buffer = null then
-            raise Fatal_Error;
-         end if;
-         return N_Fields;
-      end Number_Of_Fields;
-
-      ----------
-      -- Open --
-      ----------
-
-      procedure Open (Fname : String) is
-      begin
-         Name_Len := 0;
-         Add_Str_To_Name_Buffer (Fname);
-         Read_File (Name_Find, First, Last, Buffer);
-         if Buffer = null then
-            raise Fatal_Error;
-         end if;
-         Index := First;
-      end Open;
-
-      -----------
-      -- Token --
-      -----------
-
-      function Token (N : Positive) return Token_Type is
-         F : constant String  := Field (N);
-         T : constant Natural := Hash (F);
-
-      begin
-         if T in Valid_Token_Type
-           and then F = Image (T).all
-         then
-            return T;
-         end if;
-         return No_Such_Token;
-      end Token;
-
-   end Parser;
 
    --------------
    -- Dump_ALI --
@@ -564,294 +340,231 @@ package body XE_List is
    -- Load_ALIs --
    ---------------
 
-   procedure Load_ALIs (Output : File_Name_Type) is
-      use Parser;
+   procedure Load_ALI
+     (Afile, Sfile : File_Name_Type; View : GPR2.Project.View.Object)
+   is
+      use GPR2;
 
-      My_ALI  : ALI_Id         := No_ALI_Id;
-      My_Unit : Unit_Id        := No_Unit_Id;
-      My_With : With_Id        := No_With_Id;
-      My_Sdep : Sdep_Id        := No_Sdep_Id;
-      Afile   : File_Name_Type;
+      Src_NR : constant Path_Name.Object :=
+                 Path_Name.Create_File
+                   (Name_Type (Get_Name_String (Sfile)),
+                    Path_Name.No_Resolution);
+      Src_PR   : Path_Name.Object;
+      Afacts   : Project.Source.Artifact.Object :=
+                   View.Source (Src_NR).Artifacts;
+      ALI_File : Path_Name.Object;
+      ALI_Def  : ALI.Definition.Object;
 
-      function File_Name (N : Natural) return File_Name_Type;
-      --  Get the line contents starting with the Nth field and up to end of
-      --  line, and return it as a file name type.
+      My_ALI  : ALI_Id;
+      My_Unit : Unit_Id;
+      My_With : With_Id;
+      My_Sdep : Sdep_Id;
 
-      ---------------
-      -- File_Name --
-      ---------------
+      Unit_Name_Id : Name_Id := XE_Types.No_Name;
 
-      function File_Name (N : Natural) return File_Name_Type is
+      procedure Find_Existing_ALI;
+
+      -----------------------
+      -- Find_Existing_ALI --
+      -----------------------
+
+      procedure Find_Existing_ALI is
       begin
-         --  File names may contain whitespace, so consider not just the Nth
-         --  field but also everything up to end of line.
-
-         return Id (Format_Pathname (Parser.Field (-N), UNIX));
-      end File_Name;
+         for L in GPR2.Project.Source.Artifact.Dependency_Location loop
+            if Afacts.Has_Dependency (1, L)
+              and then Afacts.Dependency (1, L).Exists
+            then
+               ALI_File := Afacts.Dependency (1, L);
+               Src_PR   := Afacts.Source.Source.Path_Name;
+               exit;
+            end if;
+         end loop;
+      end Find_Existing_ALI;
 
    --  Start of processing for Load_ALIs
 
    begin
-      Parser.Open (Get_Name_String (Output));
-      while not Parser.End_Of_File loop
-         Parser.Get_Line;
+      Find_Existing_ALI;
 
-         case Parser.Token (1) is
-            when T_No_ALI =>
-               My_ALI  := No_ALI_Id;
-               My_Unit := No_Unit_Id;
-               My_With := No_With_Id;
-               My_Sdep := No_Sdep_Id;
-
-            when T_ALI =>
-
-               --  Allocate ALI and initialize ALI entry
-
-               ALIs.Increment_Last;
-               My_ALI              := ALIs.Last;
-               ALIs.Table (My_ALI) := Default_ALI;
-               My_Sdep             := No_Sdep_Id;
-               My_Unit             := No_Unit_Id;
-               My_With             := No_With_Id;
-
-            when T_Unit =>
-
-               --  Allocate Unit and initialize Unit entry
-
-               Units.Increment_Last;
-               My_Unit                      := Units.Last;
-               Units.Table (My_Unit)        := Default_Unit;
-               Units.Table (My_Unit).My_ALI := My_ALI;
-               My_With                      := No_With_Id;
-
-               --  Add it to ALI unit list
-
-               if ALIs.Table (My_ALI).Last_Unit = No_Unit_Id then
-                  ALIs.Table (My_ALI).First_Unit := My_Unit;
+      if not ALI_File.Is_Defined then
+         for V of View.Tree.all loop
+            declare
+               Source : constant Project.Source.Object := V.Source (Src_NR);
+            begin
+               if Source.Is_Defined then
+                  Afacts := Source.Artifacts;
+                  Find_Existing_ALI;
+                  exit when ALI_File.Is_Defined;
                end if;
-               ALIs.Table (My_ALI).Last_Unit := My_Unit;
+            end;
+         end loop;
+      end if;
 
-            when T_With =>
+      ALI_Def := ALI.Definition.Scan_ALI (ALI_File);
 
-               --  Allocate With and initialize With entry
+      --  Allocate ALI and initialize ALI entry
 
-               Withs.Increment_Last;
-               My_With                      := Withs.Last;
-               Withs.Table (My_With)        := Default_With;
+      ALIs.Increment_Last;
+      My_ALI := ALIs.Last;
+      Set_ALI_Id (Afile, My_ALI);
 
-               --  Add it to unit with list
+      ALIs.Table (My_ALI) := Default_ALI;
+      ALIs.Table (My_ALI).Afile := Afile;
+      Set_Str_To_Name_Buffer (Src_PR.Value);
+      ALIs.Table (My_ALI).Sfile := Name_Find;
+      ALIs.Table (My_ALI).Main_Program :=
+        (if ALI_Def.Is_Main
+         then (case ALI_Def.Main_Kind is
+                  when ALI.Definition.Func => Func,
+                  when ALI.Definition.Proc => Proc)
+         else No_Main);
+      Set_Str_To_Name_Buffer (ALI_File.Value);
+      ALIs.Table (My_ALI).Ofile := To_Ofile (Name_Find);
+      --  ??? Do we need to take object file from project tree,
+      --  depend on how did we take ali file.
 
-               if Units.Table (My_Unit).Last_With = No_With_Id then
-                  Units.Table (My_Unit).First_With := My_With;
-               end if;
-               Units.Table (My_Unit).Last_With := My_With;
+      for U of ALI_Def.Units loop
+         --  Allocate Unit and initialize Unit entry
 
-            when T_Source =>
+         Units.Increment_Last;
+         My_Unit := Units.Last;
 
-               Sdep.Increment_Last;
-               My_Sdep := Sdep.Last;
-               Sdep.Table (My_Sdep).Sfile := File_Name (3);
+         if ALIs.Table (My_ALI).Last_Unit = No_Unit_Id then
+            ALIs.Table (My_ALI).First_Unit := My_Unit;
+         end if;
+         ALIs.Table (My_ALI).Last_Unit := My_Unit;
 
-               --  Add it to ALI sdep list
+         Units.Table (My_Unit)        := Default_Unit;
+         Units.Table (My_Unit).My_ALI := My_ALI;
 
-               if ALIs.Table (My_ALI).Last_Sdep = No_Sdep_Id then
-                  ALIs.Table (My_ALI).First_Sdep := My_Sdep;
-               end if;
-               ALIs.Table (My_ALI).Last_Sdep := My_Sdep;
+         Set_Str_To_Name_Buffer
+           (GPR2.Path_Name.Create_File
+              (U.Sfile, Name_Type (Src_PR.Dir_Name)).Value);
+         Units.Table (My_Unit).Sfile := Name_Find;
+         Set_Unit_Id (Units.Table (My_Unit).Sfile, My_Unit);
 
-               --  Detect use of tasking
+         --  Is it a subprogram or a package
 
-               Get_Name_String (Strip_Directory (Sdep.Table (My_Sdep).Sfile));
+         Units.Table (My_Unit).Unit_Kind :=
+           (case U.Kind is
+               when ALI.Unit.Kind_Subprogram => 's',
+               when ALI.Unit.Kind_Package    => 'p');
 
-               if Name_Len > 8
-                 and then Name_Buffer (1 .. 8) = "s-taskin"
-               then
-                  ALIs.Table (My_ALI).Tasking := XE.User_Tasking;
-               end if;
+         --  Prepare to set unit name info
 
-            when T_Afile =>
+         Set_Str_To_Name_Buffer (String (U.Uname));
+         Unit_Name_Id := Name_Find;
+         Add_Char_To_Name_Buffer ('%');
 
-               --  If My_With is not null, then this attribute belongs
-               --  to a With entry.
+         --  Is it a spec or a body
 
-               if My_With /= No_With_Id then
-                  Withs.Table (My_With).Afile := File_Name (3);
-
-               else
-                  Afile := File_Name (3);
-                  Set_ALI_Id (Afile, My_ALI);
-
-                  if My_ALI /= No_ALI_Id then
-                     ALIs.Table (My_ALI).Afile := Afile;
-                  end if;
-               end if;
-
-            when T_Ofile =>
-               ALIs.Table (My_ALI).Ofile := File_Name (3);
-
-            when T_Sfile =>
-
-               --  If My_With is not null, then this attribute belongs
-               --  to a Withs entry.
-
-               if My_With /= No_With_Id then
-                  Withs.Table (My_With).Sfile := File_Name (3);
-
-               --  If My_Unit is not null, then this attribute belongs
-               --  to a Units entry.
-
-               elsif My_Unit /= No_Unit_Id then
-                  Units.Table (My_Unit).Sfile := File_Name (3);
-                  Set_Unit_Id (Units.Table (My_Unit).Sfile, My_Unit);
-
-               elsif My_ALI /= No_ALI_Id then
-                  ALIs.Table (My_ALI).Sfile := File_Name (3);
-
-               else
-                  --  Unexpected Sfile token
-
-                  raise Program_Error;
-               end if;
-
-            when T_Name =>
-
-               --  If My_With is not null, then this attribute belongs
-               --  to a With entry.
-
-               if My_With /= No_With_Id then
-                  Withs.Table (My_With).Uname := File_Name (3);
-
-               else
-                  Units.Table (My_Unit).Uname := File_Name (3);
-
-                  --  When Uname is unknown in ALI, update it and
-                  --  associate unit name with ALI id. Note that the
-                  --  unit name is not yet encoded.
-
-                  if No (ALIs.Table (My_ALI).Uname) then
-                     ALIs.Table (My_ALI).Uname := Units.Table (My_Unit).Uname;
-                     Set_ALI_Id (ALIs.Table (My_ALI).Uname, My_ALI);
-                  end if;
-               end if;
-
-            when T_Main =>
-
-               if Parser.Token (3) = T_Procedure then
-                  ALIs.Table (My_ALI).Main_Program := Proc;
-               else
-                  ALIs.Table (My_ALI).Main_Program := Func;
-               end if;
-
-            when T_Kind =>
-
-               --  If My_With is not null, then this attribute belongs
-               --  to a With entry.
-
-               if My_With /= No_With_Id then
-
-                  Get_Name_String (Withs.Table (My_With).Uname);
-                  Add_Char_To_Name_Buffer ('%');
-
-                  if Parser.Token (3) = T_Spec then
-                     Add_Char_To_Name_Buffer ('s');
-                  else
-                     Add_Char_To_Name_Buffer ('b');
-                  end if;
-
-                  Withs.Table (My_With).Uname := Name_Find;
-
-               else
-
-                  --  Is it a subprogram or a package
-
-                  if Parser.Token (3) = T_Subprogram then
-                     Units.Table (My_Unit).Unit_Kind := 's';
-
-                  else
-                     Units.Table (My_Unit).Unit_Kind := 'p';
-                  end if;
-
-                  --  Prepare to set unit name info
-
-                  Get_Name_String (Units.Table (My_Unit).Uname);
-                  Add_Char_To_Name_Buffer ('%');
-
-                  --  Is it a spec or a body
-
-                  if Parser.Token (4) = T_Spec then
-                     Add_Char_To_Name_Buffer ('s');
-                     if ALIs.Table (My_ALI).First_Unit = My_Unit then
-                        Units.Table (My_Unit).Utype := Is_Spec_Only;
-
-                     else
-                        Units.Table (ALIs.Table (My_ALI).First_Unit).Utype :=
-                          Is_Body;
-                        Units.Table (My_Unit).Utype := Is_Spec;
-                     end if;
-
-                  else
-                     Add_Char_To_Name_Buffer ('b');
-                     Units.Table (My_Unit).Utype := Is_Body_Only;
-                  end if;
-
-                  --  Set unit name info
-
-                  Units.Table (My_Unit).Uname := Name_Find;
-                  Set_Unit_Id (Units.Table (My_Unit).Uname, My_Unit);
-               end if;
-
-            when T_Flags =>
-               for F in 3 .. Parser.Number_Of_Fields loop
-                  case Parser.Token (F) is
-                     when T_Has_RACW =>
-                        Units.Table (My_Unit).Has_RACW := True;
-
-                     when T_Remote_Types =>
-                        Units.Table (My_Unit).Remote_Types := True;
-
-                     when T_Shared_Passive =>
-                        Units.Table (My_Unit).Shared_Passive := True;
-
-                     when T_RCI =>
-                        Units.Table (My_Unit).RCI := True;
-
-                     when T_Predefined =>
-                        Units.Table (My_Unit).Predefined := True;
-
-                     when T_Internal =>
-                        Units.Table (My_Unit).Internal := True;
-
-                     when T_Is_Generic =>
-                        Units.Table (My_Unit).Is_Generic := True;
-
-                     when T_Preelaborated =>
-                        Units.Table (My_Unit).Preelaborated := True;
-
-                     when others =>
-                        null;
-                  end case;
-               end loop;
-
-            when others =>
-               null;
+         case U.Utype is
+            when ALI.Unit.Is_Spec =>
+               Add_Char_To_Name_Buffer ('s');
+               Units.Table (My_Unit).Utype := Is_Spec;
+            when ALI.Unit.Is_Spec_Only =>
+               Add_Char_To_Name_Buffer ('s');
+               Units.Table (My_Unit).Utype := Is_Spec_Only;
+            when ALI.Unit.Is_Body =>
+               Add_Char_To_Name_Buffer ('b');
+               Units.Table (My_Unit).Utype := Is_Body;
+            when ALI.Unit.Is_Body_Only =>
+               Add_Char_To_Name_Buffer ('b');
+               Units.Table (My_Unit).Utype := Is_Body_Only;
          end case;
+
+         --  Set unit name info
+
+         Units.Table (My_Unit).Uname := Name_Find;
+         Set_Unit_Id (Units.Table (My_Unit).Uname, My_Unit);
+
+         for W of U.Withs loop
+            Withs.Increment_Last;
+            My_With := Withs.Last;
+            Withs.Table (My_With) := Default_With;
+
+            if Units.Table (My_Unit).Last_With = No_With_Id then
+               Units.Table (My_Unit).First_With := My_With;
+            end if;
+            Units.Table (My_Unit).Last_With := My_With;
+
+            declare
+               AF  : constant String := String (W.Afile);
+               SF  : constant Optional_Name_Type := W.Sfile;
+            begin
+               if AF /= "" then
+                  Set_Str_To_Name_Buffer (AF);
+                  Withs.Table (My_With).Afile := Name_Find;
+               end if;
+
+               if SF /= "" then
+                  Set_Str_To_Name_Buffer (String (SF));
+                  Withs.Table (My_With).Sfile := Name_Find;
+               end if;
+            end;
+
+            Set_Str_To_Name_Buffer (String (W.Uname));
+            case W.Ukind is
+               when GPR2.S_Spec     => Add_Str_To_Name_Buffer ("%s");
+               when GPR2.S_Body     => Add_Str_To_Name_Buffer ("%b");
+               when GPR2.S_Separate => null;
+            end case;
+            Withs.Table (My_With).Uname := Name_Find;
+         end loop;
+
+         declare
+            use GPR2.ALI.Unit;
+            Flags : constant Flag_Array := U.Flags;
+         begin
+            Units.Table (My_Unit).Has_RACW       := Flags (Has_RACW);
+            Units.Table (My_Unit).Remote_Types   := Flags (Remote_Types);
+            Units.Table (My_Unit).Shared_Passive := Flags (Shared_Passive);
+            Units.Table (My_Unit).RCI            := Flags (RCI);
+            Units.Table (My_Unit).Predefined     := Flags (Predefined);
+            Units.Table (My_Unit).Is_Generic     := Flags (Is_Generic);
+            Units.Table (My_Unit).Preelaborated  := Flags (Preelab);
+            Units.Table (My_Unit).Internal       := False;
+            --  Internal flag is not assigned in gpr1.
+         end;
       end loop;
-      Parser.Close;
-      Remove_Temp_File (Output);
-   end Load_ALIs;
+
+      ALIs.Table (My_ALI).Uname := Unit_Name_Id; -- Units.Table (My_Unit).Uname
+      Set_ALI_Id (ALIs.Table (My_ALI).Uname, My_ALI);
+
+      for SD of ALI_Def.Sdeps loop
+         Sdep.Increment_Last;
+         My_Sdep := Sdep.Last;
+         Set_Str_To_Name_Buffer (String (SD.Sfile));
+         Sdep.Table (My_Sdep).Sfile := Name_Find;
+
+         if ALIs.Table (My_ALI).Last_Sdep = No_Sdep_Id then
+            ALIs.Table (My_ALI).First_Sdep := My_Sdep;
+         end if;
+         ALIs.Table (My_ALI).Last_Sdep := My_Sdep;
+
+         Get_Name_String (Strip_Directory (Sdep.Table (My_Sdep).Sfile));
+
+         if Name_Len > 8 and then Name_Buffer (1 .. 8) = "s-taskin" then
+            ALIs.Table (My_ALI).Tasking := XE.User_Tasking;
+         end if;
+      end loop;
+   end Load_ALI;
 
    -------------------------------
    -- Load_All_Registered_Units --
    -------------------------------
 
    procedure Load_All_Registered_Units is
+      use GPR2;
+
       Comp_Flags, List_Flags, Make_Flags : Argument_Vec;
 
+      Tree       : Project.Tree.Object;
+      View       : Project.View.Object;
       Sfile      : File_Name_Type;
       Afile      : File_Name_Type;
       ALI        : ALI_Id;
       Partition  : Partition_Id;
-      Output     : File_Name_Type;
 
    begin
       Push (Comp_Flags, Semantic_Only_Flag);
@@ -884,14 +597,21 @@ package body XE_List is
       --  directory information) to gnat make, Monolithic_Src_Base_Name,
       --  not Monolithic_Src_Name.
 
-      Sfile := Monolithic_Src_Base_Name;
       Build
-        (Sfile, Make_Flags, not Keep_Going, Display_Compilation_Progress);
+        (Monolithic_Src_Base_Name, Make_Flags, not Keep_Going,
+         Display_Compilation_Progress);
+
+      Project.Tree.Load_Autoconf
+        (Self             => Tree,
+         Context          => Context.Empty,
+         Filename         => Path_Name.Create_File
+                               (Name_Type (To_String (Project_File_Name))),
+         Absent_Dir_Error => True);
+      Tree.Update_Sources;
 
       --  Load the info from its ALI file
 
-      List ((1 => Monolithic_ALI_Name), List_Flags, Output);
-      Load_ALIs (Output);
+      Load_ALI (Monolithic_ALI_Name, Monolithic_Src_Name, Tree.Root_Project);
       ALI := Get_ALI_Id (Monolithic_ALI_Name);
 
       --  Do not delete the source file for the fake main subprogram,
@@ -920,19 +640,15 @@ package body XE_List is
 
             if Present (Sfile) then
                Set_Name_Table_Byte (Sfile, 1);
-               Sources.Append
-                 (Sources_Entry'
-                    (Sfile => Sfile,
-                     Afile => Withs.Table (K).Afile));
+               Sources.Append (Withs.Table (K));
             end if;
          end loop;
       end loop;
 
       while Sources.First <= Sources.Last loop
          declare
-            Last   : Natural := Sources.Last + 1 - Sources.First;
-            Afiles : File_Name_List (1 .. Last);
-            Sfiles : File_Name_List (1 .. Last);
+            Last  : Natural := Sources.Last + 1 - Sources.First;
+            W_Arr : array (1 .. Last) of With_Record;
 
          begin
             --  Load in Args the sources whose corresponding ALI file is not
@@ -940,26 +656,36 @@ package body XE_List is
 
             Last := 0;
             for J in Sources.First .. Sources.Last loop
-               Sfile := Sources.Table (J).Sfile;
-               Afile := Sources.Table (J).Afile;
-
                --  We never tried to download this ALI file. Its info
                --  is not a valid ALI id (not even No_ALI_Id).
 
-               if Get_Name_Table_Info (Afile) = 0 then
+               if Get_Name_Table_Info (Sources.Table (J).Afile) = 0 then
                   Last := Last + 1;
-                  Afiles (Last) := Afile;
-                  Sfiles (Last) := Sfile;
+                  W_Arr (Last) := Sources.Table (J);
                end if;
             end loop;
             Sources.Init;
 
-            List (Afiles (1 .. Last), List_Flags, Output);
-            Load_ALIs (Output);
-
             for J in 1 .. Last loop
-               Sfile := Sfiles (J);
-               Afile := Afiles (J);
+               declare
+                  Unit : constant String := Get_Name_String (W_Arr (J).Uname);
+                  Last : constant Natural :=
+                           (if Unit'Length > 2
+                              and then Unit (Unit'Last - 1) = '%'
+                            then Unit'Last - 2
+                            else Unit'Last);
+               begin
+                  View := Tree.Get_View (Name_Type (Unit (1 .. Last)));
+
+                  if not View.Is_Defined then
+                     raise Constraint_Error with
+                       "Can't find project for unit " & Unit (1 .. Last);
+                  end if;
+               end;
+
+               Sfile := W_Arr (J).Sfile;
+               Afile := W_Arr (J).Afile;
+               Load_ALI (Afile, Sfile, View);
                ALI   := Get_ALI_Id (Afile);
 
                --  The ALI file does not exist. It may come from a missing
@@ -979,8 +705,7 @@ package body XE_List is
                   end if;
 
                   Compile (Sfile, Comp_Flags, Fatal => False);
-                  List ((1 => Afile), List_Flags, Output);
-                  Load_ALIs (Output);
+                  Load_ALI (Afile, Sfile, View);
 
                   --  If the ALI file is still missing, then we have a real
                   --  problem.
@@ -1030,10 +755,7 @@ package body XE_List is
                        and then Get_Name_Table_Byte (Sfile) = 0
                      then
                         Set_Name_Table_Byte (Sfile, 1);
-                        Sources.Append
-                          (Sources_Entry'
-                             (Sfile => Sfile,
-                              Afile => Withs.Table (K).Afile));
+                        Sources.Append (Withs.Table (K));
                      end if;
                   end loop;
                end loop;

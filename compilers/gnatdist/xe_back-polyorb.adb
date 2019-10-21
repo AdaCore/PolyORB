@@ -259,13 +259,6 @@ package body XE_Back.PolyORB is
    procedure Reset_Conf;
    --  Clear the configuration table
 
-   --  Installation information
-
-   PolyORB_Prefix  : constant String :=
-                       XE_Back.Prefix
-                         (Check_For => "lib" & Dir_Separator & "gnat"
-                                        & Dir_Separator & "polyorb.gpr");
-
    -------------------------------
    -- Generate_Ada_Starter_Code --
    -------------------------------
@@ -1433,9 +1426,7 @@ package body XE_Back.PolyORB is
       --  view of the original source paths from the installed polyorb project.
       --  See also comments in Generate_PCS_Project_Files.
 
-      Scan_Dist_Arg ("-margs");
-      Scan_Dist_Arg ("-aP" & PolyORB_Prefix
-                           & "lib" & Dir_Separator & "gnat");
+      null;
    end Set_PCS_Dist_Flags;
 
    -----------

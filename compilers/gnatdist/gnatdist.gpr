@@ -1,0 +1,20 @@
+with "gpr2";
+
+project Gnatdist is
+
+   for Main use ("po_gnatdist");
+   COMPILERS_DIR := External ("COMPILERS_DIR", "");
+   SRC_DIRS := (".", "../common_files");
+
+   case COMPILERS_DIR is
+      when "" =>
+         null;
+      when others =>
+         SRC_DIRS := SRC_DIRS &
+           (COMPILERS_DIR & "/gnatdist",
+            COMPILERS_DIR & "/common_files");
+   end case;
+
+   for Source_Dirs use SRC_DIRS;
+
+end Gnatdist;
