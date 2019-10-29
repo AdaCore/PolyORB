@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 1995-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2019, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -159,15 +159,15 @@ package XE_Units is
 
    type ALIs_Record is record
       Ofile : File_Name_Type;
-      --  Name of object file
+      --  Full path name of the object file
 
       Afile : File_Name_Type;
-      --  Name of ALI file
+      --  Base name of the ALI file
 
       Sfile : File_Name_Type;
-      --  Name of source file that generates this ALI file (which is equal
-      --  to the name of the source file in the first unit table entry for
-      --  this ALI file, since the body if present is always first).
+      --  Full path name of the source file that generates this ALI file (which
+      --  is equal to the name of the source file in the first unit table entry
+      --  for this ALI file, since the body if present is always first).
 
       Uname : Unit_Name_Type;
       --  Name of Unit
@@ -203,25 +203,25 @@ package XE_Units is
       --  for each partition).
    end record;
 
-   Default_ALI : constant ALIs_Record := (
-      Ofile         => No_File_Name,
-      Afile         => No_File_Name,
-      Sfile         => No_File_Name,
-      Uname         => No_Unit_Name,
-      First_Unit    => No_Unit_Id,
-      Last_Unit     => No_Unit_Id,
-      First_Sdep    => First_Sdep_Id,
-      Last_Sdep     => No_Sdep_Id,
-      Main_Program  => No_Main,
-      Tasking       => Unknown_Tasking,
-      Stamp_Checked => False);
+   Default_ALI : constant ALIs_Record :=
+                   (Ofile         => No_File_Name,
+                    Afile         => No_File_Name,
+                    Sfile         => No_File_Name,
+                    Uname         => No_Unit_Name,
+                    First_Unit    => No_Unit_Id,
+                    Last_Unit     => No_Unit_Id,
+                    First_Sdep    => First_Sdep_Id,
+                    Last_Sdep     => No_Sdep_Id,
+                    Main_Program  => No_Main,
+                    Tasking       => Unknown_Tasking,
+                    Stamp_Checked => False);
 
-   package ALIs is new GNAT.Table (
-     Table_Component_Type => ALIs_Record,
-     Table_Index_Type     => ALI_Id,
-     Table_Low_Bound      => First_ALI_Id,
-     Table_Initial        => 500,
-     Table_Increment      => 200);
+   package ALIs is new GNAT.Table
+     (Table_Component_Type => ALIs_Record,
+      Table_Index_Type     => ALI_Id,
+      Table_Low_Bound      => First_ALI_Id,
+      Table_Initial        => 500,
+      Table_Increment      => 200);
 
    ----------------
    -- Unit Table --
@@ -244,7 +244,7 @@ package XE_Units is
       --  Name of Unit
 
       Sfile : File_Name_Type;
-      --  Name of source file
+      --  Full path name of the source file
 
       First_With : With_Id;
       --  Id of first withs table entry for this file
@@ -290,30 +290,30 @@ package XE_Units is
 
    end record;
 
-   package Units is new GNAT.Table (
-     Table_Component_Type => Unit_Record,
-     Table_Index_Type     => Unit_Id,
-     Table_Low_Bound      => First_Unit_Id,
-     Table_Initial        => 100,
-     Table_Increment      => 200);
+   package Units is new GNAT.Table
+     (Table_Component_Type => Unit_Record,
+      Table_Index_Type     => Unit_Id,
+      Table_Low_Bound      => First_Unit_Id,
+      Table_Initial        => 100,
+      Table_Increment      => 200);
 
-   Default_Unit : constant Unit_Record := (
-      My_ALI         => No_ALI_Id,
-      Uname          => No_Unit_Name,
-      Sfile          => No_File_Name,
-      First_With     => First_With_Id,
-      Last_With      => No_With_Id,
-      Has_RACW       => False,
-      Remote_Types   => False,
-      Shared_Passive => False,
-      RCI            => False,
-      Preelaborated  => False,
-      Pure           => False,
-      Predefined     => False,
-      Internal       => False,
-      Utype          => Is_Spec_Only,
-      Is_Generic     => False,
-      Unit_Kind      => 'p');
+   Default_Unit : constant Unit_Record :=
+                    (My_ALI         => No_ALI_Id,
+                     Uname          => No_Unit_Name,
+                     Sfile          => No_File_Name,
+                     First_With     => First_With_Id,
+                     Last_With      => No_With_Id,
+                     Has_RACW       => False,
+                     Remote_Types   => False,
+                     Shared_Passive => False,
+                     RCI            => False,
+                     Preelaborated  => False,
+                     Pure           => False,
+                     Predefined     => False,
+                     Internal       => False,
+                     Utype          => Is_Spec_Only,
+                     Is_Generic     => False,
+                     Unit_Kind      => 'p');
 
    ----------------
    -- With Table --
@@ -327,23 +327,25 @@ package XE_Units is
       --  Name of Unit
 
       Sfile : File_Name_Type;
-      --  Name of source file, set to No_File in generic case
+      --  Name of the source file, set to No_File in generic case.
+      --  Full path name for the predefined sources.
+      --  Base path name for the user sources.
 
       Afile : File_Name_Type;
-      --  Name of ALI file, set to No_File in generic case
+      --  Base file name of the ALI file, set to No_File in generic case
    end record;
 
-   package Withs is new GNAT.Table (
-     Table_Component_Type => With_Record,
-     Table_Index_Type     => With_Id,
-     Table_Low_Bound      => First_With_Id,
-     Table_Initial        => 100,
-     Table_Increment      => 200);
+   package Withs is new GNAT.Table
+     (Table_Component_Type => With_Record,
+      Table_Index_Type     => With_Id,
+      Table_Low_Bound      => First_With_Id,
+      Table_Initial        => 100,
+      Table_Increment      => 200);
 
-   Default_With : constant With_Record := (
-      Uname          => No_Unit_Name,
-      Afile          => No_File_Name,
-      Sfile          => No_File_Name);
+   Default_With : constant With_Record :=
+                    (Uname => No_Unit_Name,
+                     Afile => No_File_Name,
+                     Sfile => No_File_Name);
 
    ------------------------------------
    -- Sdep (Source Dependency) Table --
@@ -354,17 +356,17 @@ package XE_Units is
 
    type Sdep_Record is record
 
-      Sfile : File_Name_Type;
+      Sfile : File_Name_Type; -- Full for *.adc, base for others
       --  Name of source file
 
    end record;
 
-   package Sdep is new GNAT.Table (
-     Table_Component_Type => Sdep_Record,
-     Table_Index_Type     => Sdep_Id,
-     Table_Low_Bound      => First_Sdep_Id,
-     Table_Initial        => 5000,
-     Table_Increment      => 200);
+   package Sdep is new GNAT.Table
+     (Table_Component_Type => Sdep_Record,
+      Table_Index_Type     => Sdep_Id,
+      Table_Low_Bound      => First_Sdep_Id,
+      Table_Initial        => 5000,
+      Table_Increment      => 200);
 
    ---------------------
    -- Partition Table --
