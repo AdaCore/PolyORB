@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         Copyright (C) 1999-2013 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2019 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -103,3 +103,74 @@ in your PATH, and configure picks the wrong one, you can indicate
 what compiler should be used with the following syntax:
 
 ADA=/path/to/good/compiler/gcc ./configure [options]
+
+
+Installation instruction for Windows
+------------------------------------
+
+The following tools are needed to install PolyORB on Windows.
+
+  - MinGW + MSYS
+    The packages mingw32-base and msys-base need to
+    be installed via the MinGW Installation Manager.
+
+  - Python
+    The 2.7 version is required. The 3.x versions will not work.
+
+  - GNAT
+    e.g. the GNAT Community edition
+
+Follow these instructions. Path names are usually examples.
+Start MSYS:
+
+  Start C:\MinGW\msys\1.0\msys.bat
+
+This opens the MINGW32 console where all
+the following commands should be entered.
+Tell MSYS where to find the GNAT compiler and Python:
+
+  export PATH=/c/GNATPRO/20.0/bin/:/c/Python27/:$PATH
+
+Change to the folder where the PolyORB sources are located:
+
+  cd /c/PolyORB
+
+Call the support/reconfig script:
+
+  support/reconfig
+
+Call the configure script, change the prefix to the desired
+location where PolyORB will be installed. Adjust the parameters
+to build the wanted sub components:
+
+  ./configure –prefix=C:/GNATPRO/20.0/ \
+    --with-appli-perso="corba dsa moma" \
+    --with-proto-perso="giop soap srp" \
+    --with-corba-services="event ir naming notification time" \
+    --with-openssl --with-gnatcoll
+
+Now the notation of some paths need to be fixed.
+Open C:\PolyORB\projects\polyorb_config.gpr with a text editor.
+Turn these lines into Windows path notation, i.e. from
+
+    Top_Source_Dir := "/c/PolyORB/";
+    Top_Build_Dir := "/c/PolyORB/";
+
+to
+
+    Top_Source_Dir := "C:/PolyORB/";
+    Top_Build_Dir := "C:/PolyORB/";
+
+Build PolyORB:
+
+  make top_builddir=C:/PolyORB
+
+Install PolyORB:
+
+  make install top_builddir=C:/PolyORB top_srcdir=C:/PolyORB
+
+Verify PolyORB:
+
+  cd C:/PolyORB/examples/dsa/echo
+  /c/GNATPRO/20.0/bin/po_gnatdist.exe echo.cfg
+  client.exe
