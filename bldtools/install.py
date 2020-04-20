@@ -8,7 +8,7 @@ import sys
 
 
 def usage():
-    print "Usage: install.py [-m MODE] [-R] SRCFILE... DSTDIR"
+    print ("Usage: install.py [-m MODE] [-R] SRCFILE... DSTDIR")
     sys.exit(2)
 
 
@@ -16,26 +16,28 @@ def ensure_dir(d):
     if not os.path.isdir(d):
         os.makedirs(d)
 
+def _rstrip(line):
+    return line.strip()
 
 def main():
     dir = False
-    mode = 0444
+    mode = 0o444
     strip = False
     verbose = False
     preserve_relative_path = False
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "dm:svR")
-    except getopt.GetoptError, err:
+    except getopt.GetoptError as err:
         # print help information and exit:
-        print str(err)  # will print something like "option -a not recognized"
+        print (str(err))  # will print something like "option -a not recognized"
         usage()
 
     for o, a in opts:
         if o == "-d":
             dir = True
         elif o == "-m":
-            mode = string.atoi(a, 8)
+            mode = int(a, 8)
         elif o == "-s":
             strip = True
         elif o == "-v":
@@ -53,7 +55,7 @@ def main():
 
     for file in args:
         if file == '-':
-            args.extend(map(string.rstrip, sys.stdin.readlines()))
+            args.extend(map(_rstrip, sys.stdin.readlines()))
 
         elif dir:
             ensure_dir(file)
@@ -71,12 +73,12 @@ def main():
                 dstfile = dst
 
             if verbose:
-                print "%s -> %s" % (file, dstfile)
+                print ("%s -> %s" % (file, dstfile))
 
             if os.path.exists(dstfile):
                 # Before doing the unlink, ensure that we have write access to
                 # the file (required on Windows).
-                os.chmod(dstfile, 0600)
+                os.chmod(dstfile, 0o600)
                 os.unlink(dstfile)
             shutil.copy2(file, dstfile)
             os.chmod(dstfile, mode)
