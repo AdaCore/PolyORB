@@ -53,7 +53,7 @@ generic
    with procedure Set_Length (Source : in out Sequence; Length : Natural);
 
    with function Unchecked_Element_Of
-     (Source : access Sequence;
+     (Source : not null access Sequence;
       Index  : Positive) return Element_Ptr;
    --  Access to the Index'th (1-based) element in Seq
 
