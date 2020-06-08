@@ -243,7 +243,7 @@ package PolyORB.Sequences.Unbounded is
    type Element_Ptr is access all Element;
 
    function Unchecked_Element_Of
-     (Source : access Sequence;
+     (Source : not null access Sequence;
       Index  : Positive) return Element_Ptr;
    --  Return an access to the element at the specified index in Source
 

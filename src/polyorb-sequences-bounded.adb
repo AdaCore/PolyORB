@@ -838,7 +838,7 @@ package body PolyORB.Sequences.Bounded is
    --------------------------
 
    function Unchecked_Element_Of
-     (Source : access Sequence;
+     (Source : not null access Sequence;
       Index  : Positive) return Element_Ptr
    is
    begin
