@@ -61,7 +61,7 @@ package body PolyORB.Opaque.Chunk_Pools is
       if Allocation_Size = Default_Chunk_Size
         and then not Pool.Prealloc_Used
       then
-         New_Chunk := Pool.Prealloc'Access;
+         New_Chunk := Pool.Prealloc'Unchecked_Access;
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
