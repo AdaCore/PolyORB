@@ -133,16 +133,10 @@ private
    type Node;
    type Node_Access is access all Node;
 
-   --  For simply chained lists, we only have one Next pointer in each node;
-   --  for doubly chained lists, we have Next and Prev.
-
-   Links_Type_Low : constant array (Boolean) of Ilists.Link_Type :=
-                      (False => Ilists.Next,
-                       True  => Ilists.Prev);
-
    type Links_Type is
-     array (Ilists.Link_Type range Links_Type_Low (Doubly_Chained)
-                                                     .. Ilists.Next)
+     array (Ilists.Link_Type range
+       Ilists.Link_Type'(if Doubly_Chained then Ilists.Prev else Ilists.Next)
+         .. Ilists.Next)
        of aliased Node_Access;
    --  If Doubly_Chained, Links_Type has indices Prev and Next, else just Next
 
