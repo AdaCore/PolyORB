@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -410,12 +410,12 @@ package body XE_IO is
    begin
       Get_Name_String (Strip_Suffix (Strip_Directory (Fname)));
 
-      --  Definitely false if longer than 12 characters (8.3)
+      --  Definitely false if longer than 13 characters (9.3)
 
-      if Name_Len > 8 then
+      if Name_Len > 9 then
          return False;
 
-      --  Definitely predefined if prefix is a- i- or s- followed by letter
+      --  Definitely predefined if prefix is a- g- i- or s- followed by letter
 
       elsif Name_Len >=  3
         and then Name_Buffer (2) = '-'
