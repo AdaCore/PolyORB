@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -126,7 +126,7 @@ package body PolyORB.Task_Info is
    -- List_First --
    ----------------
 
-   function List_First (List : Task_List) return access Task_Info is
+   function List_First (List : Task_List) return Task_Info_Access is
    begin
       return Task_Lists.Value (First (List));
    end List_First;

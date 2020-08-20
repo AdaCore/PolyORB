@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -189,7 +189,7 @@ package PolyORB.Task_Info is
    function Is_Empty (List : Task_List) return Boolean;
    --  True when List has no elements
 
-   function List_First (List : Task_List) return access Task_Info;
+   function List_First (List : Task_List) return Task_Info_Access;
    --  Return the first element of List
 
    procedure List_Attach

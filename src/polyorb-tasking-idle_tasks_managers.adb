@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -106,7 +106,7 @@ package body PolyORB.Tasking.Idle_Tasks_Managers is
    begin
       pragma Assert (not Is_Empty (ITM.Idle_Task_Lists (Kind)));
       Awake_Idle_Task
-        (ITM, List_First (ITM.Idle_Task_Lists (Kind)).all'Access);
+        (ITM, List_First (ITM.Idle_Task_Lists (Kind)));
    end Awake_One_Idle_Task;
 
    -------------------------
