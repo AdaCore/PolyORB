@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -499,7 +499,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          N := Make_Attribute_Reference (N, A_Class);
          C := Make_Explicit_Dereference (Make_Identifier (PN (P_Self)));
          N := Make_Type_Conversion (N, C);
-         N := Make_Attribute_Reference (N, A_Access);
+         N := Make_Attribute_Reference (N, A_Unchecked_Access);
          Append_To (Inv_Profile, N);
 
          --  Generate the code relative to the operation parameters
