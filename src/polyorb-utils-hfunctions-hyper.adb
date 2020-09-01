@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -53,16 +53,16 @@ package body PolyORB.Utils.HFunctions.Hyper is
      return Natural
    is
       Result : Long_Long_Integer := 0;
-      G : aliased Generator;
-   begin
+      G      : Generator;
 
-      Reset (G'Access, Seed_Type (Seed));
+   begin
+      Reset (G, Seed_Type (Seed));
 
       --  Loop
 
       for J in S'Range loop
          Result := (Result
-                    + Long_Long_Integer (Random.Random (G'Access))
+                    + Long_Long_Integer (Random.Random (G))
                     * Long_Long_Integer (Character'Pos (S (J))))
            mod Long_Long_Integer (Prime);
       end loop;

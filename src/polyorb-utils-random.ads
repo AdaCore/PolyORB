@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -49,9 +49,9 @@ package PolyORB.Utils.Random is
 
    Default_Seed : constant Seed_Type;
 
-   function Random (G : access Generator) return PolyORB.Types.Unsigned_Long;
+   function Random (G : in out Generator) return PolyORB.Types.Unsigned_Long;
 
-   procedure Reset (G : access Generator; Seed : Seed_Type := Default_Seed);
+   procedure Reset (G : in out Generator; Seed : Seed_Type := Default_Seed);
 
 private
 
