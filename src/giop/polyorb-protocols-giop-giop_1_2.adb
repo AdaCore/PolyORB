@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -140,7 +140,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Internal function declaration --
    -----------------------------------
 
-   procedure Process_Request (S : access GIOP_Session);
+   procedure Process_Request (S : in out GIOP_Session'Class);
 
    procedure Process_Locate_Request (S : in out Session'Class);
 
@@ -241,7 +241,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                raise Bidirectionnal_GIOP_Not_Implemented;
             end if;
 
-            Process_Request (Sess'Access);
+            Process_Request (Sess);
 
          when Cancel_Request =>
             if Sess.Role /= Server then
@@ -434,9 +434,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Process_Request --
    ---------------------
 
-   procedure Process_Request
-     (S : access GIOP_Session)
-   is
+   procedure Process_Request (S : in out GIOP_Session'Class) is
       use PolyORB.Any.NVList;
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
@@ -519,7 +517,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                --  XXX change state name. We are not waiting for
                --  unmarshalling: we do it now. See next line.
 
-               Handle_Unmarshall_Arguments (S, Args, Error);
+               Handle_Unmarshall_Arguments (S'Unchecked_Access, Args, Error);
 
                if Found (Error) then
                   Catch (Error);
@@ -530,7 +528,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             else
                pragma Debug (C, O ("Unmarshalling of arguments deferred"));
-               Def_Args := Component_Access (S);
+               Def_Args := S'Unchecked_Access;
 
             end if;
 
@@ -557,7 +555,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             Create_Reference ((1 => Target_Addr.Profile), "", Target);
 
-            Def_Args := Component_Access (S);
+            Def_Args := S'Unchecked_Access;
             --  XXX By default, we do deferred unmarshalling, we
             --  have no way to get servant signature.
 
@@ -566,7 +564,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
             Target := Target_Addr.Ref.IOR;
 
-            Def_Args := Component_Access (S);
+            Def_Args := S'Unchecked_Access;
             --  XXX By default, we do deferred unmarshalling, we
             --  have no way to get servant signature.
       end case;
@@ -601,7 +599,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
           Transport_Security,
           Fetch_Secure_Transport_QoS
             (PolyORB.Transport.Transport_Endpoint_Access
-              (Lower (Filter_Access (Lower (S))))));
+              (Lower (Filter_Access (Lower (S'Access))))));
          --  XXX Should be reimplemented!
       end if;
 
@@ -615,13 +613,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          if CSP /= null then
             SCtx.CS_Context := new QoS_GIOP_Code_Sets_Parameter'(CSP.all);
             Set_Converters
-              (GIOP_1_2_CDR_Representation (S.all.Repr.all),
+              (GIOP_1_2_CDR_Representation (S.Repr.all),
                Get_Converter (Native_Char_Code_Set,  CSP.Char_Data),
                Get_Converter (Native_Wchar_Code_Set, CSP.Wchar_Data));
          end if;
       end if;
 
-      Queue_Request (S, Req, MCtx.Request_Id);
+      Queue_Request (S'Unchecked_Access, Req, MCtx.Request_Id);
       Free (Target_Addr);
       pragma Debug (C, O ("Request queued."));
    end Process_Request;

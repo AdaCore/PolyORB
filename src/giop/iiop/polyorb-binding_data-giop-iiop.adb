@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -84,12 +84,12 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    --  transport mechanims)
 
    procedure Add_Additional_Transport_Mechanisms
-     (P : access IIOP_Profile_Type);
+     (P : in out IIOP_Profile_Type);
    --  Add transport mechanisms associated with tagged components in P.
    --  The primary transport mechanism (associated with the base IIOP profile
    --  body) should already have been created.
 
-   procedure Add_Profile_QoS (P : access IIOP_Profile_Type);
+   procedure Add_Profile_QoS (P : in out IIOP_Profile_Type);
    --  Add profile QoS parameters. This subprogram should be called
    --  after calculation of additional transport mechanisms.
 
@@ -110,31 +110,30 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -----------------------------------------
 
    procedure Add_Additional_Transport_Mechanisms
-     (P : access IIOP_Profile_Type)
-   is
+     (P : in out IIOP_Profile_Type) is
    begin
       Create_Transport_Mechanisms
-        (P.Components, Profile_Access (P), P.Mechanisms);
+        (P.Components, P'Unchecked_Access, P.Mechanisms);
    end Add_Additional_Transport_Mechanisms;
 
    ---------------------
    -- Add_Profile_QoS --
    ---------------------
 
-   procedure Add_Profile_QoS (P : access IIOP_Profile_Type) is
+   procedure Add_Profile_QoS (P : in out IIOP_Profile_Type) is
       use PolyORB.QoS;
       use PolyORB.QoS.Tagged_Components;
 
    begin
       PolyORB.Binding_Data_QoS.Set_Profile_QoS
-        (P,
+        (P'Unchecked_Access,
          GIOP_Tagged_Components,
          new QoS_GIOP_Tagged_Components_Parameter'
          (GIOP_Tagged_Components,
           Create_QoS_GIOP_Tagged_Components_List (P.Components)));
 
       if Security_Fetch_QoS /= null then
-         Security_Fetch_QoS (P);
+         Security_Fetch_QoS (P'Unchecked_Access);
       end if;
    end Add_Profile_QoS;
 
@@ -297,9 +296,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
       --  Now create additional transport mechanisms from tagged components
 
-      Add_Additional_Transport_Mechanisms (TResult'Access);
-
-      Add_Profile_QoS (TResult'Access);
+      Add_Additional_Transport_Mechanisms (TResult);
+      Add_Profile_QoS (TResult);
 
       return Result;
    end Create_Profile;
@@ -343,8 +341,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
          (Duplicate (IIOP_Transport_Mechanism
                      (Element (P.Mechanisms, 0).all.all))));
 
-      Add_Additional_Transport_Mechanisms (TResult'Access);
-      Add_Profile_QoS (TResult'Access);
+      Add_Additional_Transport_Mechanisms (TResult);
+      Add_Profile_QoS (TResult);
 
       return Result;
    end Duplicate_Profile;
@@ -386,8 +384,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
       Append (TResult.Mechanisms, Create_Transport_Mechanism (Address));
 
-      Add_Additional_Transport_Mechanisms (TResult'Access);
-      Add_Profile_QoS (TResult'Access);
+      Add_Additional_Transport_Mechanisms (TResult);
+      Add_Profile_QoS (TResult);
 
       return Result;
    end Unmarshall_IIOP_Profile_Body;
