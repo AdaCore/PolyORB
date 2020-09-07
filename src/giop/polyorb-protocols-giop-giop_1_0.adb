@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -108,7 +108,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    -----------------------------------
 
    procedure Process_Request
-     (S : access GIOP_Session);
+     (S : in out GIOP_Session);
 
    procedure Process_Locate_Request
      (S : in out Session'Class);
@@ -191,7 +191,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
             if Sess.Role /= Server then
                raise GIOP_Error;
             end if;
-            Process_Request (Sess'Access);
+            Process_Request (Sess);
 
          when Cancel_Request =>
             if Sess.Role /= Server then
@@ -263,7 +263,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    ---------------------
 
    procedure Process_Request
-     (S : access GIOP_Session)
+     (S : in out GIOP_Session)
    is
       use PolyORB.ORB;
       use PolyORB.Components;
@@ -322,7 +322,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       if not Is_Nil (Args) then
          pragma Debug (C, O ("Immediate arguments unmarshalling"));
-         Handle_Unmarshall_Arguments (S, Args, Error);
+         Handle_Unmarshall_Arguments (S'Unchecked_Access, Args, Error);
 
          if Found (Error) then
             Catch (Error);
@@ -334,7 +334,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       else
          pragma Debug (C, O ("Unmarshalling of arguments deferred"));
          S.State := Waiting_Unmarshalling;
-         Def_Args := Component_Access (S);
+         Def_Args := S'Unchecked_Access;
       end if;
 
       declare
@@ -371,7 +371,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          QoS_Parameter_Access (Service_Contexts));
       Rebuild_Request_QoS_Parameters (Req.all);
 
-      Queue_Request (S, Req, Request_Id);
+      Queue_Request (S'Unchecked_Access, Req, Request_Id);
       Free (Object_Key);
       pragma Debug (C, O ("Request queued."));
    end Process_Request;
