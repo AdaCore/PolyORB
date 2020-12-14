@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,7 +44,7 @@ package PolyORB.Services.Naming.NamingContext.Servant is
    type Bound_Object;
    type Bound_Object_Ptr is access Bound_Object;
 
-   type Object;
+   type Object is tagged;
    type Object_Ptr is access all Object'Class;
 
    type Bound_Object is
