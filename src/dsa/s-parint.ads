@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2020, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -258,7 +258,7 @@ package System.Partition_Interface is
    --  Do not change its definition or its layout without updating Exp_Dist
    --  accordingly.
 
-   type RACW_Stub_Type;
+   type RACW_Stub_Type is tagged;
    type RACW_Stub_Type_Access is access all RACW_Stub_Type'Class;
 
    type RACW_Stub_Links is array (PolyORB.Utils.Ilists.Link_Type)
