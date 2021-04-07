@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2018, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -126,7 +126,7 @@ package body PolyORB.ORB is
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
-      This_Task : in out PTI.Task_Info);
+      This_Task : PTI.Task_Info);
    pragma Inline (Perform_Work);
    --  Perform one item of work assigned to This_Task
    --  Precondition:  Must be called from within ORB critical section.
@@ -256,7 +256,7 @@ package body PolyORB.ORB is
 
    procedure Perform_Work
      (ORB       : access ORB_Type;
-      This_Task : in out Task_Info.Task_Info)
+      This_Task : Task_Info.Task_Info)
    is
       use PolyORB.Task_Info;
 
@@ -286,7 +286,7 @@ package body PolyORB.ORB is
 
    procedure Try_Check_Sources
      (ORB       : access ORB_Type;
-      This_Task : in out Task_Info.Task_Info);
+      This_Task : Task_Info.Task_Info);
    pragma Inline (Try_Check_Sources);
    --  Check ORB AESs attached to This_Task's Selector for any incoming event.
    --  Precondition:  Must be called from within ORB critical section.
@@ -296,7 +296,7 @@ package body PolyORB.ORB is
 
    procedure Try_Check_Sources
      (ORB       : access ORB_Type;
-      This_Task : in out Task_Info.Task_Info)
+      This_Task : Task_Info.Task_Info)
    is
       use PolyORB.Task_Info;
 
