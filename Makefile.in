@@ -641,7 +641,9 @@ endif
 projects_subdir=lib/gnat/polyorb
 
 .PHONY: install
-install:
+install: install-bins install-docs
+
+install-bins:
 	@echo "   Sources dir: ${top_srcdir}"
 	@echo "     Build dir: ${top_builddir}"
 	@echo "Install prefix: ${prefix}"
@@ -684,6 +686,8 @@ install:
 	  -a ! -name 'polyorb-dsa_p-storages-config.ali' \
 	  -a ! -name 'polyorb-partition_elaboration.ali') | \
 	${PINSTALL} -m 444 - ${target_prefix}/lib/polyorb
+
+install-docs:
 	# Install documentation only if it has been built locally, or
 	# pre-built and packaged with sources. In that case, pass
 	# SPHINXBUILD=true to child make process in order to bypass
