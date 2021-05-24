@@ -450,6 +450,7 @@ doc/Building_an_application_with_PolyORB.rst
 doc/CODING_GUIDELINES
 doc/CONTRIBUTING
 doc/CORBA.rst
+doc/Conformance.rst
 doc/GIOP.rst
 doc/Installation.rst
 doc/Introduction_to_PolyORB.rst
@@ -459,6 +460,7 @@ doc/Makefile.polyorb_doc
 doc/OMG_TAGS
 doc/Overview_of_PolyORB_personalities.rst
 doc/PROBLEM-REPORT-FORM
+doc/Performance.rst
 doc/RT-CORBA.rst
 doc/References.rst
 doc/SOAP.rst
@@ -466,8 +468,6 @@ doc/Tasking_model_in_PolyORB.rst
 doc/Tools.rst
 doc/conf.py
 doc/corba-arch.fig
-doc/corba-arch_fig.pdf
-doc/corba-arch_fig.svg
 doc/echo-impl-body.adb
 doc/echo-impl-spec.ads
 doc/echo.idl
@@ -477,7 +477,6 @@ doc/full-ex_fig.svg
 doc/glade-sources
 doc/iac.1
 doc/idlac.1
-doc/index.rst
 doc/myconfig.cfg
 doc/po_names.1
 doc/polyorb-config.1
@@ -487,6 +486,7 @@ doc/polyorb_gps.xml
 doc/polyorb_ug.bib
 doc/polyorb_version.py.in
 doc/server.adb
+doc/ug_contents.rst
 doc/xe-arch.fig
 doc/xe-arch_fig.pdf
 doc/xe-arch_fig.svg
