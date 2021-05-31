@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1405,11 +1405,9 @@ package body Lexer is
                Scan_Chars_Literal_Value (T_String_Literal, True, False);
                Get_Name_String (String_Literal_Value);
 
-               --  Remove marker for built-in or command line text
+               --  Remove introductory markers (built-in, command-line, etc)
 
-               if Name_Buffer (1) = '<'
-                 and then Name_Buffer (Name_Len) = '>'
-               then
+               if Line = 0 or else Name_Buffer (1) = '<' then
                   null;
 
                --  Check the suffix is ".idl"
