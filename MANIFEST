@@ -28,6 +28,7 @@ compilers/common_files/types.ads
 compilers/common_files/utils.adb
 compilers/common_files/utils.ads
 compilers/config.adc.in
+compilers/gnatdist/gnatdist.gpr
 compilers/gnatdist/po_gnatdist.adb
 compilers/gnatdist/xe.adb
 compilers/gnatdist/xe.ads
