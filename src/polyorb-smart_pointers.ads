@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -141,10 +141,10 @@ package PolyORB.Smart_Pointers is
 private
 
    type Unsafe_Entity is abstract tagged limited record
-      Counter : aliased Interfaces.Integer_32 := 0;
+      Counter : aliased Interfaces.Unsigned_32 := 0;
       --  Reference counter.
-      --  If set to -1, no reference counting is performed for this entity:
-      --  Inc_Usage and Dec_Usage are both no-ops in that case.
+      --  If set to Unsigned_32'Last, no reference counting is performed for
+      --  this entity: Inc_Usage and Dec_Usage are both no-ops in that case.
    end record;
 
    type Non_Controlled_Entity is abstract new Unsafe_Entity with null record;

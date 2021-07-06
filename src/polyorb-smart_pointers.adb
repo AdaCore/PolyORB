@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -77,11 +77,15 @@ package body PolyORB.Smart_Pointers is
 
       procedure Initialize;
       function Sync_Add_And_Fetch
-        (Ptr   : access Interfaces.Integer_32;
-         Value : Interfaces.Integer_32) return Interfaces.Integer_32;
+        (Ptr   : access Interfaces.Unsigned_32;
+         Value : Interfaces.Unsigned_32) return Interfaces.Unsigned_32;
+      function Sync_Sub_And_Fetch
+        (Ptr   : access Interfaces.Unsigned_32;
+         Value : Interfaces.Unsigned_32) return Interfaces.Unsigned_32;
 
       pragma Inline (Initialize);
       pragma Inline (Sync_Add_And_Fetch);
+      pragma Inline (Sync_Sub_And_Fetch);
    end Sync_Counters;
 
    package body Sync_Counters is separate;
@@ -115,18 +119,17 @@ package body PolyORB.Smart_Pointers is
       procedure Free is new Ada.Unchecked_Deallocation
         (Unsafe_Entity'Class, Entity_Ptr);
 
-      Counter : Interfaces.Integer_32;
+      Counter : Interfaces.Unsigned_32;
 
    begin
-      if Obj.Counter = -1 then
+      if Obj.Counter = Interfaces.Unsigned_32'Last then
          --  Entity is not reference-counted
 
          return;
       end if;
 
       pragma Debug (C, Trace_Event (Dec_Usage, Obj));
-      Counter := Sync_Add_And_Fetch (Obj.Counter'Access, -1);
-      pragma Assert (Counter >= 0);
+      Counter := Sync_Sub_And_Fetch (Obj.Counter'Access, 1);
 
       if Counter = 0 then
 
@@ -151,7 +154,7 @@ package body PolyORB.Smart_Pointers is
 
    procedure Disable_Ref_Counting (Obj : in out Unsafe_Entity'Class) is
    begin
-      Obj.Counter := -1;
+      Obj.Counter := Interfaces.Unsigned_32'Last;
    end Disable_Ref_Counting;
 
    -------------------------------
@@ -263,10 +266,10 @@ package body PolyORB.Smart_Pointers is
    ---------------
 
    procedure Inc_Usage (Obj : Entity_Ptr) is
-      Discard : Interfaces.Integer_32;
+      Discard : Interfaces.Unsigned_32;
       pragma Unreferenced (Discard);
    begin
-      if Obj.Counter = -1 then
+      if Obj.Counter =  Interfaces.Unsigned_32'Last then
          --  Entity is not reference-counted
 
          return;
@@ -319,10 +322,10 @@ package body PolyORB.Smart_Pointers is
      (The_Ref    : in out Ref;
       The_Entity : Entity_Ptr)
    is
-      Counter : Interfaces.Integer_32;
+      Counter : Interfaces.Unsigned_32;
    begin
       pragma Assert (The_Ref.A_Ref = null);
-      pragma Assert (The_Entity.Counter /= -1);
+      pragma Assert (The_Entity.Counter /= Interfaces.Unsigned_32'Last);
       pragma Debug (C, Trace_Event (Inc_Usage, The_Entity));
       Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, 1);
 
@@ -335,7 +338,7 @@ package body PolyORB.Smart_Pointers is
          --  Was 0, can't reuse entity, reset counter.
 
          pragma Debug (C, Trace_Event (Dec_Usage, The_Entity));
-         Counter := Sync_Add_And_Fetch (The_Entity.Counter'Access, -1);
+         Counter := Sync_Sub_And_Fetch (The_Entity.Counter'Access, 1);
 
       else
          The_Ref.A_Ref := The_Entity;
@@ -386,15 +389,15 @@ package body PolyORB.Smart_Pointers is
       Obj        : Entity_Ptr)
    is
       Entity_Kind : constant String := Entity_External_Tag (Obj.all);
-      Event_Values : constant array (Event_Kind_Type) of Integer_32 :=
-        (Inc_Usage => +1, Dec_Usage => -1);
    begin
       if Get_Trace (Entity_Kind) then
          O (Event_Kind'Img & ": "
               & Entity_Kind
-              & Integer_32'Image (Obj.Counter)
+              & Unsigned_32'Image (Obj.Counter)
               & " ->"
-              & Integer_32'Image (Obj.Counter + Event_Values (Event_Kind)));
+              & Unsigned_32'Image ((if Event_Kind = Inc_Usage
+                                    then Obj.Counter + 1
+                                    else Obj.Counter - 1)));
       end if;
    end Trace_Event;
 

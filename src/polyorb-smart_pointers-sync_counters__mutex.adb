@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2009-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2009-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -51,10 +51,10 @@ separate (PolyORB.Smart_Pointers) package body Sync_Counters is
    ------------------------
 
    function Sync_Add_And_Fetch
-     (Ptr   : access Interfaces.Integer_32;
-      Value : Interfaces.Integer_32) return Interfaces.Integer_32
+     (Ptr   : access Interfaces.Unsigned_32;
+      Value : Interfaces.Unsigned_32) return Interfaces.Unsigned_32
    is
-      Result : Interfaces.Integer_32;
+      Result : Interfaces.Unsigned_32;
    begin
       Enter (Counter_Lock);
       Ptr.all := Ptr.all + Value;
@@ -62,5 +62,22 @@ separate (PolyORB.Smart_Pointers) package body Sync_Counters is
       Leave (Counter_Lock);
       return Result;
    end Sync_Add_And_Fetch;
+
+   ------------------------
+   -- Sync_Sub_And_Fetch --
+   ------------------------
+
+   function Sync_Sub_And_Fetch
+     (Ptr   : access Interfaces.Unsigned_32;
+      Value : Interfaces.Unsigned_32) return Interfaces.Unsigned_32
+   is
+      Result : Interfaces.Unsigned_32;
+   begin
+      Enter (Counter_Lock);
+      Ptr.all := Ptr.all - Value;
+      Result := Ptr.all;
+      Leave (Counter_Lock);
+      return Result;
+   end Sync_Sub_And_Fetch;
 
 end Sync_Counters;
