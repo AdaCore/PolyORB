@@ -2970,6 +2970,7 @@ testsuite/tests/examples/polyorb/POLYORB_CORE_3/test.py
 testsuite/tests/run-test.py
 testsuite/tests/test_utils.py
 testsuite/testsuite.py
+testsuite/legacy_py2_testsuite.py
 tools/README
 tools/po_catref/po_catref-common.adb
 tools/po_catref/po_catref-common.ads
