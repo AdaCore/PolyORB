@@ -2624,3 +2624,5 @@ debug-makefile:
 # $< -- first prerequisite
 # $^ -- all prerequisites
 # $* -- stem (the part that matched %)
+
+.NOTPARALLEL:
