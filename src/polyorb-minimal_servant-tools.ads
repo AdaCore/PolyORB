@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,7 +31,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Errors;
-with PolyORB.Minimal_Servant;
 with PolyORB.References;
 with PolyORB.Types;
 with PolyORB.Obj_Adapters;

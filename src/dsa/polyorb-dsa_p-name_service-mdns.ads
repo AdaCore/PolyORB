@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2010-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2010-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -34,7 +34,6 @@
 
 pragma Ada_2012;
 
-with PolyORB.DSA_P.Name_Service;
 with PolyORB.POA_Policies;
 with PolyORB.References;
 
