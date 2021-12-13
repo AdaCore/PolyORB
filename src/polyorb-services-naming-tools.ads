@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -34,7 +34,6 @@
 
 with PolyORB.References;
 
-with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.NamingContext;
 
 package PolyORB.Services.Naming.Tools is

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,9 +36,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any;
-
-with CORBA;
-pragma Elaborate_All (CORBA);
 
 package CORBA.IDL_SEQUENCES.Helper is
 

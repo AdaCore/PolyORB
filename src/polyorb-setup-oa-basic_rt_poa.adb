@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,7 +41,6 @@ with PolyORB.POA_Config.Root_POA;
 
 with PolyORB.POA_Manager;
 with PolyORB.RT_POA.Basic_RT_POA;
-with PolyORB.Setup;
 with PolyORB.Setup.Proxies_POA;
 --  XXX should be depended upon only when proxies are desired.
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,7 +35,6 @@ with PolyORB.Buffers;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.QoS.Service_Contexts;
-with PolyORB.QoS;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Request_QoS;
