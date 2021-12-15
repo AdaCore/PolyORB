@@ -48,7 +48,7 @@ library project PolyORB_cos_ir is
    package Compiler is
 
       for Default_Switches ("Ada")
-        use PolyORB_Common.Compiler'Default_Switches ("Ada");
+        use PolyORB_Common.Compiler'Default_Switches ("Ada") & ("-gnatwR");
 
    end Compiler;
 
