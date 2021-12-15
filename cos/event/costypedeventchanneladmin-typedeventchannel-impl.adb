@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosTypedEventChannelAdmin.TypedEventChannel;
 with CosTypedEventChannelAdmin.TypedSupplierAdmin.Impl;
 with CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2000-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2000-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,7 +33,6 @@
 pragma Ada_2012;
 
 with PolyORB.SOAP_P.Message.Payload;
-with PolyORB.SOAP_P.Message.Response;
 
 package PolyORB.SOAP_P.Message.Response.Error is
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,7 +36,6 @@ with CORBA.Object;
 with CosEventChannelAdmin.ProxyPullConsumer;
 with CosEventChannelAdmin.ProxyPushConsumer;
 
-with CosTypedEventChannelAdmin;
 with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
 with CosTypedEventChannelAdmin.TypedProxyPushConsumer;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,8 +32,6 @@
 
 with CosEventChannelAdmin.SupplierAdmin.Impl;
 with CosEventChannelAdmin.ConsumerAdmin.Impl;
-
-with CosEventChannelAdmin.EventChannel;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
