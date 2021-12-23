@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1995-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 1995-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -402,7 +402,6 @@ package body XE_Utils is
       Has_Prj  : out Boolean)
    is
       Is_Section : Boolean;
-      pragma Unreferenced (Is_Section);
 
       Prog : Make_Program_Type := None;
 

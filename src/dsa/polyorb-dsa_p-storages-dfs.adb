@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -420,7 +420,6 @@ package body PolyORB.DSA_P.Storages.DFS is
 
    overriding procedure Lock (Self : access DFS_Manager_Type) is
       Success : Boolean;
-      pragma Unreferenced (Success);
 
    begin
       Enter (Self.PO_Mutex);

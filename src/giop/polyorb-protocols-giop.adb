@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -961,7 +961,7 @@ package body PolyORB.Protocols.GIOP is
       Success : out Boolean)
    is
       Ignored_Req : Pending_Request;
-      pragma Unreferenced (Ignored_Req);
+
    begin
       pragma Debug (C, O ("Retrieving pending request with id"
                        & Types.Unsigned_Long'Image (Id)));
@@ -986,7 +986,7 @@ package body PolyORB.Protocols.GIOP is
       Success :    out Boolean)
    is
       Ignored_Req : Pending_Request_Access;
-      pragma Unreferenced (Ignored_Req);
+
    begin
       pragma Debug (C, O ("Removing pending request with locate id"
                        & Types.Unsigned_Long'Image (Id)));

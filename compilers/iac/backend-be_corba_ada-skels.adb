@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2020, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -656,7 +656,7 @@ package body Backend.BE_CORBA_Ada.Skels is
          --  Handling the case of a non void operation
 
          if Non_Void then
-            --  Declare the Result_Ü variable
+            --  Declare the Result_Ãœ variable
 
             N := Make_Object_Declaration
               (Defining_Identifier => Make_Defining_Identifier
@@ -2318,7 +2318,7 @@ package body Backend.BE_CORBA_Ada.Skels is
                Fn : Temp_File_Name;
 
                Dummy : Boolean;
-               pragma Unreferenced (Dummy);
+
             begin
                Create_Temp_File (Fd, Fn);
                Close (Fd);
