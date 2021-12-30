@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,8 +31,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
-
-with TypedTest_Interface;
 
 with TypedTest_Interface.Skel;
 pragma Warnings (Off, TypedTest_Interface.Skel);

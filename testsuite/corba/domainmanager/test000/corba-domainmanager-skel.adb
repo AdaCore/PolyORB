@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -48,8 +48,6 @@ with CORBA.NVList;
 with PolyORB.Std;
 with CORBA.ServerRequest;
 with CORBA.DomainManager.Impl;
-with CORBA;
-pragma Elaborate_All (CORBA);
 with PortableServer;
 pragma Elaborate_All (PortableServer);
 with PolyORB.CORBA_P.Exceptions;
