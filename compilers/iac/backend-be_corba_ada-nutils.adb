@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2021, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1758,6 +1758,10 @@ package body Backend.BE_CORBA_Ada.Nutils is
       --  allocator to an access parameter. We should really switch to using
       --  named access types.
 
+      function Make_Unnecesary_With_Of_Ancestor_Warning_Pragma return Node_Id;
+      --  Returns a pragma to disable warnings about unnecessary with of
+      --  ancestor package.
+
       function Make_Style_Check_Pragma return Node_Id;
       --  Returns a node for a pragma deactivating style checks
 
@@ -1798,6 +1802,23 @@ package body Backend.BE_CORBA_Ada.Nutils is
                       Make_Literal
                         (New_String_Value (Name_Find, Wide => False))));
       end Make_Anon_Allocator_Warning_Pragma;
+
+      -----------------------------------------------------
+      -- Make_Unnecesary_With_Of_Ancestor_Warning_Pragma --
+      -----------------------------------------------------
+
+      function Make_Unnecesary_With_Of_Ancestor_Warning_Pragma
+        return Node_Id is
+      begin
+         Set_Str_To_Name_Buffer ("unnecessary with of ancestor");
+
+         return Make_Pragma
+                  (Pragma_Warnings,
+                   New_List
+                     (RE (RE_Off),
+                      Make_Literal
+                        (New_String_Value (Name_Find, Wide => False))));
+      end Make_Unnecesary_With_Of_Ancestor_Warning_Pragma;
 
       ------------------------------------
       -- Make_Character_Encoding_Pragma --
@@ -1869,6 +1890,9 @@ package body Backend.BE_CORBA_Ada.Nutils is
 
       Append_To (Context_Clause (Pkg), Make_Style_Check_Pragma);
       Append_To (Context_Clause (Pkg), Make_Anon_Allocator_Warning_Pragma);
+      Append_To
+        (Context_Clause (Pkg),
+         Make_Unnecesary_With_Of_Ancestor_Warning_Pragma);
 
       --  Adding a comment header. We only want to include source in the spec.
 
