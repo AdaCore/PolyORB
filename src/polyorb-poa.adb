@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2022, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1616,8 +1616,21 @@ package body PolyORB.POA is
       Leave (Obj_OA.POA_Lock);
 
       if Found (Error) then
-         pragma Debug (C, O ("Find_Servant: leave (error)"));
-         return;
+         if Error.Kind = ObjectNotActive_E then
+            --  When POA is configured to ACTIVE_OBJECT_MAP_ONLY of Request
+            --  Processing Policy, reported error may be ObjectNotActive_E
+            --  for compatibility with PortableServer::POA::id_to_servant
+            --  behavior. This error need to be translated to system's
+            --  Object_Not_Exists_E error, thus cleanup error state and
+            --  continue execution, error state will be set at the end of
+            --  the subprogram.
+
+            Catch (Error);
+
+         else
+            pragma Debug (C, O ("Find_Servant: leave (error)"));
+            return;
+         end if;
       end if;
 
       --  Servant not found, we try to activate one, if POA policies allow it
