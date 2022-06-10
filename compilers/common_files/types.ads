@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2022, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,7 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
 
 package Types is
 pragma Preelaborate (Types);
@@ -100,7 +100,7 @@ pragma Preelaborate (Types);
    type String_Ptr    is access all String;
    --  Standard character and string pointers
 
-   procedure Free is new Unchecked_Deallocation (String, String_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation (String, String_Ptr);
    --  Procedure for freeing dynamically allocated String values
 
    -----------------------------------------
@@ -121,7 +121,8 @@ pragma Preelaborate (Types);
    --  Text buffers for input files are allocated dynamically and this type
    --  is used to reference these text buffers.
 
-   procedure Free is new Unchecked_Deallocation (Text_Buffer, Text_Buffer_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Text_Buffer, Text_Buffer_Ptr);
    --  Procedure for freeing dynamically allocated text buffers
 
    ------------------------------------------
