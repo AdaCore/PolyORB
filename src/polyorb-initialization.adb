@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2022, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -464,7 +464,6 @@ package body PolyORB.Initialization is
                   Raise_Unresolved_Dependency
                     (From => Module_Name (M).all,
                      Upon => Module_Name (Dep.Target).all);
-                  return;
                end if;
             end;
          end if;

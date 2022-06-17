@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2022, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -378,8 +378,6 @@ package body PolyORB.Exceptions is
          Ada.Exceptions.Raise_Exception
            (Id, Image (New_Node.Id) & Ada.Characters.Latin_1.LF & Message);
       end if;
-
-      raise Program_Error;
    end User_Raise_Exception;
 
    -----------------------------------
