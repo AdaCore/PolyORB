@@ -6,7 +6,7 @@
  *                                                                          *
  *                       C   s u p p o r t   f i l e                        *
  *                                                                          *
- *         Copyright (C) 2008-2010, Free Software Foundation, Inc.          *
+ *         Copyright (C) 2008-2022, Free Software Foundation, Inc.          *
  *                                                                          *
  * PolyORB is free software; you  can  redistribute  it and/or modify it    *
  * under terms of the  GNU General Public License as published by the  Free *
@@ -27,6 +27,10 @@
 /* C support functions for PolyORB */
 
 #include "config.h"
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
