@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2022, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -85,7 +85,6 @@ package body PolyORB.DSA_P.Exceptions is
 
       Ada.Exceptions.Raise_Exception
         (Get_ExcepId_By_Name (Exception_Name (Exc_Repo_Id)), Msg);
-      raise Program_Error;
    end Raise_From_Any;
 
    ----------------------
