@@ -71,7 +71,7 @@ class PolyORBRegTestFinder(TestFinder):
             return None
 
         command_file_names = ["test.sh", "test.cmd"]
-        test_name = testsuite.test_name(dirpath)
+        test_name = os.path.basename(dirpath)
 
         # If the directory hold any known command files then it is a test
         if any(cmd_file in filenames for cmd_file in command_file_names):
@@ -109,7 +109,7 @@ class PolyORBTestFinder(TestFinder):
         :param dirnames: List of directories that "dirpath" contains.
         :param filenames: List of files that "dirpath" contains.
         """
-        test_name = testsuite.test_name(dirpath)
+        test_name = os.path.basename(dirpath)
 
          # If the directory hold 'test.py' then it is a test
         if 'test.py' in filenames:

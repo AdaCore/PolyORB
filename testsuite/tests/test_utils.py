@@ -46,8 +46,8 @@ CONF_DIR = os.path.join(SRC_DIR, 'tests', 'confs')
 EXE_EXT = Env().target.os.exeext
 
 test_path_dirs = TEST_NAME.split("__")
-OUTPUT_FILENAME = os.path.join(os.environ["LOG_DIR"], os.path.join(*test_path_dirs))
-OUTPUT_DIR = os.path.join(os.environ["LOG_DIR"], os.path.join(*test_path_dirs[:-1]))
+OUTPUT_DIR = os.path.join(os.environ["LOG_DIR"], TEST_NAME)
+OUTPUT_FILENAME = os.path.join(OUTPUT_DIR, TEST_NAME)
 
 COVERAGE = (os.environ["COVERAGE"] == "True")
 VERBOSE = os.environ["VERBOSE"] == "True"
