@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -115,13 +115,13 @@ package body CosTime.TIO.Impl is
    is
       pragma Warnings (Off);
       A_Interval : IntervalT renames Self.Interval;
-      B_Interval : constant IntervalT := Get_time_interval (interval);
+      B_Interval : constant IntervalT := get_time_interval (interval);
       --  XXX is it necessary ?
       pragma Warnings (On);
       Result     : constant TIO_Ptr := new Object;
    begin
       Do_Overlap (A_Interval => Self.Interval,
-                  B_Interval => Get_time_interval (interval),
+                  B_Interval => get_time_interval (interval),
                   Overlaps   => Result.Interval,
                   Returns    => Returns);
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
@@ -138,8 +138,8 @@ package body CosTime.TIO.Impl is
       overlap : out CosTime.TIO.Ref;
       Returns : out OverlapType)
    is
-      Tim        : constant TimeT       := UTO.Get_time (time);
-      Ina        : constant InaccuracyT := UTO.Get_inaccuracy (time);
+      Tim        : constant TimeT       := UTO.get_time (time);
+      Ina        : constant InaccuracyT := UTO.get_inaccuracy (time);
       B_Interval : constant IntervalT   := (lower_bound => Tim - Ina,
                                             upper_bound => Tim + Ina);
       Result     : constant TIO_Ptr := new Object;

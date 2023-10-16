@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -396,7 +396,7 @@ package body PolyORB.CORBA_P.Interceptors is
          Iter : Iterator := First (All_Initializer_Refs);
       begin
          while not Last (Iter) loop
-            PortableInterceptor.ORBInitializer.Pre_Init
+            PortableInterceptor.ORBInitializer.pre_init
               (Value (Iter).all, Info_Ref);
             Next (Iter);
          end loop;
@@ -406,7 +406,7 @@ package body PolyORB.CORBA_P.Interceptors is
          Iter : Iterator := First (All_Initializer_Refs);
       begin
          while not Last (Iter) loop
-            PortableInterceptor.ORBInitializer.Post_Init
+            PortableInterceptor.ORBInitializer.post_init
               (Value (Iter).all, Info_Ref);
             Next (Iter);
          end loop;
@@ -505,19 +505,19 @@ package body PolyORB.CORBA_P.Interceptors is
 
       procedure Call_Send_Request is
          new Call_Client_Request_Interceptor_Operation
-              (PortableInterceptor.ClientRequestInterceptor.Send_Request);
+              (PortableInterceptor.ClientRequestInterceptor.send_request);
 
       procedure Call_Receive_Reply is
          new Call_Client_Request_Interceptor_Operation
-             (PortableInterceptor.ClientRequestInterceptor.Receive_Reply);
+             (PortableInterceptor.ClientRequestInterceptor.receive_reply);
 
       procedure Call_Receive_Exception is
          new Call_Client_Request_Interceptor_Operation
-              (PortableInterceptor.ClientRequestInterceptor.Receive_Exception);
+              (PortableInterceptor.ClientRequestInterceptor.receive_exception);
 
       procedure Call_Receive_Other is
          new Call_Client_Request_Interceptor_Operation
-              (PortableInterceptor.ClientRequestInterceptor.Receive_Other);
+              (PortableInterceptor.ClientRequestInterceptor.receive_other);
 
       Req_Id  : constant CORBA.Unsigned_Long := Allocate_Request_Id;
 
@@ -765,7 +765,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
       while not ClientRequestInterceptor_Lists.Last (Iter) loop
          if CORBA.To_Standard_String
-              (PortableInterceptor.ClientRequestInterceptor.Get_Name
+              (PortableInterceptor.ClientRequestInterceptor.get_name
                 (ClientRequestInterceptor_Lists.Value (Iter).all))
              = Name
          then
@@ -795,7 +795,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
       while not IORInterceptor_Lists.Last (Iter) loop
          if CORBA.To_Standard_String
-              (PortableInterceptor.IORInterceptor.Get_Name
+              (PortableInterceptor.IORInterceptor.get_name
                 (IORInterceptor_Lists.Value (Iter).all))
              = Name
          then
@@ -825,7 +825,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
       while not ServerRequestInterceptor_Lists.Last (Iter) loop
          if CORBA.To_Standard_String
-              (PortableInterceptor.ServerRequestInterceptor.Get_Name
+              (PortableInterceptor.ServerRequestInterceptor.get_name
                 (ServerRequestInterceptor_Lists.Value (Iter).all))
              = Name
          then
@@ -863,7 +863,7 @@ package body PolyORB.CORBA_P.Interceptors is
       Iter := IORInterceptor_Lists.First (All_IOR_Interceptors);
       while not IORInterceptor_Lists.Last (Iter) loop
          begin
-            PortableInterceptor.IORInterceptor.Establish_Components
+            PortableInterceptor.IORInterceptor.establish_components
               (IORInterceptor_Lists.Value (Iter).all,
                Info);
          exception
@@ -883,7 +883,7 @@ package body PolyORB.CORBA_P.Interceptors is
               PortableInterceptor.IORInterceptor_3_0.Repository_Id)
          then
             begin
-               PortableInterceptor.IORInterceptor_3_0.Components_Established
+               PortableInterceptor.IORInterceptor_3_0.components_established
                  (PortableInterceptor.IORInterceptor_3_0.Helper.To_Local_Ref
                    (IORInterceptor_Lists.Value (Iter).all),
                   Info);
@@ -926,7 +926,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
       procedure Call_Receive_Request is
          new Call_Server_Request_Interceptor_Operation
-              (PortableInterceptor.ServerRequestInterceptor.Receive_Request);
+              (PortableInterceptor.ServerRequestInterceptor.receive_request);
 
       Note             : Server_Interceptor_Note;
       Break_Invocation : Boolean := False;
@@ -990,16 +990,16 @@ package body PolyORB.CORBA_P.Interceptors is
 
       procedure Call_Receive_Request_Service_Contexts is
          new Call_Server_Request_Interceptor_Operation
-              (PISRI.Receive_Request_Service_Contexts);
+              (PISRI.receive_request_service_contexts);
 
       procedure Call_Send_Reply is
-         new Call_Server_Request_Interceptor_Operation (PISRI.Send_Reply);
+         new Call_Server_Request_Interceptor_Operation (PISRI.send_reply);
 
       procedure Call_Send_Exception is
-         new Call_Server_Request_Interceptor_Operation (PISRI.Send_Exception);
+         new Call_Server_Request_Interceptor_Operation (PISRI.send_exception);
 
       procedure Call_Send_Other is
-         new Call_Server_Request_Interceptor_Operation (PISRI.Send_Other);
+         new Call_Server_Request_Interceptor_Operation (PISRI.send_other);
 
       RSC             : Slots_Note;
       Empty_Any       : PolyORB.Any.Any;
@@ -1162,7 +1162,7 @@ package body PolyORB.CORBA_P.Interceptors is
         (PolyORB.Errors.ForwardRequest_Members'
          (Forward_Reference =>
             PolyORB.Smart_Pointers.Ref
-          (CORBA.Object.Internals.To_PolyORB_Ref (Members.Forward))));
+          (CORBA.Object.Internals.To_PolyORB_Ref (Members.forward))));
    end To_PolyORB_ForwardRequest_Members_Any;
 
    ----------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -66,11 +66,11 @@ package body PortableInterceptor.IORInfo.Impl is
 
       Append
         (QoS.Components,
-         (Component_Id (A_Component.Tag),
+         (Component_Id (A_Component.tag),
           new Ada.Streams.Stream_Element_Array'
           (PolyORB.CORBA_P.Codec_Utils.To_Encapsulation
            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
-            (A_Component.Component_Data)))));
+            (A_Component.component_data)))));
    end Add_IOR_Component;
 
    ----------------------------------
@@ -85,7 +85,7 @@ package body PortableInterceptor.IORInfo.Impl is
       use type IOP.ProfileId;
 
    begin
-      if Profile_Id /= IOP.Tag_Internet_IOP then
+      if Profile_Id /= IOP.TAG_INTERNET_IOP then
          CORBA.Raise_Bad_Param
            (CORBA.System_Exception_Members'
             (CORBA.IDL_Exception_Members with

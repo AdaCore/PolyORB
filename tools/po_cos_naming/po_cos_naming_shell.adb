@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -523,7 +523,7 @@ begin
                         CORBA.Object.Ref (Fil));
                   end;
                   Argv := Argument (3);
-                  Set_Image (Fil, CORBA.To_CORBA_String (Argv.all));
+                  set_Image (Fil, CORBA.To_CORBA_String (Argv.all));
 
                when Read =>
                   if Argc /= 2 then
@@ -532,7 +532,7 @@ begin
                   Argv  := Argument (2);
                   Fil   := To_File (Argv.all);
                   Ada.Text_IO.Put_Line
-                    (CORBA.To_Standard_String (Get_Image (Fil)));
+                    (CORBA.To_Standard_String (get_Image (Fil)));
 
                when Namei =>
                   if Argc /= 2 then

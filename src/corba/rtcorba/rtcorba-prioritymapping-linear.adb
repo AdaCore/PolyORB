@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -49,7 +49,7 @@ package body RTCORBA.PriorityMapping.Linear is
       pragma Unreferenced (Self);
 
       Temp : constant Long_Integer
-        := (Long_Integer (Native_Priority) * Long_Integer (MaxPriority))
+        := (Long_Integer (Native_Priority) * Long_Integer (maxPriority))
         / Long_Integer (ORB_Component_Priority'Last);
       --  XXX to be checked ...
 
@@ -73,7 +73,7 @@ package body RTCORBA.PriorityMapping.Linear is
       Temp : constant Long_Integer
         := (Long_Integer (CORBA_Priority)
             * Long_Integer (ORB_Component_Priority'Last))
-        / Long_Integer (MaxPriority);
+        / Long_Integer (maxPriority);
       --  XXX to be checked ...
 
    begin

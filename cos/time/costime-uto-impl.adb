@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -76,14 +76,14 @@ package body CosTime.UTO.Impl is
       uto             : Ref)
      return TimeComparison
    is
-      Other_Time : constant TimeT := Get_time (uto);
-      Other_Tdf  : constant TdfT  := Get_tdf (uto);
+      Other_Time : constant TimeT := get_time (uto);
+      Other_Tdf  : constant TdfT  := get_tdf (uto);
    begin
       if comparison_type = MidC then
          return Compare (Self.Time + Self.Tdf, Other_Time + Other_Tdf);
       else
          declare
-            Other_Inaccuracy : constant InaccuracyT := Get_inaccuracy (uto);
+            Other_Inaccuracy : constant InaccuracyT := get_inaccuracy (uto);
             Comp_Low         : constant TimeComparison :=
               Compare (Self.Time - Self.Inaccuracy + Self.Tdf,
                        Other_Time - Other_Inaccuracy + Other_Tdf);
@@ -178,7 +178,7 @@ package body CosTime.UTO.Impl is
       uto  : Ref)
      return TIO_Forward.Ref
    is
-      Other_Time : constant TimeT   := Get_time (uto);
+      Other_Time : constant TimeT   := get_time (uto);
       Result     : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
       R          : TIO_Forward.Ref;
    begin
