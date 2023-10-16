@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -76,12 +76,12 @@ package body IOP.CodecFactory.Impl is
       Result         : IOP.Codec.Local_Ref;
 
    begin
-      case Enc.Format is
-         when Encoding_CDR_Encaps =>
+      case Enc.format is
+         when ENCODING_CDR_ENCAPS =>
             Representation :=
               Create_Representation
-                (PolyORB.Types.Octet (Enc.Major_Version),
-                 PolyORB.Types.Octet (Enc.Minor_Version));
+                (PolyORB.Types.Octet (Enc.major_version),
+                 PolyORB.Types.Octet (Enc.minor_version));
 
             if Representation /= null then
                Ptr := new IOP.Codec.Impl.Object;

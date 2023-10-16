@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -122,7 +122,7 @@ package body PortableInterceptor.RequestInfo.Impl is
       return CORBA.Object.Ref
    is
    begin
-      if Get_Reply_Status (Object_Ptr (Self)) /= Location_Forward then
+      if Get_Reply_Status (Object_Ptr (Self)) /= LOCATION_FORWARD then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
@@ -190,7 +190,7 @@ package body PortableInterceptor.RequestInfo.Impl is
                  (Id,
                   IOP.ContextData
                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
-                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
+                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
                     (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
             Next (Iter);
@@ -212,28 +212,28 @@ package body PortableInterceptor.RequestInfo.Impl is
    is
    begin
       if PolyORB.Any.Is_Empty (Self.Request.Exception_Info) then
-         return Successful;
+         return SUCCESSFUL;
 
       elsif
         PolyORB.CORBA_P.Exceptions.Is_System_Exception
           (Self.Request.Exception_Info)
       then
-         return System_Exception;
+         return SYSTEM_EXCEPTION;
 
       elsif
         PolyORB.CORBA_P.Exceptions.Is_Forward_Request
           (Self.Request.Exception_Info)
       then
-         return Location_Forward;
+         return LOCATION_FORWARD;
 
       elsif
         PolyORB.CORBA_P.Exceptions.Is_Needs_Addressing_Mode
           (Self.Request.Exception_Info)
       then
-         return Transport_Retry;
+         return TRANSPORT_RETRY;
 
       else
-         return User_Exception;
+         return USER_EXCEPTION;
 
       end if;
    end Get_Reply_Status;
@@ -276,7 +276,7 @@ package body PortableInterceptor.RequestInfo.Impl is
                  (Id,
                   IOP.ContextData
                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
-                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_octet.To_Element_Array
+                   (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array
                     (To_Sequence (Value (Iter).Context_Data.all)))));
             end if;
             Next (Iter);
@@ -346,16 +346,16 @@ package body PortableInterceptor.RequestInfo.Impl is
       use PolyORB.Requests.Unsigned_Long_Flags;
    begin
       if Is_Set (Sync_None, Self.Request.Req_Flags) then
-         return Messaging.Sync_None;
+         return Messaging.SYNC_NONE;
 
       elsif Is_Set (Sync_With_Transport, Self.Request.Req_Flags) then
-         return Messaging.Sync_With_Transport;
+         return Messaging.SYNC_WITH_TRANSPORT;
 
       elsif Is_Set (Sync_With_Server, Self.Request.Req_Flags) then
-         return Messaging.Sync_With_Server;
+         return Messaging.SYNC_WITH_SERVER;
 
       elsif Is_Set (Sync_With_Target, Self.Request.Req_Flags) then
-         return Messaging.Sync_With_Target;
+         return Messaging.SYNC_WITH_TARGET;
 
       else
          raise Program_Error;

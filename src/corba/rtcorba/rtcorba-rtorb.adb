@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -196,10 +196,10 @@ package body RTCORBA.RTORB is
            (Lanes_Set (New_Lane.all),
             Create
             (PolyORB.RTCORBA_P.To_ORB_Priority
-             (Get_Element (Lanes, J).Lane_Priority),
-             External_Priority (Get_Element (Lanes, J).Lane_Priority),
-             Positive (Get_Element (Lanes, J).Static_Threads),
-             Natural (Get_Element (Lanes, J).Dynamic_Threads),
+             (Get_Element (Lanes, J).lane_priority),
+             External_Priority (Get_Element (Lanes, J).lane_priority),
+             Positive (Get_Element (Lanes, J).static_threads),
+             Natural (Get_Element (Lanes, J).dynamic_threads),
              Natural (Stacksize),
              Allow_Request_Buffering,
              PolyORB.Types.Unsigned_Long (Max_Buffered_Requests),

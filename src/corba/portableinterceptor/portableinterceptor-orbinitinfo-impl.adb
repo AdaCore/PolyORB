@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2013, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -57,7 +57,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       declare
          Name : constant String
            := CORBA.To_Standard_String
-                (PortableInterceptor.ClientRequestInterceptor.Get_Name
+                (PortableInterceptor.ClientRequestInterceptor.get_name
                   (Interceptor));
       begin
          if Name /= "" then
@@ -67,7 +67,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
                  (Name)
             then
                Helper.Raise_DuplicateName
-                (DuplicateName_Members'(Name => CORBA.To_CORBA_String (Name)));
+                (DuplicateName_Members'(name => CORBA.To_CORBA_String (Name)));
             end if;
          end if;
       end;
@@ -92,14 +92,14 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       declare
          Name : constant String
            := CORBA.To_Standard_String
-                (PortableInterceptor.IORInterceptor.Get_Name (Interceptor));
+                (PortableInterceptor.IORInterceptor.get_name (Interceptor));
       begin
          if Name /= "" then
             if
               PolyORB.CORBA_P.Interceptors.Is_IOR_Interceptor_Exists (Name)
             then
                Helper.Raise_DuplicateName
-                (DuplicateName_Members'(Name => CORBA.To_CORBA_String (Name)));
+                (DuplicateName_Members'(name => CORBA.To_CORBA_String (Name)));
             end if;
          end if;
       end;
@@ -124,7 +124,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       declare
          Name : constant String
            := CORBA.To_Standard_String
-                (PortableInterceptor.ServerRequestInterceptor.Get_Name
+                (PortableInterceptor.ServerRequestInterceptor.get_name
                   (Interceptor));
       begin
          if Name /= "" then
@@ -134,7 +134,7 @@ package body PortableInterceptor.ORBInitInfo.Impl is
                  (Name)
             then
                Helper.Raise_DuplicateName
-                (DuplicateName_Members'(Name =>
+                (DuplicateName_Members'(name =>
                                           CORBA.To_CORBA_String (Name)));
             end if;
          end if;
