@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -93,7 +93,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       Iter := First (SCP.Service_Contexts);
       while not Last (Iter) loop
          if Value (Iter).Context_Id
-              = Service_Id (Service_Context.Context_Id)
+              = Service_Id (Service_Context.context_id)
          then
             if not Replace then
                CORBA.Raise_Bad_Inv_Order
@@ -107,7 +107,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
               new Encapsulation'
               (To_Encapsulation
                (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
-                (Service_Context.Context_Data)));
+                (Service_Context.context_data)));
 
             return;
          end if;
@@ -116,11 +116,11 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
       Append
         (SCP.Service_Contexts,
-         (Service_Id (Service_Context.Context_Id),
+         (Service_Id (Service_Context.context_id),
           new Encapsulation'
           (To_Encapsulation
            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.Sequence
-            (Service_Context.Context_Data)))));
+            (Service_Context.context_data)))));
    end Add_Request_Service_Context;
 
    -------------------
@@ -321,12 +321,12 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
          --  Unmarshall profile tag and profile data
 
-         Result.Tag :=
+         Result.tag :=
            IOP.ProfileId
            (PolyORB.Types.Unsigned_Long'
             (PolyORB.Representations.CDR.Common.Unmarshall (Buffer)));
 
-         Result.Profile_Data :=
+         Result.profile_data :=
            IOP.ProfileData
            (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Sequence
             (CORBA.IDL_SEQUENCES.IDL_SEQUENCE_Octet.To_Element_Array

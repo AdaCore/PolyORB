@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -768,7 +768,7 @@ package body DynamicAny.DynAny.Impl is
          K : constant TCKind := Kind (Get_Unwound_Type (Self.Value));
 
       begin
-         if K = Tk_LongDouble then
+         if K = Tk_Longdouble then
             return
               CORBA.Long_Double
               (PolyORB.Types.Long_Double'(From_Any (Self.Value)));
@@ -790,7 +790,7 @@ package body DynamicAny.DynAny.Impl is
                   Unsigned_Long (Self.Current));
 
             begin
-               if Kind (Get_Unwound_Type (Element)) = Tk_LongDouble then
+               if Kind (Get_Unwound_Type (Element)) = Tk_Longdouble then
                   return
                     CORBA.Long_Double
                     (PolyORB.Types.Long_Double'(From_Any (Element)));
@@ -837,7 +837,7 @@ package body DynamicAny.DynAny.Impl is
          K : constant TCKind := Kind (Get_Unwound_Type (Self.Value));
 
       begin
-         if K = Tk_LongLong then
+         if K = Tk_Longlong then
             return
               CORBA.Long_Long
               (PolyORB.Types.Long_Long'(From_Any (Self.Value)));
@@ -859,7 +859,7 @@ package body DynamicAny.DynAny.Impl is
                   Unsigned_Long (Self.Current));
 
             begin
-               if Kind (Get_Unwound_Type (Element)) = Tk_LongLong then
+               if Kind (Get_Unwound_Type (Element)) = Tk_Longlong then
                   return
                     CORBA.Long_Long
                     (PolyORB.Types.Long_Long'(From_Any (Element)));
@@ -1940,7 +1940,7 @@ package body DynamicAny.DynAny.Impl is
          K : constant TCKind := Kind (Get_Unwound_Type (Self.Value));
 
       begin
-         if K = Tk_LongDouble then
+         if K = Tk_Longdouble then
             Set_Any_Value
               (PolyORB.Types.Long_Double (Value),
                Get_Container (Self.Value).all);
@@ -1961,7 +1961,7 @@ package body DynamicAny.DynAny.Impl is
                    Unsigned_Long (Self.Current));
 
             begin
-               if Kind (Get_Unwound_Type (Element)) = Tk_LongDouble then
+               if Kind (Get_Unwound_Type (Element)) = Tk_Longdouble then
                   Set_Any_Value
                     (PolyORB.Types.Long_Double (Value),
                      Get_Container (Element).all);
@@ -2010,7 +2010,7 @@ package body DynamicAny.DynAny.Impl is
          K : constant TCKind := Kind (Get_Unwound_Type (Self.Value));
 
       begin
-         if K = Tk_LongLong then
+         if K = Tk_Longlong then
             Set_Any_Value
               (PolyORB.Types.Long_Long (Value),
                Get_Container (Self.Value).all);
@@ -2031,7 +2031,7 @@ package body DynamicAny.DynAny.Impl is
                    Unsigned_Long (Self.Current));
 
             begin
-               if Kind (Get_Unwound_Type (Element)) = Tk_LongLong then
+               if Kind (Get_Unwound_Type (Element)) = Tk_Longlong then
                   Set_Any_Value
                     (PolyORB.Types.Long_Long (Value),
                      Get_Container (Element).all);

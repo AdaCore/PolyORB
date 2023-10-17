@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -46,14 +46,14 @@ package body CORBA.Repository_Root.ExtAttributeDef.Impl is
    is
    begin
       return
-       (name           => get_name (Self),
-        id             => get_id (Self),
-        defined_in     => get_defined_in (Self),
-        version        => get_version (Self),
-        IDL_type       => get_type (Self),
-        mode           => get_mode (Self),
-        get_exceptions => Self.Get_Exceptions,
-        put_exceptions => Self.Set_Exceptions);
+       (Name           => get_name (Self),
+        Id             => get_id (Self),
+        Defined_In     => get_defined_in (Self),
+        Version        => get_version (Self),
+        IDL_Type       => get_type (Self),
+        Mode           => get_mode (Self),
+        Get_Exceptions => Self.Get_Exceptions,
+        Put_Exceptions => Self.Set_Exceptions);
    end describe_attribute;
 
    ------------------------
