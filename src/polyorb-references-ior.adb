@@ -133,7 +133,7 @@ package body PolyORB.References.IOR is
       pragma Unreferenced (R);
       Opaque : aliased Stream_Element_Array := Stream_Element_Array'Input (S);
    begin
-      Ref (V) := Opaque_To_Object (Opaque'Access);
+      Ref (V) := Opaque_To_Object (Opaque'Unchecked_Access);
    end Read;
 
    ------------------------
