@@ -56,9 +56,9 @@ procedure Client is
    Sequence_Length : Integer := 5;
 
    Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch :=
-                   ((Switch => Red, Foo => 31337),
-                    (Switch => Green, Bar => 534),
-                    (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
+                   ((Switch => Red, foo => 31337),
+                    (Switch => Green, bar => 534),
+                    (Switch => Blue, baz => CORBA.To_CORBA_String ("grümpf")));
 
    type Test_Type is (All_Tests, Long_Only, Sequence_Only, UnionSequence_Only);
    What : Test_Type := All_Tests;
@@ -165,7 +165,7 @@ begin
 
       if What = All_Tests or else What = UnionSequence_Only then
          declare
-            X : UnionSequence := To_Sequence (Sequence_Length);
+            X : unionSequence := To_Sequence (Sequence_Length);
          begin
             for J in 1 .. Sequence_Length loop
                Replace_Element (X, J, Test_Unions
@@ -173,7 +173,7 @@ begin
             end loop;
 
             declare
-               Res : constant UnionSequence := echoUnionSequence
+               Res : constant unionSequence := echoUnionSequence
                                                  (Myall_types, X);
             begin
                if What = UnionSequence_Only then
@@ -334,10 +334,10 @@ begin
             --  was not checked, success.
 
          exception
-            when CORBA.MARSHAL =>
+            when CORBA.Marshal =>
                Success := True;
 
-            when CORBA.UNKNOWN =>
+            when CORBA.Unknown =>
                --  For the local case, we MAY raise CONSTRAINT_ERROR on the
                --  servant side, which is mapped back to CORBA.UNKNOWN on the
                --  caller side.
@@ -409,8 +409,8 @@ begin
          for Index in 1 .. 12 loop
             X2 := X2 & Character'Val (Character'Pos ('A') + Index - 1);
          end loop;
-         Y2 := All_Types.Helper.From_Any
-                 (echoAny (Myall_types, All_Types.Helper.To_Any (X2)));
+         Y2 := all_types.Helper.From_Any
+                 (echoAny (Myall_types, all_types.Helper.To_Any (X2)));
          Output ("test any<bounded string>", Y2 = X2);
       exception
          when others =>
@@ -595,8 +595,8 @@ begin
       --  Attributes
 
       begin
-         Set_myColor (Myall_types, Green);
-         Output ("test attribute", Get_myColor (Myall_types) = Green);
+         set_myColor (Myall_types, Green);
+         Output ("test attribute", get_myColor (Myall_types) = Green);
       exception
          when others =>
             Output ("test attribute", False);
@@ -605,9 +605,9 @@ begin
       begin
          declare
             Counter_First_Value : constant CORBA.Long
-              := Get_Counter (Myall_types);
+              := get_Counter (Myall_types);
             Counter_Second_Value : constant CORBA.Long
-              := Get_Counter (Myall_types);
+              := get_Counter (Myall_types);
          begin
             Output ("test read-only attribute",
                     Counter_Second_Value = Counter_First_Value + 1);

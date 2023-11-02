@@ -94,14 +94,14 @@ begin
       Output ("Sending CORBA.Long", True);
 
       Output ("Previous tests went OK on the server side",
-              Test.Controller.Test_OK (The_Controller));
+              Test.Controller.test_OK (The_Controller));
 
       declare
          Result : CORBA.String;
          pragma Unreferenced (Result);
 
       begin
-         Result := Test.Printer.EchoString
+         Result := Test.Printer.echoString
            (Printer, CORBA.To_CORBA_String (Sent_Msg));
          Output ("Calling function with return value raised an exception",
                  False);

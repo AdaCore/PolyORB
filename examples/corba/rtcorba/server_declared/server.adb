@@ -337,14 +337,14 @@ begin
       --  Create Lanes
 
       Append (Lanes,
-               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_1,
-                                       Static_Threads => 2,
-                                       Dynamic_Threads => 0));
+               RTCORBA.ThreadpoolLane'(lane_priority => Default_Priority_1,
+                                       static_threads => 2,
+                                       dynamic_threads => 0));
 
       Append (Lanes,
-               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_2,
-                                       Static_Threads => 2,
-                                       Dynamic_Threads => 0));
+               RTCORBA.ThreadpoolLane'(lane_priority => Default_Priority_2,
+                                       static_threads => 2,
+                                       dynamic_threads => 0));
 
       --  Create Threadpool
 
