@@ -48,6 +48,8 @@ procedure Client is
 
    Count : Integer;
 
+   procedure Transient_Processing (Id : Natural);
+
    procedure Transient_Processing (Id : Natural) is
    begin
       Svc.Wait (Svc_Ref, CORBA.Short (Id));

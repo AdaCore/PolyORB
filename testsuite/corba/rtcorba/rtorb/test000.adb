@@ -202,13 +202,13 @@ begin
          use IDL_SEQUENCE_RTCORBA_ThreadpoolLane;
 
          Lane1 : constant ThreadpoolLane
-           := ThreadpoolLane'(Lane_Priority   => 3,
-                              Static_Threads  => 2,
-                              Dynamic_Threads => 0);
+           := ThreadpoolLane'(lane_priority   => 3,
+                              static_threads  => 2,
+                              dynamic_threads => 0);
          Lane2 : constant ThreadpoolLane
-           := ThreadpoolLane'(Lane_Priority   => 4,
-                              Static_Threads  => 4,
-                              Dynamic_Threads => 0);
+           := ThreadpoolLane'(lane_priority   => 4,
+                              static_threads  => 4,
+                              dynamic_threads => 0);
 
          Lanes : ThreadpoolLanes;
 
