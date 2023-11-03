@@ -206,7 +206,7 @@ begin
 
       --  Set up activity1
 
-      RTCosScheduling.ClientScheduler.Schedule_Activity
+      RTCosScheduling.ClientScheduler.schedule_activity
         (Client_Scheduler, CORBA.To_CORBA_String ("activity1"));
 
       Output ("Retrieve RTCurrent priority raised no exception",

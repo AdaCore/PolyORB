@@ -68,6 +68,8 @@ procedure Server is
    type Transient_Info_Array_Access is access all Transient_Info_Array;
    Transient_Infos : Transient_Info_Array_Access;
 
+   procedure Transient_Processing (Id : Natural);
+
    procedure Transient_Processing (Id : Natural) is
    begin
       Transient_Infos (Id).Completed := False;

@@ -202,19 +202,19 @@ begin
       --  Create Lanes
 
       Append (Lanes,
-              RTCORBA.ThreadpoolLane'(Lane_Priority => Base_Priority,
-                                      Static_Threads => 2,
-                                      Dynamic_Threads => 0));
+              RTCORBA.ThreadpoolLane'(lane_priority => Base_Priority,
+                                      static_threads => 2,
+                                      dynamic_threads => 0));
 
       Append (Lanes,
-               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_1,
-                                       Static_Threads => 2,
-                                       Dynamic_Threads => 0));
+               RTCORBA.ThreadpoolLane'(lane_priority => Default_Priority_1,
+                                       static_threads => 2,
+                                       dynamic_threads => 0));
 
       Append (Lanes,
-               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_2,
-                                       Static_Threads => 2,
-                                       Dynamic_Threads => 0));
+               RTCORBA.ThreadpoolLane'(lane_priority => Default_Priority_2,
+                                       static_threads => 2,
+                                       dynamic_threads => 0));
 
       Output ("Lanes created", True);
 
@@ -250,7 +250,7 @@ begin
       New_Test ("Setting up poa1");
 
       Child_POA_Server_1 := RTPortableServer.POA.Helper.To_Local_Ref
-        (RTCosScheduling.ServerScheduler.Create_POA
+        (RTCosScheduling.ServerScheduler.create_POA
          (Server_Scheduler,
           Root_POA,
           CORBA.To_CORBA_String ("poa1"),
@@ -264,7 +264,7 @@ begin
       New_Test ("Setting up poa2");
 
       Child_POA_Server_2 := RTPortableServer.POA.Helper.To_Local_Ref
-        (RTCosScheduling.ServerScheduler.Create_POA
+        (RTCosScheduling.ServerScheduler.create_POA
          (Server_Scheduler,
           Root_POA,
           CORBA.To_CORBA_String ("poa2"),
@@ -285,7 +285,7 @@ begin
 
       New_Test ("Setting up object1");
 
-      RTCosScheduling.ServerScheduler.Schedule_Object
+      RTCosScheduling.ServerScheduler.schedule_object
         (Server_Scheduler, Ref_Server_1, CORBA.To_CORBA_String ("object1"));
 
       New_Line;

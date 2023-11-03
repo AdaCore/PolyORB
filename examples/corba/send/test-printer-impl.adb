@@ -99,7 +99,7 @@ package body Test.Printer.Impl is
 
    function PrintString_Called return Natural is
    begin
-      return Var_Printstring_Called;
+      return Var_PrintString_Called;
    end PrintString_Called;
 
    ----------------------

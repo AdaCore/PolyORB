@@ -30,7 +30,10 @@ with CORBA; use CORBA;
 with all_functions; use all_functions;
 with PolyORB.Utils.Report;
 
+--  Remove no previous spec warning
+pragma Style_Checks (Off);
 procedure Run_Tests (MyObj : all_functions.Ref) is
+   pragma Style_Checks (On);
    use PolyORB.Utils.Report;
    I, J, K, L, M : CORBA.Short;
    Ok : Boolean;
