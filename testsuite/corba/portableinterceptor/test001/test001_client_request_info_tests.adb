@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -58,7 +58,7 @@ package body Test001_Client_Request_Info_Tests is
       Valid     : constant Boolean := Point = Send_Request;
 
    begin
-      Add_Request_Service_Context (Info, Test_Request_Context, False);
+      add_request_service_context (Info, Test_Request_Context, False);
       if Valid then
          Output (Point, Operation, True);
       else
@@ -97,9 +97,9 @@ package body Test001_Client_Request_Info_Tests is
       Profile   : IOP.TaggedProfile;
 
    begin
-      Profile := Get_Effective_Profile (Info);
+      Profile := get_effective_profile (Info);
 
-      if Profile.Tag /= IOP.Tag_Internet_IOP then
+      if Profile.tag /= IOP.TAG_INTERNET_IOP then
          Output (Point, Operation, False);
 
       else
@@ -123,7 +123,7 @@ package body Test001_Client_Request_Info_Tests is
       Obj       : CORBA.Object.Ref;
 
    begin
-      Obj := Get_Effective_Target (Info);
+      Obj := get_effective_target (Info);
 
       if Is_Equivalent (Obj, Test001_Globals.Test_Object) then
          Output (Point, Operation, True);
@@ -152,13 +152,13 @@ package body Test001_Client_Request_Info_Tests is
 
    begin
       begin
-         Aux := Get_Effective_Component (Info, IOP.Tag_Code_Sets);
+         Aux := get_effective_component (Info, IOP.TAG_CODE_SETS);
 
          if not Valid then
             Output (Point, Operation, False);
             return;
 
-         elsif Aux.Tag /= IOP.Tag_Code_Sets then
+         elsif Aux.tag /= IOP.TAG_CODE_SETS then
             Output (Point, Operation, False);
             return;
          end if;
@@ -181,7 +181,7 @@ package body Test001_Client_Request_Info_Tests is
       end;
 
       begin
-         Aux := Get_Effective_Component (Info, IOP.Tag_Null_Tag);
+         Aux := get_effective_component (Info, IOP.TAG_NULL_TAG);
 
          Output (Point, Operation, False);
 
@@ -219,7 +219,7 @@ package body Test001_Client_Request_Info_Tests is
 
    begin
       begin
-         Aux := Get_Effective_Components (Info, IOP.Tag_Code_Sets);
+         Aux := get_effective_components (Info, IOP.TAG_CODE_SETS);
 
          if not Valid then
             Output (Point, Operation, False);
@@ -229,7 +229,7 @@ package body Test001_Client_Request_Info_Tests is
             Output (Point, Operation, False);
             return;
 
-         elsif IOP.Get_Element (Aux, 1).Tag /= IOP.Tag_Code_Sets then
+         elsif IOP.Get_Element (Aux, 1).tag /= IOP.TAG_CODE_SETS then
             Output (Point, Operation, False);
             return;
          end if;
@@ -252,7 +252,7 @@ package body Test001_Client_Request_Info_Tests is
       end;
 
       begin
-         Aux := Get_Effective_Components (Info, IOP.Tag_Null_Tag);
+         Aux := get_effective_components (Info, IOP.TAG_NULL_TAG);
 
          Output (Point, Operation, False);
 
@@ -292,7 +292,7 @@ package body Test001_Client_Request_Info_Tests is
    begin
       --  XXX Functionality test not implemented
 
-      Pol := Get_Request_Policy (Info, 1);
+      Pol := get_request_policy (Info, 1);
 
       if not Valid then
          Output (Point, Operation, False);
@@ -342,7 +342,7 @@ package body Test001_Client_Request_Info_Tests is
       Exc       : Any;
 
    begin
-      Exc := Get_Received_Exception (Info);
+      Exc := get_received_exception (Info);
 
       if not Valid then
          Output (Point, Operation, False);
@@ -382,7 +382,7 @@ package body Test001_Client_Request_Info_Tests is
       Id        : RepositoryId;
 
    begin
-      Id := Get_Received_Exception_Id (Info);
+      Id := get_received_exception_id (Info);
 
       if Id /= Test_Exception_Repository_Id then
          Output (Point, Operation, False);
@@ -419,7 +419,7 @@ package body Test001_Client_Request_Info_Tests is
       Obj       : CORBA.Object.Ref;
 
    begin
-      Obj := Get_Target (Info);
+      Obj := get_target (Info);
 
       if Is_Equivalent (Obj, Test001_Globals.Test_Object) then
          Output (Point, Operation, True);

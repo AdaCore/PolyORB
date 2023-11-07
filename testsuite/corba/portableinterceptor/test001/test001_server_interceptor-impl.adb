@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -91,7 +91,7 @@ package body Test001_Server_Interceptor.Impl is
 
          PortableInterceptor.Helper.Raise_ForwardRequest
            (PortableInterceptor.ForwardRequest_Members'
-            (Forward => CORBA.Object.Ref (Test_Forward_Object)));
+            (forward => CORBA.Object.Ref (Test_Forward_Object)));
       end if;
    end Receive_Request;
 

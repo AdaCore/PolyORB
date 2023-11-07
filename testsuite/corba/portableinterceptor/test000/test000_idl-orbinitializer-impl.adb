@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -102,15 +102,15 @@ package body Test000_Idl.ORBInitializer.Impl is
 
       Test000_Globals.Disable_Client_Interceptors;
 
-      PortableInterceptor.ORBInitInfo.Add_Client_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_client_request_interceptor
        (Info,
         PortableInterceptor.ClientRequestInterceptor.Local_Ref
          (Test000_Globals.Client_A));
-      PortableInterceptor.ORBInitInfo.Add_Client_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_client_request_interceptor
        (Info,
         PortableInterceptor.ClientRequestInterceptor.Local_Ref
          (Test000_Globals.Client_B));
-      PortableInterceptor.ORBInitInfo.Add_Client_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_client_request_interceptor
        (Info,
         PortableInterceptor.ClientRequestInterceptor.Local_Ref
          (Test000_Globals.Client_C));
@@ -131,15 +131,15 @@ package body Test000_Idl.ORBInitializer.Impl is
 
       Test000_Globals.Disable_Server_Interceptors;
 
-      PortableInterceptor.ORBInitInfo.Add_Server_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_server_request_interceptor
        (Info,
         PortableInterceptor.ServerRequestInterceptor.Local_Ref
          (Test000_Globals.Server_A));
-      PortableInterceptor.ORBInitInfo.Add_Server_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_server_request_interceptor
        (Info,
         PortableInterceptor.ServerRequestInterceptor.Local_Ref
          (Test000_Globals.Server_B));
-      PortableInterceptor.ORBInitInfo.Add_Server_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_server_request_interceptor
        (Info,
         PortableInterceptor.ServerRequestInterceptor.Local_Ref
          (Test000_Globals.Server_C));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2016, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -55,7 +55,7 @@ procedure Client is
 
    use PolyORB.Utils.Report;
 
-   B : SixteenKb;
+   B : sixteenKb;
    X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
    Ref : benchs.Ref;
 
@@ -63,17 +63,23 @@ procedure Client is
    -- Run_NoParameter --
    ---------------------
 
+   procedure Run_NoParameter;
+
    procedure Run_NoParameter is
       R : CORBA.Short;
       pragma Unreferenced (R);
    begin
-      R := benchs.NoParameter (Ref);
+      R := benchs.noParameter (Ref);
    end Run_NoParameter;
+
+   procedure Run_Azerty;
 
    procedure Run_Azerty is
    begin
-      benchs.Azerty (Ref);
+      benchs.azerty (Ref);
    end Run_Azerty;
+
+   procedure Run_echoBoolean;
 
    procedure Run_echoBoolean is
       R : Boolean;
@@ -82,12 +88,16 @@ procedure Client is
       R := benchs.echoBoolean (Ref, True);
    end Run_echoBoolean;
 
+   procedure Run_echoShort;
+
    procedure Run_echoShort is
       R : CORBA.Short;
       pragma Unreferenced (R);
    begin
       R := benchs.echoShort (Ref, 123);
    end Run_echoShort;
+
+   procedure Run_echoLong;
 
    procedure Run_echoLong is
       R : CORBA.Long;
@@ -96,12 +106,16 @@ procedure Client is
       R := benchs.echoLong (Ref, 123);
    end Run_echoLong;
 
+   procedure Run_echoFloat;
+
    procedure Run_echoFloat is
       R : CORBA.Float;
       pragma Unreferenced (R);
    begin
       R := benchs.echoFloat (Ref, 12.3);
    end Run_echoFloat;
+
+   procedure Run_echoDouble;
 
    procedure Run_echoDouble is
       R : CORBA.Double;
@@ -110,6 +124,8 @@ procedure Client is
       R := benchs.echoDouble (Ref, 12.3);
    end Run_echoDouble;
 
+   procedure Run_echoChar;
+
    procedure Run_echoChar is
       R : CORBA.Char;
       pragma Unreferenced (R);
@@ -117,12 +133,16 @@ procedure Client is
       R := benchs.echoChar (Ref, 'A');
    end Run_echoChar;
 
+   procedure Run_echoWchar;
+
    procedure Run_echoWchar is
       R : CORBA.Wchar;
       pragma Unreferenced (R);
    begin
-      R := benchs.echoWchar (Ref, 'A');
+      R := benchs.echoWChar (Ref, 'A');
    end Run_echoWchar;
+
+   procedure Run_echoString;
 
    procedure Run_echoString is
       R : CORBA.String;
@@ -131,12 +151,16 @@ procedure Client is
       R := benchs.echoString (Ref, CORBA.To_CORBA_String ("Hello World !"));
    end Run_echoString;
 
+   procedure Run_echoColor;
+
    procedure Run_echoColor is
       R : benchs.Color;
       pragma Unreferenced (R);
    begin
       R := benchs.echoColor (Ref, benchs.Blue);
    end Run_echoColor;
+
+   procedure Run_echoRainbow;
 
    procedure Run_echoRainbow is
       R, X : benchs.Rainbow;
@@ -149,6 +173,8 @@ procedure Client is
 
       R := benchs.echoRainbow (Ref, X);
    end Run_echoRainbow;
+
+   procedure Run_echoUnion;
 
    procedure Run_echoUnion is
       Test_Unions : constant array (Integer range <>) of benchs.myUnion
@@ -164,6 +190,8 @@ procedure Client is
       end loop;
    end Run_echoUnion;
 
+   procedure Run_echoStruct;
+
    procedure Run_echoStruct is
       Test_Struct : constant benchs.simple_struct
         := (123, CORBA.To_CORBA_String ("Hello world!"));
@@ -176,30 +204,34 @@ procedure Client is
       R := benchs.echoStruct (Ref, Test_Struct);
    end Run_echoStruct;
 
+   procedure Run_EchoSixteenKb;
+
    procedure Run_EchoSixteenKb is
    begin
-      B := Benchs.EchoSixteenKb (Ref, B);
+      B := benchs.echoSixteenKb (Ref, B);
    end Run_EchoSixteenKb;
+
+   procedure Run_EchoUsequence;
 
    procedure Run_EchoUsequence is
    begin
-      X := Benchs.EchoUsequence (Ref, X);
+      X := benchs.echoUsequence (Ref, X);
    end Run_EchoUsequence;
 
    procedure Test_NoParameter is new Run_Test ("NoParameter", Run_NoParameter);
    procedure Test_Azerty is new Run_Test ("Azerty", Run_Azerty);
-   procedure Test_Boolean is new Run_Test ("echoBoolean", Run_EchoBoolean);
-   procedure Test_Short is new Run_Test ("echoShort", Run_EchoShort);
-   procedure Test_Long is new Run_Test ("echoLong", Run_EchoLong);
-   procedure Test_Float is new Run_Test ("echoFloat", Run_EchoFloat);
-   procedure Test_Double is new Run_Test ("echoDouble", Run_EchoDouble);
-   procedure Test_Char is new Run_Test ("echoChar", Run_EchoChar);
-   procedure Test_Wchar is new Run_Test ("echoWchar", Run_EchoWchar);
-   procedure Test_String is new Run_Test ("echoString", Run_EchoString);
-   procedure Test_Color is new Run_Test ("echoColor", Run_EchoColor);
-   procedure Test_Rainbow is new Run_Test ("echoRainbow", Run_EchoRainbow);
-   procedure Test_Union is new Run_Test ("echoUnion", Run_EchoUnion);
-   procedure Test_Struct is new Run_Test ("echoStruct", Run_EchoStruct);
+   procedure Test_Boolean is new Run_Test ("echoBoolean", Run_echoBoolean);
+   procedure Test_Short is new Run_Test ("echoShort", Run_echoShort);
+   procedure Test_Long is new Run_Test ("echoLong", Run_echoLong);
+   procedure Test_Float is new Run_Test ("echoFloat", Run_echoFloat);
+   procedure Test_Double is new Run_Test ("echoDouble", Run_echoDouble);
+   procedure Test_Char is new Run_Test ("echoChar", Run_echoChar);
+   procedure Test_Wchar is new Run_Test ("echoWchar", Run_echoWchar);
+   procedure Test_String is new Run_Test ("echoString", Run_echoString);
+   procedure Test_Color is new Run_Test ("echoColor", Run_echoColor);
+   procedure Test_Rainbow is new Run_Test ("echoRainbow", Run_echoRainbow);
+   procedure Test_Union is new Run_Test ("echoUnion", Run_echoUnion);
+   procedure Test_Struct is new Run_Test ("echoStruct", Run_echoStruct);
    procedure Test_SixteenKb is new Run_Test
      ("echoSixteenKb", Run_EchoSixteenKb);
    procedure Test_Usequence is new Run_Test
@@ -264,6 +296,6 @@ begin
 
    --  Stop the server
 
-   Stopserver (Ref);
+   StopServer (Ref);
    End_Report;
 end Client;

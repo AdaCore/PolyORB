@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,7 +32,7 @@
 
 with CORBA.ORB;
 
-with Benchs.Skel;
+with benchs.Skel;
 pragma Warnings (Off, benchs.Skel);
 
 package body benchs.Impl is
@@ -48,63 +48,63 @@ package body benchs.Impl is
       null;
    end Azerty;
 
-   procedure AzertyAzerty (Self : access Object) is
+   procedure Azertyazerty (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzerty;
+   end Azertyazerty;
 
-   procedure AzertyAzertyAzerty (Self : access Object) is
+   procedure Azertyazertyazerty (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzerty;
+   end Azertyazertyazerty;
 
-   procedure AzertyAzertyAzertyAzerty (Self : access Object) is
+   procedure Azertyazertyazertyazerty (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzertyAzerty;
+   end Azertyazertyazertyazerty;
 
-   procedure AzertyAzertyAzertyAzertyAzerty (Self : access Object) is
+   procedure Azertyazertyazertyazertyazerty (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzertyAzertyAzerty;
+   end Azertyazertyazertyazertyazerty;
 
-   procedure AzertyAzertyAzertyAzertyAzertyAzerty (Self : access Object) is
+   procedure Azertyazertyazertyazertyazertyazerty (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzertyAzertyAzertyAzerty;
+   end Azertyazertyazertyazertyazertyazerty;
 
-   procedure AzertyAzertyAzertyAzertyAzertyAzertyAzerty
+   procedure Azertyazertyazertyazertyazertyazertyazerty
      (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzertyAzertyAzertyAzertyAzerty;
+   end Azertyazertyazertyazertyazertyazertyazerty;
 
-   procedure AzertyAzertyAzertyAzertyAzertyAzertyAzertyAzerty
+   procedure Azertyazertyazertyazertyazertyazertyazertyazerty
      (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzertyAzertyAzertyAzertyAzertyAzerty;
+   end Azertyazertyazertyazertyazertyazertyazertyazerty;
 
-   procedure AzertyAzertyAzertyAzertyAzertyAzertyAzertyAzertyAzerty
+   procedure Azertyazertyazertyazertyazertyazertyazertyazertyazerty
      (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzertyAzertyAzertyAzertyAzertyAzertyAzerty;
+   end Azertyazertyazertyazertyazertyazertyazertyazertyazerty;
 
-   procedure AzertyAzertyAzertyAzertyAzertyAzertyAzertyAzertyAzertyAzerty
+   procedure Azertyazertyazertyazertyazertyazertyazertyazertyazertyazerty
      (Self : access Object) is
       pragma Unreferenced (Self);
    begin
       null;
-   end AzertyAzertyAzertyAzertyAzertyAzertyAzertyAzertyAzertyAzerty;
+   end Azertyazertyazertyazertyazertyazertyazertyazertyazertyazerty;
 
    function echoBoolean
      (Self : access Object;
@@ -325,4 +325,4 @@ package body benchs.Impl is
       CORBA.ORB.Shutdown (Wait_For_Completion => False);
    end StopServer;
 
-end Benchs.Impl;
+end benchs.Impl;
