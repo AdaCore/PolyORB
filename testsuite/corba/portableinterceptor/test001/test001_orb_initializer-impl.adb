@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -90,20 +90,20 @@ package body Test001_ORB_Initializer.Impl is
       Client_Ptr := new Test001_Client_Interceptor.Impl.Object;
       PortableInterceptor.ClientRequestInterceptor.Set
         (Client_Ref, CORBA.Impl.Object_Ptr (Client_Ptr));
-      PortableInterceptor.ORBInitInfo.Add_Client_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_client_request_interceptor
         (Info, Client_Ref);
 
       Server_Ptr := new Test001_Server_Interceptor.Impl.Object;
       PortableInterceptor.ServerRequestInterceptor.Set
         (Server_Ref, CORBA.Impl.Object_Ptr (Server_Ptr));
-      PortableInterceptor.ORBInitInfo.Add_Server_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_server_request_interceptor
         (Info, Server_Ref);
 
       begin
-         Factory := PortableInterceptor.ORBInitInfo.Get_Codec_Factory (Info);
+         Factory := PortableInterceptor.ORBInitInfo.get_codec_factory (Info);
          Test001_Globals.Test_Codec :=
-           IOP.CodecFactory.Create_Codec
-           (Factory, (IOP.Encoding_CDR_Encaps, 1, 2));
+           IOP.CodecFactory.create_codec
+           (Factory, (IOP.ENCODING_CDR_ENCAPS, 1, 2));
          PolyORB.Utils.Report.Output
            ("[post_init] ORBInitInfo::codec_factory", True);
       exception
@@ -115,13 +115,13 @@ package body Test001_ORB_Initializer.Impl is
       Test001_Globals.Test_Request_Context :=
         (654321,
          IOP.ContextData
-         (IOP.Codec.Encode_Value
+         (IOP.Codec.encode_value
           (Test001_Globals.Test_Codec,
            CORBA.To_Any (CORBA.Unsigned_Long'(1)))));
       Test001_Globals.Test_Reply_Context :=
         (765432,
          IOP.ContextData
-         (IOP.Codec.Encode_Value
+         (IOP.Codec.encode_value
           (Test001_Globals.Test_Codec,
            CORBA.To_Any (CORBA.Unsigned_Long'(2)))));
    end Post_Init;

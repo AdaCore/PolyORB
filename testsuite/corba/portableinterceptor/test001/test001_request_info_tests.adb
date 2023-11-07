@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -68,17 +68,17 @@ package body Test001_Request_Info_Tests is
              or else Point = Send_Reply;
       Args      : ParameterList;
    begin
-      Args := Get_Arguments (Info);
+      Args := get_arguments (Info);
 
       if not Valid then
          Output (Point, Operation, False);
       elsif Length (Args) /= 1 then
          Output (Point, Operation, False);
-      elsif Get_Type (Get_Element (Args, 1).Argument) /= TC_Long then
+      elsif Get_Type (Get_Element (Args, 1).argument) /= TC_Long then
          Output (Point, Operation, False);
-      elsif From_Any (Get_Element (Args, 1).Argument) /= Long'(10) then
+      elsif From_Any (Get_Element (Args, 1).argument) /= Long'(10) then
          Output (Point, Operation, False);
-      elsif Get_Element (Args, 1).Mode /= PARAM_IN then
+      elsif Get_Element (Args, 1).mode /= PARAM_IN then
          Output (Point, Operation, False);
       else
          Output (Point, Operation, True);
@@ -133,7 +133,7 @@ package body Test001_Request_Info_Tests is
    begin
       --  XXX Functionality test not implemented
 
-      Cont := Get_Contexts (Info);
+      Cont := get_contexts (Info);
       if not Valid then
          Output (Point, Operation, False);
       else
@@ -183,7 +183,7 @@ package body Test001_Request_Info_Tests is
       Excs      : ExceptionList;
 
    begin
-      Excs := Get_Exceptions (Info);
+      Excs := get_exceptions (Info);
 
       if not Valid then
          Output (Point, Operation, False);
@@ -235,11 +235,11 @@ package body Test001_Request_Info_Tests is
       Operation : constant String := "forward_reference";
       Valid     : constant Boolean
         := (Point = Receive_Other or else Point = Send_Other)
-             and then Get_Reply_Status (Info) = Location_Forward;
+             and then get_reply_status (Info) = LOCATION_FORWARD;
       Obj       : CORBA.Object.Ref;
 
    begin
-      Obj := Get_Forward_Reference (Info);
+      Obj := get_forward_reference (Info);
 
       if Valid
         and then CORBA.Object.Is_Equivalent (Obj, Test_Forward_Object)
@@ -284,7 +284,7 @@ package body Test001_Request_Info_Tests is
 
    begin
       begin
-         Context := Get_Reply_Service_Context (Info, 123456);
+         Context := get_reply_service_context (Info, 123456);
          Output (Point, Operation, False);
          return;
 
@@ -322,7 +322,7 @@ package body Test001_Request_Info_Tests is
       then
          begin
             Context :=
-              Get_Reply_Service_Context (Info, Test_Reply_Context.Context_Id);
+              get_reply_service_context (Info, Test_Reply_Context.context_id);
 
             if Context /= Test_Reply_Context then
                Output (Point, Operation, False);
@@ -353,7 +353,7 @@ package body Test001_Request_Info_Tests is
 
    begin
       begin
-         Context := Get_Request_Service_Context (Info, 123456);
+         Context := get_request_service_context (Info, 123456);
          Output (Point, Operation, False);
          return;
 
@@ -390,8 +390,8 @@ package body Test001_Request_Info_Tests is
       then
          begin
             Context :=
-              Get_Request_Service_Context
-                (Info, Test_Request_Context.Context_Id);
+              get_request_service_context
+                (Info, Test_Request_Context.context_id);
 
             if Context /= Test_Request_Context then
                Output (Point, Operation, False);
@@ -423,7 +423,7 @@ package body Test001_Request_Info_Tests is
       --  Assigned but never read
 
    begin
-      Val := Get_Slot (Info, 100);
+      Val := get_slot (Info, 100);
       --  Operation must raise InvalidSlot exception because slot is not
       --  allocated. The slot allocation, Get_Slot/Set_Slot Requests and
       --  PICurrent operations tested in test002.
@@ -448,7 +448,7 @@ package body Test001_Request_Info_Tests is
       Operation : constant String := "operation";
 
    begin
-      if Get_Operation (Info) = "Func" then
+      if get_operation (Info) = "Func" then
          Output (Point, Operation, True);
       else
          Output (Point, Operation, False);
@@ -479,7 +479,7 @@ package body Test001_Request_Info_Tests is
    begin
       --  XXX Functionality test not implemented
 
-      Cont := Get_Operation_Context (Info);
+      Cont := get_operation_context (Info);
 
       if not Valid then
          Output (Point, Operation, False);
@@ -531,7 +531,7 @@ package body Test001_Request_Info_Tests is
       Aux       : CORBA.Unsigned_Long;
 
    begin
-      Aux := Get_Request_Id (Info);
+      Aux := get_request_id (Info);
 
       if Point in Client_Interception_Point then
          if Point = Send_Request then
@@ -581,41 +581,41 @@ package body Test001_Request_Info_Tests is
    begin
       --  XXX This is only return value validity test
 
-      Stat := Get_Reply_Status (Info);
+      Stat := get_reply_status (Info);
 
       if not Valid then
          Output (Point, Operation, False);
 
-      elsif Point = Receive_Reply and then Stat /= Successful then
+      elsif Point = Receive_Reply and then Stat /= SUCCESSFUL then
          Output (Point, Operation, False);
 
       elsif Point = Receive_Exception
-        and then (Stat /= PortableInterceptor.System_Exception
-                    and then Stat /= PortableInterceptor.User_Exception)
+        and then (Stat /= PortableInterceptor.SYSTEM_EXCEPTION
+                    and then Stat /= PortableInterceptor.USER_EXCEPTION)
       then
          Output (Point, Operation, False);
 
       elsif Point = Receive_Other
-        and then (Stat /= Successful
-                    and then Stat /= Location_Forward
-                    and then Stat /= Transport_Retry
-                    and then Stat /= PortableInterceptor.Unknown)
+        and then (Stat /= SUCCESSFUL
+                    and then Stat /= LOCATION_FORWARD
+                    and then Stat /= TRANSPORT_RETRY
+                    and then Stat /= PortableInterceptor.UNKNOWN)
       then
          Output (Point, Operation, False);
 
-      elsif Point = Send_Reply and then Stat /= Successful then
+      elsif Point = Send_Reply and then Stat /= SUCCESSFUL then
          Output (Point, Operation, False);
 
       elsif Point = Send_Exception
-        and then (Stat /= PortableInterceptor.System_Exception
-                    and then Stat /= PortableInterceptor.User_Exception)
+        and then (Stat /= PortableInterceptor.SYSTEM_EXCEPTION
+                    and then Stat /= PortableInterceptor.USER_EXCEPTION)
       then
          Output (Point, Operation, False);
 
       elsif Point = Send_Other
-        and then (Stat /= Successful
-                    and then Stat /= Location_Forward
-                    and then Stat /= PortableInterceptor.Unknown)
+        and then (Stat /= SUCCESSFUL
+                    and then Stat /= LOCATION_FORWARD
+                    and then Stat /= PortableInterceptor.UNKNOWN)
       then
          Output (Point, Operation, False);
 
@@ -655,7 +655,7 @@ package body Test001_Request_Info_Tests is
       Res       : Any;
 
    begin
-      Res := Get_Result (Info);
+      Res := get_result (Info);
 
       if not Valid then
          Output (Point, Operation, False);
@@ -711,7 +711,7 @@ package body Test001_Request_Info_Tests is
    begin
       --  The operation is not oneway: a response is always expected
 
-      if Get_Response_Expected (Info) then
+      if get_response_expected (Info) then
          Output (Point, Operation, True);
       else
          Output (Point, Operation, False);
@@ -735,12 +735,12 @@ package body Test001_Request_Info_Tests is
       Aux       : SyncScope;
 
    begin
-      Aux := Get_Sync_Scope (Info);
+      Aux := get_sync_scope (Info);
 
       --  We test only non oneway operation, thus Sync_Scope always
       --  will be Sync_With_Target
       if Valid
-        and then Aux = Sync_With_Target
+        and then Aux = SYNC_WITH_TARGET
       then
          Output (Point, Operation, True);
       else
