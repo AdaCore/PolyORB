@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -87,7 +87,7 @@ package body Test002_Client_Interceptor.Impl is
       Aux : Any;
 
    begin
-      Aux := Get_Slot (RI, Test_Slot);
+      Aux := get_slot (RI, Test_Slot);
 
       if Get_Type (Aux) /= TC_Long then
          Output ("Slot value is unchanged in CRSC after invocation", False);
@@ -97,7 +97,7 @@ package body Test002_Client_Interceptor.Impl is
          Output ("Slot value is unchanged in CRSC after invocation", True);
       end if;
 
-      Set_Slot (PI_Current, Test_Slot, To_Any (Long (14)));
+      set_slot (PI_Current, Test_Slot, To_Any (Long (14)));
    exception
       when others =>
          Output ("Slot value is unchanged in CRSC after invocation", False);
@@ -116,7 +116,7 @@ package body Test002_Client_Interceptor.Impl is
       Aux : Any;
 
    begin
-      Aux := Get_Slot (RI, Test_Slot);
+      Aux := get_slot (RI, Test_Slot);
 
       if Get_Type (Aux) /= TC_Long then
          Output ("Slot value correctly copied from CTSC to CRSC", False);
@@ -126,7 +126,7 @@ package body Test002_Client_Interceptor.Impl is
          Output ("Slot value correctly copied from CTSC to CRSC", True);
       end if;
 
-      Set_Slot (PI_Current, Test_Slot, To_Any (Long (12)));
+      set_slot (PI_Current, Test_Slot, To_Any (Long (12)));
    exception
       when others =>
          Output ("Slot value correctly copied from CTSC to CRSC", False);

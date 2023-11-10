@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -59,14 +59,14 @@ package body Test.IORInterceptor.Impl is
            (CORBA.ORB.To_CORBA_String ("CodecFactory")));
 
       Codec :=
-        IOP.CodecFactory.Create_Codec
-        (Factory, (IOP.Encoding_CDR_Encaps, 1, 2));
+        IOP.CodecFactory.create_codec
+        (Factory, (IOP.ENCODING_CDR_ENCAPS, 1, 2));
 
-      PortableInterceptor.IORInfo.Add_IOR_Component
+      PortableInterceptor.IORInfo.add_ior_component
         (Info,
-         (IOP.Tag_ORB_Type,
+         (IOP.TAG_ORB_TYPE,
           IOP.ComponentData
-          (IOP.Codec.Encode_Value (Codec, Version))));
+          (IOP.Codec.encode_value (Codec, Version))));
    end Establish_Components;
 
    ----------

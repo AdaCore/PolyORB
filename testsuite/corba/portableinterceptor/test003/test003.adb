@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -73,7 +73,7 @@ begin
    end;
 
    begin
-      Codec := IOP.CodecFactory.Create_Codec (Factory, (255, 0, 0));
+      Codec := IOP.CodecFactory.create_codec (Factory, (255, 0, 0));
       Output ("Rasing UnknownEncoding for invalid encoding method", False);
    exception
       when IOP.CodecFactory.UnknownEncoding =>
@@ -84,7 +84,7 @@ begin
 
    begin
       Codec :=
-        IOP.CodecFactory.Create_Codec (Factory, (Encoding_CDR_Encaps, 0, 0));
+        IOP.CodecFactory.create_codec (Factory, (ENCODING_CDR_ENCAPS, 0, 0));
       Output ("Rasing UnknownEncoding for invalid encoding version", False);
    exception
       when IOP.CodecFactory.UnknownEncoding =>
@@ -95,7 +95,7 @@ begin
 
    begin
       Codec :=
-        IOP.CodecFactory.Create_Codec (Factory, (Encoding_CDR_Encaps, 1, 2));
+        IOP.CodecFactory.create_codec (Factory, (ENCODING_CDR_ENCAPS, 1, 2));
          Output ("Create codec for known encoding and version", True);
    exception
       when others =>
@@ -131,7 +131,7 @@ begin
 
    begin
       Data :=
-        IOP.Codec.Decode_Value (Codec, BE_Stream, CORBA.TC_Unsigned_Long);
+        IOP.Codec.decode_value (Codec, BE_Stream, CORBA.TC_Unsigned_Long);
       Output ("IOP::Codec::Decode_Value (big endian)",
         Unsigned_Long'(From_Any (Data)) = 1);
    exception
@@ -144,7 +144,7 @@ begin
 
    begin
       Data :=
-        IOP.Codec.Decode_Value (Codec, LE_Stream, CORBA.TC_Unsigned_Long);
+        IOP.Codec.decode_value (Codec, LE_Stream, CORBA.TC_Unsigned_Long);
       Output ("IOP::Codec::Decode_Value (little endian)",
         Unsigned_Long'(From_Any (Data)) = 1);
    exception
@@ -160,7 +160,7 @@ begin
       use PolyORB.Buffers;
 
    begin
-      Stream := IOP.Codec.Encode_Value (Codec, Data);
+      Stream := IOP.Codec.encode_value (Codec, Data);
       case Host_Order is
          when Little_Endian =>
             Exp_Stream := LE_Stream;
@@ -203,9 +203,9 @@ begin
       Stream : OctetSeq;
 
    begin
-      Stream := IOP.Codec.Encode (Codec, Data);
+      Stream := IOP.Codec.encode (Codec, Data);
       Output ("IOP::Codec::Encode and IOP::Codec::Decode",
-        IOP.Codec.Decode (Codec, Stream) = Data);
+        IOP.Codec.decode (Codec, Stream) = Data);
    exception
       when others =>
          Output ("IOP::Codec::Encode and IOP::Codec::Decode", False);
