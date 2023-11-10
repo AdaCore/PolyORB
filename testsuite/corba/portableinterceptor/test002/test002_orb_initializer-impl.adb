@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -84,12 +84,12 @@ package body Test002_ORB_Initializer.Impl is
         := new Test002_Server_Interceptor.Impl.Object;
 
    begin
-      Test_Slot := Allocate_Slot_Id (Info);
+      Test_Slot := allocate_slot_id (Info);
 
       Test002_Client_Interceptor.Set
        (Test002_Globals.Client,
         PolyORB.Smart_Pointers.Entity_Ptr (Client_Ptr));
-      PortableInterceptor.ORBInitInfo.Add_Client_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_client_request_interceptor
        (Info,
         PortableInterceptor.ClientRequestInterceptor.Local_Ref
          (Test002_Globals.Client));
@@ -97,7 +97,7 @@ package body Test002_ORB_Initializer.Impl is
       Test002_Server_Interceptor.Set
        (Test002_Globals.Server,
         PolyORB.Smart_Pointers.Entity_Ptr (Server_Ptr));
-      PortableInterceptor.ORBInitInfo.Add_Server_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_server_request_interceptor
        (Info,
         PortableInterceptor.ServerRequestInterceptor.Local_Ref
          (Test002_Globals.Server));

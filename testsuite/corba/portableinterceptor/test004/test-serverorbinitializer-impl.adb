@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,7 +75,7 @@ package body Test.ServerORBInitializer.Impl is
       IOR_Ptr := new Test.IORInterceptor.Impl.Object;
       PortableInterceptor.IORInterceptor.Set
         (IOR_Ref, CORBA.Impl.Object_Ptr (IOR_Ptr));
-      PortableInterceptor.ORBInitInfo.Add_IOR_Interceptor
+      PortableInterceptor.ORBInitInfo.add_ior_interceptor
         (Info, IOR_Ref);
    end Post_Init;
 
