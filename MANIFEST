@@ -2384,6 +2384,7 @@ testsuite/corba/shutdown/local.gpr
 testsuite/corba/shutdown/test000_client.adb
 testsuite/corba/shutdown/test001_client.adb
 testsuite/corba/shutdown/test_client.adb
+testsuite/corba/shutdown/test_client.ads
 testsuite/corba/shutdown/test_interface-impl.adb
 testsuite/corba/shutdown/test_interface-impl.ads
 testsuite/corba/shutdown/test_interface.idl
