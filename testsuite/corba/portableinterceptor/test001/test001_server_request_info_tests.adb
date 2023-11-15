@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -91,7 +91,7 @@ package body Test001_Server_Request_Info_Tests is
       Operation : constant String := "add_reply_service_context";
 
    begin
-      Add_Reply_Service_Context (Info, Test_Reply_Context, True);
+      add_reply_service_context (Info, Test_Reply_Context, True);
       Output (Point, Operation, True);
 
    exception
@@ -116,7 +116,7 @@ package body Test001_Server_Request_Info_Tests is
    begin
       --  XXX Functionality test not implemented
 
-      Pol := Get_Server_Policy (Info, 1);
+      Pol := get_server_policy (Info, 1);
 
       Output (Point, Operation, True);
 
@@ -152,7 +152,7 @@ package body Test001_Server_Request_Info_Tests is
 
    begin
       declare
-         Aux : constant ObjectId := Get_Object_Id (Info);
+         Aux : constant ObjectId := get_object_id (Info);
       begin
          if not Valid then
             Output (Point, Operation, False);
@@ -215,7 +215,7 @@ package body Test001_Server_Request_Info_Tests is
    begin
       --  XXX Functionality test not implemented
 
-      Aux := Get_ORB_Id (Info);
+      Aux := get_orb_id (Info);
       Output (Point, Operation, False);
 
    exception
@@ -248,7 +248,7 @@ package body Test001_Server_Request_Info_Tests is
       Exc       : Any;
 
    begin
-      Exc := Get_Sending_Exception (Info);
+      Exc := get_sending_exception (Info);
 
       if not Valid then
          Output (Point, Operation, False);
@@ -295,7 +295,7 @@ package body Test001_Server_Request_Info_Tests is
    begin
       --  XXX Functionality test not implemented
 
-      Aux := Get_Server_Id (Info);
+      Aux := get_server_id (Info);
       Output (Point, Operation, False);
 
    exception
@@ -326,7 +326,7 @@ package body Test001_Server_Request_Info_Tests is
       Operation : constant String := "set_slot";
 
    begin
-      Set_Slot (Info, 100, CORBA.Internals.Get_Empty_Any (TC_Null));
+      set_slot (Info, 100, CORBA.Internals.Get_Empty_Any (TC_Null));
       --  Operation must raise InvalidSlot exception because slot is not
       --  allocated. The slot allocation, Get_Slot/Set_Slot Requests and
       --  PICurrent operations tested in test002.
@@ -354,14 +354,14 @@ package body Test001_Server_Request_Info_Tests is
 
    begin
       Aux :=
-        Target_Is_A (Info, To_CORBA_String (Test001_Interface.Repository_Id));
+        target_is_a (Info, To_CORBA_String (Test001_Interface.Repository_Id));
 
       if not Valid then
          Output (Point, Operation, False);
       elsif not Aux then
          Output (Point, Operation, False);
       elsif
-        Target_Is_A
+        target_is_a
         (Info, To_CORBA_String (Test001_Server_Interceptor.Repository_Id))
       then
          Output (Point, Operation, False);
@@ -399,7 +399,7 @@ package body Test001_Server_Request_Info_Tests is
       Aux       : RepositoryId;
 
    begin
-      Aux := Get_Target_Most_Derived_Interface (Info);
+      Aux := get_target_most_derived_interface (Info);
 
       if not Valid then
          Output (Point, Operation, False);
