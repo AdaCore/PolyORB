@@ -7,8 +7,8 @@ MANIFEST
 Makefile.common.in
 Makefile.common.project.in
 Makefile.in
-README.md
 README.DSA
+README.md
 VERSION
 acinclude.m4
 aclocal.m4
@@ -466,11 +466,13 @@ doc/References.rst
 doc/SOAP.rst
 doc/Tasking_model_in_PolyORB.rst
 doc/Tools.rst
+doc/adacore-logo-white.png
 doc/conf.py
 doc/corba-arch.fig
 doc/echo-impl-body.adb
 doc/echo-impl-spec.ads
 doc/echo.idl
+doc/favicon.ico
 doc/full-ex.fig
 doc/full-ex_fig.pdf
 doc/full-ex_fig.svg
@@ -2026,8 +2028,8 @@ support/mkinstalldirs
 support/move-if-change
 support/reconfig
 support/run_cpp.ksh
-support/ssl.m4
 support/scm.m4
+support/ssl.m4
 testsuite/README
 testsuite/acats/CXE1001/Makefile.local
 testsuite/acats/CXE1001/cxe1001_a.adb
@@ -2824,6 +2826,7 @@ testsuite/idls/vti_si03/test.out
 testsuite/idls/vti_si03/tin.idl
 testsuite/idls/vti_vb01/test.out
 testsuite/idls/vti_vb01/tin.idl
+testsuite/legacy_py2_testsuite.py
 testsuite/projects/polyorb_test_common.gpr
 testsuite/ssl-cert.conf
 testsuite/tests/always_fail/test.opt
@@ -2972,7 +2975,6 @@ testsuite/tests/examples/polyorb/POLYORB_CORE_3/test.py
 testsuite/tests/run-test.py
 testsuite/tests/test_utils.py
 testsuite/testsuite.py
-testsuite/legacy_py2_testsuite.py
 tools/README
 tools/po_catref/po_catref-common.adb
 tools/po_catref/po_catref-common.ads
