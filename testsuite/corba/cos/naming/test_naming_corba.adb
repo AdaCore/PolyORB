@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -161,7 +161,7 @@ begin
 
       declare
          The_String : constant String
-           := To_String (CosNaming.NamingContextExt.To_String
+           := To_String (CosNaming.NamingContextExt.to_string
                          (Root_Context, Obj_Name));
       begin
          Output ("NamingContextExt::To_String",
@@ -170,8 +170,8 @@ begin
 
       declare
          Obj_Name2 : constant CosNaming.Name
-           := To_Name (Root_Context,
-                       CosNaming.NamingContextExt.To_String
+           := to_name (Root_Context,
+                       CosNaming.NamingContextExt.to_string
                        (Root_Context, Obj_Name));
       begin
          Output ("NamingContextExt::To_Name", Obj_Name2 = Obj_Name);
@@ -180,7 +180,7 @@ begin
       declare
          The_String : constant String
            := CosNaming.NamingContextExt.To_String
-              (CosNaming.NamingContextExt.To_Url
+              (CosNaming.NamingContextExt.to_url
                (Root_Context,
                 CosNaming.NamingContextExt.To_CORBA_String
                 (":myhost.mydomain.com"),

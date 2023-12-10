@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -67,6 +67,8 @@ procedure Server is
      aliased PolyORB.Requests.Request;
    type Transient_Info_Array_Access is access all Transient_Info_Array;
    Transient_Infos : Transient_Info_Array_Access;
+
+   procedure Transient_Processing (Id : Natural);
 
    procedure Transient_Processing (Id : Natural) is
    begin

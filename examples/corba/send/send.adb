@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2003-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -94,14 +94,14 @@ begin
       Output ("Sending CORBA.Long", True);
 
       Output ("Previous tests went OK on the server side",
-              Test.Controller.Test_OK (The_Controller));
+              Test.Controller.test_OK (The_Controller));
 
       declare
          Result : CORBA.String;
          pragma Unreferenced (Result);
 
       begin
-         Result := Test.Printer.EchoString
+         Result := Test.Printer.echoString
            (Printer, CORBA.To_CORBA_String (Sent_Msg));
          Output ("Calling function with return value raised an exception",
                  False);

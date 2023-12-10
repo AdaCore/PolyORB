@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2007-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,7 +33,7 @@
 with CORBA;
 with PortableServer;
 
-package Benchs.Impl is
+package benchs.Impl is
 
    type Object is new PortableServer.Servant_Base with private;
 
@@ -150,4 +150,4 @@ private
       Data : CORBA.Short := 123;
    end record;
 
-end Benchs.Impl;
+end benchs.Impl;

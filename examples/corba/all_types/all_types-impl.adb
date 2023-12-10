@@ -229,7 +229,7 @@ package body all_types.Impl is
      (Self : access Object;
       arg  : Color) return Color is
    begin
-      if Arg'Valid then
+      if arg'Valid then
          Ada.Text_IO.Put_Line ("echoColor: " & arg'Img);
       else
          Ada.Text_IO.Put_Line ("echoColor: <invalid representation>");
@@ -306,7 +306,7 @@ package body all_types.Impl is
    is
    begin
       all_types.Helper.Raise_my_exception
-        (my_exception_Members'(Info => info, why => why));
+        (my_exception_Members'(info => info, why => why));
    end testException;
 
    procedure testUnknownException

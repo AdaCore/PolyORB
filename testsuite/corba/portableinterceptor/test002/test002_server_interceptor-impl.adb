@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -88,7 +88,7 @@ package body Test002_Server_Interceptor.Impl is
 
    begin
       begin
-         Aux := Get_Slot (RI, Test_Slot);
+         Aux := get_slot (RI, Test_Slot);
 
          if Get_Type (Aux) /= TC_Null then
             Output ("Uninitialized SRSC slot value", False);
@@ -102,10 +102,10 @@ package body Test002_Server_Interceptor.Impl is
       end;
 
       begin
-         Set_Slot (RI, Test_Slot, To_Any (Long (16)));
+         set_slot (RI, Test_Slot, To_Any (Long (16)));
 
          begin
-            Aux := Get_Slot (RI, Test_Slot);
+            Aux := get_slot (RI, Test_Slot);
 
             if Get_Type (Aux) /= TC_Long then
                Output ("Setting SRSC slot value", False);
@@ -123,7 +123,7 @@ package body Test002_Server_Interceptor.Impl is
 
       --  Preparing for test of correctly copied SRSC to STSC
 
-      Set_Slot (PI_Current, Test_Slot, To_Any (Long (18)));
+      set_slot (PI_Current, Test_Slot, To_Any (Long (18)));
    end Receive_Request_Service_Contexts;
 
    ---------------------
@@ -140,7 +140,7 @@ package body Test002_Server_Interceptor.Impl is
 
    begin
       begin
-         Aux := Get_Slot (PI_Current, Test_Slot);
+         Aux := get_slot (PI_Current, Test_Slot);
 
          if Get_Type (Aux) /= TC_Long then
             Output ("Slot value correctly copied from SRSC to STSC", False);
@@ -156,7 +156,7 @@ package body Test002_Server_Interceptor.Impl is
       end;
 
       begin
-         Aux := Get_Slot (RI, Test_Slot);
+         Aux := get_slot (RI, Test_Slot);
 
          if Get_Type (Aux) /= TC_Long then
             Output ("Slot value is unchanged in SRSC", False);
@@ -173,7 +173,7 @@ package body Test002_Server_Interceptor.Impl is
 
       --  Preparing for test of passing STSC to servant manager
 
-      Set_Slot (PI_Current, Test_Slot, To_Any (Long (20)));
+      set_slot (PI_Current, Test_Slot, To_Any (Long (20)));
    end Receive_Request;
 
    ----------------
@@ -190,7 +190,7 @@ package body Test002_Server_Interceptor.Impl is
 
    begin
       begin
-         Aux := Get_Slot (PI_Current, Test_Slot);
+         Aux := get_slot (PI_Current, Test_Slot);
 
          if Get_Type (Aux) /= TC_Long then
             Output
@@ -209,7 +209,7 @@ package body Test002_Server_Interceptor.Impl is
       end;
 
       begin
-         Aux := Get_Slot (RI, Test_Slot);
+         Aux := get_slot (RI, Test_Slot);
 
          if Get_Type (Aux) /= TC_Long then
             Output ("Slot value correctly copied from STSC to SRSC", False);
@@ -226,7 +226,7 @@ package body Test002_Server_Interceptor.Impl is
 
       --  Setting to STSC slot value another value
 
-      Set_Slot (PI_Current, Test_Slot, To_Any (Long (24)));
+      set_slot (PI_Current, Test_Slot, To_Any (Long (24)));
    end Send_Reply;
 
 end Test002_Server_Interceptor.Impl;

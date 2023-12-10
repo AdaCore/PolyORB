@@ -165,8 +165,8 @@ package body all_functions.Impl is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      Entry_B : constant CORBA.Short := B;
-      Entry_C : constant CORBA.Short := C;
+      Entry_B : constant CORBA.Short := b;
+      Entry_C : constant CORBA.Short := c;
    begin
       a := 111;
       b := Entry_C + 1;

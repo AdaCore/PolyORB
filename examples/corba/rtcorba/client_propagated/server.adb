@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -188,19 +188,19 @@ begin
       --  Create Lanes
 
       Append (Lanes,
-              RTCORBA.ThreadpoolLane'(Lane_Priority => Base_Priority,
-                                      Static_Threads => 2,
-                                      Dynamic_Threads => 0));
+              RTCORBA.ThreadpoolLane'(lane_priority => Base_Priority,
+                                      static_threads => 2,
+                                      dynamic_threads => 0));
 
       Append (Lanes,
-               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_1,
-                                       Static_Threads => 2,
-                                       Dynamic_Threads => 0));
+               RTCORBA.ThreadpoolLane'(lane_priority => Default_Priority_1,
+                                       static_threads => 2,
+                                       dynamic_threads => 0));
 
       Append (Lanes,
-               RTCORBA.ThreadpoolLane'(Lane_Priority => Default_Priority_2,
-                                       Static_Threads => 2,
-                                       Dynamic_Threads => 0));
+               RTCORBA.ThreadpoolLane'(lane_priority => Default_Priority_2,
+                                       static_threads => 2,
+                                       dynamic_threads => 0));
 
       Output ("Lanes created", True);
 

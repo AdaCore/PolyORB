@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -91,19 +91,19 @@ package body Test.ClientInterceptor.Impl is
            (CORBA.ORB.To_CORBA_String ("CodecFactory")));
 
       Codec :=
-        IOP.CodecFactory.Create_Codec
-        (Factory, (IOP.Encoding_CDR_Encaps, 1, 2));
+        IOP.CodecFactory.create_codec
+        (Factory, (IOP.ENCODING_CDR_ENCAPS, 1, 2));
 
       begin
          PolyORB.Utils.Report.Output
            ("Added tagged component present in IOR",
             CORBA.Unsigned_Long'
              (CORBA.From_Any
-              (IOP.Codec.Decode_Value
+              (IOP.Codec.decode_value
                (Codec,
                 CORBA.IDL_SEQUENCES.OctetSeq
-                (PortableInterceptor.ClientRequestInfo.Get_Effective_Component
-                 (RI, IOP.Tag_ORB_Type).Component_Data),
+                (PortableInterceptor.ClientRequestInfo.get_effective_component
+                 (RI, IOP.TAG_ORB_TYPE).component_data),
                 CORBA.TC_Unsigned_Long)))
             = 123456789);
 
@@ -122,11 +122,11 @@ package body Test.ClientInterceptor.Impl is
       begin
          Info :=
            CONV_FRAME.Helper.From_Any
-           (IOP.Codec.Decode_Value
+           (IOP.Codec.decode_value
             (Codec,
              CORBA.IDL_SEQUENCES.OctetSeq
-             (PortableInterceptor.ClientRequestInfo.Get_Effective_Component
-              (RI, IOP.Tag_Code_Sets).Component_Data),
+             (PortableInterceptor.ClientRequestInfo.get_effective_component
+              (RI, IOP.TAG_CODE_SETS).component_data),
              CONV_FRAME.Helper.TC_CodeSetComponentInfo));
 
          PolyORB.Utils.Report.Output

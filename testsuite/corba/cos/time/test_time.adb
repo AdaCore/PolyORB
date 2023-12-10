@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -72,7 +72,7 @@ procedure Test_Time is
    procedure Display (Time : TIO.Ref);
 
    procedure Display (Time : TIO.Ref) is
-      IT : constant IntervalT := Get_time_interval (Time);
+      IT : constant IntervalT := get_time_interval (Time);
    begin
       Put_Line ("Lower bound:" & TimeT'Image (IT.lower_bound));
       Put_Line ("Upper bound:" & TimeT'Image (IT.upper_bound));
@@ -86,9 +86,9 @@ procedure Test_Time is
 
    procedure Display (Time : UTO.Ref) is
    begin
-      Put_Line ("Time:      " & TimeT'Image (Get_time (Time)));
-      Put_Line ("Inaccuracy:" & InaccuracyT'Image (Get_inaccuracy (Time)));
-      Put_Line ("Tdf:       " & TdfT'Image (Get_tdf (Time)));
+      Put_Line ("Time:      " & TimeT'Image (get_time (Time)));
+      Put_Line ("Inaccuracy:" & InaccuracyT'Image (get_inaccuracy (Time)));
+      Put_Line ("Tdf:       " & TdfT'Image (get_tdf (Time)));
    end Display;
 
 begin

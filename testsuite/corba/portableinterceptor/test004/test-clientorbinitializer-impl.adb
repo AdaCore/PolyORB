@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -75,7 +75,7 @@ package body Test.ClientORBInitializer.Impl is
       Client_Ptr := new Test.ClientInterceptor.Impl.Object;
       PortableInterceptor.ClientRequestInterceptor.Set
         (Client_Ref, CORBA.Impl.Object_Ptr (Client_Ptr));
-      PortableInterceptor.ORBInitInfo.Add_Client_Request_Interceptor
+      PortableInterceptor.ORBInitInfo.add_client_request_interceptor
         (Info, Client_Ref);
    end Post_Init;
 
