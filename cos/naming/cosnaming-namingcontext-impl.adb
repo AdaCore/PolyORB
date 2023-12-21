@@ -423,7 +423,8 @@ package body CosNaming.NamingContext.Impl is
       pragma Debug (O ("Get_Ctx_And_Last_NC: enter"));
       PTM.Enter (Self.Mutex);
       declare
-         NCA         : Element_Array := To_Element_Array (Sequence (N));
+         NCA         : constant Element_Array :=
+           To_Element_Array (Sequence (N));
          Current_Obj : CORBA.Object.Ref;
          Current_Ctx : NamingContext.Ref;
          Current_Idx : Natural;
