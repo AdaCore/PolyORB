@@ -1077,7 +1077,8 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
       PTM.Enter (Critical_Section);
       declare
-         NCA         : Element_Array := To_Element_Array (Sequence (N));
+         NCA         : constant Element_Array :=
+           To_Element_Array (Sequence (N));
          Current_Obj : PolyORB.References.Ref;
          Current_Ctx : NamingContext.Ref;
          Current_Idx : Natural;
