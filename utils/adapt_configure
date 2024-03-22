@@ -1,0 +1,55 @@
+#!/bin/sh
+
+###################################################
+# Usage information
+###################################################
+
+usage() {
+    echo "Usage $0 [-R release] [-V version]"
+    echo "  Must be launch from the rootdir"
+    echo "  -R  override release identifier"
+    echo "  -V  optional additional version identifier"
+    exit 1
+}
+
+set -e
+
+###################################################
+# Parse commande line
+###################################################
+
+# Set default values
+override_release=
+additional_version=
+
+while getopts R:V: opt; do
+  case "$opt" in
+    R) override_release="$OPTARG" ;;
+    V) additional_version="$OPTARG" ;;
+    *) usage ;;
+  esac
+done
+
+
+# Set ADDITIONAL_VERSION
+sed "s/@ADDITIONAL_VERSION_PLACEHOLDER@/$additional_version/" configure -i
+
+# Set OVERRIDE_RELEASE
+sed "s/@OVERRIDE_RELEASE_PLACEHOLDER@/$override_release/" configure -i
+
+# sed_in_place FILE ARG...
+# Apply "sed ARG..." transformation to FILE
+
+sed_in_place() {
+  oldfile=$1; shift
+  newfile=$oldfile.new.$$
+  sed "$@" < $oldfile > $newfile
+  mv -f $newfile $oldfile
+}
+
+polyorb_version=`./configure --version | sed -n 's/^PolyORB configure //p'`
+echo "Setting version: ${polyorb_version}"
+
+for f in VERSION; do
+  sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
+done

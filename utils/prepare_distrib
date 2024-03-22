@@ -22,6 +22,7 @@ usage() {
    echo "  -R  override release identifier"
    echo "  -V  optional additional version identifier"
    echo "  -D  build documentation"
+   echo "  -G  generate generic configure"
    exit 1
 }
 
@@ -31,15 +32,25 @@ set -e
 # Parse commande line
 ###################################################
 
-while getopts c:R:V:D opt; do
+while getopts c:R:V:D:G opt; do
   case "$opt" in
     c) change="$OPTARG" ;;
     D) with_doc=true ;;
     R) override_release="$OPTARG" ;;
     V) additional_version="$OPTARG" ;;
+    G) generic_configure=true ;;
     *) usage ;;
   esac
 done
+
+# Set default value
+generic_configure=${generic_configure:=false}
+
+if [ $generic_configure ]
+then
+    additional_version=@ADDITIONAL_VERSION_PLACEHOLDER@
+    override_release=@OVERRIDE_RELEASE_PLACEHOLDER@
+fi
 
 shift `expr $OPTIND - 1`
 
@@ -98,6 +109,7 @@ echo "define([STRIP_PRODUCTION_BINARIES], [true])"
 if [ -n "$override_release" ]; then
   echo "define([OVERRIDE_RELEASE],[$override_release])"
 fi
+
 if [ -n "$additional_version" ]; then
   echo "define([ADDITIONAL_VERSION],[$additional_version])"
 fi
@@ -123,12 +135,15 @@ echo support/distrib.m4 >> MANIFEST.distrib
 echo Generating auto-generated files
 sh support/reconfig -w
 
-polyorb_version=`./configure --version | sed -n 's/^PolyORB configure //p'`
-echo "Setting version: ${polyorb_version}"
+if [ ! $generic_configure ]
+then
+    polyorb_version=`./configure --version | sed -n 's/^PolyORB configure //p'`
+    echo "Setting version: ${polyorb_version}"
 
-for f in VERSION; do
-  sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
-done
+    for f in VERSION; do
+      sed_in_place $f "s/@polyorb_version@/${polyorb_version}/g"
+    done
+fi
 
 ###################################################
 # Build documentation (optional)
