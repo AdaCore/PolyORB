@@ -46,6 +46,14 @@ This should be done after each update from the repository.
 In addition to the requirements above, they will need autoconf 2.60 or
 newer, automake 1.6.3 or newer, and libtool 1.5.8 or newer.
 
+NOTE: A ready to used generic version of `configure` is available. The PolyORB version
+and date are replaced by place holder.
+It can be updated using:
+  % utils/adapt_configure
+It can be generated using
+  % utils/prepare_distrib -G <path to root>
+
+
 To install PolyORB, execute:
 
   % ./configure [some options]
