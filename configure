@@ -662,7 +662,7 @@ SSL_LINKER_OPTIONS
 OPENSSL
 EGREP
 CPP
-HAVE_GNAT_PROJECT_gnatcoll
+HAVE_GNAT_PROJECT_gnatcoll_core
 HAVE_GNAT_PROJECT_xmlada
 GNAT_RTS_FLAG
 SUPPORT_RPC_ABORTION
@@ -7102,11 +7102,11 @@ fi
 if test "$with_gnatcoll" != no; then :
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether GNAT project gnatcoll.gpr is available" >&5
-$as_echo_n "checking whether GNAT project gnatcoll.gpr is available... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether GNAT project gnatcoll_core.gpr is available" >&5
+$as_echo_n "checking whether GNAT project gnatcoll_core.gpr is available... " >&6; }
 mkdir conftest
 cat > conftest/check.gpr <<EOF
-with "gnatcoll";
+with "gnatcoll_core";
 project Check is for Source_Files use (); end Check;
 EOF
 if { ac_try='cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out'
@@ -7116,12 +7116,12 @@ if { ac_try='cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; }
 then
-  HAVE_GNAT_PROJECT_gnatcoll=yes
+  HAVE_GNAT_PROJECT_gnatcoll_core=yes
 else
-  HAVE_GNAT_PROJECT_gnatcoll=no
+  HAVE_GNAT_PROJECT_gnatcoll_core=no
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $HAVE_GNAT_PROJECT_gnatcoll" >&5
-$as_echo "$HAVE_GNAT_PROJECT_gnatcoll" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $HAVE_GNAT_PROJECT_gnatcoll_core" >&5
+$as_echo "$HAVE_GNAT_PROJECT_gnatcoll_core" >&6; }
 
 rm -fr conftest
    if test "$with_gnatcoll" != "check" -a "$HAVE_GNAT_PROJECT_gnatcoll" = no ; then :
