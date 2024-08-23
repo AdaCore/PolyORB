@@ -594,7 +594,7 @@ AC_ARG_WITH([gnatcoll],
             [with_gnatcoll=GNATCOLL_DEFAULT])
 AS_IF([test "$with_gnatcoll" != no],
   [
-   AM_HAS_GNAT_PROJECT([gnatcoll])
+   AM_HAS_GNAT_PROJECT([gnatcoll_core])
    AS_IF([test "$with_gnatcoll" != "check" -a "$HAVE_GNAT_PROJECT_gnatcoll" = no ],
          [AC_MSG_FAILURE(
             [--with-gnatcoll was given, but gnatcoll is missing])])
