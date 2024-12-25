@@ -568,7 +568,14 @@ AS_IF([test "$with_gprbuild" != no],
    AS_IF([test "$with_gprbuild" != "check" -a -z "$GPRBUILD" ],
          [AC_MSG_FAILURE(
             [--with-gprbuild was given, but test for gprbuild failed])])
-   GPRBUILD_FOR_TARGET="$GPRBUILD --target=$target"
+   case "$target" in
+     "x86_64-unknown-linux-gnu" )
+       gnat_target_alias="x86_64-linux"
+       ;;
+     "*" )
+       gnat_target_alias="$target"
+   esac
+   GPRBUILD_FOR_TARGET="$GPRBUILD --target=$gnat_target_alias"
    HAVE_GPRBUILD=yes
   ],
   [
