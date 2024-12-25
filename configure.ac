@@ -2,8 +2,8 @@
 
 define(POLYORB_RELEASE, ifdef([OVERRIDE_RELEASE],OVERRIDE_RELEASE,[20.0w]))
 
-AC_PREREQ(2.60)
-AC_INIT(PolyORB, pkg_version(POLYORB_RELEASE), polyorb-bugs@lists.adacore.com)
+AC_PREREQ([2.69])
+AC_INIT([PolyORB],[pkg_version(POLYORB_RELEASE)],[polyorb-bugs@lists.adacore.com])
 
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
@@ -25,7 +25,7 @@ fi])
 # Initialization.
 ##########################################
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE
 
 # Disable Automake rules to rebuild Makefile.in and configure.
@@ -110,7 +110,7 @@ AS_HELP_STRING([--enable-warnings=X], [Set warnings processing to X (e/n/s)]),
    yes)     WARNINGS_MODE=e ;;
    no)      WARNINGS_MODE=s ;;
    [[ens]]) WARNINGS_MODE="$enableval" ;;
-   *)       AC_ERROR([invalid argument to --enable-warnings: $enableval]) ;;
+   *)       AC_MSG_ERROR(invalid argument to --enable-warnings: $enableval) ;;
 esac])
 AC_SUBST(WARNINGS_MODE)
 
@@ -138,7 +138,7 @@ AS_HELP_STRING([--enable-conf-pragmas=F],
 
     ADDITIONAL_CONF_PRAGMAS="${enableval}"
   else
-    AC_ERROR([valid file name required for --enable-conf-pragmas])
+    AC_MSG_ERROR(valid file name required for --enable-conf-pragmas)
   fi
 ],
 [ADDITIONAL_CONF_PRAGMAS="/dev/null"])
@@ -274,7 +274,7 @@ CC="$CC_FOR_TARGET"
 
 AC_CHECK_HEADERS([fcntl.h],
  [],
- [AC_ERROR([One or more required header file could not be found.])],
+ [AC_MSG_ERROR(One or more required header file could not be found.)],
  [/*relax*/])
 
 # Optional features
@@ -369,7 +369,7 @@ AC_ARG_ENABLE(idlac-wrapper,
 AS_HELP_STRING([--disable-idlac-wrapper], [Do not use idlac_wrapper for build]),
 [case "$enableval" in
    yes|no) USE_IDLAC_WRAPPER=$enableval ;;
-   *)      AC_ERROR([invalid argument to --enable-idlac-wrapper: $enableval]) ;;
+   *)      AC_MSG_ERROR(invalid argument to --enable-idlac-wrapper: $enableval) ;;
 esac],
 [USE_IDLAC_WRAPPER=yes])
 AC_SUBST(USE_IDLAC_WRAPPER)
@@ -378,7 +378,7 @@ AC_ARG_ENABLE(use-installed,
 AS_HELP_STRING([--enable-use-installed], [Use installed PolyORB to build testsuite and examples]),
 [case "$enableval" in
    yes|no) USE_INSTALLED=$enableval ;;
-   *)      AC_ERROR([invalid argument to --enable-use-installed: $enableval]) ;;
+   *)      AC_MSG_ERROR(invalid argument to --enable-use-installed: $enableval) ;;
 esac],
 [USE_INSTALLED=no])
 AC_SUBST(USE_INSTALLED)
@@ -1009,8 +1009,7 @@ do
 done
 
 chmod a+x polyorb-config
-],
-[
+],[
 RM="${RM}"
 LN_S="${LN_S}"
 ${SYMLINK_ALIAS}
