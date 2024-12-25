@@ -2643,7 +2643,6 @@ test -n "$target_alias" &&
   test "$program_prefix$program_suffix$program_transform_name" = \
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
-
 am__api_version='1.16'
 
 # Find a good install program.  We prefer a C program (faster),
@@ -6168,7 +6167,14 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "--with-gprbuild was given, but test for gprbuild failed
 See \`config.log' for more details" "$LINENO" 5; }
 fi
-   GPRBUILD_FOR_TARGET="$GPRBUILD --target=$target"
+   case "$target" in
+     "x86_64-unknown-linux-gnu" )
+       gnat_target_alias="x86_64-linux"
+       ;;
+     "*" )
+       gnat_target_alias="$target"
+   esac
+   GPRBUILD_FOR_TARGET="$GPRBUILD --target=$gnat_target_alias"
    HAVE_GPRBUILD=yes
 
 else
@@ -8477,7 +8483,7 @@ ac_config_links="$ac_config_links src/polyorb-smart_pointers-sync_counters.adb:s
 
 
 
-ac_config_files="$ac_config_files compilers/common_files/platform.ads compilers/config.adc compilers/gnatdist/xe_defs-defaults.ads compilers/gnatprfh/gnatprfh.adb contrib/idlac_wrapper/idlac_wrapper doc/Makefile doc/polyorb_version.py examples/corba/secure_echo/gssup.conf examples/corba/secure_echo/tls.conf examples/corba/secure_echo/tls_gssup.conf Makefile Makefile.common Makefile.common.project polyorb-config projects-distrib/polyorb.gpr projects-distrib/polyorb/polyorb_install_common.gpr projects-distrib/polyorb/polyorb_src_setup.gpr projects/polyorb_config.gpr projects/polyorb.gpr projects/polyorb_src_setup.gpr src/config.adc src/polyorb-platform.ads src/polyorb-platform-ssl_linker_options.ads src/ravenscar.adc src/ravenscar_compatible.adc src/setup/polyorb-setup-base.adb src/setup/polyorb-setup-client_base.adb src/setup/polyorb-setup-server.adb src/setup/polyorb-setup-tasking-full_tasking.adb src/src.exclude testsuite/tests/config.py tools/po_catref/po_catref_setup.adb tools/po_createref/po_createref_setup.adb"
+ac_config_files="$ac_config_files Makefile Makefile.common Makefile.common.project compilers/common_files/platform.ads compilers/config.adc compilers/gnatdist/xe_defs-defaults.ads compilers/gnatprfh/gnatprfh.adb contrib/idlac_wrapper/idlac_wrapper doc/Makefile doc/polyorb_version.py examples/corba/secure_echo/gssup.conf examples/corba/secure_echo/tls.conf examples/corba/secure_echo/tls_gssup.conf polyorb-config projects-distrib/polyorb.gpr projects-distrib/polyorb/polyorb_install_common.gpr projects-distrib/polyorb/polyorb_src_setup.gpr projects/polyorb.gpr projects/polyorb_config.gpr projects/polyorb_src_setup.gpr src/config.adc src/polyorb-platform-ssl_linker_options.ads src/polyorb-platform.ads src/ravenscar.adc src/ravenscar_compatible.adc src/setup/polyorb-setup-base.adb src/setup/polyorb-setup-client_base.adb src/setup/polyorb-setup-server.adb src/setup/polyorb-setup-tasking-full_tasking.adb src/src.exclude testsuite/tests/config.py tools/po_catref/po_catref_setup.adb tools/po_createref/po_createref_setup.adb"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -9240,6 +9246,9 @@ do
     "src/polyorb-smart_pointers-sync_counters.adb") CONFIG_LINKS="$CONFIG_LINKS src/polyorb-smart_pointers-sync_counters.adb:src/polyorb-smart_pointers-sync_counters__$SYNC_COUNTERS_IMPL.adb" ;;
     "testsuite/projects/polyorb_config.gpr") CONFIG_LINKS="$CONFIG_LINKS testsuite/projects/polyorb_config.gpr:projects/polyorb_config.gpr" ;;
     "testsuite/projects/polyorb_common.gpr") CONFIG_LINKS="$CONFIG_LINKS testsuite/projects/polyorb_common.gpr:projects/polyorb_common.gpr" ;;
+    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "Makefile.common") CONFIG_FILES="$CONFIG_FILES Makefile.common" ;;
+    "Makefile.common.project") CONFIG_FILES="$CONFIG_FILES Makefile.common.project" ;;
     "compilers/common_files/platform.ads") CONFIG_FILES="$CONFIG_FILES compilers/common_files/platform.ads" ;;
     "compilers/config.adc") CONFIG_FILES="$CONFIG_FILES compilers/config.adc" ;;
     "compilers/gnatdist/xe_defs-defaults.ads") CONFIG_FILES="$CONFIG_FILES compilers/gnatdist/xe_defs-defaults.ads" ;;
@@ -9250,19 +9259,16 @@ do
     "examples/corba/secure_echo/gssup.conf") CONFIG_FILES="$CONFIG_FILES examples/corba/secure_echo/gssup.conf" ;;
     "examples/corba/secure_echo/tls.conf") CONFIG_FILES="$CONFIG_FILES examples/corba/secure_echo/tls.conf" ;;
     "examples/corba/secure_echo/tls_gssup.conf") CONFIG_FILES="$CONFIG_FILES examples/corba/secure_echo/tls_gssup.conf" ;;
-    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "Makefile.common") CONFIG_FILES="$CONFIG_FILES Makefile.common" ;;
-    "Makefile.common.project") CONFIG_FILES="$CONFIG_FILES Makefile.common.project" ;;
     "polyorb-config") CONFIG_FILES="$CONFIG_FILES polyorb-config" ;;
     "projects-distrib/polyorb.gpr") CONFIG_FILES="$CONFIG_FILES projects-distrib/polyorb.gpr" ;;
     "projects-distrib/polyorb/polyorb_install_common.gpr") CONFIG_FILES="$CONFIG_FILES projects-distrib/polyorb/polyorb_install_common.gpr" ;;
     "projects-distrib/polyorb/polyorb_src_setup.gpr") CONFIG_FILES="$CONFIG_FILES projects-distrib/polyorb/polyorb_src_setup.gpr" ;;
-    "projects/polyorb_config.gpr") CONFIG_FILES="$CONFIG_FILES projects/polyorb_config.gpr" ;;
     "projects/polyorb.gpr") CONFIG_FILES="$CONFIG_FILES projects/polyorb.gpr" ;;
+    "projects/polyorb_config.gpr") CONFIG_FILES="$CONFIG_FILES projects/polyorb_config.gpr" ;;
     "projects/polyorb_src_setup.gpr") CONFIG_FILES="$CONFIG_FILES projects/polyorb_src_setup.gpr" ;;
     "src/config.adc") CONFIG_FILES="$CONFIG_FILES src/config.adc" ;;
-    "src/polyorb-platform.ads") CONFIG_FILES="$CONFIG_FILES src/polyorb-platform.ads" ;;
     "src/polyorb-platform-ssl_linker_options.ads") CONFIG_FILES="$CONFIG_FILES src/polyorb-platform-ssl_linker_options.ads" ;;
+    "src/polyorb-platform.ads") CONFIG_FILES="$CONFIG_FILES src/polyorb-platform.ads" ;;
     "src/ravenscar.adc") CONFIG_FILES="$CONFIG_FILES src/ravenscar.adc" ;;
     "src/ravenscar_compatible.adc") CONFIG_FILES="$CONFIG_FILES src/ravenscar_compatible.adc" ;;
     "src/setup/polyorb-setup-base.adb") CONFIG_FILES="$CONFIG_FILES src/setup/polyorb-setup-base.adb" ;;
