@@ -1,0 +1,13 @@
+
+stages:
+  - test
+  - check
+
+include:
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/check-issue@~latest
+
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
+    inputs:
+      needs: []
+      windows-needs: []
+      anod-args: run build_test_polyorb --latest

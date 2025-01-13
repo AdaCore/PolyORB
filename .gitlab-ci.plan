@@ -1,0 +1,6 @@
+assert_mode = {}
+
+def build_test_polyorb():
+    anod_build("polyorb", qualifier=assert_mode)
+    anod_test("polyorb", qualifier=assert_mode)
+    anod_test("dsa", qualifier=assert_mode)
