@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2004-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2004-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -105,10 +105,15 @@ package body PolyORB.GIOP_P.Service_Contexts is
       SCP := new QoS_GIOP_Service_Contexts_Parameter;
 
       for J in 1 .. Length loop
-         Append
-           (SCP.Service_Contexts,
-            (Types.Unsigned_Long'(Unmarshall (Buffer)),
-             new Encapsulation'(Unmarshall (Buffer))));
+         declare
+            Id   : constant Service_Id :=
+              Types.Unsigned_Long'(Unmarshall (Buffer));
+            Data : constant Encapsulation_Access :=
+              new Encapsulation'(Unmarshall (Buffer));
+
+         begin
+            Append (SCP.Service_Contexts, (Id, Data));
+         end;
       end loop;
 
       pragma Debug (C, O ("Unmarshall_Service_Context_List: leave"));
