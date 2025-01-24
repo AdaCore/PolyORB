@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2021, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1050,6 +1050,15 @@ package body Backend.BE_CORBA_Ada.Nutils is
          EN (E) := Name_Find;
       end loop;
 
+      --  Conventions
+
+      for C in Convention_Id loop
+         Set_Str_To_Name_Buffer (Convention_Id'Image (C));
+         Set_Str_To_Name_Buffer (Name_Buffer (12 .. Name_Len));
+         GNAT.Case_Util.To_Mixed (Name_Buffer (1 .. Name_Len));
+         XN (C) := Name_Find;
+      end loop;
+
       --  Initialize the CORBA module entities names
 
       Set_Str_To_Name_Buffer ("CORBA");
@@ -1208,6 +1217,25 @@ package body Backend.BE_CORBA_Ada.Nutils is
       Set_Expression (N, Expression);
       return N;
    end Make_Assignment_Statement;
+
+   --------------------------------------
+   -- Make_Attribute_Definition_Clause --
+   --------------------------------------
+
+   function Make_Attribute_Definition_Clause
+     (Local_Name : Name_Id;
+      Attribute  : Attribute_Id;
+      Expression : Node_Id)
+      return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Attribute_Definition_Clause);
+      Set_Local_Name (N, Local_Name);
+      Set_Attribute_Designator (N, AN (Attribute));
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Attribute_Definition_Clause;
 
    ------------------------------
    -- Make_Attribute_Reference --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2021, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -47,6 +47,7 @@ package body Backend.BE_CORBA_Ada.Generator is
    procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_String_Type_Definition (N : Node_Id);
    procedure Generate_Assignment_Statement (N : Node_Id);
+   procedure Generate_Attribute_Definition_Clause (N : Node_Id);
    procedure Generate_Attribute_Reference (N : Node_Id);
    procedure Generate_Block_Statement (N : Node_Id);
    procedure Generate_Case_Statement (N : Node_Id);
@@ -193,6 +194,9 @@ package body Backend.BE_CORBA_Ada.Generator is
 
          when K_Assignment_Statement =>
             Generate_Assignment_Statement (N);
+
+         when K_Attribute_Definition_Clause =>
+            Generate_Attribute_Definition_Clause (N);
 
          when K_Attribute_Reference =>
             Generate_Attribute_Reference (N);
@@ -600,6 +604,23 @@ package body Backend.BE_CORBA_Ada.Generator is
       Generate (Expression (N));
       Decrement_Indentation;
    end Generate_Assignment_Statement;
+
+   ------------------------------------------
+   -- Generate_Attribute_Definition_Clause --
+   ------------------------------------------
+
+   procedure Generate_Attribute_Definition_Clause (N : Node_Id) is
+   begin
+      Write (Tok_For);
+      Write_Space;
+      Write_Name (Local_Name (N));
+      Write (Tok_Apostrophe);
+      Write_Name (Attribute_Designator (N));
+      Write_Space;
+      Write (Tok_Use);
+      Write_Space;
+      Generate (Expression (N));
+   end Generate_Attribute_Definition_Clause;
 
    ----------------------------------
    -- Generate_Attribute_Reference --

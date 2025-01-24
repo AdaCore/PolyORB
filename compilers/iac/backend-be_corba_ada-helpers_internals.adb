@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2006-2018, Free Software Foundation, Inc.          --
+--         Copyright (C) 2006-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1501,35 +1501,91 @@ package body Backend.BE_CORBA_Ada.Helpers_Internals is
       function Element_Wrap_Body (E : Node_Id) return Node_Id is
          pragma Assert (FEN.Kind (E) = K_Sequence_Type);
 
-         Spec       : constant Node_Id := Element_Wrap_Node (BE_Node (E));
-         Statements : constant List_Id := New_List;
-         O          : constant Node_Id :=
-           FEU.Get_Original_Type_Declarator (Type_Spec (E));
+         Spec         : constant Node_Id := Element_Wrap_Node (BE_Node (E));
+         Declarations : List_Id := No_List;
+         Statements   : constant List_Id := New_List;
+         Immediate    : constant Node_Id := Type_Spec (E);
+         Original     : constant Node_Id :=
+           FEU.Get_Original_Type_Declarator (Immediate);
          --  The original type of the sequence type spec
 
-         W          : constant Node_Id := Get_Wrap_Node (O);
-         N          : Node_Id;
+         W            : constant Node_Id := Get_Wrap_Node (Original);
+         N            : Node_Id;
       begin
-         N := Make_Explicit_Dereference (Make_Identifier (PN (P_X)));
+         if Is_Object_Type (Original)
+           or else
+             not (FEN.Kind (Immediate) = K_Scoped_Name
+                  and then FEN.Kind (Reference (Immediate))
+                             = K_Simple_Declarator
+                  and then FEN.Kind
+                            (FEU.Get_Original_Type_Specifier (Original))
+                               in K_Float .. K_Wide_Char | K_Octet)
+         then
+            N := Make_Explicit_Dereference (Make_Identifier (PN (P_X)));
 
-         --  If the type spec of the sequence is a user defined type,
-         --  we have to cast it to the original type.
+            --  If the type spec of the sequence is a user defined type,
+            --  we have to cast it to the original type.
 
-         Cast_When_Necessary (N, Type_Spec (E), O, True);
+            Cast_When_Necessary (N, Immediate, Original, True);
 
-         --  Get an 'Unrestricted_Access to the parameter
+            --  Get an 'Unrestricted_Access to the parameter
 
-         N := Make_Attribute_Reference (N, A_Unrestricted_Access);
+            N := Make_Attribute_Reference (N, A_Unrestricted_Access);
 
-         --  Call the original type `Wrap'
+            --  Call the original type `Wrap'
 
-         N := Make_Subprogram_Call (W, New_List (N));
-         N := Make_Return_Statement (N);
-         Append_To (Statements, N);
+            N := Make_Subprogram_Call (W, New_List (N));
+            N := Make_Return_Statement (N);
+            Append_To (Statements, N);
+
+         else
+            --  Use ovelay object for simple types
+
+            Declarations := New_List;
+
+            --  Declare overlay object
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (VN (V_Overlay)),
+               Object_Definition   =>
+                 Get_Type_Definition_Node (Original, True),
+               Aliased_Present     => True);
+            Append_To (Declarations, N);
+
+            N := Make_Attribute_Definition_Clause
+              (Local_Name => VN (V_Overlay),
+               Attribute  => A_Address,
+               Expression =>
+                 Make_Attribute_Reference
+                   (Prefix    =>
+                        Make_Explicit_Dereference (Make_Identifier (PN (P_X))),
+                    Attribute => A_Address));
+            Append_To (Declarations, N);
+
+            N := Make_Pragma
+              (The_Pragma    => Pragma_Import,
+               Argument_List =>
+                 New_List
+                   (Make_Identifier (XN (Convention_Ada)),
+                    Make_Identifier (VN (V_Overlay))));
+            Append_To (Declarations, N);
+
+            --  Call the original type `Wrap'
+
+            N := Make_Subprogram_Call
+              (W,
+               New_List
+                 (Make_Attribute_Reference
+                      (Prefix    => Make_Identifier (VN (V_Overlay)),
+                       Attribute => A_Unchecked_Access)));
+            N := Make_Return_Statement (N);
+            Append_To (Statements, N);
+         end if;
 
          --  Make the body
 
-         N := Make_Subprogram_Body (Spec, No_List, Statements);
+         N := Make_Subprogram_Body (Spec, Declarations, Statements);
 
          return N;
       end Element_Wrap_Body;
