@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2005-2014, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -351,7 +351,8 @@ package Backend.BE_CORBA_Ada.Nutils is
       V_Component,
       V_Operation_Argument_List,
       V_Session,
-      V_Pointer);
+      V_Pointer,
+      V_Overlay);
 
    VN : array (Variable_Id) of Name_Id;
    --  Array of variable identifiers
@@ -460,6 +461,7 @@ package Backend.BE_CORBA_Ada.Nutils is
    type Pragma_Id is
      (Pragma_Assert,
       Pragma_Elaborate_Body,
+      Pragma_Import,
       Pragma_Inline,
       Pragma_No_Return,
       Pragma_Style_Checks,
@@ -470,6 +472,11 @@ package Backend.BE_CORBA_Ada.Nutils is
 
    GN : array (Pragma_Id) of Name_Id;
    --  Array of pragma identifiers
+
+   type Convention_Id is
+     (Convention_Ada);
+
+   XN : array (Convention_Id) of Name_Id;
 
    type Error_Id is
      (E_Program_Error,
@@ -695,6 +702,12 @@ package Backend.BE_CORBA_Ada.Nutils is
      (Variable_Identifier : Node_Id;
       Expression          : Node_Id)
      return Node_Id;
+
+   function Make_Attribute_Definition_Clause
+     (Local_Name : Name_Id;
+      Attribute  : Attribute_Id;
+      Expression : Node_Id)
+      return Node_Id;
 
    function Make_Attribute_Reference
      (Prefix    : Node_Id;

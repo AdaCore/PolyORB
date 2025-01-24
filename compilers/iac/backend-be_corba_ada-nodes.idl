@@ -474,7 +474,20 @@ module Backend::BE_CORBA_Ada::Nodes {
     // The record component (Component_Declaration)
     // Why leading underscore???
   };
-  
+
+  /* Example: for T'Address use S'Address; */
+
+  interface Attribute_Definition_Clause : Node_Id {
+    Name_Id Local_Name;
+    // Local_Name inherited from Definition
+
+    Name_Id Attribute_Designator;
+    // Name of the Attribute designator (Address, Alignment, Size, etc...)
+
+    Node_Id Expression;
+    //  Value
+  };
+
   /**************/
   /* Aggregates */
   /**************/
