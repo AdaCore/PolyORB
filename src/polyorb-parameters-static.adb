@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2008-2015, Free Software Foundation, Inc.          --
+--         Copyright (C) 2008-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -46,21 +46,18 @@ package body PolyORB.Parameters.Static is
    --  to be incorrectly optimized out at -O2.
 
    pragma Suppress (Range_Check);
-   Parameters : Static_Parameter_Array  (1 .. Positive'Last);
+   Parameters : Static_Parameter_Array
+     (1 .. Positive'Last / Parameter_Entry'Max_Size_In_Storage_Elements);
    pragma Import (Ada, Parameters, Static_Parameters_Link_Name);
-
-   Last_Index : Natural := 0;
-   --  Actual index of last entry
-
-   pragma Warnings (Off); -- WAG:GPL2007
    pragma Weak_External (Parameters);
-   pragma Warnings (On); -- WAG:GPL2007
-
    --  This symbol is optional, PolyORB can be configured using other methods
    --  like the command line or environment variables.
    --  In some platforms like VxWorks 5.5 the loader gives a warning even if
    --  the unresolved symbol is weak. This external name was chosen to avoid
    --  alarming the user when this happen instead of a more descriptive one.
+
+   Last_Index : Natural := 0;
+   --  Actual index of last entry
 
    type Static_Source is new Parameters_Source with null record;
 
