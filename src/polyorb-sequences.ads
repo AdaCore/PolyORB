@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -63,11 +63,6 @@ private
 
    function Length (Index_Range : Bounds) return Natural;
    --  Return the length of the slice or array whose bounds are given
-
-   function Round (Length : Natural) return Natural;
-   --  Compute appropriate Length. If Length = 0, return 0. If not, return
-   --  Initial_Size + N * Increment_Size where N is the smallest integer
-   --  such that Length < Initial_Size + N * Increment_Size.
 
    -----------------------------------
    -- The Sequences Virtual Machine --

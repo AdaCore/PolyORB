@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,6 +33,20 @@
 pragma Ada_2012;
 
 package body PolyORB.Sequences.Unbounded is
+
+   Grouth_Factor : constant := 2;
+   Shrink_Factor : constant := 2;
+   --  The growth factor controls how much extra space is allocated when we
+   --  have to increase the size of an allocated sequence. By allocating extra
+   --  space, we avoid the need to reallocate on every append, particularly
+   --  important when a sequence is built up by repeated append operations of
+   --  small pieces. This is expressed as a factor so 2 means add 1/2 of the
+   --  length of the sequence as growth space.
+   --
+   --  The shrink factor controls how much extra space is preserved when we
+   --  have to decrease the size of an allocated sequence. This is expresses
+   --  as a factor so 2 means up to 1/2 of the length of the sequence can be
+   --  left unused before reallocation.
 
    Dummy_Element_Ptr : Element_Ptr;
    pragma Warnings (Off, Dummy_Element_Ptr);
@@ -641,7 +655,14 @@ package body PolyORB.Sequences.Unbounded is
       New_Contents : Element_Array_Access;
 
       Old_Alloc : constant Natural := Old_Contents'Length;
-      New_Alloc : constant Natural := Round (Prog.Result_Length);
+      New_Alloc : constant Natural :=
+        (if Old_Alloc < Prog.Result_Length
+         then Natural'Max
+           (Old_Alloc + Old_Alloc / Grouth_Factor, Prog.Result_Length)
+         elsif Prog.Result_Length < Old_Alloc - Old_Alloc / Shrink_Factor
+         then Prog.Result_Length
+         else Old_Alloc);
+
    begin
       if New_Alloc = Old_Alloc then
          New_Contents := Old_Contents;
