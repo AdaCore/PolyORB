@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2025, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,9 +43,6 @@ with System;
 package body PolyORB.Sequences is
 
    --  Constants for unbounded sequences allocation
-
-   Initial_Size   : constant := 3;
-   Increment_Size : constant := 2;
 
    procedure Check_Length
      (Max_Length : Natural;
@@ -221,25 +218,6 @@ package body PolyORB.Sequences is
       end loop;
       return Matches;
    end Count_Index;
-
-   -----------
-   -- Round --
-   -----------
-
-   function Round (Length : Natural) return Natural is
-      Times : Natural;
-   begin
-      if Length = 0 then
-         return 0;
-
-      elsif Length <= Initial_Size then
-         return Initial_Size;
-
-      else
-         Times := ((Length - Initial_Size) / Increment_Size) + 1;
-         return Initial_Size + (Increment_Size * Times);
-      end if;
-   end Round;
 
    ---------------
    -- Head_Tail --
