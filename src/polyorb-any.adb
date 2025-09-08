@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2022, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -3261,7 +3261,7 @@ package body PolyORB.Any is
          end if;
 
          if Self.Kind = Tk_Union
-           and then Self.Map /= Union_TC_Map (Self)'Unchecked_Access
+           and then Self.Map /= Union_TC_Map'Class (Self)'Unchecked_Access
          then
             Free (Union_TC_Map_Ptr (Self.Map));
          end if;
