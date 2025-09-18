@@ -12,6 +12,16 @@ Front-Cover Texts being 'PolyORB User's Guide', and with no
 Back-Cover Texts.  A copy of the license is included in the section
 entitled 'GNU Free Documentation License'.
 
+.. _End_of_Life_Notification:
+
+End of Life Notification
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PolyORB is a deprecated product. It will be baselined with the GNAT Pro
+release 28. After this release, there will be no new versions of this
+product. Contact your sales representative or send a message to
+sales@adacore.com to get recommendations for replacements.
+
 .. toctree::
    :numbered:
    :maxdepth: 3
@@ -31,8 +41,7 @@ entitled 'GNU Free Documentation License'.
    Performance
    Conformance
    References
-   
-   
+
 .. _About_This_Guide:
 
 About This Guide
