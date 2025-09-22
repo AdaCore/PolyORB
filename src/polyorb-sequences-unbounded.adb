@@ -34,7 +34,7 @@ pragma Ada_2012;
 
 package body PolyORB.Sequences.Unbounded is
 
-   Grouth_Factor : constant := 2;
+   Growth_Factor : constant := 2;
    Shrink_Factor : constant := 2;
    --  The growth factor controls how much extra space is allocated when we
    --  have to increase the size of an allocated sequence. By allocating extra
@@ -658,7 +658,7 @@ package body PolyORB.Sequences.Unbounded is
       New_Alloc : constant Natural :=
         (if Old_Alloc < Prog.Result_Length
          then Natural'Max
-           (Old_Alloc + Old_Alloc / Grouth_Factor, Prog.Result_Length)
+           (Old_Alloc + Old_Alloc / Growth_Factor, Prog.Result_Length)
          elsif Prog.Result_Length < Old_Alloc - Old_Alloc / Shrink_Factor
          then Prog.Result_Length
          else Old_Alloc);
