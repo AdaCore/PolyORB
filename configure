@@ -8180,7 +8180,10 @@ printf %s "checking whether GNAT project xmlada.gpr is available... " >&6; }
 mkdir conftest
 cat > conftest/check.gpr <<EOF
 with "xmlada";
-project Check is for Source_Files use (); end Check;
+project Check is end Check;
+EOF
+cat > conftest/check.ads <<EOF
+package Check is end Check;
 EOF
 if { ac_try='cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
@@ -8225,7 +8228,10 @@ printf %s "checking whether GNAT project gnatcoll_core.gpr is available... " >&6
 mkdir conftest
 cat > conftest/check.gpr <<EOF
 with "gnatcoll_core";
-project Check is for Source_Files use (); end Check;
+project Check is end Check;
+EOF
+cat > conftest/check.ads <<EOF
+package Check is end Check;
 EOF
 if { ac_try='cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
