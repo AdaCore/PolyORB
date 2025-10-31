@@ -2015,6 +2015,7 @@ src/web_common/polyorb-web-utils.ads
 src/web_common/polyorb-web.ads
 support/ada.m4
 support/cleanup-conf-files
+support/compile
 support/config.guess
 support/config.sub
 support/distrib.m4
@@ -2023,6 +2024,7 @@ support/gentexifile
 support/gnatsrc.m4
 support/idlcpp.m4
 support/install-sh
+support/missing
 support/mkdep
 support/mkinstalldirs
 support/move-if-change
