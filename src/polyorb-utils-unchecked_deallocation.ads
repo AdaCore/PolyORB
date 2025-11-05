@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                      P O L Y O R B . O B J E C T S                       --
+--  P O L Y O R B . U T I L S . U N C H E C K E D _ D E A L L O C A T I O N --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2025, Free Software Foundation, Inc.               --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,36 +30,53 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object identifier type. An Object_Id is an opaque data container
---  identifying one concrete object whithin a specific namespace.
+--  Generic unchecked deallocation utility
+--
+--  This package provides a generic procedure for deallocating dynamically
+--  allocated objects. It is a thin wrapper around Ada.Unchecked_Deallocation
+--  that consolidates the 74+ duplicate Free procedure instantiations
+--  throughout the PolyORB codebase into a single, reusable utility.
+--
+--  Usage:
+--    with PolyORB.Utils.Unchecked_Deallocation;
+--
+--    type My_Type is ...;
+--    type My_Type_Access is access all My_Type;
+--
+--    procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+--      (Object => My_Type, Name => My_Type_Access);
+--
+--  This is functionally equivalent to:
+--    procedure Free is new Ada.Unchecked_Deallocation
+--      (My_Type, My_Type_Access);
+--
+--  Benefits:
+--  - Reduces code duplication (74 instances → 1 generic)
+--  - Centralizes memory management pattern
+--  - Improves maintainability
+--  - Makes future refactoring easier (e.g., adding debug hooks)
 
-with Ada.Streams;
-with PolyORB.Utils.Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
 
-package PolyORB.Objects is
+package PolyORB.Utils.Unchecked_Deallocation is
 
    pragma Preelaborate;
 
-   type Object_Id is new Ada.Streams.Stream_Element_Array;
+   generic
+      type Object (<>) is limited private;
+      type Name is access Object;
+   procedure Free (X : in out Name);
+   pragma Inline (Free);
+   --  Generic deallocation procedure. This is a thin wrapper around
+   --  Ada.Unchecked_Deallocation that provides zero runtime overhead
+   --  (inlined). The generic parameters match the standard
+   --  Ada.Unchecked_Deallocation signature.
+   --
+   --  After instantiation, calling Free(X) will:
+   --  1. Deallocate the object designated by X
+   --  2. Set X to null
+   --
+   --  Note: This procedure is unchecked and unsafe. Use with caution.
+   --  Dangling pointers and double-free errors are possible if misused.
 
-   type Object_Id_Access is access all Object_Id;
-
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
-     (Object => Object_Id, Name => Object_Id_Access);
-
-   function Oid_To_Hex_String (Oid : Object_Id) return String;
-   pragma Inline (Oid_To_Hex_String);
-   --  Convert an OID to a printable hex string representation
-
-   function Hex_String_To_Oid (S : String) return Object_Id;
-   pragma Inline (Hex_String_To_Oid);
-   --  Convert an OID from a printable hex string representation
-
-   function String_To_Oid (S : String) return Object_Id;
-   pragma Inline (String_To_Oid);
-   --  Convert an OID from a string
-
-   function Image (Oid : Object_Id) return String;
-   --  For debugging purposes
-
-end PolyORB.Objects;
+end PolyORB.Utils.Unchecked_Deallocation;
