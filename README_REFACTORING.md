@@ -2,6 +2,19 @@
 
 This directory contains comprehensive refactoring analysis and recommendations for the PolyORB distributed middleware platform.
 
+## ⚠️ READ THIS FIRST: REFACTORING_CONSTRAINTS_AND_RECOMMENDATIONS.md
+
+**CRITICAL:** Before attempting ANY refactorings, read **REFACTORING_CONSTRAINTS_AND_RECOMMENDATIONS.md**. This document explains Ada-specific constraints and corrects initial misidentifications:
+
+- **Key Finding:** The "deallocation duplication" (74 instances) is NOT a code smell in Ada - it's correct, idiomatic code
+- **Updated Priorities:** Based on Ada language constraints and testing requirements
+- **Testing Prerequisites:** GNAT compiler and GNATPython setup instructions
+- **Actionable Roadmap:** Four prioritized refactoring opportunities with risk assessment
+
+**Start there, then use the documents below for detailed analysis.**
+
+---
+
 ## Documents
 
 ### 1. REFACTOR_ANALYSIS.md (Comprehensive Analysis)
