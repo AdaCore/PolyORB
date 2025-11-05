@@ -226,7 +226,10 @@ AC_MSG_CHECKING([whether GNAT project $1.gpr is available])
 mkdir conftest
 cat > conftest/check.gpr <<EOF
 with "[$1]";
-project Check is for Source_Files use (); end Check;
+project Check is end Check;
+EOF
+cat > conftest/check.ads <<EOF
+package Check is end Check;
 EOF
 if AC_TRY_COMMAND([cd conftest && $GNAT_DRIVER_FOR_TARGET ls -Pcheck system.ads > /dev/null 2>../conftest.out])
 then
