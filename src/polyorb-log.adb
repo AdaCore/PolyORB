@@ -154,7 +154,9 @@ package body PolyORB.Log is
 
    package Request_Lists is new PolyORB.Utils.Chained_Lists (Log_Request);
    type Request_List_Access is access Request_Lists.List;
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Request_Lists.List, Name => Request_List_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Request_Lists.List,
+      Name => Request_List_Access);
    Buffer : Request_List_Access;
 
    Buffer_Enable : Boolean := True;
