@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: polyorb-config
+  namespace: polyorb-prod
+  labels:
+    app: polyorb
+data:
+  POLYORB_LOG_LEVEL: "info"
+  POLYORB_PROTOCOL: "giop"
+  POLYORB_APPLICATION: "corba"
+  # Add other PolyORB configuration as needed
