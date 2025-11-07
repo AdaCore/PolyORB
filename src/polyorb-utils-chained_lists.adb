@@ -38,7 +38,9 @@ with PolyORB.Utils.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Chained_Lists is
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Node, Name => Node_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Node,
+      Name => Node_Access);
 
    ---------
    -- "+" --

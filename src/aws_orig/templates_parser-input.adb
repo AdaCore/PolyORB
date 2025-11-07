@@ -46,7 +46,9 @@ package body Templates_Parser.Input is
    pragma Inline (Check_Open);
    --  Check if File is opened (File variable is not null).
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => File_Record, Name => File_Type);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => File_Record,
+      Name => File_Type);
 
    ----------------
    -- Check_Open --

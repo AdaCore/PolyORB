@@ -84,7 +84,9 @@ package body PolyORB.Tasking.Rw_Locks is
    -- Free --
    ----------
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Rw_Lock_Type, Name => Rw_Lock_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Rw_Lock_Type,
+      Name => Rw_Lock_Access);
 
    -------------
    -- Destroy --

@@ -110,7 +110,9 @@ package body PolyORB.Opaque.Chunk_Pools is
    -------------
 
    procedure Release (Pool : access Pool_Type) is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Chunk, Name => Chunk_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Chunk,
+         Name => Chunk_Access);
       It : Chunk_Lists.Iterator := First (Pool.Dynamic_Chunks);
    begin
       while not Last (It) loop

@@ -76,7 +76,9 @@ package body PolyORB.Jobs is
    ----------
 
    procedure Free (X : in out Job_Access) is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Job'Class, Name => Job_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Job'Class,
+         Name => Job_Access);
    begin
       Free (X);
    end Free;

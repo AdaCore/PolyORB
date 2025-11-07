@@ -313,7 +313,9 @@ package body AWS.Response is
 
    procedure Finalize (Object : in out Data) is
 
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Natural, Name => Natural_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Natural,
+         Name => Natural_Access);
 
    begin
       Object.Ref_Counter.all := Object.Ref_Counter.all - 1;

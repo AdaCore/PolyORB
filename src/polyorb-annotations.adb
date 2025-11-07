@@ -128,7 +128,9 @@ package body PolyORB.Annotations is
 
    procedure Destroy (NP : in out Notepad) is
       It : Iterator := First (NP);
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Note'Class, Name => Note_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Note'Class,
+         Name => Note_Access);
    begin
       while not Last (It) loop
          Destroy (Value (It).all.all);

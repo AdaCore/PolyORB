@@ -453,7 +453,9 @@ package body PolyORB.Buffers is
    procedure Release
      (A_Buffer : in out Buffer_Access)
    is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Buffer_Type, Name => Buffer_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Buffer_Type,
+         Name => Buffer_Access);
 
    begin
       if A_Buffer /= null then
@@ -702,7 +704,9 @@ package body PolyORB.Buffers is
 
    package body Iovec_Pools is
 
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Iovec_Array, Name => Iovec_Array_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Iovec_Array,
+         Name => Iovec_Array_Access);
 
       ----------------------------------------
       -- Utility Subprograms (declarations) --

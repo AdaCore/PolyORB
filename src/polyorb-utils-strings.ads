@@ -61,6 +61,8 @@ package PolyORB.Utils.Strings is
    pragma Inline ("+");
    --  Return new String('S)
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Standard.String, Name => String_Ptr);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Standard.String,
+      Name => String_Ptr);
 
 end PolyORB.Utils.Strings;
