@@ -166,9 +166,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    -- Destroy --
    -------------
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => PTCV.Condition_Type'Class, Name => PTCV.Condition_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => PTCV.Condition_Type'Class,
+      Name => PTCV.Condition_Access);
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Condition_PO, Name => Condition_PO_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Condition_PO,
+      Name => Condition_PO_Access);
 
    overriding procedure Destroy
      (MF   : access Full_Tasking_Condition_Factory_Type;
