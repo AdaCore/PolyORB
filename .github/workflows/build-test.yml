@@ -93,7 +93,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            gnat-11 \
+            gnat-13 \
             gprbuild \
             libgnatcoll-dev
 
