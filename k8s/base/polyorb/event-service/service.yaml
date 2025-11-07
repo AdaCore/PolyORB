@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-service
+  namespace: polyorb
+  labels:
+    app: event-service
+    version: v1.0.0
+spec:
+  type: ClusterIP
+  selector:
+    app: event-service
+    version: v1.0.0
+  ports:
+  - name: grpc
+    port: 50064
+    targetPort: 50064
+    protocol: TCP

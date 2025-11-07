@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: giop-protocol-config
+  namespace: polyorb
+  labels:
+    app: giop-protocol
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50061"
+  giop_version: "1.2"
+  max_message_size: "10485760"

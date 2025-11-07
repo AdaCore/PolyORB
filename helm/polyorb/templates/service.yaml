@@ -1,0 +1,44 @@
+{{- range $name, $service := .Values.services }}
+{{- if $service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $service.name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $service.name }}
+    version: {{ $.Chart.AppVersion }}
+    tier: backend
+    chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    release: {{ $.Release.Name }}
+spec:
+  type: {{ $.Values.service.type }}
+  selector:
+    app: {{ $service.name }}
+    version: {{ $.Chart.AppVersion }}
+  ports:
+  {{- if $service.httpPort }}
+  - name: http
+    port: {{ $service.port }}
+    targetPort: {{ $service.port }}
+    protocol: TCP
+  {{- else }}
+  - name: grpc
+    port: {{ $service.port }}
+    targetPort: {{ $service.port }}
+    protocol: TCP
+  {{- end }}
+  {{- if $service.httpsPort }}
+  - name: https
+    port: {{ $service.httpsPort }}
+    targetPort: {{ $service.httpsPort }}
+    protocol: TCP
+  {{- end }}
+  sessionAffinity: {{ $.Values.service.sessionAffinity }}
+  {{- if $.Values.service.sessionAffinityConfig }}
+  sessionAffinityConfig:
+    {{- toYaml $.Values.service.sessionAffinityConfig | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

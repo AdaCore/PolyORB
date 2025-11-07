@@ -1,0 +1,101 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+
+bases:
+  - ../../base
+
+images:
+  # wxWidgets
+  - name: widget-core
+    newTag: staging-v1.0.0
+  - name: render-manager
+    newTag: staging-v1.0.0
+  - name: event-manager
+    newTag: staging-v1.0.0
+  - name: windows-adapter
+    newTag: staging-v1.0.0
+  - name: macos-adapter
+    newTag: staging-v1.0.0
+  - name: linux-adapter
+    newTag: staging-v1.0.0
+  - name: xrc-service
+    newTag: staging-v1.0.0
+
+  # PolyORB
+  - name: orb-core
+    newTag: staging-v1.0.0
+  - name: giop-protocol
+    newTag: staging-v1.0.0
+  - name: poa-manager
+    newTag: staging-v1.0.0
+  - name: naming-service
+    newTag: staging-v1.0.0
+  - name: event-service
+    newTag: staging-v1.0.0
+  - name: notification-service
+    newTag: staging-v1.0.0
+  - name: interface-repository
+    newTag: staging-v1.0.0
+  - name: soap-gateway
+    newTag: staging-v1.0.0
+  - name: security-service
+    newTag: staging-v1.0.0
+
+replicas:
+  # Moderate replicas for staging
+  - name: widget-core
+    count: 2
+  - name: render-manager
+    count: 2
+  - name: event-manager
+    count: 1
+  - name: windows-adapter
+    count: 1
+  - name: macos-adapter
+    count: 1
+  - name: linux-adapter
+    count: 2
+  - name: xrc-service
+    count: 1
+  - name: orb-core
+    count: 2
+  - name: giop-protocol
+    count: 1
+  - name: poa-manager
+    count: 1
+  - name: naming-service
+    count: 1
+  - name: event-service
+    count: 1
+  - name: notification-service
+    count: 2
+  - name: interface-repository
+    count: 1
+  - name: soap-gateway
+    count: 1
+  - name: security-service
+    count: 2
+
+configMapGenerator:
+  - name: staging-env-config
+    literals:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=info
+      - DEBUG_ENABLED=false
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 256Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 512Mi
+    target:
+      kind: Deployment
+      labelSelector: "tier=backend"
