@@ -57,7 +57,9 @@ package body PolyORB.Binding_Data is
 
    procedure Destroy_Profile (P : in out Profile_Access)
    is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Profile_Type'Class, Name => Profile_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Profile_Type'Class,
+         Name => Profile_Access);
    begin
       pragma Assert (P /= null);
 
