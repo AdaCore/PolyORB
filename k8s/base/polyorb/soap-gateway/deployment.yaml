@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soap-gateway
+  namespace: polyorb
+  labels:
+    app: soap-gateway
+    version: v1.0.0
+    tier: gateway
+    component: soap-bridge
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: soap-gateway
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: soap-gateway
+        version: v1.0.0
+        tier: gateway
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: soap-gateway-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: soap-gateway
+        image: soap-gateway:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8081
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "soap-gateway"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: soap-gateway-config
+              key: log_level
+        - name: ORB_CORE_ADDR
+          value: "orb-core.polyorb.svc.cluster.local:50060"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

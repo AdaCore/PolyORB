@@ -1,0 +1,55 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- range $name, $service := .Values.services }}
+{{- if $service.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $service.name }}-netpol
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $service.name }}
+    version: {{ $.Chart.AppVersion }}
+    chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    release: {{ $.Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ $service.name }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  {{- range $.Values.networkPolicy.allowedNamespaces }}
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: {{ . }}
+    ports:
+    {{- if $service.httpPort }}
+    - protocol: TCP
+      port: {{ $service.port }}
+    {{- else }}
+    - protocol: TCP
+      port: {{ $service.port }}
+    {{- end }}
+  {{- end }}
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: {{ $.Values.namespace }}
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: polyorb
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+{{- end }}
+{{- end }}
+{{- end }}

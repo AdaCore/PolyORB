@@ -1,0 +1,752 @@
+# Security Invariants Registry Template
+# ===========================================
+# Living document tracking all known security properties that MUST be preserved during refactors
+#
+# Purpose: Prevent hidden security property violations by documenting ALL security-critical behaviors
+# Owner: @security_verification (with contributions from all team members)
+# Last Updated: YYYY-MM-DD
+# Version: 1.0
+
+metadata:
+  project_name: "[Project Name]"
+  codebase: "[Primary codebase location]"
+  languages: ["Ada", "C++", "Python"]  # List all languages
+  last_updated: "YYYY-MM-DD"
+  version: "1.0"
+  owner: "@security_verification"
+  contributors: ["@code_architect", "@code_refactor", "@test_stabilize"]
+
+  # Compliance frameworks this registry supports
+  compliance_frameworks:
+    - "SOC2"
+    - "PCI-DSS 3.2.1"
+    - "NIST 800-88"
+    - "OWASP ASVS"
+
+  # Threat model reference
+  threat_model_location: "/docs/security/threat-model.md"
+
+  # Update frequency
+  update_policy: "Updated after each refactor, security incident, or invariant discovery"
+
+# ===========================================
+# INVARIANT CATEGORIES
+# ===========================================
+# All invariants are organized into these categories:
+# 1. Authentication (auth)
+# 2. Authorization (authz)
+# 3. Cryptography (crypto)
+# 4. Memory Safety (memory)
+# 5. Audit & Logging (audit)
+# 6. Data Handling (data)
+# 7. Network Security (network)
+# 8. Session Management (session)
+
+# ===========================================
+# AUTHENTICATION INVARIANTS
+# ===========================================
+authentication:
+  invariants:
+    - id: "INV-AUTH-001"
+      category: "authentication"
+      severity: "CRITICAL"  # CRITICAL | HIGH | MEDIUM | LOW
+      title: "External requests MUST pass through Security.Authenticate"
+      description: |
+        All external API requests MUST be authenticated via the Security.Authenticate
+        module before reaching business logic. No authentication bypass paths allowed.
+
+      location:
+        file: "src/security/authenticate.adb"
+        line: 45
+        function: "Security.Authenticate.Verify_Request"
+
+      property: "Authentication boundary enforcement"
+
+      threat_if_violated:
+        - "Authentication bypass"
+        - "Unauthorized access to protected resources"
+        - "CWE-306: Missing Authentication for Critical Function"
+
+      cwe_mapping:
+        - "CWE-306"  # Missing Authentication
+        - "CWE-287"  # Improper Authentication
+
+      compliance:
+        - "SOC2: CC6.1 (Logical Access)"
+        - "PCI-DSS: Requirement 8.2"
+
+      test_verification:
+        - "TEST-AUTH-001: Verify all API endpoints call Authenticate"
+        - "TEST-AUTH-002: Attempt authentication bypass (expect failure)"
+
+      refactor_requirement: "MUST"  # MUST | SHOULD | MAY
+
+      discovered_date: "2023-06-15"
+      discovered_by: "@original_architect"
+      discovery_context: "Initial system design"
+
+      last_verified: "2025-11-05"
+      verified_by: "@security_verification"
+
+      related_invariants: ["INV-AUTHZ-001", "INV-AUDIT-001"]
+
+      notes: |
+        This invariant was established in the original architecture to ensure
+        centralized authentication enforcement. Any refactor that touches API
+        routing MUST preserve this property.
+
+    - id: "INV-AUTH-002"
+      category: "authentication"
+      severity: "HIGH"
+      title: "Credential zeroization before deallocation"
+      description: |
+        All credential types (passwords, salts, hashes, API keys) MUST be zeroized
+        (overwritten with zeros) before memory deallocation to prevent credential
+        leakage via memory dumps or swap files.
+
+      location:
+        file: "src/security/auth.adb"
+        line: 123
+        function: "Deallocate_Credential"
+
+      property: "Memory safety for credentials"
+
+      threat_if_violated:
+        - "Credential disclosure via memory dumps"
+        - "Plaintext passwords/salts in process memory"
+        - "CWE-316: Cleartext Storage in Memory"
+
+      cwe_mapping:
+        - "CWE-316"  # Cleartext Storage in Memory
+        - "CWE-244"  # Improper Clearing of Heap Memory
+
+      compliance:
+        - "PCI-DSS 3.2.1: Requirement 3.4"
+        - "NIST 800-88: Media Sanitization"
+
+      test_verification:
+        - "TEST-MEM-002: Memory dump verification after credential deallocation"
+
+      refactor_requirement: "MUST"
+
+      discovered_date: "2024-09-12"
+      discovered_by: "@security_verification"
+      discovery_context: "Security audit found missing zeroization"
+
+      last_verified: "2025-11-05"
+      verified_by: "@security_verification"
+
+      related_invariants: ["INV-CRYPTO-001", "INV-MEMORY-001"]
+
+# ===========================================
+# AUTHORIZATION INVARIANTS
+# ===========================================
+authorization:
+  invariants:
+    - id: "INV-AUTHZ-001"
+      category: "authorization"
+      severity: "CRITICAL"
+      title: "ACL checks MUST occur server-side, never client-side"
+      description: |
+        All Access Control List (ACL) checks MUST be performed on the server side.
+        Client-side ACL checks are advisory only and MUST NOT be relied upon for
+        security decisions.
+
+      location:
+        file: "src/security/acl_manager.adb"
+        line: 89
+        function: "ACL_Manager.Check_Access"
+
+      property: "Server-side authorization enforcement"
+
+      threat_if_violated:
+        - "Authorization bypass via client manipulation"
+        - "Privilege escalation"
+        - "CWE-602: Client-Side Enforcement of Server-Side Security"
+
+      cwe_mapping:
+        - "CWE-602"  # Client-Side Enforcement
+        - "CWE-863"  # Incorrect Authorization
+
+      compliance:
+        - "SOC2: CC6.3 (Logical Access - Authorization)"
+        - "OWASP ASVS: V4.1.1"
+
+      test_verification:
+        - "TEST-AUTHZ-001: Verify ACL checks execute server-side"
+        - "TEST-AUTHZ-002: Attempt client-side ACL bypass (expect failure)"
+
+      refactor_requirement: "MUST"
+
+      discovered_date: "2022-11-20"
+      discovered_by: "@security_team"
+      discovery_context: "Penetration test finding"
+
+      last_verified: "2025-11-05"
+      verified_by: "@security_verification"
+
+      related_invariants: ["INV-AUTH-001", "INV-AUDIT-002"]
+
+# ===========================================
+# CRYPTOGRAPHY INVARIANTS
+# ===========================================
+cryptography:
+  invariants:
+    - id: "INV-CRYPTO-001"
+      category: "cryptography"
+      severity: "CRITICAL"
+      title: "Crypto keys MUST be zeroized before deallocation"
+      description: |
+        ALL cryptographic keys (AES, RSA, HMAC, signing keys) MUST be zeroized
+        (overwritten with zeros) before memory deallocation. This prevents key
+        leakage via memory dumps, core files, or swap space.
+
+      location:
+        file: "polyorb/security/crypto.ads"
+        line: 45
+        function: "Crypto.Free_Key"
+
+      property: "Cryptographic key zeroization"
+
+      threat_if_violated:
+        - "Private key disclosure via memory dumps"
+        - "Ability to decrypt past/future communications"
+        - "CWE-312: Cleartext Storage of Sensitive Information"
+
+      cwe_mapping:
+        - "CWE-312"  # Cleartext Storage
+        - "CWE-320"  # Key Management Errors
+
+      compliance:
+        - "PCI-DSS 3.2.1: Requirement 3.4"
+        - "NIST 800-88: Media Sanitization"
+        - "OWASP: Cryptographic Storage"
+
+      test_verification:
+        - "TEST-MEM-001: Memory dump verification after key deallocation"
+        - "TEST-CRYPTO-001: Verify key zeroization for all key types"
+
+      refactor_requirement: "MUST"
+
+      discovered_date: "2023-01-10"
+      discovered_by: "@crypto_team_lead"
+      discovery_context: "Initial crypto subsystem design"
+
+      last_verified: "2025-11-05"
+      verified_by: "@security_verification"
+
+      related_invariants: ["INV-AUTH-002", "INV-MEMORY-001"]
+
+      notes: |
+        This is the HIGHEST PRIORITY invariant. Violation results in complete
+        compromise of confidentiality. Use compiler barriers to prevent
+        zeroization optimization removal.
+
+    - id: "INV-CRYPTO-002"
+      category: "cryptography"
+      severity: "CRITICAL"
+      title: "TLS 1.2+ required for all network communication"
+      description: |
+        All network communication MUST use TLS 1.2 or higher. TLS 1.0 and 1.1
+        are deprecated and MUST NOT be used.
+
+      location:
+        file: "src/network/tls_config.adb"
+        line: 23
+        function: "Configure_TLS"
+
+      property: "Transport security minimum version"
+
+      threat_if_violated:
+        - "Man-in-the-middle attacks"
+        - "Protocol downgrade attacks"
+        - "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+
+      cwe_mapping:
+        - "CWE-327"  # Broken Crypto
+        - "CWE-326"  # Inadequate Encryption Strength"
+
+      compliance:
+        - "PCI-DSS: Requirement 4.1"
+        - "NIST SP 800-52r2"
+
+      test_verification:
+        - "TEST-NETWORK-001: Verify TLS 1.2+ enforcement"
+        - "TEST-NETWORK-002: Attempt TLS 1.0/1.1 connection (expect failure)"
+
+      refactor_requirement: "MUST"
+
+      discovered_date: "2022-08-05"
+      discovered_by: "@network_security"
+      discovery_context: "PCI-DSS compliance requirement"
+
+# ===========================================
+# MEMORY SAFETY INVARIANTS
+# ===========================================
+memory_safety:
+  invariants:
+    - id: "INV-MEMORY-001"
+      category: "memory"
+      severity: "CRITICAL"
+      title: "Zeroization MUST occur BEFORE deallocation"
+      description: |
+        For security-sensitive types (crypto keys, credentials, session tokens),
+        memory zeroization MUST occur BEFORE calling deallocation. Never after.
+        Order is critical: Zeroize → Deallocate.
+
+      location:
+        file: "lib/deallocation/secure_deallocation.ads"
+        line: 15
+        function: "Secure_Free"
+
+      property: "Zeroization timing"
+
+      threat_if_violated:
+        - "Use-after-free vulnerabilities"
+        - "Sensitive data remains in freed memory"
+        - "CWE-416: Use After Free"
+
+      cwe_mapping:
+        - "CWE-416"  # Use After Free
+        - "CWE-244"  # Improper Clearing of Heap Memory
+
+      compliance:
+        - "OWASP: Memory Management"
+        - "CERT C: MEM03-C"
+
+      test_verification:
+        - "TEST-MEM-003: Verify zeroization timing"
+
+      refactor_requirement: "MUST"
+
+      discovered_date: "2025-11-05"
+      discovered_by: "@security_verification"
+      discovery_context: "Phase 1 Deallocation baseline (Task 5)"
+
+    - id: "INV-MEMORY-002"
+      category: "memory"
+      severity: "HIGH"
+      title: "Zeroization MUST use compiler barriers"
+      description: |
+        Memory zeroization MUST use compiler barriers (volatile, memory fences)
+        to prevent optimizing compilers from removing the zeroization as "dead store".
+
+      location:
+        file: "lib/deallocation/secure_deallocation.adb"
+        line: 45
+        function: "Zeroize_Memory"
+
+      property: "Compiler optimization protection"
+
+      threat_if_violated:
+        - "Compiler removes zeroization"
+        - "Sensitive data remains in memory despite zeroization call"
+        - "CWE-14: Compiler Removal of Code to Clear Buffers"
+
+      cwe_mapping:
+        - "CWE-14"  # Compiler Removal of Code
+
+      test_verification:
+        - "TEST-MEM-004: Verify compiler doesn't optimize away zeroization"
+
+      refactor_requirement: "MUST"
+
+# ===========================================
+# AUDIT & LOGGING INVARIANTS
+# ===========================================
+audit_logging:
+  invariants:
+    - id: "INV-AUDIT-001"
+      category: "audit"
+      severity: "HIGH"
+      title: "All auth failures MUST be logged with timestamp/source"
+      description: |
+        All authentication failures MUST be logged with timestamp, source IP,
+        and attempted username (if available). Required for incident response
+        and compliance.
+
+      location:
+        file: "src/security/auth_logger.adb"
+        line: 67
+        function: "Log_Auth_Failure"
+
+      property: "Audit trail completeness"
+
+      threat_if_violated:
+        - "Insufficient audit trail for incident response"
+        - "Compliance violations"
+        - "CWE-778: Insufficient Logging"
+
+      cwe_mapping:
+        - "CWE-778"  # Insufficient Logging
+        - "CWE-223"  # Omission of Security-relevant Information
+
+      compliance:
+        - "SOC2: CC7.2 (Monitoring)"
+        - "PCI-DSS: Requirement 10.2.4"
+
+      test_verification:
+        - "TEST-AUDIT-001: Verify auth failure logging"
+
+      refactor_requirement: "MUST"
+
+    - id: "INV-AUDIT-002"
+      category: "audit"
+      severity: "HIGH"
+      title: "Audit logs MUST NOT contain sensitive data"
+      description: |
+        Audit logs MUST NOT log sensitive data (passwords, crypto keys, session
+        tokens, PII values). Log identifiers only (type name, user ID), never values.
+
+      location:
+        file: "src/audit/audit_logger.adb"
+        line: 123
+        function: "Sanitize_Log_Message"
+
+      property: "Audit log data sanitization"
+
+      threat_if_violated:
+        - "Credential disclosure via log files"
+        - "PII exposure in logs"
+        - "CWE-532: Insertion of Sensitive Information into Log File"
+
+      cwe_mapping:
+        - "CWE-532"  # Sensitive Information in Log
+
+      compliance:
+        - "GDPR: Article 5 (Data Minimization)"
+        - "PCI-DSS: Requirement 3.2"
+
+      test_verification:
+        - "TEST-AUDIT-002: Verify no sensitive data in logs"
+
+      refactor_requirement: "MUST"
+
+# ===========================================
+# DATA HANDLING INVARIANTS
+# ===========================================
+data_handling:
+  invariants:
+    - id: "INV-DATA-001"
+      category: "data"
+      severity: "HIGH"
+      title: "PII data MUST be encrypted at rest"
+      description: |
+        All Personally Identifiable Information (PII) MUST be encrypted at rest
+        using AES-256 or equivalent. No plaintext PII in databases or files.
+
+      location:
+        file: "src/data/encryption.adb"
+        line: 89
+        function: "Encrypt_PII"
+
+      property: "Data-at-rest encryption"
+
+      threat_if_violated:
+        - "PII disclosure from database breach"
+        - "Compliance violations"
+        - "CWE-311: Missing Encryption of Sensitive Data"
+
+      cwe_mapping:
+        - "CWE-311"  # Missing Encryption
+
+      compliance:
+        - "GDPR: Article 32 (Security of Processing)"
+        - "SOC2: CC6.7 (Encryption)"
+
+      test_verification:
+        - "TEST-DATA-001: Verify PII encryption at rest"
+
+      refactor_requirement: "MUST"
+
+# ===========================================
+# SESSION MANAGEMENT INVARIANTS
+# ===========================================
+session_management:
+  invariants:
+    - id: "INV-SESSION-001"
+      category: "session"
+      severity: "CRITICAL"
+      title: "Session token lifecycle protection (in-use flag check)"
+      description: |
+        Session tokens MUST check "In_Use" flag before deallocation to prevent
+        premature session invalidation. Steps: (1) Check In_Use flag, (2) If false,
+        zeroize token value, (3) Deallocate.
+
+        CRITICAL: This is a HIDDEN INVARIANT discovered from production bug where
+        session wrapper was created without the In_Use check, causing 10× auth
+        failure rate.
+
+      location:
+        file: "polyorb/session/manager.adb"
+        line: 67
+        function: "Deallocate_Session_Token"
+
+      property: "Session lifecycle state management"
+
+      threat_if_violated:
+        - "Premature session invalidation (DoS)"
+        - "10× authentication failure rate (historical incident)"
+        - "Session token leakage in memory"
+        - "CWE-613: Insufficient Session Expiration"
+
+      cwe_mapping:
+        - "CWE-613"  # Insufficient Session Expiration
+        - "CWE-384"  # Session Fixation
+
+      compliance:
+        - "OWASP ASVS: V3.3.2"
+
+      test_verification:
+        - "TEST-SESSION-001: Verify In_Use flag check before deallocation"
+        - "TEST-SESSION-002: Verify token zeroization after In_Use check"
+
+      refactor_requirement: "MUST"
+
+      discovered_date: "2024-03-15"
+      discovered_by: "@security_verification"
+      discovery_context: |
+        HIDDEN INVARIANT discovered during post-incident analysis. Session token
+        refactor created wrapper without In_Use flag check. Result: 10× auth
+        failure rate in production. This is the canonical example of why Hidden
+        Invariants are the #1 security concern.
+
+      last_verified: "2025-11-05"
+      verified_by: "@security_verification"
+
+      related_invariants: ["INV-AUTH-002", "INV-MEMORY-001"]
+
+      notes: |
+        ⚠️ CRITICAL HIDDEN INVARIANT ⚠️
+        This invariant was NOT documented in the original code. Only discovered
+        after production incident. Domain expert (@session_expert) confirmed
+        the In_Use flag requirement was an implicit assumption.
+
+        ACTION: ALL session management refactors MUST consult @session_expert.
+
+# ===========================================
+# NETWORK SECURITY INVARIANTS
+# ===========================================
+network_security:
+  invariants:
+    - id: "INV-NETWORK-001"
+      category: "network"
+      severity: "CRITICAL"
+      title: "mTLS STRICT mode for all service-to-service communication"
+      description: |
+        All service-to-service communication MUST use mutual TLS (mTLS) in STRICT
+        mode. No PERMISSIVE mode or plaintext service mesh communication allowed.
+
+      location:
+        file: "k8s/istio/mtls-policy.yaml"
+        line: 15
+        field: "mode: STRICT"
+
+      property: "Zero-trust service communication"
+
+      threat_if_violated:
+        - "Service impersonation"
+        - "Man-in-the-middle between services"
+        - "CWE-300: Channel Accessible by Non-Endpoint"
+
+      cwe_mapping:
+        - "CWE-300"  # Channel Accessible by Non-Endpoint
+        - "CWE-319"  # Cleartext Transmission
+
+      compliance:
+        - "Zero-Trust Architecture (NIST SP 800-207)"
+
+      test_verification:
+        - "TEST-NETWORK-003: Verify mTLS enforcement"
+        - "TEST-NETWORK-004: Attempt plaintext service connection (expect failure)"
+
+      refactor_requirement: "MUST"
+
+# ===========================================
+# HIDDEN INVARIANTS (Special Section)
+# ===========================================
+# Hidden invariants are security properties that were NOT documented in code
+# or design documents. They are discovered through:
+# - Production incidents
+# - Domain expert knowledge
+# - Security baseline scans (Task 5)
+# - Post-mortems
+
+hidden_invariants:
+  definition: |
+    Hidden invariants are undocumented security assumptions that exist in the
+    codebase but are not explicitly stated in comments, design docs, or specs.
+    They are often implicit knowledge held by original developers.
+
+  discovery_methods:
+    - "Production incident post-mortems"
+    - "Domain expert consultations"
+    - "Security baseline scans (Task 5)"
+    - "Code archaeology (git blame + developer interviews)"
+    - "Timing analysis, error handling analysis, memory analysis"
+
+  mitigation_strategy: |
+    1. Proactively flag potential hidden invariants in RDBs
+    2. Consult domain experts BEFORE refactoring
+    3. Run Task 5 security baseline scans
+    4. Document ALL discovered hidden invariants here
+    5. Update this registry after each discovery
+
+  examples:
+    - invariant_id: "INV-SESSION-001"
+      description: "Session token In_Use flag check (discovered via production incident)"
+      impact: "10× auth failure rate when violated"
+      discovery_date: "2024-03-15"
+
+    - invariant_id: "[To be filled as discovered]"
+      description: "[Describe the hidden property]"
+      impact: "[What happens if violated]"
+      discovery_date: "YYYY-MM-DD"
+
+# ===========================================
+# DOMAIN EXPERTS (Consultation Registry)
+# ===========================================
+# When refactoring these areas, consult these domain experts FIRST
+
+domain_experts:
+  crypto_subsystem:
+    expert: "@crypto_team_lead"
+    areas:
+      - "Cryptographic key management"
+      - "Encryption/decryption operations"
+      - "Crypto buffer lifecycle"
+      - "Random number generation"
+    experience: "5+ years, original implementer"
+    consultation_required: true
+    related_invariants: ["INV-CRYPTO-001", "INV-CRYPTO-002"]
+
+  authentication:
+    expert: "@auth_architect"
+    areas:
+      - "Authentication flows"
+      - "Credential management"
+      - "ACL design and implementation"
+      - "Authorization boundaries"
+    experience: "7+ years on this codebase"
+    consultation_required: true
+    related_invariants: ["INV-AUTH-001", "INV-AUTH-002", "INV-AUTHZ-001"]
+
+  session_management:
+    expert: "@session_expert"
+    areas:
+      - "Session lifecycle"
+      - "Token generation and validation"
+      - "Session state management"
+      - "In-use flag semantics"
+    experience: "Designed current session system"
+    consultation_required: true
+    related_invariants: ["INV-SESSION-001"]
+
+# ===========================================
+# REFACTOR IMPACT ANALYSIS
+# ===========================================
+# Track which refactors have updated which invariants
+
+refactor_history:
+  - refactor_id: "RDB-003"
+    refactor_name: "Phase 1 Deallocation"
+    date: "2025-11-05"
+    invariants_affected:
+      - "INV-CRYPTO-001"  # Crypto key zeroization
+      - "INV-AUTH-002"    # Credential zeroization
+      - "INV-SESSION-001" # Session token lifecycle
+      - "INV-MEMORY-001"  # Zeroization timing
+      - "INV-MEMORY-002"  # Compiler barriers
+    invariants_added:
+      - "INV-MEMORY-001"  # New invariant discovered in Task 5
+      - "INV-MEMORY-002"  # New invariant discovered in Task 5
+    validation_status: "PENDING"  # PENDING | VALIDATED | VIOLATED
+    sast_findings: "0 CRITICAL, 3 HIGH (baseline)"
+
+  - refactor_id: "[Next refactor]"
+    refactor_name: "[Name]"
+    date: "YYYY-MM-DD"
+    invariants_affected: []
+    invariants_added: []
+    validation_status: "PENDING"
+
+# ===========================================
+# COMPLIANCE MAPPING
+# ===========================================
+# Track which invariants satisfy which compliance requirements
+
+compliance_mapping:
+  SOC2:
+    CC6.1:  # Logical Access
+      invariants: ["INV-AUTH-001"]
+    CC6.3:  # Authorization
+      invariants: ["INV-AUTHZ-001"]
+    CC6.7:  # Encryption
+      invariants: ["INV-DATA-001", "INV-CRYPTO-001"]
+    CC7.2:  # Monitoring
+      invariants: ["INV-AUDIT-001"]
+
+  PCI-DSS:
+    Requirement_3.4:  # Zeroization
+      invariants: ["INV-CRYPTO-001", "INV-AUTH-002"]
+    Requirement_4.1:  # TLS
+      invariants: ["INV-CRYPTO-002"]
+    Requirement_8.2:  # Authentication
+      invariants: ["INV-AUTH-001"]
+    Requirement_10.2.4:  # Audit logging
+      invariants: ["INV-AUDIT-001"]
+
+  GDPR:
+    Article_5:  # Data Minimization
+      invariants: ["INV-AUDIT-002"]
+    Article_32:  # Security of Processing
+      invariants: ["INV-DATA-001"]
+
+# ===========================================
+# STATISTICS & METRICS
+# ===========================================
+statistics:
+  total_invariants: 18
+  by_severity:
+    CRITICAL: 7
+    HIGH: 8
+    MEDIUM: 2
+    LOW: 1
+  by_category:
+    authentication: 2
+    authorization: 1
+    cryptography: 2
+    memory: 2
+    audit: 2
+    data: 1
+    session: 1
+    network: 1
+  hidden_invariants_discovered: 1
+  last_updated: "2025-11-05"
+  last_validated: "2025-11-05"
+
+# ===========================================
+# MAINTENANCE NOTES
+# ===========================================
+maintenance:
+  update_triggers:
+    - "After each refactor (update affected invariants)"
+    - "After security incident (add newly discovered hidden invariants)"
+    - "Quarterly security review (validate all invariants)"
+    - "After penetration tests (add findings)"
+    - "After compliance audits (update compliance mappings)"
+
+  validation_frequency:
+    - "Every refactor: Validate affected invariants"
+    - "Quarterly: Validate ALL invariants"
+    - "After production incident: Emergency validation"
+
+  ownership:
+    primary_owner: "@security_verification"
+    contributors: "All team members can propose additions"
+    approval_required: "@security_verification approval for all changes"
+
+  version_control:
+    location: "/security_verification/security-invariants-registry.yaml"
+    backup_location: "/docs/security/invariants/"
+    change_log: "See git history for detailed change tracking"

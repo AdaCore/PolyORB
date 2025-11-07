@@ -1,0 +1,406 @@
+# GitHub Actions Security Scanning Workflow
+# Addresses: Finding #8 (Build-time Secret Scanning)
+# Based on: ADR-002, RDB-001-Security-Addendum
+# Location: .github/workflows/security.yaml
+
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run daily at 2 AM UTC for dependency updates
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  # Job 1: Secret Scanning (Finding #8)
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for TruffleHog
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified --fail
+
+      - name: GitLeaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_SUMMARY: true
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+      - name: Yelp detect-secrets
+        run: |
+          pip install detect-secrets
+          detect-secrets scan --all-files \
+            --exclude-files '\.git/|node_modules/|\.lock$' \
+            --baseline .secrets.baseline
+          detect-secrets audit .secrets.baseline
+
+      - name: Upload Secret Scan Results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret-scan-results
+          path: |
+            gitleaks-report.json
+            .secrets.baseline
+
+  # Job 2: SAST (Static Application Security Testing)
+  sast-scan:
+    name: SAST - Static Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        tool: [cppcheck, clang-tidy, semgrep]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install C++ SAST tools
+        if: matrix.tool == 'cppcheck' || matrix.tool == 'clang-tidy'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck clang-tidy-15
+
+      - name: Cppcheck Scan
+        if: matrix.tool == 'cppcheck'
+        run: |
+          cppcheck --enable=all --inconclusive --xml --xml-version=2 \
+            --suppress=missingIncludeSystem \
+            --error-exitcode=1 \
+            src/ 2> cppcheck-report.xml
+
+      - name: Clang-Tidy Scan
+        if: matrix.tool == 'clang-tidy'
+        run: |
+          find src/ -name "*.cpp" -o -name "*.cc" | \
+          xargs clang-tidy-15 \
+            -checks='bugprone-*,cert-*,clang-analyzer-*,concurrency-*,cppcoreguidelines-*,misc-*,modernize-*,performance-*,portability-*,readability-*,security-*' \
+            --warnings-as-errors='*' \
+            --format-style=google
+
+      - name: Semgrep Scan
+        if: matrix.tool == 'semgrep'
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/owasp-top-ten
+            p/cpp
+          generateSarif: true
+
+      - name: Upload SARIF to GitHub Security
+        if: matrix.tool == 'semgrep'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+
+  # Job 3: Container Image Scanning
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.widget-core.hardened
+          tags: wxwidgets/widget-core:${{ github.sha }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          secrets: |
+            "conan_token=${{ secrets.CONAN_TOKEN }}"
+
+      - name: Scan Docker history for secrets
+        run: |
+          docker history wxwidgets/widget-core:${{ github.sha }} --no-trunc | \
+            grep -iE "password|secret|token|key|credential" && \
+            echo "ERROR: Secrets found in Docker history!" && exit 1 || \
+            echo "✓ No secrets in Docker history"
+
+      - name: Trivy Vulnerability Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: wxwidgets/widget-core:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: 1  # Fail on HIGH/CRITICAL
+          scanners: vuln,secret,config
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Grype Vulnerability Scan
+        uses: anchore/scan-action@v3
+        with:
+          image: wxwidgets/widget-core:${{ github.sha }}
+          fail-build: true
+          severity-cutoff: high
+          only-fixed: true
+
+      - name: Dockle Lint (Best Practices)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            goodwithtech/dockle:latest \
+            --exit-code 1 \
+            --exit-level fatal \
+            wxwidgets/widget-core:${{ github.sha }}
+
+  # Job 4: SBOM Generation & Verification
+  sbom-scan:
+    name: SBOM Generation & Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: wxwidgets/widget-core:${{ github.sha }}
+          format: cyclonedx-json
+          output-file: widget-core-sbom.json
+
+      - name: Scan SBOM with Grype
+        run: |
+          grype sbom:widget-core-sbom.json \
+            --fail-on high \
+            --only-fixed \
+            --output table
+
+      - name: Verify SBOM completeness
+        run: |
+          # Check SBOM contains required components
+          jq -e '.components | length > 0' widget-core-sbom.json
+          jq -e '.metadata.component.name == "widget-core"' widget-core-sbom.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: widget-core-sbom.json
+          retention-days: 90
+
+  # Job 5: Dependency Scanning
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup C++ Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Scan C++ dependencies (Conan)
+        run: |
+          pip install conan
+          conan install . --build=missing
+          # Check for known vulnerabilities in dependencies
+          conan info . --graph=dependencies.json
+          # Parse and check for CVEs (would integrate with CVE database)
+
+      - name: GitHub Dependency Review
+        uses: actions/dependency-review-action@v3
+        if: github.event_name == 'pull_request'
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  # Job 6: License Compliance
+  license-scan:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scan licenses
+        uses: fossas/fossa-action@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+
+  # Job 7: Security Policy Validation
+  policy-check:
+    name: Security Policy Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Conftest Policy Check (Kubernetes)
+        uses: instrumenta/conftest-action@master
+        with:
+          files: k8s-widget-core.yaml
+          policy: security-policies/
+
+      - name: OPA Policy Check (Dockerfile)
+        run: |
+          docker run --rm -v $(pwd):/project openpolicyagent/opa:latest \
+            eval -d /project/security-policies/dockerfile.rego \
+            -i /project/Dockerfile.widget-core.hardened \
+            data.dockerfile.deny
+
+  # Job 8: Security Scorecard
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard
+        uses: ossf/scorecard-action@v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+  # Job 9: Security Summary
+  security-summary:
+    name: Security Summary Report
+    runs-on: ubuntu-latest
+    needs: [secret-scan, sast-scan, container-scan, sbom-scan, dependency-scan]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Generate Security Report
+        run: |
+          cat <<EOF > security-report.md
+          # Security Scan Summary - ${{ github.sha }}
+
+          ## Status
+          - Secret Scan: ${{ needs.secret-scan.result }}
+          - SAST Scan: ${{ needs.sast-scan.result }}
+          - Container Scan: ${{ needs.container-scan.result }}
+          - SBOM Scan: ${{ needs.sbom-scan.result }}
+          - Dependency Scan: ${{ needs.dependency-scan.result }}
+
+          ## Findings
+          - Run Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          - Commit: ${{ github.sha }}
+          - Branch: ${{ github.ref_name }}
+
+          ## Remediation
+          - Review Security tab for detailed findings
+          - Address all HIGH/CRITICAL vulnerabilities before merge
+          - Update dependencies to latest secure versions
+          EOF
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('security-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.md
+
+# GitLeaks Configuration (.gitleaks.toml)
+# Create this file in repo root:
+#
+# [extend]
+# useDefault = true
+#
+# [[rules]]
+# id = "generic-api-key"
+# description = "Generic API Key"
+# regex = '''(?i)(api[_-]?key|apikey|api[_-]?token)['":\s]*[=:]\s*['"][0-9a-zA-Z]{32,}['"]'''
+#
+# [[rules]]
+# id = "jwt-token"
+# description = "JWT Token"
+# regex = '''eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'''
+#
+# [allowlist]
+# paths = [
+#   '''\.git/''',
+#   '''node_modules/''',
+#   '''.*\.lock$''',
+# ]
+
+# Verification Steps (run locally before committing):
+#
+# 1. Run TruffleHog:
+#    docker run --rm -v $(pwd):/repo trufflesecurity/trufflehog:latest filesystem /repo --fail
+#
+# 2. Run GitLeaks:
+#    docker run --rm -v $(pwd):/repo zricethezav/gitleaks:latest detect --source /repo --verbose
+#
+# 3. Scan Docker image:
+#    trivy image --severity HIGH,CRITICAL wxwidgets/widget-core:latest
+#
+# 4. Generate SBOM:
+#    syft wxwidgets/widget-core:latest -o cyclonedx-json > sbom.json
+#
+# 5. Scan SBOM:
+#    grype sbom:sbom.json --fail-on high

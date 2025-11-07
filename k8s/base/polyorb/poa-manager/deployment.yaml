@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poa-manager
+  namespace: polyorb
+  labels:
+    app: poa-manager
+    version: v1.0.0
+    tier: middleware
+    component: poa
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: poa-manager
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: poa-manager
+        version: v1.0.0
+        tier: middleware
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: poa-manager-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: poa-manager
+        image: poa-manager:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50062
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "poa-manager"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: poa-manager-config
+              key: log_level
+        - name: ORB_CORE_ADDR
+          value: "orb-core.polyorb.svc.cluster.local:50060"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50062
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          grpc:
+            port: 50062
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        startupProbe:
+          grpc:
+            port: 50062
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

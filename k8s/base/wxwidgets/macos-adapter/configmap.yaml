@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: macos-adapter-config
+  namespace: wxwidgets
+  labels:
+    app: macos-adapter
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50055"
+  platform: "macos"
+  native_rendering: "true"
+  cocoa_support: "true"

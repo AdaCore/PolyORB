@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xrc-service
+  namespace: wxwidgets
+  labels:
+    app: xrc-service
+    version: v1.0.0
+    tier: resource-management
+    component: xrc-loader
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: xrc-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: xrc-service
+        version: v1.0.0
+        tier: resource-management
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: xrc-service-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: xrc-service
+        image: xrc-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "xrc-service"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: xrc-service-config
+              key: log_level
+        - name: WIDGET_CORE_ADDR
+          value: "widget-core.wxwidgets.svc.cluster.local:50051"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          periodSeconds: 5
+          failureThreshold: 12
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: xrc-cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: xrc-cache
+        emptyDir: {}

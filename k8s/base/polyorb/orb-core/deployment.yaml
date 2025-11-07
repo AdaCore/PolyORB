@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orb-core
+  namespace: polyorb
+  labels:
+    app: orb-core
+    version: v1.0.0
+    tier: middleware
+    component: corba-orb
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "50060"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: orb-core
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: orb-core
+        version: v1.0.0
+        tier: middleware
+        component: corba-orb
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: orb-core-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: orb-core
+        image: orb-core:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50060
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "orb-core"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: orb-core-config
+              key: log_level
+        - name: GIOP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: orb-core-config
+              key: giop_version
+        - name: ORB_THREADS
+          valueFrom:
+            configMapKeyRef:
+              name: orb-core-config
+              key: orb_threads
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          grpc:
+            port: 50060
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          grpc:
+            port: 50060
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+        startupProbe:
+          grpc:
+            port: 50060
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
