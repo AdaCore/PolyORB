@@ -42,7 +42,7 @@ jobs:
                     src/polyorb-any.adb; do
           if [ -f "$file" ]; then
             echo "Checking $file..."
-            gnatmake -c -gnatc "$file" || exit 1
+            gnatmake -c -gnatc -Isrc "$file" || exit 1
           fi
         done
         echo "✅ Ada syntax checks passed"
