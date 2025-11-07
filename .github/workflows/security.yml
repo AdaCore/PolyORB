@@ -7,9 +7,9 @@ name: Security Scanning
 
 on:
   push:
-    branches: [main, develop, 'feature/**']
+    branches: [master, main, develop, 'feature/**']
   pull_request:
-    branches: [main, develop]
+    branches: [master, main, develop]
   schedule:
     # Run daily at 2 AM UTC for dependency updates
     - cron: '0 2 * * *'
