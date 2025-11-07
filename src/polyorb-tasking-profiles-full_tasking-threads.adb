@@ -85,7 +85,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end Generic_Task;
 
    type Generic_Task_Access is access Generic_Task;
-   procedure Free_Generic_Task is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Generic_Task, Name => Generic_Task_Access);
+   procedure Free_Generic_Task is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Generic_Task,
+      Name => Generic_Task_Access);
 
    type Full_Tasking_Thread_Type is new PTT.Thread_Type with record
       Id         : PTT.Thread_Id;

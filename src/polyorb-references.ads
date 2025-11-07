@@ -136,7 +136,9 @@ package PolyORB.References is
    function Notepad_Of (R : Ref) return Annotations.Notepad_Access;
 
    type Ref_Ptr is access all Ref;
-   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Ref, Name => Ref_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Ref,
+      Name => Ref_Ptr);
 
 private
 

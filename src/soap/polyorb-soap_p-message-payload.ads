@@ -57,7 +57,9 @@ private
 
    type Object is new Message.Object with null record;
 
-   procedure Do_Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Object'Class, Name => Object_Access);
+   procedure Do_Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Object'Class,
+      Name => Object_Access);
    procedure Free (X : in out Object_Access) renames Do_Free;
 
 end PolyORB.SOAP_P.Message.Payload;

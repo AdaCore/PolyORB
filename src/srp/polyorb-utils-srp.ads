@@ -85,6 +85,8 @@ package PolyORB.Utils.SRP is
    --  Does just the reverse of Split
    function Join (Data : Split_SRP) return Any.Any;
 
-   procedure Free_Arg_Info is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Arg_Info, Name => Arg_Info_Ptr);
+   procedure Free_Arg_Info is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Arg_Info,
+      Name => Arg_Info_Ptr);
 
 end PolyORB.Utils.SRP;
