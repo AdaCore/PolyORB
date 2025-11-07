@@ -46,6 +46,8 @@ package PolyORB.SOAP_P.Message.Response is
 
    function Is_Error (R : Object) return Boolean;
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Object'Class, Name => Object_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Object'Class,
+      Name => Object_Access);
 
 end PolyORB.SOAP_P.Message.Response;

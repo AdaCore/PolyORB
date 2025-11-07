@@ -78,7 +78,9 @@ package body PolyORB.Sequences.Helper is
    overriding procedure Finalize_Value
      (ACC : in out Sequence_Content)
    is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Sequence, Name => Sequence_Ptr);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Sequence,
+         Name => Sequence_Ptr);
    begin
       Free (ACC.V);
    end Finalize_Value;

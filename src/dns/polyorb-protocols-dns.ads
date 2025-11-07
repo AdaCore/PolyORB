@@ -140,7 +140,9 @@ private
      R      : Pending_Request_Access;
      Error  : in out Errors.Error_Container);
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Pending_Request, Name => Pending_Request_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Pending_Request,
+      Name => Pending_Request_Access);
 
    package Pend_Req_Tables is
       new PolyORB.Utils.Dynamic_Tables

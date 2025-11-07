@@ -127,6 +127,8 @@ package PolyORB.Web.Utils is
 
    type Stream_Element_Array_Access is access Ada.Streams.Stream_Element_Array;
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Ada.Streams.Stream_Element_Array, Name => Stream_Element_Array_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Ada.Streams.Stream_Element_Array,
+      Name => Stream_Element_Array_Access);
 
 end PolyORB.Web.Utils;
