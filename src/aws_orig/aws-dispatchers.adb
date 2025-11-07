@@ -30,15 +30,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body AWS.Dispatchers is
 
    procedure Release is
-      new Ada.Unchecked_Deallocation (Handler'Class, Handler_Class_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Handler'Class,
+
+
+      Name   => Handler_Class_Access);
 
    procedure Free is
-      new Ada.Unchecked_Deallocation (Natural, Natural_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Natural,
+
+
+      Name   => Natural_Access);
 
    ------------
    -- Adjust --

@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.ASN1;
 
@@ -70,8 +70,13 @@ package body PolyORB.QoS.Targets_Security is
       use Target_Mechanism_Lists;
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Target_Mechanism, Target_Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Target_Mechanism,
+
+
+         Name   => Target_Mechanism_Access);
 
       Iter : Target_Mechanism_Lists.Iterator := First (QoS.Mechanisms);
 
@@ -89,8 +94,13 @@ package body PolyORB.QoS.Targets_Security is
    procedure Release_Contents (Item : in out Target_Mechanism) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Target_Transport_Mechanism'Class, Target_Transport_Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Target_Transport_Mechanism'Class,
+
+
+         Name   => Target_Transport_Mechanism_Access);
 
    begin
       Free (Item.Transport);

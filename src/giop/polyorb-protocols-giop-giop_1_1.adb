@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
@@ -76,8 +76,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
      renames L.Enabled;
 
    procedure Free is
-      new Ada.Unchecked_Deallocation
-     (GIOP_1_1_CDR_Representation, GIOP_1_1_CDR_Representation_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => GIOP_1_1_CDR_Representation,
+
+
+      Name   => GIOP_1_1_CDR_Representation_Access);
 
    Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
      Sync_None or Sync_With_Transport or Sync_With_Target;

@@ -1,0 +1,24 @@
+--  Warn for violations of restrictions imposed by the Ravenscar profile.
+--  This check is to be made on all units except those specifically
+--  implementing the full tasking profile.
+
+--  src/ravenscar_compatible.adc.  Generated from ravenscar_compatible.adc.in by configure.
+
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-condition_variables.adb
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-portable_mutexes.adb
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-mutexes.adb
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads.adb
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads-annotations.adb
+--  EXCLUDE: polyorb-tasking-profiles-full_tasking-threads-dynamic_priorities.adb
+--  EXCLUDE: polyorb-tasking-profiles-no_tasking-threads.adb
+--  EXCLUDE: polyorb-setup-tasking-no_tasking.adb
+--  EXCLUDE: polyorb-tasking-profiles-no_tasking-calendar.adb
+--  EXCLUDE: aws-utils.adb
+--  EXCLUDE: aws-server.adb
+
+--  We use GNAT-specific pragma Restriction_Warnings to avoid actually
+--  imposing the restrictions of units shared between Ravenscar and
+--  full-tasking applications, so the same set of compiled objects can
+--  be used in both cases.
+
+pragma Profile_Warnings (Ravenscar);

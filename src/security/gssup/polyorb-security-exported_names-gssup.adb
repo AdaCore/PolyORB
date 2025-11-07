@@ -33,7 +33,7 @@
 pragma Ada_2012;
 
 with Ada.Unchecked_Conversion;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 with PolyORB.Security.Types;
@@ -206,7 +206,13 @@ package body PolyORB.Security.Exported_Names.GSSUP is
    is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation (String, String_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => String,
+
+
+         Name   => String_Access);
 
    begin
       Free (Item.Scoped_Name);
