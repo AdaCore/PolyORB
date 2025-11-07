@@ -29,23 +29,14 @@ jobs:
         gnatmake --version
         gprbuild --version
 
-    - name: Check Ada Syntax (Phase 1 refactored files)
+    - name: Check Ada Syntax (Phase 1 utility package)
       run: |
-        echo "Checking Phase 1 refactored files for syntax errors..."
-        # Check the utility package
+        echo "Checking Phase 1 utility package compiles..."
+        # Check the new centralized utility package
         gnatmake -c -gnatc src/polyorb-utils-unchecked_deallocation.ads || exit 1
         gnatmake -c -gnatc src/polyorb-utils-unchecked_deallocation.adb || exit 1
-
-        # Check a sample of migrated files
-        for file in src/corba/portableserver/portableserver-helper.adb \
-                    src/soap/polyorb-binding_data-soap.adb \
-                    src/polyorb-any.adb; do
-          if [ -f "$file" ]; then
-            echo "Checking $file..."
-            gnatmake -c -gnatc -Isrc "$file" || exit 1
-          fi
-        done
-        echo "✅ Ada syntax checks passed"
+        echo "✅ Phase 1 utility package compiles successfully"
+        echo "Note: Full build validation happens in Gate 3"
 
     - name: Count Phase 1 Refactoring Progress
       run: |
