@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: interface-repository-config
+  namespace: polyorb
+  labels:
+    app: interface-repository
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50066"
+  repo_cache_size: "100"

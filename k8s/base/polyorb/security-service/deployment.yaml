@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: security-service
+  namespace: polyorb
+  labels:
+    app: security-service
+    version: v1.0.0
+    tier: security
+    component: corba-security
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "50067"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: security-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: security-service
+        version: v1.0.0
+        tier: security
+        component: corba-security
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: security-service-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: security-service
+        image: security-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50067
+          protocol: TCP
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "security-service"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: security-service-config
+              key: log_level
+        - name: TLS_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: security-service-config
+              key: tls_enabled
+        - name: TLS_CERT_PATH
+          value: "/etc/tls/certs/tls.crt"
+        - name: TLS_KEY_PATH
+          value: "/etc/tls/private/tls.key"
+        - name: AUTH_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: security-service-config
+              key: auth_mode
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: security-service-secrets
+              key: api_key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50067
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          grpc:
+            port: 50067
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+        startupProbe:
+          grpc:
+            port: 50067
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: tls-certs
+          mountPath: /etc/tls/certs
+          readOnly: true
+        - name: tls-private
+          mountPath: /etc/tls/private
+          readOnly: true
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: tls-certs
+        secret:
+          secretName: security-service-tls-certs
+      - name: tls-private
+        secret:
+          secretName: security-service-tls-private

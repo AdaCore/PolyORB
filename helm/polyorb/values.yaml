@@ -1,0 +1,270 @@
+# Default values for PolyORB microservices
+namespace: polyorb
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+# Service-specific configurations
+services:
+  orb-core:
+    enabled: true
+    name: orb-core
+    replicas: 3
+    image:
+      repository: orb-core
+      tag: latest
+    port: 50060
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 12
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  giop-protocol:
+    enabled: true
+    name: giop-protocol
+    replicas: 2
+    image:
+      repository: giop-protocol
+      tag: latest
+    port: 50061
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  poa-manager:
+    enabled: true
+    name: poa-manager
+    replicas: 2
+    image:
+      repository: poa-manager
+      tag: latest
+    port: 50062
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  naming-service:
+    enabled: true
+    name: naming-service
+    replicas: 2
+    image:
+      repository: naming-service
+      tag: latest
+    port: 50063
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  event-service:
+    enabled: true
+    name: event-service
+    replicas: 2
+    image:
+      repository: event-service
+      tag: latest
+    port: 50064
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  notification-service:
+    enabled: true
+    name: notification-service
+    replicas: 3
+    image:
+      repository: notification-service
+      tag: latest
+    port: 50065
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  interface-repository:
+    enabled: true
+    name: interface-repository
+    replicas: 2
+    image:
+      repository: interface-repository
+      tag: latest
+    port: 50066
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  soap-gateway:
+    enabled: true
+    name: soap-gateway
+    replicas: 2
+    image:
+      repository: soap-gateway
+      tag: latest
+    port: 8081
+    httpPort: true
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  security-service:
+    enabled: true
+    name: security-service
+    replicas: 3
+    image:
+      repository: security-service
+      tag: latest
+    port: 50067
+    httpsPort: 8443
+    tls: true
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  capabilities:
+    drop:
+    - ALL
+
+# Service configuration
+service:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+# Probes
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+  readiness:
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+  startup:
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 15
+
+# Network policy
+networkPolicy:
+  enabled: true
+  allowedNamespaces:
+    - polyorb
+    - wxwidgets
+    - istio-system
+
+# Istio
+istio:
+  enabled: true
+  inject: true
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: true
+    scrape: true

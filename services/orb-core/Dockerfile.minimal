@@ -1,0 +1,60 @@
+# Multi-stage Dockerfile for ORB Core Service (Minimal Implementation)
+# Target: <80MB image, <2min build time
+# Security: Non-root user, minimal dependencies
+
+# ============================================================================
+# Stage 1: Builder
+# ============================================================================
+FROM debian:bookworm-slim AS builder
+
+WORKDIR /build
+
+# Install GNAT Ada compiler and build tools
+RUN apt-get update && apt-get install -y \
+    gnat-12 \
+    gprbuild \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source
+COPY orb_core_service.gpr ./
+COPY src/ ./src/
+
+# Build
+RUN mkdir -p obj bin && \
+    gprbuild -P orb_core_service.gpr -XBUILD=Release && \
+    strip bin/orb_core_service
+
+# ============================================================================
+# Stage 2: Runtime
+# ============================================================================
+FROM debian:bookworm-slim AS runtime
+
+# Metadata
+LABEL maintainer="RefactorTeam"
+LABEL description="ORB Core Service - Minimal Implementation for Infrastructure Validation"
+LABEL version="1.0.0"
+
+# Install minimal runtime dependencies for Ada
+RUN apt-get update && apt-get install -y \
+    libgnat-12 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -r -u 10001 -s /sbin/nologin appuser
+
+WORKDIR /app
+
+# Copy binary
+COPY --from=builder /build/bin/orb_core_service /app/
+
+# Set ownership
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 50052
+
+# Run
+ENTRYPOINT ["/app/orb_core_service"]

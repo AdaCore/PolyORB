@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: macos-adapter-netpol
+  namespace: wxwidgets
+  labels:
+    app: macos-adapter
+    version: v1.0.0
+spec:
+  podSelector:
+    matchLabels:
+      app: macos-adapter
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    ports:
+    - protocol: TCP
+      port: 50055
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system

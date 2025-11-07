@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: naming-service
+  namespace: polyorb
+  labels:
+    app: naming-service
+    version: v1.0.0
+    tier: naming
+    component: corba-naming
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: naming-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: naming-service
+        version: v1.0.0
+        tier: naming
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: naming-service-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: naming-service
+        image: naming-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50063
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "naming-service"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: naming-service-config
+              key: log_level
+        - name: ORB_CORE_ADDR
+          value: "orb-core.polyorb.svc.cluster.local:50060"
+        - name: POA_MANAGER_ADDR
+          value: "poa-manager.polyorb.svc.cluster.local:50062"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50063
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          grpc:
+            port: 50063
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        startupProbe:
+          grpc:
+            port: 50063
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

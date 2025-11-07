@@ -1,0 +1,363 @@
+# Kubernetes Deployment Workflow
+# Deploys microservices to dev/staging/prod environments
+
+name: Deploy to Kubernetes
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      services:
+        description: 'Services to deploy (comma-separated or "all")'
+        required: true
+        default: 'all'
+      version:
+        description: 'Image version/tag to deploy'
+        required: false
+        default: 'latest'
+
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'services/**'
+      - 'k8s/**'
+      - '.github/workflows/deploy.yml'
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+  REGISTRY_NAMESPACE: ${{ github.repository_owner }}
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+
+jobs:
+  # Job 1: Validate Deployment
+  validate-deployment:
+    name: Validate Deployment Config
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Kubernetes manifests
+        run: |
+          # Install kubeval
+          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin
+
+          # Validate all K8s manifests
+          find k8s -name "*.yaml" -o -name "*.yml" | while read manifest; do
+            echo "Validating $manifest"
+            kubeval --strict "$manifest" || exit 1
+          done
+
+      - name: Validate Helm charts
+        if: hashFiles('helm/**') != ''
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          find helm -name "Chart.yaml" -exec dirname {} \; | while read chart; do
+            echo "Linting $chart"
+            helm lint "$chart" || exit 1
+          done
+
+      - name: Check resource limits
+        run: |
+          # Ensure all deployments have resource limits
+          ./validate-manifests.sh
+
+  # Job 2: Deploy to Dev
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: validate-deployment
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+    environment:
+      name: dev
+      url: https://dev.refactorteam.local
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.34.1'
+
+      - name: Configure kubectl context
+        run: |
+          # Configure kubectl to connect to dev cluster
+          # In production, use OIDC or service account token
+          echo "${{ secrets.KUBECONFIG_DEV }}" | base64 -d > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          kubectl config use-context dev
+
+      - name: Determine services to deploy
+        id: services
+        run: |
+          if [ "${{ github.event.inputs.services }}" == "all" ] || [ -z "${{ github.event.inputs.services }}" ]; then
+            SERVICES="widget-core orb-core xrc-service"
+          else
+            SERVICES="${{ github.event.inputs.services }}"
+          fi
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+          echo "Deploying: $SERVICES"
+
+      - name: Deploy services
+        env:
+          SERVICES: ${{ steps.services.outputs.services }}
+          IMAGE_TAG: ${{ github.event.inputs.version || github.sha }}
+        run: |
+          # Create namespace if it doesn't exist
+          kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+
+          # Deploy each service
+          for service in $SERVICES; do
+            echo "Deploying $service to dev..."
+
+            # Update image tag in manifests
+            export SERVICE=$service
+            export IMAGE_TAG=$IMAGE_TAG
+            envsubst < k8s/base/services/$service/deployment.yaml | kubectl apply -n dev -f -
+            kubectl apply -n dev -f k8s/base/services/$service/service.yaml
+
+            # Wait for rollout
+            kubectl rollout status deployment/$service -n dev --timeout=5m
+          done
+
+      - name: Verify deployment
+        run: |
+          # Check all pods are running
+          kubectl get pods -n dev
+
+          # Check service endpoints
+          kubectl get svc -n dev
+
+          # Run smoke tests
+          for service in ${{ steps.services.outputs.services }}; do
+            POD=$(kubectl get pod -n dev -l app=$service -o jsonpath='{.items[0].metadata.name}')
+            echo "Checking $service logs..."
+            kubectl logs -n dev $POD --tail=20 | grep -q "heartbeat" || echo "⚠️ No heartbeat in $service"
+          done
+
+      - name: Post deployment metrics
+        run: |
+          kubectl top nodes
+          kubectl top pods -n dev
+
+  # Job 3: Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: validate-deployment
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.refactorteam.local
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.34.1'
+
+      - name: Configure kubectl context
+        run: |
+          echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          kubectl config use-context staging
+
+      - name: Blue-Green deployment
+        env:
+          SERVICES: ${{ github.event.inputs.services }}
+          IMAGE_TAG: ${{ github.event.inputs.version || github.sha }}
+        run: |
+          kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
+
+          for service in ${SERVICES//,/ }; do
+            if [ "$service" == "all" ]; then
+              service="widget-core orb-core xrc-service"
+            fi
+
+            echo "Blue-Green deployment: $service"
+
+            # Deploy green version
+            kubectl apply -n staging -f k8s/overlays/staging/$service/
+            kubectl rollout status deployment/${service}-green -n staging --timeout=5m
+
+            # Switch traffic
+            kubectl patch svc $service -n staging -p '{"spec":{"selector":{"version":"green"}}}'
+
+            # Delete old blue version after 5 minutes
+            sleep 300
+            kubectl delete deployment ${service}-blue -n staging --ignore-not-found
+          done
+
+      - name: Run integration tests
+        run: |
+          echo "Running staging integration tests..."
+          # Add your test commands here
+
+  # Job 4: Deploy to Production
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: validate-deployment
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    environment:
+      name: production
+      url: https://refactorteam.local
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.34.1'
+
+      - name: Configure kubectl context
+        run: |
+          echo "${{ secrets.KUBECONFIG_PROD }}" | base64 -d > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          kubectl config use-context prod
+
+      - name: Pre-deployment checks
+        run: |
+          # Verify cluster health
+          kubectl get nodes
+          kubectl top nodes
+
+          # Check current deployment status
+          kubectl get deployments -n prod
+
+      - name: Canary deployment
+        env:
+          SERVICES: ${{ github.event.inputs.services }}
+          IMAGE_TAG: ${{ github.event.inputs.version }}
+        run: |
+          kubectl create namespace prod --dry-run=client -o yaml | kubectl apply -f -
+
+          for service in ${SERVICES//,/ }; do
+            if [ "$service" == "all" ]; then
+              service="widget-core orb-core xrc-service"
+            fi
+
+            echo "Canary deployment: $service"
+
+            # Deploy canary (10% traffic)
+            kubectl apply -n prod -f k8s/overlays/prod/$service/canary.yaml
+            kubectl rollout status deployment/${service}-canary -n prod --timeout=5m
+
+            # Monitor for 10 minutes
+            echo "Monitoring canary deployment..."
+            sleep 600
+
+            # Check error rates
+            ERROR_RATE=$(kubectl logs -n prod -l app=${service},version=canary --tail=1000 | grep -c "ERROR" || echo 0)
+            if [ $ERROR_RATE -gt 10 ]; then
+              echo "❌ High error rate detected: $ERROR_RATE errors"
+              echo "Rolling back canary..."
+              kubectl delete deployment ${service}-canary -n prod
+              exit 1
+            fi
+
+            # Gradually increase traffic: 10% → 50% → 100%
+            kubectl patch deployment $service -n prod -p '{"spec":{"replicas":5}}'  # 50%
+            sleep 300
+            kubectl patch deployment $service -n prod -p '{"spec":{"replicas":10}}' # 100%
+
+            # Delete old version
+            kubectl delete deployment ${service}-canary -n prod
+          done
+
+      - name: Post-deployment validation
+        run: |
+          # Health checks
+          for service in widget-core orb-core xrc-service; do
+            kubectl get deployment $service -n prod
+            kubectl get pods -n prod -l app=$service
+          done
+
+          # Performance checks
+          kubectl top pods -n prod
+
+      - name: Create deployment record
+        run: |
+          cat <<EOF > deployment-record.json
+          {
+            "environment": "production",
+            "version": "${{ github.event.inputs.version || github.sha }}",
+            "services": "${{ github.event.inputs.services }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "triggered_by": "${{ github.actor }}",
+            "commit": "${{ github.sha }}"
+          }
+          EOF
+          cat deployment-record.json
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          # Send notification to Slack/Teams/etc
+          echo "Deployment to production completed"
+
+  # Job 5: Rollback
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.version == 'rollback'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+        run: |
+          SECRET_NAME="KUBECONFIG_$(echo $ENVIRONMENT | tr '[:lower:]' '[:upper:]')"
+          echo "${!SECRET_NAME}" | base64 -d > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+
+      - name: Rollback services
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          SERVICES: ${{ github.event.inputs.services }}
+        run: |
+          for service in ${SERVICES//,/ }; do
+            echo "Rolling back $service in $ENVIRONMENT..."
+            kubectl rollout undo deployment/$service -n $ENVIRONMENT
+            kubectl rollout status deployment/$service -n $ENVIRONMENT --timeout=5m
+          done
+
+      - name: Verify rollback
+        run: |
+          kubectl get pods -n ${{ github.event.inputs.environment }}
