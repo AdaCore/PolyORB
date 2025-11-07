@@ -116,7 +116,9 @@ package body PolyORB.Smart_Pointers is
    ---------------
 
    procedure Dec_Usage (Obj : in out Entity_Ptr) is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Unsafe_Entity'Class, Name => Entity_Ptr);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Unsafe_Entity'Class,
+         Name => Entity_Ptr);
 
       Counter : Interfaces.Unsigned_32;
 
