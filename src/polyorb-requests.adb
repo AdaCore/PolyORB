@@ -87,7 +87,9 @@ package body PolyORB.Requests is
    --  reconciliation method, according to the identification capabilities of
    --  the personalities.
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Request, Name => Request_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Request,
+      Name => Request_Access);
 
    type Request_Completion_Runnable (Req : access Request) is
      new Tasking.Threads.Runnable with null record;
