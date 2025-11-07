@@ -61,7 +61,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
    --------------
 
    overriding procedure Finalize (Object : in out Notepad_Entity) is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Notepad, Name => Notepad_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Notepad,
+         Name => Notepad_Access);
    begin
       if Object.Notepad /= null then
          Destroy (Object.Notepad.all);

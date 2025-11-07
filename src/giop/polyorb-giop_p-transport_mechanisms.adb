@@ -152,7 +152,9 @@ package body PolyORB.GIOP_P.Transport_Mechanisms is
    ----------------------
 
    procedure Release_Contents (List : in out Transport_Mechanism_List) is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Transport_Mechanism'Class, Name => Transport_Mechanism_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Transport_Mechanism'Class,
+         Name => Transport_Mechanism_Access);
 
       Component : Transport_Mechanism_Access;
 

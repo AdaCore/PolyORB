@@ -640,7 +640,9 @@ package body Templates_Parser is
    -------------
 
    procedure Release (T : in out Tag) is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Filter_Set, Name => Filter_Set_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Filter_Set,
+         Name => Filter_Set_Access);
    begin
       Free (T.Filters);
    end Release;
@@ -1063,9 +1065,13 @@ package body Templates_Parser is
 
       if V.Ref_Count.all = 0 then
          declare
-            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Vector_Tag_Node, Name => Vector_Tag_Node_Access);
+            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+              (Object => Vector_Tag_Node,
+               Name => Vector_Tag_Node_Access);
 
-            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Integer, Name => Integer_Access);
+            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+              (Object => Integer,
+               Name => Integer_Access);
 
             P, N : Vector_Tag_Node_Access;
          begin
@@ -1177,9 +1183,13 @@ package body Templates_Parser is
 
       if M.Ref_Count.all = 0 then
          declare
-            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Matrix_Tag_Node, Name => Matrix_Tag_Node_Access);
+            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+              (Object => Matrix_Tag_Node,
+               Name => Matrix_Tag_Node_Access);
 
-            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Integer, Name => Integer_Access);
+            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+              (Object => Integer,
+               Name => Integer_Access);
 
             P, N : Matrix_Tag_Node_Access;
          begin
@@ -2869,7 +2879,9 @@ package body Templates_Parser is
                           = Name'Length - 1;
             end Is_Number;
 
-            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Data.Node, Name => Data.Tree);
+            procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+              (Object => Data.Node,
+               Name => Data.Tree);
 
             Old : Data.Tree := T;
 
@@ -3891,7 +3903,9 @@ package body Templates_Parser is
    -------------
 
    procedure Release (T : in out Tree) is
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Node, Name => Tree);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Node,
+         Name => Tree);
    begin
       if T = null then
          return;

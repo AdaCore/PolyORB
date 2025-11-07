@@ -76,9 +76,13 @@ package body PolyORB.ORB.Thread_Per_Session is
    -- Free --
    ----------
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Notepad, Name => Notepad_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Notepad,
+      Name => Notepad_Access);
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Request_Queue, Name => Request_Queue_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Request_Queue,
+      Name => Request_Queue_Access);
 
    -----------------
    -- Add_Request --

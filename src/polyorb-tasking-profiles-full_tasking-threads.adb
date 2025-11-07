@@ -100,7 +100,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    type Full_Tasking_Thread_Access
       is access all Full_Tasking_Thread_Type'Class;
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Full_Tasking_Thread_Type'Class, Name => Full_Tasking_Thread_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Full_Tasking_Thread_Type'Class,
+      Name => Full_Tasking_Thread_Access);
 
    function A_To_P_Task_Id (ATID : Ada.Task_Identification.Task_Id)
      return PTT.Thread_Id;

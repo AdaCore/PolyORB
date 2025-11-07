@@ -78,7 +78,9 @@ package body AWS.Server is
 
    Security_Initialized : Boolean := False;
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Dispatchers.Handler'Class, Name => Dispatchers.Handler_Class_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Dispatchers.Handler'Class,
+      Name => Dispatchers.Handler_Class_Access);
 
    --     protected File_Upload_UID is
 

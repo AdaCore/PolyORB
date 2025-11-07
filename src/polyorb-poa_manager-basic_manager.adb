@@ -363,7 +363,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use Requests_Queues;
       use POA_Lists;
 
-      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Hold_Servant, Name => Hold_Servant_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Hold_Servant,
+         Name => Hold_Servant_Access);
 
       R : Request_Access;
 

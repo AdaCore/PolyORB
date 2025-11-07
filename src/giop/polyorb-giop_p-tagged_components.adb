@@ -70,7 +70,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access;
    --  Return new empty tagged component with tag Tag
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Tagged_Component'Class, Name => Tagged_Component_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Tagged_Component'Class,
+      Name => Tagged_Component_Access);
 
    --------------------------------------------
    -- Create_QoS_GIOP_Tagged_Components_List --
@@ -519,7 +521,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -- Release_Contents --
    ----------------------
 
-   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free (Object => Stream_Element_Array, Name => Octet_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Stream_Element_Array,
+      Name => Octet_Access);
 
    overriding procedure Release_Contents
      (Comp : access TC_Unknown_Component)
