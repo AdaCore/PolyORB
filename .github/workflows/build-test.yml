@@ -79,7 +79,7 @@ jobs:
   build-polyorb:
     name: Build PolyORB
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 60
 
     steps:
       - name: Checkout code
