@@ -22,7 +22,7 @@ jobs:
     - name: Install GNAT Ada Compiler
       run: |
         sudo apt-get update
-        sudo apt-get install -y gnat-12 gprbuild gcc make
+        sudo apt-get install -y gnat-13 gprbuild gcc make
 
     - name: Verify GNAT Installation
       run: |
@@ -139,7 +139,7 @@ jobs:
     - name: Install GNAT and Build Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y gnat-12 gprbuild gcc g++ make python3
+        sudo apt-get install -y gnat-13 gprbuild gcc g++ make python3
 
     - name: Configure PolyORB
       run: |
