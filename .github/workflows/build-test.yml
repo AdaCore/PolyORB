@@ -138,7 +138,7 @@ jobs:
       - name: Run mutation tests
         working-directory: test_stabilize
         run: npx stryker run
-        continue-on-error: true
+        # continue-on-error: true  # Disabled: Tests should block on failure
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

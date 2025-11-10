@@ -108,9 +108,9 @@ ENV PATH="/opt/polyorb/bin:${PATH}" \
 USER polyorb
 WORKDIR /opt/polyorb
 
-# Health check (adjust based on actual service)
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#   CMD [ "/opt/polyorb/bin/po_catref", "--version" ] || exit 1
+# Health check - validates PolyORB installation
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD [ "/opt/polyorb/bin/po_catref", "--version" ] || exit 1
 
 # Default command
 CMD ["/bin/sh", "-c", "echo 'PolyORB libraries ready' && exec /bin/sh"]
