@@ -34,7 +34,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is
 
@@ -98,8 +98,9 @@ package body PolyORB.Asynch_Ev is
    procedure Destroy
      (AES : in out Asynch_Ev_Source_Access)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Asynch_Ev_Source'Class, Asynch_Ev_Source_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Asynch_Ev_Source'Class,
+         Name => Asynch_Ev_Source_Access);
    begin
       Free (AES);
    end Destroy;

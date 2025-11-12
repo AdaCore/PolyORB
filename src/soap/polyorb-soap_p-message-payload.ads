@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with PolyORB.SOAP_P.Parameters;
 
 package PolyORB.SOAP_P.Message.Payload is
@@ -57,8 +57,9 @@ private
 
    type Object is new Message.Object with null record;
 
-   procedure Do_Free is new Ada.Unchecked_Deallocation
-     (Object'Class, Object_Access);
+   procedure Do_Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Object'Class,
+      Name => Object_Access);
    procedure Free (X : in out Object_Access) renames Do_Free;
 
 end PolyORB.SOAP_P.Message.Payload;

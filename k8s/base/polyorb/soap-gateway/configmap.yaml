@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: soap-gateway-config
+  namespace: polyorb
+  labels:
+    app: soap-gateway
+    version: v1.0.0
+data:
+  log_level: "info"
+  http_port: "8081"
+  max_request_size: "10485760"
+  timeout: "30"

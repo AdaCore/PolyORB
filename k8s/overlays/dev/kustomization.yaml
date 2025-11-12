@@ -1,0 +1,101 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: dev-
+
+commonLabels:
+  environment: dev
+
+bases:
+  - ../../base
+
+images:
+  # wxWidgets
+  - name: widget-core
+    newTag: dev-latest
+  - name: render-manager
+    newTag: dev-latest
+  - name: event-manager
+    newTag: dev-latest
+  - name: windows-adapter
+    newTag: dev-latest
+  - name: macos-adapter
+    newTag: dev-latest
+  - name: linux-adapter
+    newTag: dev-latest
+  - name: xrc-service
+    newTag: dev-latest
+
+  # PolyORB
+  - name: orb-core
+    newTag: dev-latest
+  - name: giop-protocol
+    newTag: dev-latest
+  - name: poa-manager
+    newTag: dev-latest
+  - name: naming-service
+    newTag: dev-latest
+  - name: event-service
+    newTag: dev-latest
+  - name: notification-service
+    newTag: dev-latest
+  - name: interface-repository
+    newTag: dev-latest
+  - name: soap-gateway
+    newTag: dev-latest
+  - name: security-service
+    newTag: dev-latest
+
+replicas:
+  # Reduced replicas for dev
+  - name: widget-core
+    count: 1
+  - name: render-manager
+    count: 1
+  - name: event-manager
+    count: 1
+  - name: windows-adapter
+    count: 1
+  - name: macos-adapter
+    count: 1
+  - name: linux-adapter
+    count: 1
+  - name: xrc-service
+    count: 1
+  - name: orb-core
+    count: 1
+  - name: giop-protocol
+    count: 1
+  - name: poa-manager
+    count: 1
+  - name: naming-service
+    count: 1
+  - name: event-service
+    count: 1
+  - name: notification-service
+    count: 1
+  - name: interface-repository
+    count: 1
+  - name: soap-gateway
+    count: 1
+  - name: security-service
+    count: 1
+
+configMapGenerator:
+  - name: dev-env-config
+    literals:
+      - ENVIRONMENT=dev
+      - LOG_LEVEL=debug
+      - DEBUG_ENABLED=true
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 128Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 256Mi
+    target:
+      kind: Deployment
+      labelSelector: "tier=backend"

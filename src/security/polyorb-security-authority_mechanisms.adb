@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Parameters;
 
@@ -115,8 +115,13 @@ package body PolyORB.Security.Authority_Mechanisms is
    procedure Destroy (Item : in out Client_Authority_Mechanism_Access) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Client_Authority_Mechanism'Class, Client_Authority_Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Client_Authority_Mechanism'Class,
+
+
+         Name   => Client_Authority_Mechanism_Access);
 
    begin
       Release_Contents (Item);
@@ -126,8 +131,13 @@ package body PolyORB.Security.Authority_Mechanisms is
    procedure Destroy (Item : in out Target_Authority_Mechanism_Access) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Target_Authority_Mechanism'Class, Target_Authority_Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Target_Authority_Mechanism'Class,
+
+
+         Name   => Target_Authority_Mechanism_Access);
 
    begin
       Release_Contents (Item);

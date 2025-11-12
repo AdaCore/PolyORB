@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: macos-adapter
+  namespace: wxwidgets
+  labels:
+    app: macos-adapter
+    version: v1.0.0
+    tier: platform-adapter
+    component: macos
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "50055"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: macos-adapter
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: macos-adapter
+        version: v1.0.0
+        tier: platform-adapter
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: macos-adapter-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: macos-adapter
+        image: macos-adapter:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50055
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "macos-adapter"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: macos-adapter-config
+              key: log_level
+        - name: WIDGET_CORE_ADDR
+          value: "widget-core.wxwidgets.svc.cluster.local:50051"
+        - name: PLATFORM
+          value: "macos"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50055
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          grpc:
+            port: 50055
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        startupProbe:
+          grpc:
+            port: 50055
+          periodSeconds: 5
+          failureThreshold: 12
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

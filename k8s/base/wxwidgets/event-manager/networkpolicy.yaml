@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: event-manager-netpol
+  namespace: wxwidgets
+  labels:
+    app: event-manager
+    version: v1.0.0
+spec:
+  podSelector:
+    matchLabels:
+      app: event-manager
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    ports:
+    - protocol: TCP
+      port: 50053
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    - namespaceSelector:
+        matchLabels:
+          name: polyorb
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system

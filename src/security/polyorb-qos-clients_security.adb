@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.ASN1;
 
@@ -50,8 +50,13 @@ package body PolyORB.QoS.Clients_Security is
    procedure Release_Contents (Item : in out Client_Mechanism);
 
    procedure Free is
-     new Ada.Unchecked_Deallocation
-        (Client_Mechanism, Client_Mechanism_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Client_Mechanism,
+
+
+      Name   => Client_Mechanism_Access);
 
    -------------
    -- Destroy --
@@ -81,8 +86,13 @@ package body PolyORB.QoS.Clients_Security is
    procedure Release_Contents (Item : in out Client_Mechanism) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Client_Transport_Mechanism'Class, Client_Transport_Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Client_Transport_Mechanism'Class,
+
+
+         Name   => Client_Transport_Mechanism_Access);
 
    begin
       Free (Item.Transport);

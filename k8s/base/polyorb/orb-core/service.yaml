@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: orb-core
+  namespace: polyorb
+  labels:
+    app: orb-core
+    version: v1.0.0
+    tier: middleware
+spec:
+  type: ClusterIP
+  selector:
+    app: orb-core
+    version: v1.0.0
+  ports:
+  - name: grpc
+    port: 50060
+    targetPort: 50060
+    protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800

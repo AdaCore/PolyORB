@@ -1,0 +1,28 @@
+project ORB_Core_Service is
+
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+   for Exec_Dir use "bin";
+   for Main use ("orb_core_service.adb");
+
+   type Build_Type is ("Debug", "Release");
+   Build : Build_Type := external ("BUILD", "Release");
+
+   package Compiler is
+      case Build is
+         when "Debug" =>
+            for Switches ("Ada") use ("-g", "-O0", "-gnatwa", "-gnatVa", "-gnatf");
+         when "Release" =>
+            for Switches ("Ada") use ("-O3", "-gnatn", "-gnatwa", "-gnatp");
+      end case;
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es");
+   end Binder;
+
+   package Linker is
+      for Switches ("Ada") use ();
+   end Linker;
+
+end ORB_Core_Service;

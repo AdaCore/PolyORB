@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: render-manager
+  namespace: wxwidgets
+  labels:
+    app: render-manager
+    version: v1.0.0
+    tier: rendering
+spec:
+  type: ClusterIP
+  selector:
+    app: render-manager
+    version: v1.0.0
+  ports:
+  - name: grpc
+    port: 50052
+    targetPort: 50052
+    protocol: TCP

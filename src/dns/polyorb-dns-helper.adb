@@ -33,7 +33,7 @@
 with PolyORB.Log;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 package body PolyORB.DNS.Helper is
@@ -192,9 +192,11 @@ package body PolyORB.DNS.Helper is
 
       overriding procedure Finalize_Value (Acc : in out Content_RR_Type) is
          procedure Free
-           is new Ada.Unchecked_Deallocation
-              (RR_Type,
-               Ptr_RR_Type);
+           is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+           (Object => RR_Type,
+
+            Name   => Ptr_RR_Type);
 
       begin
          Free
@@ -421,9 +423,11 @@ package body PolyORB.DNS.Helper is
         (Acc : in out Content_SRV_Data)
       is
          procedure Free
-           is new Ada.Unchecked_Deallocation
-              (SRV_Data,
-               Ptr_SRV_Data);
+           is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+           (Object => SRV_Data,
+
+            Name   => Ptr_SRV_Data);
 
       begin
          Free
@@ -752,9 +756,11 @@ package body PolyORB.DNS.Helper is
         (Acc : in out Content_RR_Data)
       is
          procedure Free
-           is new Ada.Unchecked_Deallocation
-              (RR_Data,
-               Ptr_RR_Data);
+           is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+           (Object => RR_Data,
+
+            Name   => Ptr_RR_Data);
 
       begin
          Free
@@ -992,9 +998,11 @@ package body PolyORB.DNS.Helper is
         (Acc : in out Content_RR)
       is
          procedure Free
-           is new Ada.Unchecked_Deallocation
-              (RR,
-               Ptr_RR);
+           is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+           (Object => RR,
+
+            Name   => Ptr_RR);
 
       begin
          Free
@@ -1253,9 +1261,11 @@ package body PolyORB.DNS.Helper is
         (Acc : in out Content_Rcode)
       is
          procedure Free
-           is new Ada.Unchecked_Deallocation
-              (Rcode,
-               Ptr_Rcode);
+           is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+           (Object => Rcode,
+
+            Name   => Ptr_Rcode);
 
       begin
          Free

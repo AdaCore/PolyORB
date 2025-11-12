@@ -35,7 +35,7 @@ pragma Ada_2012;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Utils.Dynamic_Tables;
@@ -58,8 +58,9 @@ package body PolyORB.Any is
    -- Local subprograms --
    -----------------------
 
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Content'Class, Content_Ptr);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Content'Class,
+      Name => Content_Ptr);
 
    procedure Move_Any_Value (Dst_C, Src_C : in out Any_Container'Class);
    --  Transfer the value of Src_C to Dst_C; Src_C is empty upon return.
@@ -90,7 +91,9 @@ package body PolyORB.Any is
 
       type T_Content_Ptr is access all T_Content;
 
-      procedure Free is new Ada.Unchecked_Deallocation (T, T_Ptr);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => T,
+         Name => T_Ptr);
 
       procedure Kind_Check (C : Any_Container'Class);
       pragma Inline (Kind_Check);
@@ -2612,8 +2615,9 @@ package body PolyORB.Any is
       --  types, this can be done as a (costly) linear scan of the type code,
       --  or through a lookup table.
 
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Union_TC_Map'Class, Union_TC_Map_Ptr);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Union_TC_Map'Class,
+         Name => Union_TC_Map_Ptr);
 
       type Member_Array is array (Unsigned_Long range <>) of Long;
 

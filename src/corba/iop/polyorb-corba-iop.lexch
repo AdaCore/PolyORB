@@ -1,0 +1,21 @@
+[LIBRARY PATH]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/lib/libpolyorb-corba-iop.a
+[OBJECT FILES]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop-codec-helper.o
+20251105045300
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop-codec-impl.o
+20251105045300
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop-codec.o
+20251105045300
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop-codecfactory-helper.o
+20251105045300
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop-codecfactory-impl.o
+20251105045300
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop-codecfactory.o
+20251105045300
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop-helper.o
+20251105045302
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/iop.o
+20251105045301
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/corba/iop/polyorb-corba_p-codec_utils.o
+20251105045259

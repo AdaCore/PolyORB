@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Types;
 
@@ -62,8 +62,11 @@ package body PolyORB.QoS is
 
    procedure Release (QoS : in out QoS_Parameter_Access) is
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (QoS_Parameter'Class, QoS_Parameter_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+        (Object => QoS_Parameter'Class,
+
+         Name   => QoS_Parameter_Access);
    begin
       if QoS /= null then
          Release_Contents (QoS);

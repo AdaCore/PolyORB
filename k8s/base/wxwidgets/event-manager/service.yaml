@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-manager
+  namespace: wxwidgets
+  labels:
+    app: event-manager
+    version: v1.0.0
+    tier: events
+spec:
+  type: ClusterIP
+  selector:
+    app: event-manager
+    version: v1.0.0
+  ports:
+  - name: grpc
+    port: 50053
+    targetPort: 50053
+    protocol: TCP

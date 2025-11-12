@@ -48,7 +48,7 @@ pragma Warnings (On);
 
 with System;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -70,11 +70,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    -- Free --
    ----------
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (PTM.Mutex_Type'Class, PTM.Mutex_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => PTM.Mutex_Type'Class,
+      Name => PTM.Mutex_Access);
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Mutex_Lock, Mutex_Lock_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Mutex_Lock,
+      Name => Mutex_Lock_Access);
 
    ------------
    -- Create --

@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Components;
 with PolyORB.Log;
@@ -363,8 +363,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use Requests_Queues;
       use POA_Lists;
 
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Hold_Servant, Hold_Servant_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Hold_Servant,
+         Name => Hold_Servant_Access);
 
       R : Request_Access;
 

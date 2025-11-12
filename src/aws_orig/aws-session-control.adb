@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body AWS.Session.Control is
 
@@ -41,7 +41,13 @@ package body AWS.Session.Control is
    procedure Shutdown is
 
       procedure Free is
-         new Ada.Unchecked_Deallocation (Cleaner, Cleaner_Access);
+         new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Cleaner,
+
+
+         Name   => Cleaner_Access);
 
       Need_Release : Boolean;
 

@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: polyorb
+  labels:
+    app: notification-service
+    version: v1.0.0
+    tier: notifications
+    component: corba-notification
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: notification-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: notification-service
+        version: v1.0.0
+        tier: notifications
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: notification-service-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: notification-service
+        image: notification-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50065
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "notification-service"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: notification-service-config
+              key: log_level
+        - name: ORB_CORE_ADDR
+          value: "orb-core.polyorb.svc.cluster.local:50060"
+        - name: EVENT_SERVICE_ADDR
+          value: "event-service.polyorb.svc.cluster.local:50064"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50065
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          grpc:
+            port: 50065
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        startupProbe:
+          grpc:
+            port: 50065
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

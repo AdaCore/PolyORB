@@ -34,7 +34,7 @@
 --  identifying one concrete object whithin a specific namespace.
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package PolyORB.Objects is
 
@@ -44,8 +44,8 @@ package PolyORB.Objects is
 
    type Object_Id_Access is access all Object_Id;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Object_Id, Object_Id_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Object_Id, Name => Object_Id_Access);
 
    function Oid_To_Hex_String (Oid : Object_Id) return String;
    pragma Inline (Oid_To_Hex_String);

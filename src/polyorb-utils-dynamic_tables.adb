@@ -35,7 +35,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with System;
 
 package body PolyORB.Utils.Dynamic_Tables is
@@ -61,7 +61,13 @@ package body PolyORB.Utils.Dynamic_Tables is
    --  reallocation.
 
    procedure Free_Table is
-     new Ada.Unchecked_Deallocation (Table_Type, Table_Ptr);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Table_Type,
+
+
+      Name   => Table_Ptr);
 
    --------------
    -- Allocate --

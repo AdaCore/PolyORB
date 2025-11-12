@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Binding_Data;
@@ -67,7 +67,13 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       use type Service_Id;
 
       procedure Free is
-        new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Encapsulation,
+
+
+         Name   => Encapsulation_Access);
 
       SCP  : QoS_GIOP_Service_Contexts_Parameter_Access;
       Iter : Iterator;

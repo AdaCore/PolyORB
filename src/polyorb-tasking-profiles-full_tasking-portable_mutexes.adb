@@ -36,7 +36,7 @@ pragma Ada_2012;
 --  This is a variant that uses only standard Ada constructs. It is not
 --  used by default.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 
@@ -78,11 +78,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Portable_Mutexes is
    -- Free --
    ----------
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (PTM.Mutex_Type'Class, PTM.Mutex_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => PTM.Mutex_Type'Class,
+      Name => PTM.Mutex_Access);
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Mutex_PO, Mutex_PO_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Mutex_PO,
+      Name => Mutex_PO_Access);
 
    ------------
    -- Create --

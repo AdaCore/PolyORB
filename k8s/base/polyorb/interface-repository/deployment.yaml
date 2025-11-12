@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interface-repository
+  namespace: polyorb
+  labels:
+    app: interface-repository
+    version: v1.0.0
+    tier: repository
+    component: interface-repo
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: interface-repository
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: interface-repository
+        version: v1.0.0
+        tier: repository
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: interface-repository-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: interface-repository
+        image: interface-repository:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50066
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "interface-repository"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: interface-repository-config
+              key: log_level
+        - name: ORB_CORE_ADDR
+          value: "orb-core.polyorb.svc.cluster.local:50060"
+        - name: NAMING_SERVICE_ADDR
+          value: "naming-service.polyorb.svc.cluster.local:50063"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50066
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          grpc:
+            port: 50066
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        startupProbe:
+          grpc:
+            port: 50066
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

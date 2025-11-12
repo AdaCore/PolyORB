@@ -40,7 +40,7 @@ pragma Ada_2012;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with Interfaces;
 
@@ -106,36 +106,83 @@ package CORBA is
 
    --  ... and deallocation method for each pointer type
 
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Short, Short_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Long, Long_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Long_Long, Long_Long_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Unsigned_Short, Unsigned_Short_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Unsigned_Long, Unsigned_Long_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Unsigned_Long_Long, Unsigned_Long_Long_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Float, Float_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Double, Double_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Long_Double, Long_Double_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Char, Char_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Wchar, Wchar_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Octet, Octet_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Boolean, Boolean_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (String, String_Ptr);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Wide_String, Wide_String_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Short,
+
+
+      Name   => Short_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Long,
+
+      Name   => Long_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Long_Long,
+
+      Name   => Long_Long_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Unsigned_Short,
+
+      Name   => Unsigned_Short_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Unsigned_Long,
+
+      Name   => Unsigned_Long_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Unsigned_Long_Long,
+
+      Name   => Unsigned_Long_Long_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Float,
+
+      Name   => Float_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Double,
+
+      Name   => Double_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Long_Double,
+
+      Name   => Long_Double_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Char,
+
+      Name   => Char_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Wchar,
+
+      Name   => Wchar_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Octet,
+
+      Name   => Octet_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Boolean,
+
+      Name   => Boolean_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => String,
+
+      Name   => String_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Wide_String,
+
+      Name   => Wide_String_Ptr);
 
    ---------------------------------
    -- String conversion functions --

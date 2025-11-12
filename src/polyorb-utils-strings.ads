@@ -32,7 +32,7 @@
 
 --  General-purpose string pointer and related functions
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package PolyORB.Utils.Strings is
 
@@ -61,7 +61,8 @@ package PolyORB.Utils.Strings is
    pragma Inline ("+");
    --  Return new String('S)
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Standard.String, String_Ptr);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Standard.String,
+      Name => String_Ptr);
 
 end PolyORB.Utils.Strings;

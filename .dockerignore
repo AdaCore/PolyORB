@@ -1,0 +1,73 @@
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (but keep build files)
+*.md
+docs/
+README*
+CHANGELOG*
+LICENSE*
+CONTRIBUTING*
+
+# Build artifacts
+*.o
+*.ali
+*.a
+*.so
+*.dylib
+build/
+obj/
+lib/
+bin/
+.deps/
+.libs/
+*.la
+*.lo
+autom4te.cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test results
+testsuite/results/
+testsuite/*.log
+*.log
+
+# Coverage data
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# macOS specific
+.AppleDouble
+.LSOverride
+
+# Node modules (if any)
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Keep essential files
+!configure
+!Makefile.am
+!configure.ac
+!acinclude.m4
+!*.in

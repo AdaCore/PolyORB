@@ -35,7 +35,7 @@
 with Ada.Tags;
 pragma Warnings (Off, Ada.Tags);
 --  Only used within pragma Debug.
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 
@@ -76,8 +76,9 @@ package body PolyORB.Components is
    -------------
 
    procedure Destroy (Comp : in out Component_Access) is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Component'Class, Component_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Component'Class,
+         Name => Component_Access);
    begin
       pragma Debug (C, O ("Destroying component "
         & Ada.Tags.External_Tag (Comp'Tag)));
