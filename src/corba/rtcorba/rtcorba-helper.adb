@@ -48,7 +48,7 @@ with IOP.Helper;
 with CORBA.Object.Helper;
 with PolyORB.Sequences.Unbounded.CORBA_Helper;
 pragma Elaborate_All (PolyORB.Sequences.Unbounded.CORBA_Helper);
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with PolyORB.Types;
 
 package body RTCORBA.Helper is
@@ -113,31 +113,31 @@ package body RTCORBA.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_ThreadpoolLane is access all RTCORBA.ThreadpoolLane;
-   type Content_Ü_ThreadpoolLane is
+   type Ptr_ThreadpoolLane is access all RTCORBA.ThreadpoolLane;
+   type Content_ThreadpoolLane is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_ThreadpoolLane;
+      V : Ptr_ThreadpoolLane;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ThreadpoolLane;
+     (ACC   : not null access Content_ThreadpoolLane;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ThreadpoolLane) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_ThreadpoolLane) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ThreadpoolLane;
+     (ACC : in out Content_ThreadpoolLane;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_ThreadpoolLane;
+     (ACC  : Content_ThreadpoolLane;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ThreadpoolLane);
+     (ACC : in out Content_ThreadpoolLane);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ThreadpoolLane;
+     (ACC   : not null access Content_ThreadpoolLane;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -159,7 +159,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ThreadpoolLane) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_ThreadpoolLane) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -167,7 +167,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ThreadpoolLane;
+     (ACC : in out Content_ThreadpoolLane;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -179,37 +179,37 @@ package body RTCORBA.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_ThreadpoolLane;
+     (ACC  : Content_ThreadpoolLane;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_ThreadpoolLane then
+         if Into.all not in Content_ThreadpoolLane then
             return null;
          end if;
          Target := Into;
-         Content_Ü_ThreadpoolLane (Target.all).V.all := ACC.V.all;
+         Content_ThreadpoolLane (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_ThreadpoolLane;
-         Content_Ü_ThreadpoolLane (Target.all).V := new RTCORBA.ThreadpoolLane'(ACC.V.all);
+         Target := new Content_ThreadpoolLane;
+         Content_ThreadpoolLane (Target.all).V := new RTCORBA.ThreadpoolLane'(ACC.V.all);
       end if;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ThreadpoolLane)
+     (ACC : in out Content_ThreadpoolLane)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (RTCORBA.ThreadpoolLane, Ptr_Ü_ThreadpoolLane);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => RTCORBA.ThreadpoolLane, Name => Ptr_ThreadpoolLane);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access RTCORBA.ThreadpoolLane) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_ThreadpoolLane'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_ThreadpoolLane (X));
+      return Content_ThreadpoolLane'(PolyORB.Any.Aggregate_Content with V => Ptr_ThreadpoolLane (X));
    end Wrap;
 
    function From_Any (Item : CORBA.Any) return RTCORBA.ThreadpoolLane is
@@ -285,37 +285,37 @@ package body RTCORBA.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_PriorityModel is access all RTCORBA.PriorityModel;
-   type Content_Ü_PriorityModel is
+   type Ptr_PriorityModel is access all RTCORBA.PriorityModel;
+   type Content_PriorityModel is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_PriorityModel;
+      V : Ptr_PriorityModel;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_PriorityModel;
+     (ACC   : not null access Content_PriorityModel;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_PriorityModel;
+     (ACC    : in out Content_PriorityModel;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_PriorityModel) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_PriorityModel) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_PriorityModel;
+     (ACC : in out Content_PriorityModel;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_PriorityModel;
+     (ACC  : Content_PriorityModel;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_PriorityModel);
+     (ACC : in out Content_PriorityModel);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_PriorityModel;
+     (ACC   : not null access Content_PriorityModel;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -330,7 +330,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_PriorityModel;
+     (ACC    : in out Content_PriorityModel;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -343,7 +343,7 @@ package body RTCORBA.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_PriorityModel) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_PriorityModel) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -351,7 +351,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_PriorityModel;
+     (ACC : in out Content_PriorityModel;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -363,38 +363,38 @@ package body RTCORBA.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_PriorityModel;
+     (ACC  : Content_PriorityModel;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_PriorityModel then
+         if Into.all not in Content_PriorityModel then
             return null;
          end if;
          Target := Into;
-         Content_Ü_PriorityModel (Target.all).V.all := ACC.V.all;
+         Content_PriorityModel (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_PriorityModel;
-         Content_Ü_PriorityModel (Target.all).V := new RTCORBA.PriorityModel'(ACC.V.all);
+         Target := new Content_PriorityModel;
+         Content_PriorityModel (Target.all).V := new RTCORBA.PriorityModel'(ACC.V.all);
       end if;
-      Content_Ü_PriorityModel (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_PriorityModel (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_PriorityModel)
+     (ACC : in out Content_PriorityModel)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (RTCORBA.PriorityModel, Ptr_Ü_PriorityModel);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => RTCORBA.PriorityModel, Name => Ptr_PriorityModel);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access RTCORBA.PriorityModel) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_PriorityModel'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_PriorityModel (X),
+      return Content_PriorityModel'(PolyORB.Any.Aggregate_Content with V => Ptr_PriorityModel (X),
         Repr_Cache => 0);
    end Wrap;
 
@@ -451,31 +451,31 @@ package body RTCORBA.Helper is
       CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
    end To_Ref;
 
-   type Ptr_Ü_Protocol is access all RTCORBA.Protocol;
-   type Content_Ü_Protocol is
+   type Ptr_Protocol is access all RTCORBA.Protocol;
+   type Content_Protocol is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_Protocol;
+      V : Ptr_Protocol;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_Protocol;
+     (ACC   : not null access Content_Protocol;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    function Get_Aggregate_Count
-     (ACC : Content_Ü_Protocol) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_Protocol) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_Protocol;
+     (ACC : in out Content_Protocol;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_Protocol;
+     (ACC  : Content_Protocol;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_Protocol);
+     (ACC : in out Content_Protocol);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_Protocol;
+     (ACC   : not null access Content_Protocol;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -497,7 +497,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_Protocol) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_Protocol) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -505,7 +505,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_Protocol;
+     (ACC : in out Content_Protocol;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -517,64 +517,64 @@ package body RTCORBA.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_Protocol;
+     (ACC  : Content_Protocol;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_Protocol then
+         if Into.all not in Content_Protocol then
             return null;
          end if;
          Target := Into;
-         Content_Ü_Protocol (Target.all).V.all := ACC.V.all;
+         Content_Protocol (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_Protocol;
-         Content_Ü_Protocol (Target.all).V := new RTCORBA.Protocol'(ACC.V.all);
+         Target := new Content_Protocol;
+         Content_Protocol (Target.all).V := new RTCORBA.Protocol'(ACC.V.all);
       end if;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_Protocol)
+     (ACC : in out Content_Protocol)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (RTCORBA.Protocol, Ptr_Ü_Protocol);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => RTCORBA.Protocol, Name => Ptr_Protocol);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access RTCORBA.Protocol) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_Protocol'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_Protocol (X));
+      return Content_Protocol'(PolyORB.Any.Aggregate_Content with V => Ptr_Protocol (X));
    end Wrap;
 
-   type Ptr_Ü_PriorityBand is access all RTCORBA.PriorityBand;
-   type Content_Ü_PriorityBand is
+   type Ptr_PriorityBand is access all RTCORBA.PriorityBand;
+   type Content_PriorityBand is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_PriorityBand;
+      V : Ptr_PriorityBand;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_PriorityBand;
+     (ACC   : not null access Content_PriorityBand;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    function Get_Aggregate_Count
-     (ACC : Content_Ü_PriorityBand) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_PriorityBand) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_PriorityBand;
+     (ACC : in out Content_PriorityBand;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_PriorityBand;
+     (ACC  : Content_PriorityBand;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_PriorityBand);
+     (ACC : in out Content_PriorityBand);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_PriorityBand;
+     (ACC   : not null access Content_PriorityBand;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -593,7 +593,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_PriorityBand) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_PriorityBand) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -601,7 +601,7 @@ package body RTCORBA.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_PriorityBand;
+     (ACC : in out Content_PriorityBand;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -613,37 +613,37 @@ package body RTCORBA.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_PriorityBand;
+     (ACC  : Content_PriorityBand;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_PriorityBand then
+         if Into.all not in Content_PriorityBand then
             return null;
          end if;
          Target := Into;
-         Content_Ü_PriorityBand (Target.all).V.all := ACC.V.all;
+         Content_PriorityBand (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_PriorityBand;
-         Content_Ü_PriorityBand (Target.all).V := new RTCORBA.PriorityBand'(ACC.V.all);
+         Target := new Content_PriorityBand;
+         Content_PriorityBand (Target.all).V := new RTCORBA.PriorityBand'(ACC.V.all);
       end if;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_PriorityBand)
+     (ACC : in out Content_PriorityBand)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (RTCORBA.PriorityBand, Ptr_Ü_PriorityBand);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => RTCORBA.PriorityBand, Name => Ptr_PriorityBand);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access RTCORBA.PriorityBand) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_PriorityBand'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_PriorityBand (X));
+      return Content_PriorityBand'(PolyORB.Any.Aggregate_Content with V => Ptr_PriorityBand (X));
    end Wrap;
 
    function From_Any (Item : CORBA.Any) return RTCORBA.PriorityBand is

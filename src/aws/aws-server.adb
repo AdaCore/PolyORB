@@ -31,7 +31,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with AWS.Config.Set;
 with AWS.Dispatchers.Callback;
@@ -78,8 +78,9 @@ package body AWS.Server is
 
    Security_Initialized : Boolean := False;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Dispatchers.Handler'Class, Dispatchers.Handler_Class_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Dispatchers.Handler'Class,
+      Name => Dispatchers.Handler_Class_Access);
 
    --     protected File_Upload_UID is
 

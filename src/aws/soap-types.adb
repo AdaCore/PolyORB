@@ -34,7 +34,7 @@ with Ada.Long_Float_Text_IO;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with Ada.Streams;
 
 with AWS.Utils;
@@ -59,10 +59,22 @@ package body SOAP.Types is
    --  the polyorb logging facility
 
    procedure Free is
-      new Ada.Unchecked_Deallocation (Object_Set, Object_Set_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Object_Set,
+
+
+      Name   => Object_Set_Access);
 
    procedure Free is
-      new Ada.Unchecked_Deallocation (Natural, Counter_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Natural,
+
+
+      Name   => Counter_Access);
 
    function xsi_type (Name : String) return String;
    pragma Inline (xsi_type);
@@ -202,7 +214,11 @@ package body SOAP.Types is
 
    procedure Finalize (O : in out Object_Safe_Pointer) is
       procedure Free is
-         new Ada.Unchecked_Deallocation (Object'Class, Object_Access);
+         new PolyORB.Utils.Unchecked_Deallocation.Free
+
+        (Object => Object'Class,
+
+         Name   => Object_Access);
    begin
       if O.O /= null then
          Free (O.O);

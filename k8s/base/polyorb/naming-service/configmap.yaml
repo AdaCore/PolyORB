@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: naming-service-config
+  namespace: polyorb
+  labels:
+    app: naming-service
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50063"
+  naming_context_depth: "10"

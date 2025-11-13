@@ -33,7 +33,7 @@
 pragma Ada_2012;
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
 with PolyORB.DNS.Helper;
@@ -140,8 +140,9 @@ private
      R      : Pending_Request_Access;
      Error  : in out Errors.Error_Container);
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Pending_Request, Pending_Request_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Pending_Request,
+      Name => Pending_Request_Access);
 
    package Pend_Req_Tables is
       new PolyORB.Utils.Dynamic_Tables

@@ -34,7 +34,7 @@ pragma Ada_2012;
 
 --  Base types for the Portable Object Adapter.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -109,8 +109,8 @@ package PolyORB.POA_Types is
    subtype POATable is POA_HTables.Table_Instance;
    type POATable_Access is access all POATable;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (POATable, POATable_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => POATable, Name => POATable_Access);
 
    -------------
    -- POAList --
@@ -152,8 +152,8 @@ package PolyORB.POA_Types is
 
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Unmarshalled_Oid, Unmarshalled_Oid_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Unmarshalled_Oid, Name => Unmarshalled_Oid_Access);
 
    function Create_Id
      (Name             : Standard.String;
@@ -216,8 +216,8 @@ package PolyORB.POA_Types is
       Result :    out Boolean;
       Error  : in out PolyORB.Errors.Error_Container) is abstract;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (AdapterActivator'Class, AdapterActivator_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => AdapterActivator'Class, Name => AdapterActivator_Access);
 
    --  Servant Manager
 
@@ -225,8 +225,8 @@ package PolyORB.POA_Types is
 
    type ServantManager_Access is access all ServantManager'Class;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (ServantManager'Class, ServantManager_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => ServantManager'Class, Name => ServantManager_Access);
 
    --  Servant Activator
 
@@ -252,8 +252,8 @@ package PolyORB.POA_Types is
       Cleanup_In_Progress   : Boolean;
       Remaining_Activations : Boolean) is abstract;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (ServantActivator'Class, ServantActivator_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => ServantActivator'Class, Name => ServantActivator_Access);
 
    --  Servant Locator
 
@@ -285,8 +285,8 @@ package PolyORB.POA_Types is
       The_Cookie  : Cookie;
       The_Servant : PolyORB.Servants.Servant_Access) is abstract;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (ServantLocator'Class, ServantLocator_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => ServantLocator'Class, Name => ServantLocator_Access);
 
 private
 

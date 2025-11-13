@@ -35,7 +35,7 @@
 pragma Ada_2012;
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
@@ -52,8 +52,8 @@ package PolyORB.References is
      Binding_Data.Profile_Access;
 
    type Profile_Array_Access is access all Profile_Array;
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Profile_Array, Profile_Array_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Profile_Array, Name => Profile_Array_Access);
 
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
@@ -136,7 +136,9 @@ package PolyORB.References is
    function Notepad_Of (R : Ref) return Annotations.Notepad_Access;
 
    type Ref_Ptr is access all Ref;
-   procedure Deallocate is new Ada.Unchecked_Deallocation (Ref, Ref_Ptr);
+   procedure Deallocate is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Ref,
+      Name => Ref_Ptr);
 
 private
 

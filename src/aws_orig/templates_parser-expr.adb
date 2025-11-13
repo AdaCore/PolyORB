@@ -351,7 +351,9 @@ package body Expr is
    -------------
 
    procedure Release (E : in out Tree) is
-      procedure Free is new Ada.Unchecked_Deallocation (Node, Tree);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Node,
+         Name => Tree);
    begin
       case E.Kind is
          when Value =>

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: wxwidgets
+description: Helm chart for wxWidgets microservices
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - wxwidgets
+  - c++
+  - grpc
+  - microservices
+maintainers:
+  - name: RefactorTeam
+    email: team@example.com
+sources:
+  - https://github.com/heathdorn00/wxWidgets

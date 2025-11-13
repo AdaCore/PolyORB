@@ -34,7 +34,7 @@ pragma Ada_2012;
 
 --  Implementation of condition variables under the Full_Tasking profile.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 
@@ -166,11 +166,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    -- Destroy --
    -------------
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (PTCV.Condition_Type'Class, PTCV.Condition_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => PTCV.Condition_Type'Class,
+      Name => PTCV.Condition_Access);
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Condition_PO, Condition_PO_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Condition_PO,
+      Name => Condition_PO_Access);
 
    overriding procedure Destroy
      (MF   : access Full_Tasking_Condition_Factory_Type;

@@ -1,0 +1,497 @@
+# Istio Security Policies - Zero-Trust Architecture
+# Addresses: Finding #15 (mTLS STRICT), Finding #16 (Zero-Trust), Finding #1 (Trust Boundaries)
+# Based on: ADR-002, RDB-001-Security-Addendum
+
+---
+# Global mTLS STRICT Mode (Finding #15)
+# Enforces mutual TLS for ALL service-to-service communication
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default-mtls-strict
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT  # No plaintext allowed globally
+
+---
+# Per-namespace mTLS enforcement (belt-and-suspenders approach)
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: wxwidgets-mtls
+  namespace: wxwidgets
+spec:
+  mtls:
+    mode: STRICT
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: polyorb-mtls
+  namespace: polyorb
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# Default DENY ALL traffic (Finding #16 - Zero Trust)
+# All traffic is blocked by default; only explicitly allowed connections permitted
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: wxwidgets
+spec: {}  # Empty spec = deny all traffic
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: polyorb
+spec: {}
+
+---
+# TRUST ZONE 1: External → API Gateway
+# Allow external traffic ONLY to Kong API Gateway (DMZ entry point)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-external-to-gateway
+  namespace: api-gateway
+spec:
+  selector:
+    matchLabels:
+      app: kong
+  action: ALLOW
+  rules:
+  # Allow from anywhere (external traffic)
+  - from:
+    - source:
+        namespaces: ["*"]  # Any namespace
+        notNamespaces: []  # No restrictions
+    to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        ports: ["8000", "8443"]  # Kong proxy ports
+
+---
+# TRUST ZONE 2: API Gateway → Internal Services
+# Gateway can call internal services after JWT validation
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-gateway-to-internal
+  namespace: wxwidgets
+spec:
+  selector:
+    matchLabels:
+      security.trust-zone: internal
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/api-gateway/sa/kong"]
+    to:
+    - operation:
+        methods: ["POST", "GET"]
+    when:
+    # Require JWT-validated user context from gateway
+    - key: request.auth.claims[iss]
+      values: ["https://auth.refactorteam.local"]
+
+---
+# wxWidgets Service-to-Service Authorization (Finding #16)
+# Explicit allow-list for all 7×7 = 49 potential connections
+
+# 1. Event Processing → Widget Core
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: widget-core-allow-event-processing
+  namespace: wxwidgets
+spec:
+  selector:
+    matchLabels:
+      app: widget-core
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/wxwidgets/sa/event-processing"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/wxwidgets.WidgetCore/CreateButton"
+          - "/wxwidgets.WidgetCore/CreateWindow"
+          - "/wxwidgets.WidgetCore/SetProperty"
+          - "/wxwidgets.WidgetCore/GetProperty"
+
+---
+# 2. Layout Engine → Widget Core
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: widget-core-allow-layout-engine
+  namespace: wxwidgets
+spec:
+  selector:
+    matchLabels:
+      app: widget-core
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/wxwidgets/sa/layout-engine"]
+    to:
+    - operation:
+        methods: ["POST", "GET"]
+        paths:
+          - "/wxwidgets.WidgetCore/GetWidgetBounds"
+          - "/wxwidgets.WidgetCore/SetWidgetBounds"
+          - "/wxwidgets.WidgetCore/GetChildren"
+
+---
+# 3. Widget Core → Rendering Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: rendering-allow-widget-core
+  namespace: wxwidgets
+spec:
+  selector:
+    matchLabels:
+      app: rendering
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/wxwidgets/sa/widget-core"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/wxwidgets.Rendering/DrawWidget"
+          - "/wxwidgets.Rendering/Invalidate"
+          - "/wxwidgets.Rendering/Refresh"
+
+---
+# 4. Rendering → Platform Adapters (MSW, GTK, Cocoa)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: msw-adapter-allow-rendering
+  namespace: wxwidgets
+spec:
+  selector:
+    matchLabels:
+      app: msw-adapter
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/wxwidgets/sa/rendering"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/wxwidgets.MSWAdapter/DrawNative"
+          - "/wxwidgets.MSWAdapter/CreateHWND"
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: gtk-adapter-allow-rendering
+  namespace: wxwidgets
+spec:
+  selector:
+    matchLabels:
+      app: gtk-adapter
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/wxwidgets/sa/rendering"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/wxwidgets.GTKAdapter/DrawGTK"
+          - "/wxwidgets.GTKAdapter/CreateWidget"
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: cocoa-adapter-allow-rendering
+  namespace: wxwidgets
+spec:
+  selector:
+    matchLabels:
+      app: cocoa-adapter
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/wxwidgets/sa/rendering"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/wxwidgets.CocoaAdapter/DrawCocoa"
+          - "/wxwidgets.CocoaAdapter/CreateNSView"
+
+---
+# PolyORB Service-to-Service Authorization (Finding #16)
+# Explicit allow-list for all 9×9 = 81 potential connections
+
+# 5. GIOP Protocol → ORB Core
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: orb-core-allow-giop
+  namespace: polyorb
+spec:
+  selector:
+    matchLabels:
+      app: orb-core
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/polyorb/sa/giop-protocol"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/polyorb.ORBCore/Invoke"
+          - "/polyorb.ORBCore/CreateReference"
+          - "/polyorb.ORBCore/ReleaseReference"
+
+---
+# 6. Security Service → ORB Core (elevated trust zone)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: orb-core-allow-security
+  namespace: polyorb
+spec:
+  selector:
+    matchLabels:
+      app: orb-core
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/polyorb/sa/security"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/polyorb.ORBCore/Authenticate"
+          - "/polyorb.ORBCore/Authorize"
+    when:
+    # Extra audit logging for security service calls
+    - key: request.headers[x-audit-level]
+      values: ["high"]
+
+---
+# 7. Naming Service → ORB Core
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: orb-core-allow-naming
+  namespace: polyorb
+spec:
+  selector:
+    matchLabels:
+      app: orb-core
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/polyorb/sa/naming"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/polyorb.ORBCore/ResolveReference"
+          - "/polyorb.ORBCore/BindObject"
+
+---
+# 8. Transaction Service → ORB Core (sensitive zone)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: orb-core-allow-transaction
+  namespace: polyorb
+spec:
+  selector:
+    matchLabels:
+      app: orb-core
+      security.trust-zone: sensitive
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/polyorb/sa/transaction"]
+    to:
+    - operation:
+        methods: ["POST"]
+        paths:
+          - "/polyorb.ORBCore/BeginTransaction"
+          - "/polyorb.ORBCore/CommitTransaction"
+          - "/polyorb.ORBCore/RollbackTransaction"
+
+---
+# TRUST ZONE ISOLATION (Finding #1, #16)
+# Prevent backwards transitions: Sensitive → Internal → DMZ → External
+
+# Block Sensitive services from calling External
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: block-sensitive-to-external
+  namespace: polyorb
+spec:
+  selector:
+    matchLabels:
+      security.trust-zone: sensitive
+  action: DENY
+  rules:
+  - to:
+    - operation:
+        hosts:
+          - "*.external.svc.cluster.local"
+          - "*.api-gateway.svc.cluster.local"
+
+---
+# Allow health checks from Kubernetes probes
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-health-checks
+  namespace: wxwidgets
+spec:
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        paths: ["/grpc.health.v1.Health/Check"]
+        methods: ["POST"]
+
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-health-checks
+  namespace: polyorb
+spec:
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        paths: ["/grpc.health.v1.Health/Check"]
+        methods: ["POST"]
+
+---
+# Allow Prometheus metrics scraping
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: wxwidgets
+spec:
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        namespaces: ["observability"]
+        principals: ["cluster.local/ns/observability/sa/prometheus"]
+    to:
+    - operation:
+        paths: ["/metrics"]
+        methods: ["GET"]
+
+---
+# Audit Logging for Sensitive Operations
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: audit-logging-sensitive
+  namespace: polyorb
+spec:
+  selector:
+    matchLabels:
+      security.trust-zone: sensitive
+  accessLogging:
+  - providers:
+    - name: envoy
+    filter:
+      expression: "response.code >= 200"
+  # Log all requests to sensitive services
+  tracing:
+  - providers:
+    - name: jaeger
+    randomSamplingPercentage: 100.0  # 100% sampling for sensitive
+
+---
+# Certificate Management
+# Istio will automatically manage certificates with 24-hour TTL
+# This RequestAuthentication validates JWT tokens at the mesh level
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-validation
+  namespace: api-gateway
+spec:
+  selector:
+    matchLabels:
+      app: kong
+  jwtRules:
+  - issuer: "https://auth.refactorteam.local"
+    jwksUri: "https://auth.refactorteam.local/.well-known/jwks.json"
+    audiences:
+      - "wxwidgets-api"
+      - "polyorb-api"
+    forwardOriginalToken: true
+
+---
+# Verification Commands:
+#
+# 1. Verify mTLS STRICT globally:
+#    istioctl x authz check widget-core.wxwidgets
+#    # Expected: mTLS STRICT
+#
+# 2. Verify zero plaintext traffic:
+#    kubectl exec -it deploy/widget-core -n wxwidgets -c istio-proxy -- \
+#      curl http://rendering:50053 -v
+#    # Expected: Connection refused (mTLS required)
+#
+# 3. Test unauthorized service call:
+#    kubectl exec -it deploy/layout-engine -n wxwidgets -- \
+#      grpcurl -plaintext rendering:50053 list
+#    # Expected: PERMISSION_DENIED (AuthorizationPolicy blocks)
+#
+# 4. Test authorized service call:
+#    kubectl exec -it deploy/widget-core -n wxwidgets -- \
+#      grpcurl -plaintext rendering:50053 list
+#    # Expected: Success (AuthorizationPolicy allows)
+#
+# 5. Verify certificate TTL:
+#    istioctl proxy-config secret deploy/widget-core -n wxwidgets -o json | \
+#      jq '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | \
+#      base64 -d | openssl x509 -text -noout | grep "Not After"
+#    # Expected: Expires in ~24 hours
+#
+# 6. View AuthorizationPolicy in effect:
+#    kubectl get authorizationpolicy -A
+#    kubectl describe authorizationpolicy widget-core-allow-event-processing -n wxwidgets
+#
+# 7. Test JWT validation at mesh level:
+#    curl -H "Authorization: Bearer INVALID_TOKEN" https://api.refactorteam.local/v1/widgets
+#    # Expected: 401 Unauthorized

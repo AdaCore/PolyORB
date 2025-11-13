@@ -36,7 +36,7 @@
 --  it only needs to expose a Notepad attribute.
 
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body PolyORB.Annotations is
 
@@ -128,8 +128,9 @@ package body PolyORB.Annotations is
 
    procedure Destroy (NP : in out Notepad) is
       It : Iterator := First (NP);
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Note'Class, Note_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Note'Class,
+         Name => Note_Access);
    begin
       while not Last (It) loop
          Destroy (Value (It).all.all);

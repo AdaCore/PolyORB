@@ -1,0 +1,112 @@
+{{- range $name, $service := .Values.services }}
+{{- if $service.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $service.name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $service.name }}
+    version: {{ $.Chart.AppVersion }}
+    tier: backend
+    component: wxwidgets
+    chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    release: {{ $.Release.Name }}
+  annotations:
+    prometheus.io/scrape: {{ $.Values.monitoring.prometheus.scrape | quote }}
+    prometheus.io/port: {{ $service.port | quote }}
+spec:
+  replicas: {{ $service.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: {{ $service.name }}
+      version: {{ $.Chart.AppVersion }}
+  template:
+    metadata:
+      labels:
+        app: {{ $service.name }}
+        version: {{ $.Chart.AppVersion }}
+        tier: backend
+        component: wxwidgets
+      annotations:
+        {{- if $.Values.istio.inject }}
+        sidecar.istio.io/inject: "true"
+        {{- end }}
+    spec:
+      serviceAccountName: {{ $service.name }}-sa
+      securityContext:
+        {{- toYaml $.Values.securityContext | nindent 8 }}
+      containers:
+      - name: {{ $service.name }}
+        image: {{ $.Values.global.imageRegistry }}{{ $service.image.repository }}:{{ $service.image.tag }}
+        imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+        ports:
+        {{- if $service.httpPort }}
+        - name: http
+          containerPort: {{ $service.port }}
+          protocol: TCP
+        {{- else }}
+        - name: grpc
+          containerPort: {{ $service.port }}
+          protocol: TCP
+        {{- end }}
+        env:
+        - name: SERVICE_NAME
+          value: {{ $service.name | quote }}
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ $service.name }}-config
+              key: log_level
+        resources:
+          {{- toYaml $service.resources | nindent 10 }}
+        {{- if not $service.httpPort }}
+        livenessProbe:
+          grpc:
+            port: {{ $service.port }}
+          {{- toYaml $.Values.probes.liveness | nindent 10 }}
+        readinessProbe:
+          grpc:
+            port: {{ $service.port }}
+          {{- toYaml $.Values.probes.readiness | nindent 10 }}
+        startupProbe:
+          grpc:
+            port: {{ $service.port }}
+          {{- toYaml $.Values.probes.startup | nindent 10 }}
+        {{- else }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ $service.port }}
+          {{- toYaml $.Values.probes.liveness | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ $service.port }}
+          {{- toYaml $.Values.probes.readiness | nindent 10 }}
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: {{ $service.port }}
+          {{- toYaml $.Values.probes.startup | nindent 10 }}
+        {{- end }}
+        securityContext:
+          {{- toYaml $.Values.containerSecurityContext | nindent 10 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      {{- if $.Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml $.Values.global.imagePullSecrets | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}

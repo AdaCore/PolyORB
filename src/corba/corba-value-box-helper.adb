@@ -33,6 +33,7 @@
 pragma Ada_2012;
 
 with CORBA.Impl;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body CORBA.Value.Box.Helper is
 
@@ -73,7 +74,9 @@ package body CORBA.Value.Box.Helper is
    --------------------
 
    overriding procedure Finalize_Value (ACC : in out Box_Ref_Content) is
-      procedure Free is new Ada.Unchecked_Deallocation (Box_Ref, Box_Ref_Ptr);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Box_Ref,
+         Name => Box_Ref_Ptr);
    begin
       Free (ACC.V);
    end Finalize_Value;

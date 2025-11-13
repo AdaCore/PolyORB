@@ -33,7 +33,7 @@
 pragma Ada_2012;
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Binding_Data;
 with PolyORB.Buffers;
@@ -215,8 +215,9 @@ private
    end record;
    type Pending_Request_Access is access all Pending_Request;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Pending_Request, Pending_Request_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Pending_Request,
+      Name => Pending_Request_Access);
 
    package Pend_Req_Tables is new
      PolyORB.Utils.Dynamic_Tables (Pending_Request_Access, Natural, 1, 10, 10);
@@ -254,8 +255,9 @@ private
       Reply_Status : Reply_Status_Type;
    end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (GIOP_Message_Context'Class, GIOP_Message_Context_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => GIOP_Message_Context'Class,
+      Name => GIOP_Message_Context_Access);
 
    ---------------------------
    --  GIOP session context --
@@ -266,8 +268,9 @@ private
    type GIOP_Session_Context is abstract tagged null record;
    type GIOP_Session_Context_Access is access all GIOP_Session_Context'Class;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (GIOP_Session_Context'Class, GIOP_Session_Context_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => GIOP_Session_Context'Class,
+      Name => GIOP_Session_Context_Access);
 
    -----------------
    -- GIOP_Implem --

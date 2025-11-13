@@ -32,7 +32,7 @@
 
 --  Utilities for the Simple Request Protocol.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Objects; use PolyORB.Objects;
@@ -85,7 +85,8 @@ package PolyORB.Utils.SRP is
    --  Does just the reverse of Split
    function Join (Data : Split_SRP) return Any.Any;
 
-   procedure Free_Arg_Info is new Ada.Unchecked_Deallocation
-     (Arg_Info, Arg_Info_Ptr);
+   procedure Free_Arg_Info is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Arg_Info,
+      Name => Arg_Info_Ptr);
 
 end PolyORB.Utils.SRP;
