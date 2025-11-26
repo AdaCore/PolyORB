@@ -172,7 +172,7 @@ class PolyORBClassicTestDriver(ClassicTestDriver):
         self.test_process = self.shell(
             cmd,
             cwd=self.test_env["working_dir"],
-            env=self.test_env,
+            env={k: v for k, v in self.test_env.items() if isinstance(v, str)},
             timeout=int(2.1 * int(self.test_env["RLIMIT"])),
             catch_error=False,
         )
