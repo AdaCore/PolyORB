@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2001-2026, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -99,6 +99,10 @@ package body PolyORB.Log is
 
       function Enabled (Level : Log_Level := Debug) return Boolean is
       begin
+         if Facility_Level = Unknown then
+            Facility_Level := Get_Log_Level (Facility);
+         end if;
+
          return Facility_Level = Unknown or else Level >= Facility_Level;
       end Enabled;
 
