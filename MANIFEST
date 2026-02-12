@@ -2423,6 +2423,9 @@ testsuite/core/obj_adapters/test_common.adb
 testsuite/core/obj_adapters/test_common.ads
 testsuite/core/obj_adapters/test_servant.adb
 testsuite/core/obj_adapters/test_servant.ads
+testsuite/core/log/Makefile.local
+testsuite/core/log/local.gpr
+testsuite/core/log/test000.adb
 testsuite/core/poa/Makefile.local
 testsuite/core/poa/local.gpr
 testsuite/core/poa/test000.adb
@@ -2903,6 +2906,7 @@ testsuite/tests/core/initialization/INIT_1/test.py
 testsuite/tests/core/initialization/INIT_2/test.py
 testsuite/tests/core/initialization/INIT_3/test.py
 testsuite/tests/core/initialization/INIT_4/test.py
+testsuite/tests/core/log/LOG_0/test.py
 testsuite/tests/core/obj_adapters/OA_0/test.py
 testsuite/tests/core/obj_adapters/OA_1/test.py
 testsuite/tests/core/poa/POA_0/test.py
