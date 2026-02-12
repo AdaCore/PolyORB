@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2007-2011, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2026, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,10 +49,7 @@ project PolyORB_src_dsa is
    --  as we need to allow the application to replace some units with
    --  partition-specific versions/stubs.
 
-   package Compiler is
-
-      for Default_Switches ("Ada")
-         use PolyORB_Src.Compiler'Default_Switches ("Ada");
+   package Compiler extends PolyORB_Src.Compiler is
 
       Ada_RTL_Switches :=
         Compiler'Default_Switches ("Ada")
