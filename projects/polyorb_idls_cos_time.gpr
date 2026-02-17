@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 P r o j                                  --
 --                                                                          --
---         Copyright (C) 2007-2009, Free Software Foundation, Inc.          --
+--         Copyright (C) 2007-2026, Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,11 +45,6 @@ library project PolyORB_idls_cos_time is
    for Library_ALI_Dir use PolyORB_Common.Build_Dir & "ali/idls_cos_time";
    for Library_Kind use PolyORB_Common.Library_Type;
 
-   package Compiler is
-
-      for Default_Switches ("Ada")
-         use PolyORB_Common.Compiler'Default_Switches ("Ada");
-
-   end Compiler;
+   package Compiler renames PolyORB_Common.Compiler;
 
 end PolyORB_idls_cos_time;
