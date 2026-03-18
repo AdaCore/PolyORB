@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2005-2017, Free Software Foundation, Inc.          --
+--         Copyright (C) 2005-2026, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,6 +31,8 @@
 ------------------------------------------------------------------------------
 
 pragma Ada_2012;
+
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.Binding_Objects;
@@ -97,35 +99,47 @@ package body PolyORB.GIOP_P.Transport_Mechanisms.IIOP is
 
       while not Last (Iter) loop
          declare
+            use type Transport.Transport_Endpoint_Access;
+
+            procedure Free is
+              new Ada.Unchecked_Deallocation
+                (PolyORB.Transport.Transport_Endpoint'Class,
+                 PolyORB.Transport.Transport_Endpoint_Access);
+
             Sock        : Socket_Type;
             Remote_Addr : Socket_Name renames Value (Iter).all.all;
-            TE          : constant Transport.Transport_Endpoint_Access :=
-              new Socket_Endpoint;
+            TE          : Transport.Transport_Endpoint_Access;
 
          begin
-            Utils.Sockets.Create_Socket (Sock);
-            Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
-            Create (Socket_Endpoint (TE.all), Sock);
+            begin
+               TE := new Socket_Endpoint;
+               Utils.Sockets.Create_Socket (Sock);
+               Utils.Sockets.Connect_Socket (Sock, Remote_Addr);
+               Create (Socket_Endpoint (TE.all), Sock);
 
-            Binding_Objects.Setup_Binding_Object
-              (The_ORB,
-               TE,
-               IIOP_Factories,
-               BO_Ref,
-               Profile_Access (Profile));
+            exception
+               when Sockets.Socket_Error =>
+                  Free (TE);
+                  Throw (Error, Comm_Failure_E,
+                         System_Exception_Members'
+                           (Minor => 0, Completed => Completed_No));
+            end;
 
-            ORB.Register_Binding_Object
-              (ORB.ORB_Access (The_ORB),
-               BO_Ref,
-               ORB.Client);
+            if TE /= null then
+               Binding_Objects.Setup_Binding_Object
+                 (The_ORB,
+                  TE,
+                  IIOP_Factories,
+                  BO_Ref,
+                  Profile_Access (Profile));
 
-            return;
+               ORB.Register_Binding_Object
+                 (ORB.ORB_Access (The_ORB),
+                  BO_Ref,
+                  ORB.Client);
 
-         exception
-            when Sockets.Socket_Error =>
-               Throw (Error, Comm_Failure_E,
-                      System_Exception_Members'
-                      (Minor => 0, Completed => Completed_No));
+               return;
+            end if;
          end;
 
          Next (Iter);
