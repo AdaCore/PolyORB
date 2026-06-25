@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1999-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 1999-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -361,26 +361,26 @@ procedure PO_DumpIR is
          begin
             Put_Line (Inc & "Node     : " &
                       DefinitionKind'Image
-                      (Get_def_kind (The_Ref)));
+                      (get_def_kind (The_Ref)));
             Put_Line (Inc & "Name     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (Get_name (The_Ref))));
+                      (CORBA.String (get_name (The_Ref))));
             Put_Line (Inc & "Id       : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (Get_id (The_Ref))));
+                      (CORBA.String (get_id (The_Ref))));
             Put_Line (Inc & "Vers     : " &
                       CORBA.To_Standard_String
-                      (CORBA.String (Get_version (The_Ref))));
+                      (CORBA.String (get_version (The_Ref))));
             Put_Line (Inc & "Abs-Name : " &
                       CORBA.To_Standard_String
                       (CORBA.String
-                       (Get_absolute_name (The_Ref))));
+                       (get_absolute_name (The_Ref))));
             Print_Description (Contained.describe (The_Ref), Inc);
             Put_Line (" ");
 
             --  Recursivity
 
-            case Contained.Get_def_kind (The_Ref) is
+            case Contained.get_def_kind (The_Ref) is
                when dk_Module =>
                   declare
                      R : constant Container.Ref :=

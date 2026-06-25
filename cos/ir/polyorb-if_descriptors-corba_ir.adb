@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2012, Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2023, Free Software Foundation, Inc.          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -104,7 +104,7 @@ package body PolyORB.If_Descriptors.CORBA_IR is
         (InterfaceDef.contents (Intf, dk_Operation, True));
 
       Base_Intfs : constant InterfaceDefSeq_Seq.Element_Array
-        := To_Element_Array (InterfaceDef.Get_base_interfaces (Intf));
+        := To_Element_Array (InterfaceDef.get_base_interfaces (Intf));
    begin
 
       --  First try to find the method in this InterfaceDef...
@@ -116,7 +116,7 @@ package body PolyORB.If_Descriptors.CORBA_IR is
             R : constant Contained.Ref
               := Contained.Helper.To_Ref (Contents (I));
          begin
-            if Contained.Get_name (R) = Method then
+            if Contained.get_name (R) = Method then
                return Helper.From_Any (Contained.describe (R).value);
             end if;
          end;
