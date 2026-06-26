@@ -299,8 +299,7 @@ package body PolyORB.References.IOR is
 
       if Last_Profile >= Profs'First then
          Create_Reference
-           (Profs (Profs'First .. Last_Profile), Type_Id,
-            References.Ref (Result));
+           (Profs (Profs'First .. Last_Profile), Type_Id, Result);
       end if;
 
       return Result;
