@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: polyorb-network-policy
+  namespace: polyorb-prod
+  labels:
+    app: polyorb
+spec:
+  podSelector:
+    matchLabels:
+      app: polyorb
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow traffic from within the same namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: polyorb-prod
+    ports:
+    - protocol: TCP
+      port: 5000
+  egress:
+  # Allow DNS resolution
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow outbound connections for PolyORB services
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5000

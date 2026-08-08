@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body PolyORB.QoS.Tagged_Components is
 
@@ -40,7 +40,13 @@ package body PolyORB.QoS.Tagged_Components is
    use GIOP_Tagged_Component_Lists;
 
    procedure Free is
-     new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Encapsulation,
+
+
+      Name   => Encapsulation_Access);
 
    ----------------------
    -- Release_Contents --

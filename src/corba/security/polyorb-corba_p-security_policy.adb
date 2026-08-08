@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with CORBA.Object.Policies;
 with PolyORB.CORBA_P.Policy_Management;
@@ -52,8 +52,13 @@ package body PolyORB.CORBA_P.Security_Policy is
      := (others => (False, null));
 
    procedure Free is
-     new Ada.Unchecked_Deallocation
-     (PolyORB.Security.Credentials.Credentials_List, Credentials_List_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => PolyORB.Security.Credentials.Credentials_List,
+
+
+      Name   => Credentials_List_Access);
 
    -----------------------
    -- Get_Client_Policy --

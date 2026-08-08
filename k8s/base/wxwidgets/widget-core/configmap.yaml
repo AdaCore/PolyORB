@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: widget-core-config
+  namespace: wxwidgets
+  labels:
+    app: widget-core
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50051"
+  max_connections: "1000"
+  connection_timeout: "30"
+  idle_timeout: "300"
+  enable_metrics: "true"
+  metrics_port: "9090"

@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body PolyORB.Utils.HTables.Perfect is
 
@@ -90,10 +90,22 @@ package body PolyORB.Utils.HTables.Perfect is
    --  Swap elements at index1 and index2.
 
    procedure Free_Table is
-      new Ada.Unchecked_Deallocation (Table, Table_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Table,
+
+
+      Name   => Table_Access);
 
    procedure Free_Item is
-      new Ada.Unchecked_Deallocation (Item, Item_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Item,
+
+
+      Name   => Item_Access);
 
    ----------------------------------
    -- Hash_Table related functions --

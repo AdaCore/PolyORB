@@ -31,7 +31,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with System;
 
 package PolyORB.Web.Utils is
@@ -127,7 +127,8 @@ package PolyORB.Web.Utils is
 
    type Stream_Element_Array_Access is access Ada.Streams.Stream_Element_Array;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Ada.Streams.Stream_Element_Array, Stream_Element_Array_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Ada.Streams.Stream_Element_Array,
+      Name => Stream_Element_Array_Access);
 
 end PolyORB.Web.Utils;

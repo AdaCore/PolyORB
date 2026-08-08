@@ -32,7 +32,7 @@
 
 --  This package provides an implementation of advanced mutexes.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with PolyORB.Log;
 
 package body PolyORB.Tasking.Advanced_Mutexes is
@@ -74,7 +74,11 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    procedure Destroy (M : in out Adv_Mutex_Access)
    is
       procedure Free is
-        new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+        (Object => Adv_Mutex_Type,
+
+         Name   => Adv_Mutex_Access);
    begin
       pragma Debug (C, O ("Destroy"));
 

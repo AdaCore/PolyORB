@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
@@ -84,8 +84,9 @@ package body PolyORB.Tasking.Rw_Locks is
    -- Free --
    ----------
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Rw_Lock_Type, Rw_Lock_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Rw_Lock_Type,
+      Name => Rw_Lock_Access);
 
    -------------
    -- Destroy --

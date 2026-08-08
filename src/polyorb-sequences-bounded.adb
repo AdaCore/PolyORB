@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body PolyORB.Sequences.Bounded is
 
@@ -420,7 +420,11 @@ package body PolyORB.Sequences.Bounded is
 
    procedure Free (X : in out Element_Array_Access) is
       procedure Deallocate is
-        new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+        (Object => Element_Array,
+
+         Name   => Element_Array_Access);
    begin
       Deallocate (X);
    end Free;

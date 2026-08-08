@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-service-config
+  namespace: polyorb
+  labels:
+    app: security-service
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50067"
+  https_port: "8443"
+  tls_enabled: "true"
+  auth_mode: "mtls"
+  max_connections: "1000"
+  connection_timeout: "60"
+  cert_refresh_interval: "3600"
+  cipher_suites: "TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256"

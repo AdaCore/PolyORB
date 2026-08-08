@@ -1,0 +1,224 @@
+# Default values for wxWidgets microservices
+namespace: wxwidgets
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+# Service-specific configurations
+services:
+  widget-core:
+    enabled: true
+    name: widget-core
+    replicas: 3
+    image:
+      repository: widget-core
+      tag: latest
+    port: 50051
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  render-manager:
+    enabled: true
+    name: render-manager
+    replicas: 3
+    image:
+      repository: render-manager
+      tag: latest
+    port: 50052
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 12
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  event-manager:
+    enabled: true
+    name: event-manager
+    replicas: 2
+    image:
+      repository: event-manager
+      tag: latest
+    port: 50053
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  windows-adapter:
+    enabled: true
+    name: windows-adapter
+    replicas: 2
+    image:
+      repository: windows-adapter
+      tag: latest
+    port: 50054
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  macos-adapter:
+    enabled: true
+    name: macos-adapter
+    replicas: 2
+    image:
+      repository: macos-adapter
+      tag: latest
+    port: 50055
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  linux-adapter:
+    enabled: true
+    name: linux-adapter
+    replicas: 3
+    image:
+      repository: linux-adapter
+      tag: latest
+    port: 50056
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  xrc-service:
+    enabled: true
+    name: xrc-service
+    replicas: 2
+    image:
+      repository: xrc-service
+      tag: latest
+    port: 8080
+    httpPort: true
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  capabilities:
+    drop:
+    - ALL
+
+# Service configuration
+service:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+# Probes
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 5
+  readiness:
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+  startup:
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 15
+
+# Network policy
+networkPolicy:
+  enabled: true
+  allowedNamespaces:
+    - wxwidgets
+    - polyorb
+    - istio-system
+
+# Istio
+istio:
+  enabled: true
+  inject: true
+
+# Monitoring
+monitoring:
+  prometheus:
+    enabled: true
+    scrape: true

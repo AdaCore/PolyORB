@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: render-manager-config
+  namespace: wxwidgets
+  labels:
+    app: render-manager
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50052"
+  render_buffer_size: "4096"
+  max_render_threads: "8"

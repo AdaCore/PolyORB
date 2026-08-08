@@ -32,7 +32,7 @@
 
 --  General purpose functions for using sockets with string and buffers
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
 with PolyORB.Sockets;
@@ -52,7 +52,11 @@ package PolyORB.Utils.Sockets is
 
    type Socket_Name_Ptr is access all Socket_Name;
    procedure Free is
-     new Ada.Unchecked_Deallocation (Socket_Name, Socket_Name_Ptr);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Socket_Name,
+
+      Name   => Socket_Name_Ptr);
 
    function "+"
      (Host_Name : String;

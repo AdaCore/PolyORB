@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: naming-service
+  namespace: polyorb
+  labels:
+    app: naming-service
+    version: v1.0.0
+spec:
+  type: ClusterIP
+  selector:
+    app: naming-service
+    version: v1.0.0
+  ports:
+  - name: grpc
+    port: 50063
+    targetPort: 50063
+    protocol: TCP

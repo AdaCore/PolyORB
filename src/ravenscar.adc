@@ -1,0 +1,14 @@
+--  GNAT configuration pragmas for units to be compiled under
+--  pragma Ravenscar.
+
+--  src/ravenscar.adc.  Generated from ravenscar.adc.in by configure.
+
+--  INCLUDE: polyorb-setup-ravenscar_tp_server.adb
+--  INCLUDE: polyorb-setup-tasking-ravenscar.ads
+--  INCLUDE: polyorb-tasking-profiles-ravenscar.ads
+--  INCLUDE: polyorb-tasking-profiles-ravenscar-condition_variables.adb
+--  INCLUDE: polyorb-tasking-profiles-ravenscar-index_manager.adb
+--  INCLUDE: polyorb-tasking-profiles-ravenscar-mutexes.adb
+--  INCLUDE: polyorb-tasking-profiles-ravenscar-threads.adb
+
+pragma Profile (Ravenscar);

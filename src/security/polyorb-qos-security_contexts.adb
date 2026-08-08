@@ -33,7 +33,7 @@
 pragma Ada_2012;
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
 with PolyORB.Errors;
@@ -87,9 +87,13 @@ package body PolyORB.QoS.Security_Contexts is
    is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Ada.Streams.Stream_Element_Array,
-         PolyORB.Security.Types.Stream_Element_Array_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Ada.Streams.Stream_Element_Array,
+
+
+         Name   => PolyORB.Security.Types.Stream_Element_Array_Access);
 
    begin
       case QoS.Context_Kind is

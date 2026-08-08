@@ -1,0 +1,94 @@
+# Hardened Dockerfile Template for Widget Core Service
+# Addresses: Finding #11 (Pod Security), Finding #8 (Secret Scanning)
+# Based on: ADR-002, RDB-001-Security-Addendum
+
+# syntax=docker/dockerfile:1.4
+# Enable BuildKit for secret mounting
+
+# Stage 1: Builder (build environment with full tooling)
+FROM ubuntu:24.04@sha256:e3ca4e5d0c5d7c4e5d0c5e5d0c5e5d0c5e5d0c5e5d0c5e5d0c5e5d0c5 AS builder
+
+# Security: Run build as non-root
+RUN groupadd -g 10001 builder && \
+    useradd -u 10001 -g builder -m builder
+
+# Pin all package versions (Finding #17: Dependency Pinning)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    g++-13=13.2.0-1ubuntu1 \
+    cmake=3.28.1-1 \
+    ninja-build=1.11.1-2 \
+    libgtk-3-dev=3.24.38-1 \
+    protobuf-compiler=3.21.12-3 \
+    grpc-tools=1.60.0-1 \
+    libgrpc++-dev=1.60.0-1 \
+    libssl-dev=3.0.13-0ubuntu1 \
+    pkg-config=1.8.1-1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Copy only necessary files (minimize attack surface)
+COPY --chown=builder:builder src/ ./src/
+COPY --chown=builder:builder CMakeLists.txt ./
+COPY --chown=builder:builder conanfile.txt ./
+
+# Security: Use BuildKit secret mounts (Finding #8)
+# Secrets are mounted at build time but NOT included in image layers
+RUN --mount=type=secret,id=conan_token,target=/home/builder/.conan/token,uid=10001 \
+    --mount=type=cache,target=/home/builder/.conan,uid=10001 \
+    chown -R builder:builder /build
+
+USER builder
+
+# Build with security flags
+RUN cmake -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_STANDARD=17 \
+    -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fPIE" \
+    -DCMAKE_EXE_LINKER_FLAGS="-Wl,-z,relro -Wl,-z,now -pie" \
+    && cmake --build build --target widget_core_service --parallel
+
+# Generate SBOM (Software Bill of Materials)
+RUN apt-get update && apt-get install -y wget && \
+    wget -qO- https://github.com/anchore/syft/releases/download/v0.100.0/syft_0.100.0_linux_amd64.tar.gz | tar xz && \
+    ./syft dir:/build/build --output cyclonedx-json > /build/widget-core-sbom.json
+
+# Stage 2: Runtime (minimal distroless image)
+FROM gcr.io/distroless/cc-debian12:nonroot@sha256:def456...
+
+# Security labels
+LABEL org.opencontainers.image.source="https://github.com/heathdorn00/wxWidgets" \
+      org.opencontainers.image.description="Widget Core Service - Hardened" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.vendor="RefactorTeam" \
+      security.pod-security-standards="restricted" \
+      security.capabilities-dropped="ALL" \
+      security.read-only-root="true"
+
+# Copy only the binary (no build tools in runtime image)
+COPY --from=builder --chown=nonroot:nonroot /build/build/bin/widget_core_service /usr/local/bin/
+
+# Copy SBOM for runtime scanning
+COPY --from=builder --chown=nonroot:nonroot /build/widget-core-sbom.json /sbom.json
+
+# Distroless uses UID 65532 (nonroot)
+# We'll use numeric UID 10001 for consistency (Finding #6)
+USER 10001:10001
+
+# Expose gRPC port (non-privileged port >1024)
+EXPOSE 50051
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD ["/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+
+# No writable filesystem needed (read-only at K8s level)
+# Entrypoint
+ENTRYPOINT ["/usr/local/bin/widget_core_service"]
+CMD ["--port=50051", "--log-level=info"]
+
+# Security verification commands (run during CI):
+# 1. Scan for secrets: docker history <image> --no-trunc | grep -iE "password|secret|token|key"
+# 2. Scan for CVEs: trivy image --severity HIGH,CRITICAL <image>
+# 3. Verify SBOM: grype sbom:/sbom.json --fail-on high
+# 4. Verify user: docker run --rm <image> id (should show uid=10001)

@@ -37,7 +37,7 @@ with Ada.Characters.Handling;
 with Ada.Finalization;
 with Ada.Strings.Fixed;
 with Ada.Unchecked_Conversion;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with System.Address_To_Access_Conversions;
 with System.Standard_Library;
@@ -955,8 +955,11 @@ package body System.Partition_Interface is
 
    procedure Free_Stub (RACW : in out RACW_Stub_Type_Access) is
       procedure Free is
-        new Ada.Unchecked_Deallocation
-              (RACW_Stub_Type'Class, RACW_Stub_Type_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+        (Object => RACW_Stub_Type'Class,
+
+         Name   => RACW_Stub_Type_Access);
       H_Entry : RACW_Stub_Type_Access;
    begin
       if RACW = null then

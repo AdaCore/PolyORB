@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Security.Exported_Names.Unknown;
@@ -198,8 +198,13 @@ package body PolyORB.Security.Exported_Names is
    procedure Destroy (Item : in out Exported_Name_Access) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Exported_Name_Type'Class, Exported_Name_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Exported_Name_Type'Class,
+
+
+         Name   => Exported_Name_Access);
 
    begin
       if Item /= null then

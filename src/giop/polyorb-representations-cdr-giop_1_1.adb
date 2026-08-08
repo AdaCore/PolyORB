@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 with PolyORB.Representations.CDR.Common;
@@ -50,11 +50,22 @@ package body PolyORB.Representations.CDR.GIOP_1_1 is
    procedure Deferred_Initialization;
 
    procedure Free is
-     new Ada.Unchecked_Deallocation (Converter'Class, Converter_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Converter'Class,
+
+
+      Name   => Converter_Access);
 
    procedure Free is
-     new Ada.Unchecked_Deallocation
-          (Wide_Converter'Class, Wide_Converter_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Wide_Converter'Class,
+
+
+      Name   => Wide_Converter_Access);
 
    ------------
    -- Create --

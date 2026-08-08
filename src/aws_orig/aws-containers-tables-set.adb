@@ -30,15 +30,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 package body AWS.Containers.Tables.Set is
 
    procedure Reset (Table : in out Index_Table_Type);
    --  Free all elements and destroy his entries.
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Element, Element_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Element,
+      Name => Element_Access);
 
    procedure Free_Elements (Data : in out Data_Table.Instance);
    --  Free all dynamically allocated strings in the data table.
@@ -124,8 +125,9 @@ package body AWS.Containers.Tables.Set is
 
    procedure Free (Table : in out Table_Type) is
 
-      procedure Free is
-         new Ada.Unchecked_Deallocation (Index_Table_Type, Index_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Index_Table_Type,
+         Name => Index_Access);
 
    begin
       if Table.Index /= null then

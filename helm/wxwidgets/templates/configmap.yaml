@@ -1,0 +1,24 @@
+{{- range $name, $service := .Values.services }}
+{{- if $service.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $service.name }}-config
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $service.name }}
+    version: {{ $.Chart.AppVersion }}
+    chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    release: {{ $.Release.Name }}
+data:
+  log_level: "info"
+  {{- if $service.httpPort }}
+  http_port: {{ $service.port | quote }}
+  {{- else }}
+  grpc_port: {{ $service.port | quote }}
+  {{- end }}
+  max_connections: "1000"
+  connection_timeout: "60"
+{{- end }}
+{{- end }}

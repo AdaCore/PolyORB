@@ -1,0 +1,13 @@
+[LIBRARY PATH]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/lib/libpolyorb-giop-diop.a
+[OBJECT FILES]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/diop/polyorb-binding_data-giop-diop.o
+20251105045315
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/diop/polyorb-giop_p-transport_mechanisms-diop.o
+20251105045315
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/diop/polyorb-protocols-giop-diop.o
+20251105045315
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/diop/polyorb-setup-access_points-diop.o
+20251105045315
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/diop/polyorb-setup-diop.o
+20251105045314

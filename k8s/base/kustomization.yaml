@@ -1,0 +1,142 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+resources:
+  # Namespaces
+  - ../namespaces/wxwidgets-namespace.yaml
+  - ../namespaces/polyorb-namespace.yaml
+
+  # wxWidgets services
+  - wxwidgets/widget-core/deployment.yaml
+  - wxwidgets/widget-core/service.yaml
+  - wxwidgets/widget-core/configmap.yaml
+  - wxwidgets/widget-core/secret.yaml
+  - wxwidgets/widget-core/hpa.yaml
+  - wxwidgets/widget-core/serviceaccount.yaml
+  - wxwidgets/widget-core/networkpolicy.yaml
+
+  - wxwidgets/render-manager/deployment.yaml
+  - wxwidgets/render-manager/service.yaml
+  - wxwidgets/render-manager/configmap.yaml
+  - wxwidgets/render-manager/secret.yaml
+  - wxwidgets/render-manager/hpa.yaml
+  - wxwidgets/render-manager/serviceaccount.yaml
+  - wxwidgets/render-manager/networkpolicy.yaml
+
+  - wxwidgets/event-manager/deployment.yaml
+  - wxwidgets/event-manager/service.yaml
+  - wxwidgets/event-manager/configmap.yaml
+  - wxwidgets/event-manager/secret.yaml
+  - wxwidgets/event-manager/hpa.yaml
+  - wxwidgets/event-manager/serviceaccount.yaml
+  - wxwidgets/event-manager/networkpolicy.yaml
+
+  - wxwidgets/windows-adapter/deployment.yaml
+  - wxwidgets/windows-adapter/service.yaml
+  - wxwidgets/windows-adapter/configmap.yaml
+  - wxwidgets/windows-adapter/secret.yaml
+  - wxwidgets/windows-adapter/hpa.yaml
+  - wxwidgets/windows-adapter/serviceaccount.yaml
+  - wxwidgets/windows-adapter/networkpolicy.yaml
+
+  - wxwidgets/macos-adapter/deployment.yaml
+  - wxwidgets/macos-adapter/service.yaml
+  - wxwidgets/macos-adapter/configmap.yaml
+  - wxwidgets/macos-adapter/secret.yaml
+  - wxwidgets/macos-adapter/hpa.yaml
+  - wxwidgets/macos-adapter/serviceaccount.yaml
+  - wxwidgets/macos-adapter/networkpolicy.yaml
+
+  - wxwidgets/linux-adapter/deployment.yaml
+  - wxwidgets/linux-adapter/service.yaml
+  - wxwidgets/linux-adapter/configmap.yaml
+  - wxwidgets/linux-adapter/secret.yaml
+  - wxwidgets/linux-adapter/hpa.yaml
+  - wxwidgets/linux-adapter/serviceaccount.yaml
+  - wxwidgets/linux-adapter/networkpolicy.yaml
+
+  - wxwidgets/xrc-service/deployment.yaml
+  - wxwidgets/xrc-service/service.yaml
+  - wxwidgets/xrc-service/configmap.yaml
+  - wxwidgets/xrc-service/secret.yaml
+  - wxwidgets/xrc-service/hpa.yaml
+  - wxwidgets/xrc-service/serviceaccount.yaml
+  - wxwidgets/xrc-service/networkpolicy.yaml
+
+  # PolyORB services
+  - polyorb/orb-core/deployment.yaml
+  - polyorb/orb-core/service.yaml
+  - polyorb/orb-core/configmap.yaml
+  - polyorb/orb-core/secret.yaml
+  - polyorb/orb-core/hpa.yaml
+  - polyorb/orb-core/serviceaccount.yaml
+  - polyorb/orb-core/networkpolicy.yaml
+
+  - polyorb/giop-protocol/deployment.yaml
+  - polyorb/giop-protocol/service.yaml
+  - polyorb/giop-protocol/configmap.yaml
+  - polyorb/giop-protocol/secret.yaml
+  - polyorb/giop-protocol/hpa.yaml
+  - polyorb/giop-protocol/serviceaccount.yaml
+  - polyorb/giop-protocol/networkpolicy.yaml
+
+  - polyorb/poa-manager/deployment.yaml
+  - polyorb/poa-manager/service.yaml
+  - polyorb/poa-manager/configmap.yaml
+  - polyorb/poa-manager/secret.yaml
+  - polyorb/poa-manager/hpa.yaml
+  - polyorb/poa-manager/serviceaccount.yaml
+  - polyorb/poa-manager/networkpolicy.yaml
+
+  - polyorb/naming-service/deployment.yaml
+  - polyorb/naming-service/service.yaml
+  - polyorb/naming-service/configmap.yaml
+  - polyorb/naming-service/secret.yaml
+  - polyorb/naming-service/hpa.yaml
+  - polyorb/naming-service/serviceaccount.yaml
+  - polyorb/naming-service/networkpolicy.yaml
+
+  - polyorb/event-service/deployment.yaml
+  - polyorb/event-service/service.yaml
+  - polyorb/event-service/configmap.yaml
+  - polyorb/event-service/secret.yaml
+  - polyorb/event-service/hpa.yaml
+  - polyorb/event-service/serviceaccount.yaml
+  - polyorb/event-service/networkpolicy.yaml
+
+  - polyorb/notification-service/deployment.yaml
+  - polyorb/notification-service/service.yaml
+  - polyorb/notification-service/configmap.yaml
+  - polyorb/notification-service/secret.yaml
+  - polyorb/notification-service/hpa.yaml
+  - polyorb/notification-service/serviceaccount.yaml
+  - polyorb/notification-service/networkpolicy.yaml
+
+  - polyorb/interface-repository/deployment.yaml
+  - polyorb/interface-repository/service.yaml
+  - polyorb/interface-repository/configmap.yaml
+  - polyorb/interface-repository/secret.yaml
+  - polyorb/interface-repository/hpa.yaml
+  - polyorb/interface-repository/serviceaccount.yaml
+  - polyorb/interface-repository/networkpolicy.yaml
+
+  - polyorb/soap-gateway/deployment.yaml
+  - polyorb/soap-gateway/service.yaml
+  - polyorb/soap-gateway/configmap.yaml
+  - polyorb/soap-gateway/secret.yaml
+  - polyorb/soap-gateway/hpa.yaml
+  - polyorb/soap-gateway/serviceaccount.yaml
+  - polyorb/soap-gateway/networkpolicy.yaml
+
+  - polyorb/security-service/deployment.yaml
+  - polyorb/security-service/service.yaml
+  - polyorb/security-service/configmap.yaml
+  - polyorb/security-service/secret.yaml
+  - polyorb/security-service/hpa.yaml
+  - polyorb/security-service/serviceaccount.yaml
+  - polyorb/security-service/networkpolicy.yaml
+
+commonLabels:
+  managed-by: kustomize

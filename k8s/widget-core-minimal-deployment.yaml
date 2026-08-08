@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: widget-core
+  namespace: dev
+  labels:
+    app: widget-core
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: widget-core
+  template:
+    metadata:
+      labels:
+        app: widget-core
+        version: v1.0.0
+    spec:
+      containers:
+      - name: widget-core
+        image: localhost:5000/widget-core:v1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50051
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        # Simple exec probe since we don't have gRPC health checks yet
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "pgrep -f widget-core-service"
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "pgrep -f widget-core-service"
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: widget-core
+  namespace: dev
+  labels:
+    app: widget-core
+spec:
+  selector:
+    app: widget-core
+  ports:
+  - name: grpc
+    port: 50051
+    targetPort: 50051
+    protocol: TCP
+  type: ClusterIP

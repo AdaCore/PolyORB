@@ -33,7 +33,7 @@
 pragma Ada_2012;
 
 with Ada.Task_Attributes;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 with PolyORB.Smart_Pointers;
@@ -61,8 +61,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations is
    --------------
 
    overriding procedure Finalize (Object : in out Notepad_Entity) is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Notepad, Notepad_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Notepad,
+         Name => Notepad_Access);
    begin
       if Object.Notepad /= null then
          Destroy (Object.Notepad.all);

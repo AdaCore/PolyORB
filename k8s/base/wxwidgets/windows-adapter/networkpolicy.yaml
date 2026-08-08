@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: windows-adapter-netpol
+  namespace: wxwidgets
+  labels:
+    app: windows-adapter
+    version: v1.0.0
+spec:
+  podSelector:
+    matchLabels:
+      app: windows-adapter
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    ports:
+    - protocol: TCP
+      port: 50054
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system

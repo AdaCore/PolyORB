@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
@@ -179,7 +179,9 @@ package body CORBA.Fixed_Point is
    --------------------
 
    overriding procedure Finalize_Value (ACC : in out Fixed_Content) is
-      procedure Free is new Ada.Unchecked_Deallocation (F, F_Ptr);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => F,
+         Name => F_Ptr);
    begin
       Free (ACC.V);
    end Finalize_Value;

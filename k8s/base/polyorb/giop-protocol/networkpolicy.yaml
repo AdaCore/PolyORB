@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: giop-protocol-netpol
+  namespace: polyorb
+  labels:
+    app: giop-protocol
+    version: v1.0.0
+spec:
+  podSelector:
+    matchLabels:
+      app: giop-protocol
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: polyorb
+    ports:
+    - protocol: TCP
+      port: 50061
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: polyorb
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53

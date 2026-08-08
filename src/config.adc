@@ -1,0 +1,10 @@
+--  Set assertion and debug policies
+
+pragma Assertion_Policy (Ignore);
+pragma Debug_Policy (Check);
+
+--  Set Initialize_Scalars for debug builds
+
+--  pragma Initialize_Scalars;
+
+--  Additional user-provided configuration pragmas below

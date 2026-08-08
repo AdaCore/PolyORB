@@ -1,3 +1,4 @@
+# PolyORB/Ada specific
 autom4te.cache
 aclocal.m4
 
@@ -12,19 +13,65 @@ aclocal.m4
 *.c.stdout
 *.d
 
-# These are the default patterns globally ignored by Subversion:
+# Build artifacts
+build/
+dist/
 *.o
 *.lo
 *.la
 *.al
-.libs
+*.a
 *.so
 *.so.[0-9]*
-*.a
+*.dylib
+*.exe
+.libs
+
+# Python
 *.pyc
 *.pyo
-*.rej
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 *~
 .#*
-.*.swp
+*.rej
+
+# OS
+.DS_Store
 .DS_store
+Thumbs.db
+
+# Docker
+.docker/
+
+# Kubernetes
+*.log
+
+# Secrets and credentials
+*.key
+*.pem
+*.p12
+secrets/
+.env
+.env.local
+
+# Node modules
+node_modules/
+
+# Test coverage
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Compilation database
+compile_commands.json

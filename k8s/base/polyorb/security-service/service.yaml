@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: security-service
+  namespace: polyorb
+  labels:
+    app: security-service
+    version: v1.0.0
+    tier: security
+spec:
+  type: ClusterIP
+  selector:
+    app: security-service
+    version: v1.0.0
+  ports:
+  - name: grpc
+    port: 50067
+    targetPort: 50067
+    protocol: TCP
+  - name: https
+    port: 8443
+    targetPort: 8443
+    protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800

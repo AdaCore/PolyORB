@@ -33,7 +33,7 @@
 pragma Ada_2012;
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 
@@ -207,7 +207,11 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
 
    overriding procedure Release_Contents (C : access TC_Policies) is
       procedure Free is
-         new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
+         new PolyORB.Utils.Unchecked_Deallocation.Free
+
+        (Object => Encapsulation,
+
+         Name   => Encapsulation_Access);
 
       use Policy_Value_Seq;
 

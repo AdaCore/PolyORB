@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "rube": {
+      "type": "http",
+      "url": "https://rube.app/mcp"
+    },
+    "ax-gcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@0.1.29",
+        "https://mcp.paxai.app/mcp/agents/code_architect",
+        "--transport",
+        "http-only",
+        "--oauth-server",
+        "https://api.paxai.app"
+      ]
+    }
+  }
+}

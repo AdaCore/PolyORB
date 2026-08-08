@@ -1,0 +1,50 @@
+# Alire Configuration Example for PolyORB Services
+# Copy this file to each service directory as alire.toml and customize
+
+name = "orb_core_service"
+description = "ORB Core Service for PolyORB CORBA implementation"
+version = "1.0.0"
+
+authors = ["RefactorTeam"]
+maintainers = ["RefactorTeam <team@example.com>"]
+licenses = "MIT"
+
+[origin]
+url = "https://github.com/heathdorn00/PolyORB"
+
+[[depends-on]]
+polyorb = "^4.0"
+
+[[depends-on]]
+gnatcoll = "^23.0"
+
+[[depends-on]]
+aws = "^23.0"  # Ada Web Server for HTTP services
+
+[configuration]
+disabled = []
+
+[configuration.values]
+polyorb_network_access = "sockets"
+polyorb_protocols = "giop"
+polyorb_services = "naming event notification"
+
+[build-switches]
+ada_version = "Ada2012"
+build_mode = "release"
+
+[build-switches."*".ada_compiler_switches]
+"-gnatwa"  # All warnings
+"-gnatwe"  # Warnings as errors
+"-gnatQ"   # Don't quit
+"-gnatf"   # Full error messages
+
+[build-switches.release.ada_compiler_switches]
+"-O2"      # Optimize
+"-gnatn"   # Inline
+"-gnatp"   # Suppress checks (production only)
+
+[build-switches.debug.ada_compiler_switches]
+"-g"       # Debug info
+"-gnata"   # Assertions
+"-gnato"   # Overflow checking

@@ -33,7 +33,7 @@
 --  Utility declarations for low-level memory management.
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with System;
 
 package PolyORB.Opaque is
@@ -47,8 +47,9 @@ package PolyORB.Opaque is
    type Zone_Access is access all Ada.Streams.Stream_Element_Array;
    --  A storage zone: an array of bytes.
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Ada.Streams.Stream_Element_Array, Zone_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Ada.Streams.Stream_Element_Array,
+      Name => Zone_Access);
 
    --------------------------------------
    -- All-purpose memory location type --
