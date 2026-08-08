@@ -1,0 +1,17 @@
+[LIBRARY PATH]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/lib/libpolyorb-giop-iiop.a
+[OBJECT FILES]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/iiop/polyorb-binding_data-giop-iiop.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/iiop/polyorb-giop_p-tagged_components-alternate_iiop_address.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/iiop/polyorb-giop_p-tagged_components-ssl_sec_trans.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/iiop/polyorb-giop_p-transport_mechanisms-iiop.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/iiop/polyorb-protocols-giop-iiop.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/iiop/polyorb-setup-access_points-iiop.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/iiop/polyorb-setup-iiop.o
+20251105045314

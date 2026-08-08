@@ -1,0 +1,201 @@
+# DestinationRules for PolyORB microservices
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: orb-core-dr
+  namespace: polyorb
+spec:
+  host: orb-core
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: x-session-id
+    connectionPool:
+      tcp:
+        maxConnections: 2000
+      http:
+        http1MaxPendingRequests: 2000
+        http2MaxRequests: 2000
+        maxRequestsPerConnection: 4
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: giop-protocol-dr
+  namespace: polyorb
+spec:
+  host: giop-protocol
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+      http:
+        http1MaxPendingRequests: 1000
+        http2MaxRequests: 1000
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: poa-manager-dr
+  namespace: polyorb
+spec:
+  host: poa-manager
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_REQUEST
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: naming-service-dr
+  namespace: polyorb
+spec:
+  host: naming-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 500
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: event-service-dr
+  namespace: polyorb
+spec:
+  host: event-service
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_REQUEST
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: notification-service-dr
+  namespace: polyorb
+spec:
+  host: notification-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: interface-repository-dr
+  namespace: polyorb
+spec:
+  host: interface-repository
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 500
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: soap-gateway-dr
+  namespace: polyorb
+spec:
+  host: soap-gateway
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 500
+      http:
+        http1MaxPendingRequests: 500
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: security-service-dr
+  namespace: polyorb
+spec:
+  host: security-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+    tls:
+      mode: ISTIO_MUTUAL
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0

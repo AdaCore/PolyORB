@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-service
+  namespace: polyorb
+  labels:
+    app: event-service
+    version: v1.0.0
+    tier: events
+    component: corba-events
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: event-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: event-service
+        version: v1.0.0
+        tier: events
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: event-service-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: event-service
+        image: event-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50064
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "event-service"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: event-service-config
+              key: log_level
+        - name: ORB_CORE_ADDR
+          value: "orb-core.polyorb.svc.cluster.local:50060"
+        - name: NAMING_SERVICE_ADDR
+          value: "naming-service.polyorb.svc.cluster.local:50063"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50064
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          grpc:
+            port: 50064
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        startupProbe:
+          grpc:
+            port: 50064
+          periodSeconds: 5
+          failureThreshold: 15
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

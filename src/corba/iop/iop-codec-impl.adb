@@ -31,7 +31,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Buffers;
@@ -47,8 +47,13 @@ package body IOP.Codec.Impl is
    use PolyORB.Representations.CDR.Common;
 
    procedure Free is
-      new Ada.Unchecked_Deallocation
-      (CDR_Representation'Class, CDR_Representation_Access);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => CDR_Representation'Class,
+
+
+      Name   => CDR_Representation_Access);
 
    function To_Sequence
      (Item : Encapsulation)

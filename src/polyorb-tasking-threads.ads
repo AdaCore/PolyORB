@@ -42,7 +42,7 @@
 --  A Thread will only denote the type defined in this package,
 --  which is only a container for the parameters of the task.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with System;
 
@@ -65,7 +65,13 @@ package PolyORB.Tasking.Threads is
    type Runnable_Access is access all Runnable'Class;
 
    procedure Free is
-     new Ada.Unchecked_Deallocation (Runnable'Class, Runnable_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Runnable'Class,
+
+
+      Name   => Runnable_Access);
 
    ----------------
    -- Thread Ids --

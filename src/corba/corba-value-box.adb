@@ -32,14 +32,20 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with CORBA.Impl;
 
 package body CORBA.Value.Box is
 
    procedure FreeBox is
-     new Ada.Unchecked_Deallocation (Boxed, Boxed_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Boxed,
+
+
+      Name   => Boxed_Access);
 
    --------------
    --  Create  --

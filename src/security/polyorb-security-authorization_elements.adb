@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Security.Authorization_Elements.Unknown;
 
@@ -93,8 +93,13 @@ package body PolyORB.Security.Authorization_Elements is
       use Authorization_Element_Lists;
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Authorization_Element_Type'Class, Authorization_Element_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Authorization_Element_Type'Class,
+
+
+         Name   => Authorization_Element_Access);
 
       Iter : Iterator := First (Item);
 

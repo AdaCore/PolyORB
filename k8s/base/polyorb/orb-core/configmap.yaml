@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orb-core-config
+  namespace: polyorb
+  labels:
+    app: orb-core
+    version: v1.0.0
+data:
+  log_level: "info"
+  grpc_port: "50060"
+  giop_version: "1.2"
+  orb_threads: "4"
+  max_connections: "2000"
+  connection_timeout: "60"

@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data.GIOP.IIOP;
@@ -844,12 +844,22 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    procedure Release_Contents (X : in out Mechanism) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Tagged_Component'Class, Tagged_Component_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Tagged_Component'Class,
+
+
+         Name   => Tagged_Component_Access);
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Stream_Element_Array, Stream_Element_Array_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Stream_Element_Array,
+
+
+         Name   => Stream_Element_Array_Access);
 
    begin
       Release_Contents (X.Transport_Mechanism_Tag);
@@ -887,7 +897,13 @@ package body PolyORB.GIOP_P.Tagged_Components.CSI_Sec_Mech_List is
    overriding procedure Release_Contents (C : access TC_CSI_Sec_Mech_List) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation (Mechanism, Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Mechanism,
+
+
+         Name   => Mechanism_Access);
 
       Iter : Mechanism_Lists.Iterator := First (C.Mechanisms);
 

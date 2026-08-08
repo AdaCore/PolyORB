@@ -1,0 +1,296 @@
+# Docker Compose for PolyORB Ada Microservices - Local Development
+# Usage: docker compose -f polyorb-docker-compose.yml up --build
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # ORB Core Service - Main CORBA ORB implementation
+  # ============================================================================
+  orb-core:
+    build:
+      context: ./polyorb-services/orb-core
+      dockerfile: Dockerfile
+      cache_from:
+        - orb-core:latest
+    image: orb-core:latest
+    container_name: orb-core
+    ports:
+      - "50060:50060"
+    environment:
+      - SERVICE_NAME=orb-core
+      - LOG_LEVEL=info
+      - GIOP_VERSION=1.2
+      - ORB_THREADS=4
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50060"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # GIOP Protocol Service - Protocol handling
+  # ============================================================================
+  giop-protocol:
+    build:
+      context: ./polyorb-services/giop-protocol
+      dockerfile: Dockerfile
+      cache_from:
+        - giop-protocol:latest
+    image: giop-protocol:latest
+    container_name: giop-protocol
+    ports:
+      - "50061:50061"
+    environment:
+      - SERVICE_NAME=giop-protocol
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+      - GIOP_VERSION=1.2
+    depends_on:
+      orb-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50061"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # POA Manager Service - Portable Object Adapter management
+  # ============================================================================
+  poa-manager:
+    build:
+      context: ./polyorb-services/poa-manager
+      dockerfile: Dockerfile
+      cache_from:
+        - poa-manager:latest
+    image: poa-manager:latest
+    container_name: poa-manager
+    ports:
+      - "50062:50062"
+    environment:
+      - SERVICE_NAME=poa-manager
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+    depends_on:
+      orb-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50062"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Naming Service - CORBA naming service
+  # ============================================================================
+  naming-service:
+    build:
+      context: ./polyorb-services/naming-service
+      dockerfile: Dockerfile
+      cache_from:
+        - naming-service:latest
+    image: naming-service:latest
+    container_name: naming-service
+    ports:
+      - "50063:50063"
+    environment:
+      - SERVICE_NAME=naming-service
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+      - POA_MANAGER_ADDR=poa-manager:50062
+    depends_on:
+      orb-core:
+        condition: service_healthy
+      poa-manager:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50063"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Event Service - CORBA event service
+  # ============================================================================
+  event-service:
+    build:
+      context: ./polyorb-services/event-service
+      dockerfile: Dockerfile
+      cache_from:
+        - event-service:latest
+    image: event-service:latest
+    container_name: event-service
+    ports:
+      - "50064:50064"
+    environment:
+      - SERVICE_NAME=event-service
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+      - NAMING_SERVICE_ADDR=naming-service:50063
+    depends_on:
+      orb-core:
+        condition: service_healthy
+      naming-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50064"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Notification Service - CORBA notification service
+  # ============================================================================
+  notification-service:
+    build:
+      context: ./polyorb-services/notification-service
+      dockerfile: Dockerfile
+      cache_from:
+        - notification-service:latest
+    image: notification-service:latest
+    container_name: notification-service
+    ports:
+      - "50065:50065"
+    environment:
+      - SERVICE_NAME=notification-service
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+      - EVENT_SERVICE_ADDR=event-service:50064
+    depends_on:
+      orb-core:
+        condition: service_healthy
+      event-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50065"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Interface Repository - CORBA interface repository
+  # ============================================================================
+  interface-repository:
+    build:
+      context: ./polyorb-services/interface-repository
+      dockerfile: Dockerfile
+      cache_from:
+        - interface-repository:latest
+    image: interface-repository:latest
+    container_name: interface-repository
+    ports:
+      - "50066:50066"
+    environment:
+      - SERVICE_NAME=interface-repository
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+      - NAMING_SERVICE_ADDR=naming-service:50063
+    depends_on:
+      orb-core:
+        condition: service_healthy
+      naming-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50066"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # SOAP Gateway - SOAP to CORBA bridge (HTTP/REST)
+  # ============================================================================
+  soap-gateway:
+    build:
+      context: ./polyorb-services/soap-gateway
+      dockerfile: Dockerfile
+      cache_from:
+        - soap-gateway:latest
+    image: soap-gateway:latest
+    container_name: soap-gateway
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVICE_NAME=soap-gateway
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+    depends_on:
+      orb-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Security Service - CORBA security service with SSL/TLS
+  # ============================================================================
+  security-service:
+    build:
+      context: ./polyorb-services/security-service
+      dockerfile: Dockerfile
+      cache_from:
+        - security-service:latest
+    image: security-service:latest
+    container_name: security-service
+    ports:
+      - "50067:50067"
+    environment:
+      - SERVICE_NAME=security-service
+      - LOG_LEVEL=info
+      - ORB_CORE_ADDR=orb-core:50060
+      - SSL_ENABLED=true
+      - CERT_PATH=/app/certs
+    depends_on:
+      orb-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50067"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - polyorb-net
+    restart: unless-stopped
+    # Mount certificates (create certs directory first)
+    # volumes:
+    #   - ./certs:/app/certs:ro
+
+networks:
+  polyorb-net:
+    driver: bridge
+    name: polyorb-network

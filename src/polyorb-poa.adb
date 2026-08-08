@@ -35,7 +35,7 @@ pragma Ada_2012;
 --  Abstract interface for the POA
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
@@ -447,8 +447,9 @@ package body PolyORB.POA is
    ----------------------
 
    procedure Destroy_Policies (OA : in out Obj_Adapter) is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Policy'Class, Policy_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Policy'Class,
+         Name => Policy_Access);
    begin
       Free (Policy_Access (OA.Thread_Policy));
       Free (Policy_Access (OA.Id_Uniqueness_Policy));
@@ -664,8 +665,9 @@ package body PolyORB.POA is
       use PolyORB.Object_Maps;
       use PolyORB.POA_Types.POA_HTables;
 
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Object_Map'Class, Object_Map_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Object_Map'Class,
+         Name => Object_Map_Access);
 
    begin
       --  We might be finalizing a POA (because of reference counting)

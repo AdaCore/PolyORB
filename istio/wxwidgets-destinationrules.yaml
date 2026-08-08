@@ -1,0 +1,154 @@
+# DestinationRules for wxWidgets microservices
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: widget-core-dr
+  namespace: wxwidgets
+spec:
+  host: widget-core
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: x-user-id
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+      http:
+        http1MaxPendingRequests: 1000
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 2
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 40
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: render-manager-dr
+  namespace: wxwidgets
+spec:
+  host: render-manager
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+      http:
+        http1MaxPendingRequests: 1000
+        http2MaxRequests: 1000
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: event-manager-dr
+  namespace: wxwidgets
+spec:
+  host: event-manager
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_REQUEST
+    connectionPool:
+      tcp:
+        maxConnections: 500
+      http:
+        http1MaxPendingRequests: 500
+        http2MaxRequests: 500
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: windows-adapter-dr
+  namespace: wxwidgets
+spec:
+  host: windows-adapter
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 500
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: macos-adapter-dr
+  namespace: wxwidgets
+spec:
+  host: macos-adapter
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 500
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: linux-adapter-dr
+  namespace: wxwidgets
+spec:
+  host: linux-adapter
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 1000
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: xrc-service-dr
+  namespace: wxwidgets
+spec:
+  host: xrc-service
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    connectionPool:
+      tcp:
+        maxConnections: 500
+      http:
+        http1MaxPendingRequests: 500
+  subsets:
+    - name: v1
+      labels:
+        version: v1.0.0

@@ -1,0 +1,25 @@
+[LIBRARY PATH]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/lib/libpolyorb-giop-miop.a
+[OBJECT FILES]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-binding_data-giop-uipmc.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-filters-miop-miop_in.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-filters-miop-miop_out.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-filters-miop.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-giop_p-transport_mechanisms-uipmc.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-miop_p-groups.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-miop_p-tagged_components.o
+20251105045314
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-miop_p.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-protocols-giop-uipmc.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-setup-access_points-uipmc.o
+20251105045313
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/giop/miop/polyorb-setup-uipmc.o
+20251105045314

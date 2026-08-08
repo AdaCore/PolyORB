@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 pragma Warnings (Off);
 --  Depends on System.Unsigned_Types, an internal GNAT unit
@@ -453,8 +453,9 @@ package body PolyORB.Buffers is
    procedure Release
      (A_Buffer : in out Buffer_Access)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Buffer_Type, Buffer_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Buffer_Type,
+         Name => Buffer_Access);
 
    begin
       if A_Buffer /= null then
@@ -703,8 +704,9 @@ package body PolyORB.Buffers is
 
    package body Iovec_Pools is
 
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Iovec_Array, Iovec_Array_Access);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Iovec_Array,
+         Name => Iovec_Array_Access);
 
       ----------------------------------------
       -- Utility Subprograms (declarations) --

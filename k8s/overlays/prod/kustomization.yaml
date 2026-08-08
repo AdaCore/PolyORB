@@ -1,0 +1,122 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+
+bases:
+  - ../../base
+
+images:
+  # wxWidgets
+  - name: widget-core
+    newTag: v1.0.0
+  - name: render-manager
+    newTag: v1.0.0
+  - name: event-manager
+    newTag: v1.0.0
+  - name: windows-adapter
+    newTag: v1.0.0
+  - name: macos-adapter
+    newTag: v1.0.0
+  - name: linux-adapter
+    newTag: v1.0.0
+  - name: xrc-service
+    newTag: v1.0.0
+
+  # PolyORB
+  - name: orb-core
+    newTag: v1.0.0
+  - name: giop-protocol
+    newTag: v1.0.0
+  - name: poa-manager
+    newTag: v1.0.0
+  - name: naming-service
+    newTag: v1.0.0
+  - name: event-service
+    newTag: v1.0.0
+  - name: notification-service
+    newTag: v1.0.0
+  - name: interface-repository
+    newTag: v1.0.0
+  - name: soap-gateway
+    newTag: v1.0.0
+  - name: security-service
+    newTag: v1.0.0
+
+# Production replicas as specified in task
+replicas:
+  - name: widget-core
+    count: 3
+  - name: render-manager
+    count: 3
+  - name: event-manager
+    count: 2
+  - name: windows-adapter
+    count: 2
+  - name: macos-adapter
+    count: 2
+  - name: linux-adapter
+    count: 3
+  - name: xrc-service
+    count: 2
+  - name: orb-core
+    count: 3
+  - name: giop-protocol
+    count: 2
+  - name: poa-manager
+    count: 2
+  - name: naming-service
+    count: 2
+  - name: event-service
+    count: 2
+  - name: notification-service
+    count: 3
+  - name: interface-repository
+    count: 2
+  - name: soap-gateway
+    count: 2
+  - name: security-service
+    count: 3
+
+configMapGenerator:
+  - name: prod-env-config
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=warn
+      - DEBUG_ENABLED=false
+
+patches:
+  # Production resource allocations
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 512Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+    target:
+      kind: Deployment
+      name: widget-core
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 512Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+    target:
+      kind: Deployment
+      name: render-manager
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 512Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+    target:
+      kind: Deployment
+      name: orb-core

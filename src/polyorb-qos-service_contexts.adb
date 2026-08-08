@@ -32,7 +32,7 @@
 
 pragma Ada_2012;
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Request_QoS;
 
@@ -50,7 +50,13 @@ package body PolyORB.QoS.Service_Contexts is
    function Get_Converter (Context_Id : Service_Id) return To_QoS_Parameter;
 
    procedure Free is
-     new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Encapsulation,
+
+
+      Name   => Encapsulation_Access);
 
    To_Service_Context_Registry : array (QoS_Kind) of To_Service_Context
      := (others => null);

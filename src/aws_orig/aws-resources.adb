@@ -32,7 +32,7 @@
 
 --  @@@ uses ada.calendar
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with AWS.Resources.Files;
 with AWS.Resources.Embedded;
@@ -42,7 +42,13 @@ package body AWS.Resources is
    use Ada;
 
    procedure Free is
-      new Ada.Unchecked_Deallocation (Resources.File_Tagged'Class, File_Type);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Resources.File_Tagged'Class,
+
+
+      Name   => File_Type);
 
    -----------
    -- Close --

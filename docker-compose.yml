@@ -1,0 +1,225 @@
+# Docker Compose for wxWidgets Microservices - Local Development
+# Usage: docker compose up --build
+
+version: '3.9'
+
+services:
+  # ============================================================================
+  # Widget Core Service - Main widget operations
+  # ============================================================================
+  widget-core:
+    build:
+      context: ./services/widget-core
+      dockerfile: Dockerfile
+      cache_from:
+        - widget-core:latest
+    image: widget-core:latest
+    container_name: widget-core
+    ports:
+      - "50051:50051"
+    environment:
+      - SERVICE_NAME=widget-core
+      - LOG_LEVEL=info
+      - GRPC_VERBOSITY=error
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wxwidgets-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Render Manager Service - Graphics rendering
+  # ============================================================================
+  render-manager:
+    build:
+      context: ./services/render-manager
+      dockerfile: Dockerfile
+      cache_from:
+        - render-manager:latest
+    image: render-manager:latest
+    container_name: render-manager
+    ports:
+      - "50052:50052"
+    environment:
+      - SERVICE_NAME=render-manager
+      - LOG_LEVEL=info
+      - GRPC_VERBOSITY=error
+      - WIDGET_CORE_ADDR=widget-core:50051
+    depends_on:
+      widget-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50052"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wxwidgets-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Event Manager Service - Event handling and routing
+  # ============================================================================
+  event-manager:
+    build:
+      context: ./services/event-manager
+      dockerfile: Dockerfile
+      cache_from:
+        - event-manager:latest
+    image: event-manager:latest
+    container_name: event-manager
+    ports:
+      - "50053:50053"
+    environment:
+      - SERVICE_NAME=event-manager
+      - LOG_LEVEL=info
+      - GRPC_VERBOSITY=error
+      - WIDGET_CORE_ADDR=widget-core:50051
+    depends_on:
+      widget-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50053"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wxwidgets-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Windows Adapter Service - Windows-specific adapter
+  # ============================================================================
+  windows-adapter:
+    build:
+      context: ./services/windows-adapter
+      dockerfile: Dockerfile
+      cache_from:
+        - windows-adapter:latest
+    image: windows-adapter:latest
+    container_name: windows-adapter
+    ports:
+      - "50054:50054"
+    environment:
+      - SERVICE_NAME=windows-adapter
+      - LOG_LEVEL=info
+      - GRPC_VERBOSITY=error
+      - WIDGET_CORE_ADDR=widget-core:50051
+      - PLATFORM=windows
+    depends_on:
+      widget-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50054"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wxwidgets-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # macOS Adapter Service - macOS-specific adapter
+  # ============================================================================
+  macos-adapter:
+    build:
+      context: ./services/macos-adapter
+      dockerfile: Dockerfile
+      cache_from:
+        - macos-adapter:latest
+    image: macos-adapter:latest
+    container_name: macos-adapter
+    ports:
+      - "50055:50055"
+    environment:
+      - SERVICE_NAME=macos-adapter
+      - LOG_LEVEL=info
+      - GRPC_VERBOSITY=error
+      - WIDGET_CORE_ADDR=widget-core:50051
+      - PLATFORM=macos
+    depends_on:
+      widget-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50055"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wxwidgets-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # Linux Adapter Service - Linux-specific adapter
+  # ============================================================================
+  linux-adapter:
+    build:
+      context: ./services/linux-adapter
+      dockerfile: Dockerfile
+      cache_from:
+        - linux-adapter:latest
+    image: linux-adapter:latest
+    container_name: linux-adapter
+    ports:
+      - "50056:50056"
+    environment:
+      - SERVICE_NAME=linux-adapter
+      - LOG_LEVEL=info
+      - GRPC_VERBOSITY=error
+      - WIDGET_CORE_ADDR=widget-core:50051
+      - PLATFORM=linux
+    depends_on:
+      widget-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/grpc_health_probe", "-addr=:50056"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wxwidgets-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # XRC Service - XML Resource handling (HTTP/REST)
+  # ============================================================================
+  xrc-service:
+    build:
+      context: ./services/xrc-service
+      dockerfile: Dockerfile
+      cache_from:
+        - xrc-service:latest
+    image: xrc-service:latest
+    container_name: xrc-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVICE_NAME=xrc-service
+      - LOG_LEVEL=info
+      - WIDGET_CORE_ADDR=widget-core:50051
+    depends_on:
+      widget-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - wxwidgets-net
+    restart: unless-stopped
+
+networks:
+  wxwidgets-net:
+    driver: bridge
+    name: wxwidgets-network

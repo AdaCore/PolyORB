@@ -35,7 +35,7 @@ pragma Ada_2012;
 with GNAT.HTable;
 --  XXX Use PolyORB's Hash table ...
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -764,7 +764,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    --  unlock global lock if locked.
 
    procedure Free is
-      new Ada.Unchecked_Deallocation (Bound_Object, Bound_Object_Ptr);
+      new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+     (Object => Bound_Object,
+
+
+      Name   => Bound_Object_Ptr);
 
    Seed : Key_Type := (others => 'A');
 

@@ -43,7 +43,7 @@ pragma Style_Checks ("NM32766");
 with PolyORB.Utils.Strings;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with PolyORB.Types;
 with PolyORB.Exceptions;
 with PolyORB.Std;
@@ -139,38 +139,38 @@ package body PortableServer.Helper is
          Members);
    end Raise_ForwardRequest;
 
-   type Ptr_Ü_ThreadPolicyValue is access all PortableServer.ThreadPolicyValue;
-   type Content_Ü_ThreadPolicyValue is
+   type Ptr_ThreadPolicyValue is access all PortableServer.ThreadPolicyValue;
+   type Content_ThreadPolicyValue is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_ThreadPolicyValue;
+      V : Ptr_ThreadPolicyValue;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ThreadPolicyValue;
+     (ACC   : not null access Content_ThreadPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism)
       return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_ThreadPolicyValue;
+     (ACC    : in out Content_ThreadPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ThreadPolicyValue) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_ThreadPolicyValue) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ThreadPolicyValue;
+     (ACC : in out Content_ThreadPolicyValue;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_ThreadPolicyValue;
+     (ACC  : Content_ThreadPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ThreadPolicyValue);
+     (ACC : in out Content_ThreadPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ThreadPolicyValue;
+     (ACC   : not null access Content_ThreadPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism)
@@ -186,7 +186,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_ThreadPolicyValue;
+     (ACC    : in out Content_ThreadPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -199,7 +199,7 @@ package body PortableServer.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ThreadPolicyValue) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_ThreadPolicyValue) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -207,7 +207,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ThreadPolicyValue;
+     (ACC : in out Content_ThreadPolicyValue;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -219,38 +219,38 @@ package body PortableServer.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_ThreadPolicyValue;
+     (ACC  : Content_ThreadPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_ThreadPolicyValue then
+         if Into.all not in Content_ThreadPolicyValue then
             return null;
          end if;
          Target := Into;
-         Content_Ü_ThreadPolicyValue (Target.all).V.all := ACC.V.all;
+         Content_ThreadPolicyValue (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_ThreadPolicyValue;
-         Content_Ü_ThreadPolicyValue (Target.all).V := new PortableServer.ThreadPolicyValue'(ACC.V.all);
+         Target := new Content_ThreadPolicyValue;
+         Content_ThreadPolicyValue (Target.all).V := new PortableServer.ThreadPolicyValue'(ACC.V.all);
       end if;
-      Content_Ü_ThreadPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_ThreadPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ThreadPolicyValue)
+     (ACC : in out Content_ThreadPolicyValue)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PortableServer.ThreadPolicyValue, Ptr_Ü_ThreadPolicyValue);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => PortableServer.ThreadPolicyValue, Name => Ptr_ThreadPolicyValue);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access PortableServer.ThreadPolicyValue) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_ThreadPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_ThreadPolicyValue (X),
+      return Content_ThreadPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_ThreadPolicyValue (X),
         Repr_Cache => 0);
    end Wrap;
 
@@ -284,38 +284,38 @@ package body PortableServer.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_LifespanPolicyValue is access all PortableServer.LifespanPolicyValue;
-   type Content_Ü_LifespanPolicyValue is
+   type Ptr_LifespanPolicyValue is access all PortableServer.LifespanPolicyValue;
+   type Content_LifespanPolicyValue is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_LifespanPolicyValue;
+      V : Ptr_LifespanPolicyValue;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_LifespanPolicyValue;
+     (ACC   : not null access Content_LifespanPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism)
       return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_LifespanPolicyValue;
+     (ACC    : in out Content_LifespanPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_LifespanPolicyValue) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_LifespanPolicyValue) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_LifespanPolicyValue;
+     (ACC : in out Content_LifespanPolicyValue;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_LifespanPolicyValue;
+     (ACC  : Content_LifespanPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_LifespanPolicyValue);
+     (ACC : in out Content_LifespanPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_LifespanPolicyValue;
+     (ACC   : not null access Content_LifespanPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -330,7 +330,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_LifespanPolicyValue;
+     (ACC    : in out Content_LifespanPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -343,7 +343,7 @@ package body PortableServer.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_LifespanPolicyValue) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_LifespanPolicyValue) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -351,7 +351,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_LifespanPolicyValue;
+     (ACC : in out Content_LifespanPolicyValue;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -363,38 +363,38 @@ package body PortableServer.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_LifespanPolicyValue;
+     (ACC  : Content_LifespanPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_LifespanPolicyValue then
+         if Into.all not in Content_LifespanPolicyValue then
             return null;
          end if;
          Target := Into;
-         Content_Ü_LifespanPolicyValue (Target.all).V.all := ACC.V.all;
+         Content_LifespanPolicyValue (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_LifespanPolicyValue;
-         Content_Ü_LifespanPolicyValue (Target.all).V := new PortableServer.LifespanPolicyValue'(ACC.V.all);
+         Target := new Content_LifespanPolicyValue;
+         Content_LifespanPolicyValue (Target.all).V := new PortableServer.LifespanPolicyValue'(ACC.V.all);
       end if;
-      Content_Ü_LifespanPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_LifespanPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_LifespanPolicyValue)
+     (ACC : in out Content_LifespanPolicyValue)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PortableServer.LifespanPolicyValue, Ptr_Ü_LifespanPolicyValue);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => PortableServer.LifespanPolicyValue, Name => Ptr_LifespanPolicyValue);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access PortableServer.LifespanPolicyValue) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_LifespanPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_LifespanPolicyValue (X),
+      return Content_LifespanPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_LifespanPolicyValue (X),
         Repr_Cache => 0);
    end Wrap;
 
@@ -428,37 +428,37 @@ package body PortableServer.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_IdUniquenessPolicyValue is access all PortableServer.IdUniquenessPolicyValue;
-   type Content_Ü_IdUniquenessPolicyValue is
+   type Ptr_IdUniquenessPolicyValue is access all PortableServer.IdUniquenessPolicyValue;
+   type Content_IdUniquenessPolicyValue is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_IdUniquenessPolicyValue;
+      V : Ptr_IdUniquenessPolicyValue;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_IdUniquenessPolicyValue;
+     (ACC   : not null access Content_IdUniquenessPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_IdUniquenessPolicyValue;
+     (ACC    : in out Content_IdUniquenessPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_IdUniquenessPolicyValue) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_IdUniquenessPolicyValue) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_IdUniquenessPolicyValue;
+     (ACC : in out Content_IdUniquenessPolicyValue;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_IdUniquenessPolicyValue;
+     (ACC  : Content_IdUniquenessPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_IdUniquenessPolicyValue);
+     (ACC : in out Content_IdUniquenessPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_IdUniquenessPolicyValue;
+     (ACC   : not null access Content_IdUniquenessPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -473,7 +473,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_IdUniquenessPolicyValue;
+     (ACC    : in out Content_IdUniquenessPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -486,7 +486,7 @@ package body PortableServer.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_IdUniquenessPolicyValue) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_IdUniquenessPolicyValue) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -494,7 +494,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_IdUniquenessPolicyValue;
+     (ACC : in out Content_IdUniquenessPolicyValue;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -506,38 +506,38 @@ package body PortableServer.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_IdUniquenessPolicyValue;
+     (ACC  : Content_IdUniquenessPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_IdUniquenessPolicyValue then
+         if Into.all not in Content_IdUniquenessPolicyValue then
             return null;
          end if;
          Target := Into;
-         Content_Ü_IdUniquenessPolicyValue (Target.all).V.all := ACC.V.all;
+         Content_IdUniquenessPolicyValue (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_IdUniquenessPolicyValue;
-         Content_Ü_IdUniquenessPolicyValue (Target.all).V := new PortableServer.IdUniquenessPolicyValue'(ACC.V.all);
+         Target := new Content_IdUniquenessPolicyValue;
+         Content_IdUniquenessPolicyValue (Target.all).V := new PortableServer.IdUniquenessPolicyValue'(ACC.V.all);
       end if;
-      Content_Ü_IdUniquenessPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_IdUniquenessPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_IdUniquenessPolicyValue)
+     (ACC : in out Content_IdUniquenessPolicyValue)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PortableServer.IdUniquenessPolicyValue, Ptr_Ü_IdUniquenessPolicyValue);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => PortableServer.IdUniquenessPolicyValue, Name => Ptr_IdUniquenessPolicyValue);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access PortableServer.IdUniquenessPolicyValue) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_IdUniquenessPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_IdUniquenessPolicyValue (X),
+      return Content_IdUniquenessPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_IdUniquenessPolicyValue (X),
         Repr_Cache => 0);
    end Wrap;
 
@@ -571,37 +571,37 @@ package body PortableServer.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_IdAssignmentPolicyValue is access all PortableServer.IdAssignmentPolicyValue;
-   type Content_Ü_IdAssignmentPolicyValue is
+   type Ptr_IdAssignmentPolicyValue is access all PortableServer.IdAssignmentPolicyValue;
+   type Content_IdAssignmentPolicyValue is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_IdAssignmentPolicyValue;
+      V : Ptr_IdAssignmentPolicyValue;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_IdAssignmentPolicyValue;
+     (ACC   : not null access Content_IdAssignmentPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_IdAssignmentPolicyValue;
+     (ACC    : in out Content_IdAssignmentPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_IdAssignmentPolicyValue) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_IdAssignmentPolicyValue) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_IdAssignmentPolicyValue;
+     (ACC : in out Content_IdAssignmentPolicyValue;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_IdAssignmentPolicyValue;
+     (ACC  : Content_IdAssignmentPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_IdAssignmentPolicyValue);
+     (ACC : in out Content_IdAssignmentPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_IdAssignmentPolicyValue;
+     (ACC   : not null access Content_IdAssignmentPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -616,7 +616,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_IdAssignmentPolicyValue;
+     (ACC    : in out Content_IdAssignmentPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -629,7 +629,7 @@ package body PortableServer.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_IdAssignmentPolicyValue) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_IdAssignmentPolicyValue) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -637,7 +637,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_IdAssignmentPolicyValue;
+     (ACC : in out Content_IdAssignmentPolicyValue;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -649,38 +649,38 @@ package body PortableServer.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_IdAssignmentPolicyValue;
+     (ACC  : Content_IdAssignmentPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_IdAssignmentPolicyValue then
+         if Into.all not in Content_IdAssignmentPolicyValue then
             return null;
          end if;
          Target := Into;
-         Content_Ü_IdAssignmentPolicyValue (Target.all).V.all := ACC.V.all;
+         Content_IdAssignmentPolicyValue (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_IdAssignmentPolicyValue;
-         Content_Ü_IdAssignmentPolicyValue (Target.all).V := new PortableServer.IdAssignmentPolicyValue'(ACC.V.all);
+         Target := new Content_IdAssignmentPolicyValue;
+         Content_IdAssignmentPolicyValue (Target.all).V := new PortableServer.IdAssignmentPolicyValue'(ACC.V.all);
       end if;
-      Content_Ü_IdAssignmentPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_IdAssignmentPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_IdAssignmentPolicyValue)
+     (ACC : in out Content_IdAssignmentPolicyValue)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PortableServer.IdAssignmentPolicyValue, Ptr_Ü_IdAssignmentPolicyValue);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => PortableServer.IdAssignmentPolicyValue, Name => Ptr_IdAssignmentPolicyValue);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access PortableServer.IdAssignmentPolicyValue) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_IdAssignmentPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_IdAssignmentPolicyValue (X),
+      return Content_IdAssignmentPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_IdAssignmentPolicyValue (X),
         Repr_Cache => 0);
    end Wrap;
 
@@ -714,37 +714,37 @@ package body PortableServer.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_ImplicitActivationPolicyValue is access all PortableServer.ImplicitActivationPolicyValue;
-   type Content_Ü_ImplicitActivationPolicyValue is
+   type Ptr_ImplicitActivationPolicyValue is access all PortableServer.ImplicitActivationPolicyValue;
+   type Content_ImplicitActivationPolicyValue is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_ImplicitActivationPolicyValue;
+      V : Ptr_ImplicitActivationPolicyValue;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ImplicitActivationPolicyValue;
+     (ACC   : not null access Content_ImplicitActivationPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_ImplicitActivationPolicyValue;
+     (ACC    : in out Content_ImplicitActivationPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ImplicitActivationPolicyValue) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_ImplicitActivationPolicyValue) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ImplicitActivationPolicyValue;
+     (ACC : in out Content_ImplicitActivationPolicyValue;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_ImplicitActivationPolicyValue;
+     (ACC  : Content_ImplicitActivationPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ImplicitActivationPolicyValue);
+     (ACC : in out Content_ImplicitActivationPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ImplicitActivationPolicyValue;
+     (ACC   : not null access Content_ImplicitActivationPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -759,7 +759,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_ImplicitActivationPolicyValue;
+     (ACC    : in out Content_ImplicitActivationPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -772,7 +772,7 @@ package body PortableServer.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ImplicitActivationPolicyValue) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_ImplicitActivationPolicyValue) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -780,7 +780,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ImplicitActivationPolicyValue;
+     (ACC : in out Content_ImplicitActivationPolicyValue;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -792,38 +792,38 @@ package body PortableServer.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_ImplicitActivationPolicyValue;
+     (ACC  : Content_ImplicitActivationPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_ImplicitActivationPolicyValue then
+         if Into.all not in Content_ImplicitActivationPolicyValue then
             return null;
          end if;
          Target := Into;
-         Content_Ü_ImplicitActivationPolicyValue (Target.all).V.all := ACC.V.all;
+         Content_ImplicitActivationPolicyValue (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_ImplicitActivationPolicyValue;
-         Content_Ü_ImplicitActivationPolicyValue (Target.all).V := new PortableServer.ImplicitActivationPolicyValue'(ACC.V.all);
+         Target := new Content_ImplicitActivationPolicyValue;
+         Content_ImplicitActivationPolicyValue (Target.all).V := new PortableServer.ImplicitActivationPolicyValue'(ACC.V.all);
       end if;
-      Content_Ü_ImplicitActivationPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_ImplicitActivationPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ImplicitActivationPolicyValue)
+     (ACC : in out Content_ImplicitActivationPolicyValue)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PortableServer.ImplicitActivationPolicyValue, Ptr_Ü_ImplicitActivationPolicyValue);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => PortableServer.ImplicitActivationPolicyValue, Name => Ptr_ImplicitActivationPolicyValue);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access PortableServer.ImplicitActivationPolicyValue) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_ImplicitActivationPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_ImplicitActivationPolicyValue (X),
+      return Content_ImplicitActivationPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_ImplicitActivationPolicyValue (X),
         Repr_Cache => 0);
    end Wrap;
 
@@ -857,37 +857,37 @@ package body PortableServer.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_ServantRetentionPolicyValue is access all PortableServer.ServantRetentionPolicyValue;
-   type Content_Ü_ServantRetentionPolicyValue is
+   type Ptr_ServantRetentionPolicyValue is access all PortableServer.ServantRetentionPolicyValue;
+   type Content_ServantRetentionPolicyValue is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_ServantRetentionPolicyValue;
+      V : Ptr_ServantRetentionPolicyValue;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ServantRetentionPolicyValue;
+     (ACC   : not null access Content_ServantRetentionPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_ServantRetentionPolicyValue;
+     (ACC    : in out Content_ServantRetentionPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ServantRetentionPolicyValue) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_ServantRetentionPolicyValue) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ServantRetentionPolicyValue;
+     (ACC : in out Content_ServantRetentionPolicyValue;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_ServantRetentionPolicyValue;
+     (ACC  : Content_ServantRetentionPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ServantRetentionPolicyValue);
+     (ACC : in out Content_ServantRetentionPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_ServantRetentionPolicyValue;
+     (ACC   : not null access Content_ServantRetentionPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -902,7 +902,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_ServantRetentionPolicyValue;
+     (ACC    : in out Content_ServantRetentionPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -915,7 +915,7 @@ package body PortableServer.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_ServantRetentionPolicyValue) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_ServantRetentionPolicyValue) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -923,7 +923,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_ServantRetentionPolicyValue;
+     (ACC : in out Content_ServantRetentionPolicyValue;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -935,38 +935,38 @@ package body PortableServer.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_ServantRetentionPolicyValue;
+     (ACC  : Content_ServantRetentionPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_ServantRetentionPolicyValue then
+         if Into.all not in Content_ServantRetentionPolicyValue then
             return null;
          end if;
          Target := Into;
-         Content_Ü_ServantRetentionPolicyValue (Target.all).V.all := ACC.V.all;
+         Content_ServantRetentionPolicyValue (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_ServantRetentionPolicyValue;
-         Content_Ü_ServantRetentionPolicyValue (Target.all).V := new PortableServer.ServantRetentionPolicyValue'(ACC.V.all);
+         Target := new Content_ServantRetentionPolicyValue;
+         Content_ServantRetentionPolicyValue (Target.all).V := new PortableServer.ServantRetentionPolicyValue'(ACC.V.all);
       end if;
-      Content_Ü_ServantRetentionPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_ServantRetentionPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_ServantRetentionPolicyValue)
+     (ACC : in out Content_ServantRetentionPolicyValue)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PortableServer.ServantRetentionPolicyValue, Ptr_Ü_ServantRetentionPolicyValue);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => PortableServer.ServantRetentionPolicyValue, Name => Ptr_ServantRetentionPolicyValue);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access PortableServer.ServantRetentionPolicyValue) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_ServantRetentionPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_ServantRetentionPolicyValue (X),
+      return Content_ServantRetentionPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_ServantRetentionPolicyValue (X),
         Repr_Cache => 0);
    end Wrap;
 
@@ -1000,37 +1000,37 @@ package body PortableServer.Helper is
       return Result;
    end To_Any;
 
-   type Ptr_Ü_RequestProcessingPolicyValue is access all PortableServer.RequestProcessingPolicyValue;
-   type Content_Ü_RequestProcessingPolicyValue is
+   type Ptr_RequestProcessingPolicyValue is access all PortableServer.RequestProcessingPolicyValue;
+   type Content_RequestProcessingPolicyValue is
      new PolyORB.Any.Aggregate_Content with
    record
-      V : Ptr_Ü_RequestProcessingPolicyValue;
+      V : Ptr_RequestProcessingPolicyValue;
       Repr_Cache : aliased PolyORB.Types.Unsigned_Long;
    end record;
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_RequestProcessingPolicyValue;
+     (ACC   : not null access Content_RequestProcessingPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class;
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_RequestProcessingPolicyValue;
+     (ACC    : in out Content_RequestProcessingPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class);
    function Get_Aggregate_Count
-     (ACC : Content_Ü_RequestProcessingPolicyValue) return PolyORB.Types.Unsigned_Long;
+     (ACC : Content_RequestProcessingPolicyValue) return PolyORB.Types.Unsigned_Long;
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_RequestProcessingPolicyValue;
+     (ACC : in out Content_RequestProcessingPolicyValue;
       Count : PolyORB.Types.Unsigned_Long);
    function Clone
-     (ACC  : Content_Ü_RequestProcessingPolicyValue;
+     (ACC  : Content_RequestProcessingPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr;
    procedure Finalize_Value
-     (ACC : in out Content_Ü_RequestProcessingPolicyValue);
+     (ACC : in out Content_RequestProcessingPolicyValue);
 
    function Get_Aggregate_Element
-     (ACC   : not null access Content_Ü_RequestProcessingPolicyValue;
+     (ACC   : not null access Content_RequestProcessingPolicyValue;
       TC    : PolyORB.Any.TypeCode.Object_Ptr;
       Index : PolyORB.Types.Unsigned_Long;
       Mech  : not null access PolyORB.Any.Mechanism) return PolyORB.Any.Content'Class
@@ -1045,7 +1045,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Element;
 
    procedure Set_Aggregate_Element
-     (ACC    : in out Content_Ü_RequestProcessingPolicyValue;
+     (ACC    : in out Content_RequestProcessingPolicyValue;
       TC     : PolyORB.Any.TypeCode.Object_Ptr;
       Index  : PolyORB.Types.Unsigned_Long;
       From_C : in out PolyORB.Any.Any_Container'Class)
@@ -1058,7 +1058,7 @@ package body PortableServer.Helper is
    end Set_Aggregate_Element;
 
    function Get_Aggregate_Count
-     (ACC : Content_Ü_RequestProcessingPolicyValue) return PolyORB.Types.Unsigned_Long
+     (ACC : Content_RequestProcessingPolicyValue) return PolyORB.Types.Unsigned_Long
    is
       pragma Unreferenced (ACC);
    begin
@@ -1066,7 +1066,7 @@ package body PortableServer.Helper is
    end Get_Aggregate_Count;
 
    procedure Set_Aggregate_Count
-     (ACC : in out Content_Ü_RequestProcessingPolicyValue;
+     (ACC : in out Content_RequestProcessingPolicyValue;
       Count : PolyORB.Types.Unsigned_Long)
    is
       use type PolyORB.Types.Unsigned_Long;
@@ -1078,38 +1078,38 @@ package body PortableServer.Helper is
    end Set_Aggregate_Count;
 
    function Clone
-     (ACC  : Content_Ü_RequestProcessingPolicyValue;
+     (ACC  : Content_RequestProcessingPolicyValue;
       Into : PolyORB.Any.Content_Ptr := null) return PolyORB.Any.Content_Ptr
    is
       use type PolyORB.Any.Content_Ptr;
       Target : PolyORB.Any.Content_Ptr;
    begin
       if Into /= null then
-         if Into.all not in Content_Ü_RequestProcessingPolicyValue then
+         if Into.all not in Content_RequestProcessingPolicyValue then
             return null;
          end if;
          Target := Into;
-         Content_Ü_RequestProcessingPolicyValue (Target.all).V.all := ACC.V.all;
+         Content_RequestProcessingPolicyValue (Target.all).V.all := ACC.V.all;
       else
-         Target := new Content_Ü_RequestProcessingPolicyValue;
-         Content_Ü_RequestProcessingPolicyValue (Target.all).V := new PortableServer.RequestProcessingPolicyValue'(ACC.V.all);
+         Target := new Content_RequestProcessingPolicyValue;
+         Content_RequestProcessingPolicyValue (Target.all).V := new PortableServer.RequestProcessingPolicyValue'(ACC.V.all);
       end if;
-      Content_Ü_RequestProcessingPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
+      Content_RequestProcessingPolicyValue (Target.all).Repr_Cache:= ACC.Repr_Cache;
       return Target;
    end Clone;
 
    procedure Finalize_Value
-     (ACC : in out Content_Ü_RequestProcessingPolicyValue)
+     (ACC : in out Content_RequestProcessingPolicyValue)
    is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (PortableServer.RequestProcessingPolicyValue, Ptr_Ü_RequestProcessingPolicyValue);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => PortableServer.RequestProcessingPolicyValue, Name => Ptr_RequestProcessingPolicyValue);
    begin
       Free (ACC.V);
    end Finalize_Value;
 
    function Wrap (X : access PortableServer.RequestProcessingPolicyValue) return PolyORB.Any.Content'Class is
    begin
-      return Content_Ü_RequestProcessingPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_Ü_RequestProcessingPolicyValue (X),
+      return Content_RequestProcessingPolicyValue'(PolyORB.Any.Aggregate_Content with V => Ptr_RequestProcessingPolicyValue (X),
         Repr_Cache => 0);
    end Wrap;
 

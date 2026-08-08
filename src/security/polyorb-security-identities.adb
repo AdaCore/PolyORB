@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
@@ -101,7 +101,13 @@ package body PolyORB.Security.Identities is
    procedure Destroy (Item : in out Identity_Access) is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation (Identity_Type'Class, Identity_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Identity_Type'Class,
+
+
+         Name   => Identity_Access);
 
    begin
       if Item /= null then

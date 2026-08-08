@@ -47,7 +47,7 @@ pragma Warnings (On);
 
 with Ada.Exceptions;
 with Ada.Real_Time;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 with PolyORB.Initialization;
@@ -85,8 +85,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end Generic_Task;
 
    type Generic_Task_Access is access Generic_Task;
-   procedure Free_Generic_Task is
-     new Ada.Unchecked_Deallocation (Generic_Task, Generic_Task_Access);
+   procedure Free_Generic_Task is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Generic_Task,
+      Name => Generic_Task_Access);
 
    type Full_Tasking_Thread_Type is new PTT.Thread_Type with record
       Id         : PTT.Thread_Id;
@@ -101,9 +102,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    type Full_Tasking_Thread_Access
       is access all Full_Tasking_Thread_Type'Class;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Full_Tasking_Thread_Type'Class,
-      Full_Tasking_Thread_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Full_Tasking_Thread_Type'Class,
+      Name => Full_Tasking_Thread_Access);
 
    function A_To_P_Task_Id (ATID : Ada.Task_Identification.Task_Id)
      return PTT.Thread_Id;

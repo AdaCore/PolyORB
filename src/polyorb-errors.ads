@@ -32,7 +32,7 @@
 
 --  Errors management subsystem
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -56,8 +56,8 @@ package PolyORB.Errors is
 
    type Exception_Members_Access is access all Exception_Members'Class;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Exception_Members'Class, Exception_Members_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Exception_Members'Class, Name => Exception_Members_Access);
 
    -----------------------
    -- Completion_Status --

@@ -1,0 +1,57 @@
+-- GPRBuild Project File Example for ORB Core Service
+-- Copy and customize for each service
+
+project Orb_Core is
+
+   for Source_Dirs use ("src/**");
+   for Object_Dir use "obj";
+   for Exec_Dir use "obj";
+   for Main use ("orb_core_service.adb");
+
+   type Build_Mode_Type is ("debug", "release");
+   Build_Mode : Build_Mode_Type := external ("BUILD_MODE", "release");
+
+   type Library_Type_Type is ("static", "relocatable");
+   Library_Type : Library_Type_Type := external ("LIBRARY_TYPE", "static");
+
+   package Compiler is
+      Common_Switches := (
+         "-gnatwa",    -- All warnings
+         "-gnatwe",    -- Warnings as errors
+         "-gnatQ",     -- Don't quit
+         "-gnatf",     -- Full error messages
+         "-gnaty",     -- Style checks
+         "-gnat2012"   -- Ada 2012
+      );
+
+      case Build_Mode is
+         when "debug" =>
+            for Switches ("Ada") use Common_Switches & (
+               "-g",       -- Debug info
+               "-gnata",   -- Enable assertions
+               "-gnato",   -- Overflow checking
+               "-gnatVa"   -- Validity checking
+            );
+
+         when "release" =>
+            for Switches ("Ada") use Common_Switches & (
+               "-O2",      -- Optimize
+               "-gnatn",   -- Inline
+               "-gnatp"    -- Suppress checks
+            );
+      end case;
+   end Compiler;
+
+   package Binder is
+      for Switches ("Ada") use ("-Es"); -- Symbolic traceback
+   end Binder;
+
+   package Linker is
+      for Switches ("Ada") use ("-lssl", "-lcrypto");
+   end Linker;
+
+   package Builder is
+      for Executable ("orb_core_service.adb") use "orb-core-service";
+   end Builder;
+
+end Orb_Core;

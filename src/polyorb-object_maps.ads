@@ -32,7 +32,7 @@
 
 --  Abstract model for the POA Active Object Map.
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.POA_Types;
 with PolyORB.Servants;
@@ -50,8 +50,8 @@ package PolyORB.Object_Maps is
 
    type Object_Map_Entry_Access is access all Object_Map_Entry;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Object_Map_Entry, Object_Map_Entry_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Object_Map_Entry, Name => Object_Map_Entry_Access);
 
    ----------------
    -- Object_Map --

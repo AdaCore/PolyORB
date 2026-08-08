@@ -1,0 +1,218 @@
+# VirtualServices for PolyORB microservices
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: orb-core-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - orb-core
+    - orb-core.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50060
+      route:
+        - destination:
+            host: orb-core
+            port:
+              number: 50060
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 15s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: giop-protocol-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - giop-protocol
+    - giop-protocol.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50061
+      route:
+        - destination:
+            host: giop-protocol
+            port:
+              number: 50061
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: poa-manager-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - poa-manager
+    - poa-manager.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50062
+      route:
+        - destination:
+            host: poa-manager
+            port:
+              number: 50062
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: naming-service-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - naming-service
+    - naming-service.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50063
+      route:
+        - destination:
+            host: naming-service
+            port:
+              number: 50063
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: event-service-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - event-service
+    - event-service.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50064
+      route:
+        - destination:
+            host: event-service
+            port:
+              number: 50064
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: notification-service-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - notification-service
+    - notification-service.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50065
+      route:
+        - destination:
+            host: notification-service
+            port:
+              number: 50065
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: interface-repository-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - interface-repository
+    - interface-repository.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50066
+      route:
+        - destination:
+            host: interface-repository
+            port:
+              number: 50066
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: soap-gateway-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - soap-gateway
+    - soap-gateway.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 8081
+      route:
+        - destination:
+            host: soap-gateway
+            port:
+              number: 8081
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: security-service-vs
+  namespace: polyorb
+spec:
+  hosts:
+    - security-service
+    - security-service.polyorb.svc.cluster.local
+  http:
+    - match:
+        - port: 50067
+      route:
+        - destination:
+            host: security-service
+            port:
+              number: 50067
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+  tls:
+    - match:
+        - port: 8443
+          sniHosts:
+            - security-service.polyorb.svc.cluster.local
+      route:
+        - destination:
+            host: security-service
+            port:
+              number: 8443

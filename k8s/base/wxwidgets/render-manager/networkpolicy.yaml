@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: render-manager-netpol
+  namespace: wxwidgets
+  labels:
+    app: render-manager
+    version: v1.0.0
+spec:
+  podSelector:
+    matchLabels:
+      app: render-manager
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    ports:
+    - protocol: TCP
+      port: 50052
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: wxwidgets
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system

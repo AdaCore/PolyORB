@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.SOAP_P.Response;
 with PolyORB.SOAP_P.Message.Payload;
@@ -46,7 +46,8 @@ package PolyORB.SOAP_P.Message.Response is
 
    function Is_Error (R : Object) return Boolean;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Object'Class, Object_Access);
+   procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+     (Object => Object'Class,
+      Name => Object_Access);
 
 end PolyORB.SOAP_P.Message.Response;

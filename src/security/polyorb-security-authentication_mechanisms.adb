@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.Parameters;
@@ -133,9 +133,13 @@ package body PolyORB.Security.Authentication_Mechanisms is
    is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Client_Authentication_Mechanism'Class,
-         Client_Authentication_Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Client_Authentication_Mechanism'Class,
+
+
+         Name   => Client_Authentication_Mechanism_Access);
 
    begin
       if Mechanism /= null then
@@ -149,9 +153,13 @@ package body PolyORB.Security.Authentication_Mechanisms is
    is
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (Target_Authentication_Mechanism'Class,
-         Target_Authentication_Mechanism_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => Target_Authentication_Mechanism'Class,
+
+
+         Name   => Target_Authentication_Mechanism_Access);
 
    begin
       if Mechanism /= null then

@@ -1,0 +1,162 @@
+# VirtualServices for wxWidgets microservices
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: widget-core-vs
+  namespace: wxwidgets
+spec:
+  hosts:
+    - widget-core
+    - widget-core.wxwidgets.svc.cluster.local
+  http:
+    - match:
+        - port: 50051
+      route:
+        - destination:
+            host: widget-core
+            port:
+              number: 50051
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: render-manager-vs
+  namespace: wxwidgets
+spec:
+  hosts:
+    - render-manager
+    - render-manager.wxwidgets.svc.cluster.local
+  http:
+    - match:
+        - port: 50052
+      route:
+        - destination:
+            host: render-manager
+            port:
+              number: 50052
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: event-manager-vs
+  namespace: wxwidgets
+spec:
+  hosts:
+    - event-manager
+    - event-manager.wxwidgets.svc.cluster.local
+  http:
+    - match:
+        - port: 50053
+      route:
+        - destination:
+            host: event-manager
+            port:
+              number: 50053
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: windows-adapter-vs
+  namespace: wxwidgets
+spec:
+  hosts:
+    - windows-adapter
+    - windows-adapter.wxwidgets.svc.cluster.local
+  http:
+    - match:
+        - port: 50054
+      route:
+        - destination:
+            host: windows-adapter
+            port:
+              number: 50054
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: macos-adapter-vs
+  namespace: wxwidgets
+spec:
+  hosts:
+    - macos-adapter
+    - macos-adapter.wxwidgets.svc.cluster.local
+  http:
+    - match:
+        - port: 50055
+      route:
+        - destination:
+            host: macos-adapter
+            port:
+              number: 50055
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: linux-adapter-vs
+  namespace: wxwidgets
+spec:
+  hosts:
+    - linux-adapter
+    - linux-adapter.wxwidgets.svc.cluster.local
+  http:
+    - match:
+        - port: 50056
+      route:
+        - destination:
+            host: linux-adapter
+            port:
+              number: 50056
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: xrc-service-vs
+  namespace: wxwidgets
+spec:
+  hosts:
+    - xrc-service
+    - xrc-service.wxwidgets.svc.cluster.local
+  http:
+    - match:
+        - port: 8080
+      route:
+        - destination:
+            host: xrc-service
+            port:
+              number: 8080
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 10s

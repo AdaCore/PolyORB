@@ -129,7 +129,9 @@ package body Data is
 
    procedure Release (D : in out Tree) is
 
-      procedure Free is new Ada.Unchecked_Deallocation (Node, Tree);
+      procedure Free is new PolyORB.Utils.Unchecked_Deallocation.Free
+        (Object => Node,
+         Name => Tree);
 
       P : Tree;
       T : Tree := D;

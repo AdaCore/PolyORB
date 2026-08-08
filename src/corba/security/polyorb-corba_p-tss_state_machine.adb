@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 with PolyORB.Annotations;
 with PolyORB.ASN1;
@@ -135,9 +135,13 @@ package body PolyORB.CORBA_P.TSS_State_Machine is
       use PolyORB.Security.Types;
 
       procedure Free is
-        new Ada.Unchecked_Deallocation
-        (QoS_Target_Security_Parameter,
-         QoS_Target_Security_Parameter_Access);
+        new PolyORB.Utils.Unchecked_Deallocation.Free
+
+
+        (Object => QoS_Target_Security_Parameter,
+
+
+         Name   => QoS_Target_Security_Parameter_Access);
 
       Creds : constant PolyORB.Security.Credentials.Credentials_List
         := PolyORB.Security.Security_Manager.Own_Credentials;

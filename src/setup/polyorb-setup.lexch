@@ -1,0 +1,37 @@
+[LIBRARY PATH]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/lib/libpolyorb-setup.a
+[OBJECT FILES]
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-base.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-client.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-client_base.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-common_base.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-default_parameters.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-no_tasking_client.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-no_tasking_server.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-ravenscar_tp_server.o
+20251105045331
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-server.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-tasking-full_tasking.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-tasking-no_tasking.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-tasking-ravenscar.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-tasking.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-thread_per_request_server.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-thread_per_session_server.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-thread_pool_client.o
+20251105045330
+/Users/heathdorn/Documents/Playground/Agents/RefactorTeam/code_refactor/PolyORB/src/setup/polyorb-setup-thread_pool_server.o
+20251105045330

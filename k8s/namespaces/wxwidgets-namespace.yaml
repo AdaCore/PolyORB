@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wxwidgets
+  labels:
+    name: wxwidgets
+    tier: presentation
+    app.kubernetes.io/part-of: microservices-platform
+  annotations:
+    description: "wxWidgets C++ GUI microservices namespace"

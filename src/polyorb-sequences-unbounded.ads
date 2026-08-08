@@ -59,7 +59,7 @@ pragma Ada_2012;
 --  not see Constraint_Error raised.
 
 with Ada.Finalization;
-with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Unchecked_Deallocation;
 
 generic
     type Element is private;
@@ -75,7 +75,11 @@ package PolyORB.Sequences.Unbounded is
 
    type Element_Array_Access is access all Element_Array;
    procedure Free is
-     new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
+     new PolyORB.Utils.Unchecked_Deallocation.Free
+
+     (Object => Element_Array,
+
+      Name   => Element_Array_Access);
 
    type Sequence is private;
 

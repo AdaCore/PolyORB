@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-manager
+  namespace: wxwidgets
+  labels:
+    app: event-manager
+    version: v1.0.0
+    tier: events
+    component: event-handling
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "50053"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: event-manager
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: event-manager
+        version: v1.0.0
+        tier: events
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      serviceAccountName: event-manager-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: event-manager
+        image: event-manager:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grpc
+          containerPort: 50053
+          protocol: TCP
+        env:
+        - name: SERVICE_NAME
+          value: "event-manager"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: event-manager-config
+              key: log_level
+        - name: WIDGET_CORE_ADDR
+          value: "widget-core.wxwidgets.svc.cluster.local:50051"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          grpc:
+            port: 50053
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          grpc:
+            port: 50053
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        startupProbe:
+          grpc:
+            port: 50053
+          periodSeconds: 5
+          failureThreshold: 12
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

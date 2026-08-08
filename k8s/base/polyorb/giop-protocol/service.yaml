@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: giop-protocol
+  namespace: polyorb
+  labels:
+    app: giop-protocol
+    version: v1.0.0
+    tier: protocol
+spec:
+  type: ClusterIP
+  selector:
+    app: giop-protocol
+    version: v1.0.0
+  ports:
+  - name: grpc
+    port: 50061
+    targetPort: 50061
+    protocol: TCP
