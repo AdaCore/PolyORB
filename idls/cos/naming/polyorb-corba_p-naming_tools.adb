@@ -148,7 +148,15 @@ package body PolyORB.CORBA_P.Naming_Tools is
             Ref := To_Ref (resolve (Cur, N));
          exception
             when NotFound =>
-               Ref := NamingContext.Ref (bind_new_context (Cur, N));
+               begin
+                  Ref := NamingContext.Ref (bind_new_context (Cur, N));
+               exception
+                  when NamingContext.AlreadyBound =>
+                     --  Another client created this context between our
+                     --  resolve and bind_new_context: use theirs.
+
+                     Ref := To_Ref (resolve (Cur, N));
+               end;
          end;
          Cur := Ref;
       end loop;
@@ -178,14 +186,20 @@ package body PolyORB.CORBA_P.Naming_Tools is
            (CosNaming.To_Sequence (NCA (NCA'First .. NCA'Last - 1)));
       end if;
 
-      bind (Context, N, Ref);
-   exception
-      when NamingContext.AlreadyBound =>
-         if Rebind then
-            NamingContext.rebind (Context, N, Ref);
-         else
-            raise;
-         end if;
+      --  Only an AlreadyBound raised by this bind means that Name is
+      --  already bound. Handling AlreadyBound for the whole procedure would
+      --  also catch one from Retrieve_Context, and rebind on a nil Context.
+
+      begin
+         bind (Context, N, Ref);
+      exception
+         when NamingContext.AlreadyBound =>
+            if Rebind then
+               NamingContext.rebind (Context, N, Ref);
+            else
+               raise;
+            end if;
+      end;
    end Register;
 
    --------------
