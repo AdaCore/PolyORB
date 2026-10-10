@@ -1136,7 +1136,7 @@ package body Backend.BE_IDL is
       Write_Eol;
       Increment_Indentation;
       while Present (N) loop
-         Write_Indentation;
+         --  Generate_Switch_Alternative writes its own indentation
          Generate (N);
          Generate_Statement_Delimiter (N);
          N := Next_Entity (N);
