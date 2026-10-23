@@ -26,6 +26,10 @@ We review some parameters that can impact performance.
 
   * Setting `tcp.nodelay` to false will disable Nagle buffering.
 
+  * Setting `tcp.keepalive` to true will enable TCP keep-alive probes on
+    connections, allowing unreachable peers to be detected. When this
+    parameter is left unset, PolyORB does not touch the socket option.
+
 * **GIOP parameters**:
 
   * Setting

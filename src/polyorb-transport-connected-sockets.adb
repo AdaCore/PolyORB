@@ -144,6 +144,13 @@ package body PolyORB.Transport.Connected.Sockets is
             Option => (Name => No_Delay, Enabled => True));
       end if;
 
+      if Get_Conf ("transport", "tcp.keepalive", False) then
+         Set_Socket_Option
+           (Socket => S,
+            Level  => Socket_Level,
+            Option => (Name => Keep_Alive, Enabled => True));
+      end if;
+
       Create (TE.Mutex);
    end Create;
 
